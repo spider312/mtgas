@@ -3,3 +3,5 @@ You may do the same with footer.orig.php
 
 You can put some deck files in decks/default/ , they will appear by default in deck list for newcomers
 You can put images in img/avatar/ , they will appear in avatar selector
+
+I strongly encourage you to protect admin folder, with a .htaccess file for example, or even by removing it
