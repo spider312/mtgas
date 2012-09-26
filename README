@@ -1,1 +1,5 @@
-nothing
+Edit config.orig.php with your own data (such as databases adress, name, login and pass) and rename it as config.php
+You may do the same with footer.orig.php
+
+You can put some deck files in decks/default/ , they will appear by default in deck list for newcomers
+You can put images in img/avatar/ , they will appear in avatar selector
