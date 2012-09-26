@@ -1,0 +1,12 @@
+.section {
+	margin: 2%;
+}
+td a {
+	display: block ;
+	text-decoration: none ;
+	color: black ;
+}
+#decks_table tbody tr:hover, #past_tournaments tr:hover {
+	background-color: #F4ECD2 ;
+}
+

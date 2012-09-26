@@ -1,0 +1,60 @@
+#side_window {
+	z-index: 2 ;
+	position: absolute ;
+	top: 1% ;
+	width: 650px ;
+	left: 50% ;
+	margin-left: -310px ;
+	height: 97% ;
+	border: 3px outset black ;
+	background-color: white ;
+}
+#deck, #side {
+	position: absolute ;
+	top: 5px ;
+	width: 290px ;
+	margin: 0 ;
+	padding: 0 ;
+
+	overflow-y: auto ;
+	overflow-x: hidden ;
+}
+#deck {
+	height: 98% ; /* Nearly all height */
+	left: 5px ;
+	text-align: left ;
+}
+#side {
+	height: 92% ; /* Keep space for buttons */
+	right: 5px ;
+	text-align: right ;
+}
+#deck li, #side li {
+	margin: 1px ;
+	list-style-type: none ;
+	border: 1px solid black ;
+	height: 23px ;
+	background-image: url('http://img.mogg.fr/MIDRES/back.jpg') ;
+	background-repeat: no-repeat ;
+	background-position: center -11px ;
+	background-size: 250px auto ;
+}
+#deck li {
+	background-position: right -11px ;
+}
+#side li {
+	background-position: left -11px ;
+}
+#deck li.selected, #side li.selected {
+	outline: 2px solid red !important ;
+}
+#button_switch {
+	position: absolute ;
+	top: 32px ;
+	left: 300px ;
+}
+#buttons {
+	position: absolute ;
+	bottom: 5px ;
+	right: 5px ;
+}

@@ -1,0 +1,309 @@
+body {
+	margin: 0 ;
+}
+table {
+	border-collapse: collapse ;
+}
+td {
+	border: 1px solid darkgray ;
+}
+label	{
+	display: block ;
+	cursor: pointer ;
+}
+#paper {
+	background: darkgreen url('../Background.jpg') repeat fixed left top ;
+	float: left ; /* Canvas "margin" (whitespace) */
+}
+/* ========== "Boxes" right side of game table ========== */
+/*
++-------------------+
+|+-----++----------+|
+|| SVG ||   zoom   ||
+||     |+----------+|
+||     |+----------+|
+||     || timeleft ||
+||     |+----------+|
+||     |+----------+|
+||     ||   info   ||
+||     |+----------+|
+||     |+----------+|
+||     || chatbox  ||
+||     |+----------+|
+||     |+----------+|
+||     || sendbox  ||
+||     |+----------+|
+||     |+----------+|
+||     || autotext ||
+|+-----++----------+|
++-------------------+
+At game page load, a function is called that will first define 'rightframe' width depending on screensize and value of JS vars (representing *minimal* width, that will be maximized after defining paper width)
+Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of 'autotext', then resize 'chatbox' in order to make it use height aviable between 'info' and 'sendbox'
+*/
+#rightframe {
+	position: fixed ;
+	right: 1px ;
+	top: 1px ;
+	height: 100% ;
+}
+#zoom {
+	width: 100% ;
+	margin-bottom: -3px ; /* ?!? */
+}
+#timeleft, #info {
+	font-size: 18px ;
+	text-align: center ;
+	margin-bottom: 1px ;
+	border: 1px solid black ;
+	height: 22px ;
+}
+#chatbox {
+	/*overflow-x: auto ;*/
+	overflow-y: scroll ;
+}
+#chattable {
+	font-size: .8em ;
+	width: 100% ; /* Force as being size of its parent : #chatbox, as it is forced by javascript */
+	/* http://www.alsacreations.com/tuto/lire/1038-gerer-debordement-contenu-et-cesures-css.html */
+	table-layout: fixed ;
+	word-wrap: break-word ;
+	/*hyphens: auto;*/
+	/*text-overflow: ellipsis ;*/
+}
+#chatbox table {
+	width: 100% ;
+}
+.lastseen	{
+	background-color: pink ;
+}
+#sendbox {
+	position: absolute ; /* Defined by JS after filling #autotext */
+	width: 98% ; /* Simulate a "true" 100% width */
+}
+/* Autotext */
+#autotext {
+	position: absolute ;
+	right: 1px ;
+	bottom: 1px ;
+}
+#autotext_window {
+	z-index: 50 ;
+	display: none ;
+	position: absolute ;
+	bottom: 100px ;
+	right: 300px ;
+	padding-bottom: 25px ; /* Buttons aren't counted in div height, count them as padding */
+	border: 3px outset black ;
+	background-color: white ;
+}
+#autotext_window.disp {
+	display: block !important ;
+}
+#autotext_window button {
+	position: absolute ;
+	bottom: 0 ;
+	width: 100px ;
+	height: 25px ;
+	padding: 0px ;
+}
+#autotext_area {
+	width: 195px ;
+	height: 175px ;
+	margin: 0 ;
+	/*resize: none;*/
+}
+/* Log */
+#log_window {
+	z-index: 50 ;
+	display: none ;
+	position: absolute ;
+	top: 5% ;
+	left: 5% ;
+	width: 90% ;
+	height: 90% ;
+	padding-bottom: 25px ; /* Buttons aren't counted in div height, count them as padding */
+	border: 3px outset black ;
+	background-color: white ;
+}
+#log_window.disp {
+	display: block !important ;
+}
+#log_area {
+	width: 99% ;
+	height: 95% ;
+}
+#log_close, #log_clear {
+	bottom: 0 ;
+	width: 49% ;
+	height: 5% ;
+}
+/* Target Helper */
+#target_helper {
+	display: none ;
+	position: absolute ;
+	background-color: black ;
+	opacity: .85 ;
+	list-style-type: none ;
+	padding: 5px ;
+	font-size: 0.85em ;
+	font-family: Verdana, Geneva, sans-serif ;
+	border-radius: 5px;
+	cursor: crosshair ;
+	margin: 0 ;
+}
+#target_helper.disp {
+	display: block !important ;
+	z-index: 50 ;
+}
+#options {
+	display: none ; /* Displayed by javascript via class .disp */
+	/* Positionning : centered */
+	position:absolute;
+	top:50%;
+	left:50%;
+	width:450px;
+	margin-left: -225px ; /* half width */
+	height: 560px ;
+	margin-top: -280px ;/* half height */
+	/* Displaying */
+	background-color: white ;
+	border: 3px outset black ;
+}
+#options.disp {
+	display: block !important ;
+	z-index: 50 ;
+}
+#options h2 {
+	margin: 0 ;
+	padding: 1px ;
+	background-color: black ;
+	color: white ;
+}
+#options fieldset {
+	margin: 5px 10px 0 10px ;
+}
+#options_close {
+	position: absolute ;
+	right: 10px ;
+	bottom: 10px ;
+}
+/* Choice window (triggers, dredge ...)*/
+#choicewin {
+	z-index: 2 ;
+	position: absolute ;
+	border: 3px outset black ;
+	background-color: white ;
+	width: 256px ;
+}
+#choicewin .title	{
+	/*cursor: pointer ;*/
+	color: white ;
+	background-color: black ;
+	font-weight: bold ;
+	font-size: 18px ;
+	padding: 1px ;
+	height: 22px ;
+}
+#choicewin ul {
+	margin: 0px ;
+	padding: 2px ;
+	overflow-y: hidden ;
+	overflow-x: hidden ; /* No need to display, needed in CSS ? */
+}
+#choicewin li	{
+	margin: 1px ;
+	cursor: pointer ;
+	list-style-type: none ;
+	height: 23px ;
+	border: 1px solid black ;
+	background-image: url('http://img.mogg.fr/MIDRES/back.jpg') ;
+	background-position: center -11px ;
+	background-repeat: no-repeat ;
+	background-size: 250px auto ;
+}
+#choicewin li.selected {
+	border-color: red ;
+	outline: 1px solid red !important ;
+}
+#choicewin li.no {
+	cursor: not-allowed ;
+}
+#choicewin .buttons	{
+	position: absolute ;
+	bottom: 5px ;
+	right: 5px ;
+}
+/* ========== Chatbox semantical colors ========== */
+/* http://www.w3schools.com/html/html_colornames.asp */
+#chatbox .filtered	 {
+	display: none !important ;
+}
+#chatbox .bug	{
+	background-color: red ;
+	white-space: pre ;
+}
+#chatbox .win	{
+	background-color: yellow ;
+}
+#chatbox .turn	{
+	background-color: black ;
+	color: white ;
+}
+#chatbox .step	{
+	background-color: darkgray ;
+	color: white ;
+}
+#chatbox .life	{
+	color: red ;
+}
+#chatbox .poison {
+	color: green ;
+}
+#chatbox .zone	{
+	color: dimgray ;
+}
+#chatbox .tap	{
+	color: darkgray ;
+}
+#chatbox .attack	{
+	color: tomato ;
+}
+#chatbox .note	{
+	color: darkslateblue  ;
+}
+#chatbox .counter	{
+	color: navy ;
+}
+#chatbox .pow_thou	{
+	color: darkslateblue ;
+}
+#chatbox .target	{
+	color: green ;
+}
+/* Second sens */
+#chatbox .land	{
+	background-color: wheat ; /*sandybrown, peru, tan, wheat */
+}
+/* Infobulle */
+.infobulle	{
+	cursor: pointer ;
+	color: red ;
+	position: absolute ;
+	background-color: black ;
+	opacity: .85 ;
+	padding: 5px ;
+	font-size: 0.85em ;
+	font-family: Verdana, Geneva, sans-serif ;
+	border-radius: 5px;
+}
+/* Targets */
+.target {
+	z-index: 3 ;
+}
+/* Button "next step" */
+#nextstep {
+	z-index: 1 ;
+	position: absolute ;
+	height: 35px ;
+	width: 150px ;
+}

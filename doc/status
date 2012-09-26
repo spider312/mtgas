@@ -1,0 +1,32 @@
+As some information is reduce as a simple number in some parts of structure and code, let's explain them
+
+Game status (table `round`)
+	0	Canceled (essentially status 1 canceled because of inactivity by server)
+	1	Pending (a player created it, no player has joined)
+	2	Waiting for start (a player created it, a player has joined)
+	3	Playing (a player created it, a player has joined, creator has joined)
+		Goldfish games are created with this status
+	4	Created by a tournament, no join
+	5	Created by a tournament, one player joined
+	6	Created by a tournament, both player joined
+	7	Ended
+
+Tournament status
+	0	Canceled (essentially status 1 canceled because of inactivity by server)
+	1	Pending (a player created it, not enough player has joined to start it)
+	2	Starting (enough player joined)
+	3	Drafting (only aviable in drafts)
+	4	Building (only aviable in drafts and sealed)
+	5	Playing
+	6	Ended
+
+Registration status
+	0	Registered a game waiting for players
+	1	Redirecting
+	2	Drafting
+	3	Building
+	4	Playing
+	5	Ended
+	6	BYE
+	7	Droped
+	8	Banned

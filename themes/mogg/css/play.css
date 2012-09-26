@@ -1,0 +1,181 @@
+body {
+	margin: 0 ;
+}
+table {
+	border-collapse: collapse ;
+}
+td {
+	border: 1px solid darkgray ;
+}
+label	{
+	display: block ;
+	cursor: pointer ;
+}
+#paper {
+	background: darkgreen url('../Background.jpg') repeat fixed left top ;
+}
+/* ========== "Boxes" right side of game table ========== */
+/*
++-------------------+
+|+-----++----------+|
+|| SVG ||   zoom   ||
+||     |+----------+|
+||     |+----------+|
+||     || timeleft ||
+||     |+----------+|
+||     |+----------+|
+||     ||   info   ||
+||     |+----------+|
+||     |+----------+|
+||     || chatbox  ||
+||     |+----------+|
+||     |+----------+|
+||     || sendbox  ||
+||     |+----------+|
+||     |+----------+|
+||     || autotext ||
+|+-----++----------+|
++-------------------+
+At game page load, a function is called that will first define 'rightframe' width depending on screensize and value of JS vars (representing *minimal* width, that will be maximized after defining paper width)
+Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of 'autotext', then resize 'chatbox' in order to make it use height aviable between 'info' and 'sendbox'
+*/
+#rightframe {
+	position: fixed ;
+	right: 1px ;
+	top: 1px ;
+	height: 100% ;
+}
+#zoom {
+	width: 100% ;
+	margin-bottom: -3px ; /* ?!? */
+}
+#timeleft, #info {
+	font-size: 18px ;
+	text-align: center ;
+	margin-bottom: 1px ;
+	border: 1px solid black ;
+	height: 22px ;
+}
+#chatbox {
+	overflow: auto ; /* Scrollbar */
+}
+#chatbox table {
+	width: 100% ;
+}
+#sendbox {
+	position: absolute ; /* Defined by JS after filling #autotext */
+	width: 98% ; /* Simulate a "true" 100% width */
+}
+#autotext {
+	position: absolute ;
+	right: 1px ;
+	bottom: 1px ;
+}
+#autotext button {
+	padding: 3px ;
+}
+#target_helper {
+	display: none ;
+	position: absolute ;
+	background-color: black ;
+	opacity: .85 ;
+	list-style-type: none ;
+	padding: 5px ;
+	font-size: 0.85em ;
+	font-family: Verdana, Geneva, sans-serif ;
+	border-radius: 5px;
+}
+#target_helper.disp {
+	display: block !important ;
+	z-index: 50 ;
+}
+#options {
+	display: none ; /* Displayed by javascript via class .disp */
+	/* Positionning : centered */
+	position:absolute;
+	top:50%;
+	left:50%;
+	width:500px;
+	margin-left: -250px ; /* half width */
+	height: 300px ;
+	margin-top: -150px ;/* half height */
+	/* Displaying */
+	background-color: white ;
+	padding-left: 20px ;
+}
+#options.disp {
+	display: block !important ;
+	z-index: 50 ;
+}
+#options_close {
+	position: absolute ;
+	right: 10px ;
+	bottom: 10px ;
+}
+/* ========== Chatbox semantical colors ========== */
+/* http://www.w3schools.com/html/html_colornames.asp */
+#chatbox {
+	font-size: .8em ;
+}
+#chatbox .filtered	 {
+	display: none !important ;
+}
+#chatbox .bug	{
+	background-color: red ;
+	white-space: pre ;
+}
+#chatbox .win	{
+	background-color: yellow ;
+}
+#chatbox .turn	{
+	background-color: black ;
+	color: white ;
+}
+#chatbox .step	{
+	background-color: darkgray ;
+	color: white ;
+}
+#chatbox .life	{
+	color: red ;
+}
+#chatbox .poison {
+	color: green ;
+}
+#chatbox .zone	{
+	color: dimgray ;
+}
+#chatbox .tap	{
+	color: darkgray ;
+}
+#chatbox .attack	{
+	color: tomato ;
+}
+#chatbox .note	{
+	color: darkslateblue  ;
+}
+#chatbox .counter	{
+	color: navy ;
+}
+#chatbox .pow_thou	{
+	color: darkslateblue ;
+}
+#chatbox .target	{
+	color: green ;
+}
+/* Second sens */
+#chatbox .land	{
+	background-color: wheat ; /*sandybrown, peru, tan, wheat */
+}
+
+/* Infobulle */
+.infobulle	{
+	cursor: pointer ;
+	color: red ;
+	position: absolute ;
+	background-color: black ;
+	opacity: .85 ;
+	padding: 5px ;
+	font-size: 0.85em ;
+	font-family: Verdana, Geneva, sans-serif ;
+	border-radius: 5px;
+}

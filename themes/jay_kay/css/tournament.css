@@ -1,0 +1,44 @@
+table {
+	margin: 1% ;
+	margin-top: 0 ;
+}
+/* Tournament index */
+.self {
+	background-color: #F4ECD2 ;
+}
+.group {
+	margin: 2% ;
+}
+#toplink {
+	font-size: larger ;
+}
+pre {
+	overflow: hidden ;
+	height: 50px ;
+	margin: 0 ;
+}
+pre.maximized {
+	overflow: visible ;
+	height: auto ;
+}
+.column {
+	/*border: 1px solid red ;*/
+	width: 48% ;
+	padding: 1% ;
+	float: left ;
+}
+/* Draft + Build*/
+#info {
+	position: fixed ;
+	top: 0 ;
+	right: 0 ;
+	padding: 5px ;
+	margin: 10px ;
+}
+#back {
+	position: fixed ;
+	bottom: 0 ;
+	right: 0 ;
+	padding: 5px ;
+	margin: 10px ;
+}

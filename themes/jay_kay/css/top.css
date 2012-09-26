@@ -1,0 +1,13 @@
+table {
+	display: inline ;
+	border: 0px solid black ;
+}
+#stats {
+	width: 96% ;
+	margin-left: 2% ;
+	margin-bottom: 2% ;
+	margin-top: 25px ;
+}
+.self {
+	background-color: #F4ECD2 ;
+}

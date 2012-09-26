@@ -1,0 +1,45 @@
+body	{
+	margin: 0 ;
+	padding: 0 ;
+	overflow-y: scroll ; /* Always display right scrollbar, because list-windows size is calculated including them */
+	overflow-x: hidden ;
+}
+ul#cards	{
+	padding: 0 ;
+	margin: 0 ;
+	width: 240px ;
+}
+ul#cards li	{
+	margin: 1px ;
+	list-style-type: none ;
+	border: 1px solid black ;
+	height: 23px ;
+}
+label	{
+	display: block ;
+	cursor: pointer ;
+}
+li.card	{
+	background-image: url('http://img.mogg.fr/img/back.jpg') ;
+	background-position: center -11px ;
+	background-repeat: no-repeat ;
+	background-size: 250px auto ;
+}
+li.inactive	{
+	border-color: darkgray ;
+	background-color: lightgray ;
+	color: darkgray ;
+	cursor: not-allowed ;
+}
+li.button	{
+	background-color: lightgray ;
+	cursor: pointer ;
+}
+li.dragged	{
+	border: 1px solid red ;
+}
+li.all	{
+	text-align: center ;
+	font-weight: bold ;
+	cursor: pointer ;
+}

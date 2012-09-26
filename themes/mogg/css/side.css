@@ -1,0 +1,45 @@
+#deck, #side {
+	position: absolute ;
+	top: 5px ;
+	width: 270px ;
+	margin: 0 ;
+	padding: 0 ;
+}
+#deck {
+	left: 5px ;
+	text-align: left ;
+}
+#side {
+	right: 5px ;
+	text-align: right ;
+}
+#deck li, #side li {
+	margin: 1px ;
+	list-style-type: none ;
+	border: 1px solid black ;
+	height: 23px ;
+	background-image: url('http://img.mogg.fr/MIDRES/back.jpg') ;
+	background-repeat: no-repeat ;
+	background-position: center -11px ;
+	background-size: 250px auto ;
+}
+#deck li {
+	background-position: right -11px ;
+}
+#side li {
+	background-position: left -11px ;
+}
+.selected {
+	outline: 2px solid red !important ;
+}
+#buttons {
+	position: absolute ;
+	bottom: 5px ;
+	margin-left: auto ;
+	margin-right: auto ;
+}
+#button_switch {
+	position: absolute ;
+	top: 32px ;
+	left: 280px ;
+}

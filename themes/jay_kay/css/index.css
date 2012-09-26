@@ -1,0 +1,99 @@
+table {
+	width: 96% ;
+	margin: 2% ;
+	margin-top: 0 ;
+}
+ol {
+	padding-left: 25px ;
+}
+td label {
+	margin: 0 ;
+}
+td.nowrap {
+	margin: 0 ;
+	white-space: nowrap;
+}
+.errored {
+	border: 2px solid red ;
+}
+/* Index is divided in 2 columns */
+#left_col, #right_col {
+	float: left ;
+	/* | 2% |   47%   | 2% |   47%   | 2% | = 100% */
+	width: 47% ;
+	margin-left: 2% ;
+	margin-bottom: 2% ;
+}
+/* Each divided in sections */
+#stats, #profile, #games, #tournaments, #decks {
+	width: 100% ;
+	margin-top: 25px ;
+}
+#footer, #browser {
+	margin: 2% ;
+	padding:1% ;
+	font-size:x-small;
+}
+#footer {
+	clear: both ;
+	text-align: center ;
+}
+#browser {
+	background-image: url(http://www.mozilla.com/img/home/download-logo.png) ;
+	background-repeat: no-repeat ;
+	padding-left: 110px ;
+	height: 100px ;
+}
+/* Table lines enhancement */
+td a {
+	display: block ;
+	text-decoration: none ;
+	color: black ;
+}
+#decks_table tbody tr:hover, #past_tournaments tr:hover {
+	background-color: #F4ECD2 ;
+}
+#decks_table input[type=text] {
+	width: 100% ;
+}
+.registered {
+	background-color: #F4ECD2 ;
+}
+/* Forms */
+#tournament_options {
+	padding: 2px ;
+}
+#tournament_options.hidden legend {
+	display: block ;
+}
+#tournament_options #tournament_options_toggle {
+	display: inline ;
+}
+#tournament_options.hidden * {
+	display: none ;
+}
+.create {
+	background: url('../images/create4.png') no-repeat top left;
+	margin-left:1%;
+	width:101px;
+	height:30px;
+	border:none;
+}
+.create:hover {
+	background: url('../images/create4.png') no-repeat top right ;
+	border:none ;
+}
+.create:active {
+	background: url('../images/create4.png') no-repeat bottom left ;
+	border:none ;
+}
+#game_name{
+	background: url('../images/input2.png') no-repeat bottom left;
+	padding-left:10px;
+	width:201px;
+	height:30px;
+	border:none;
+}
+.score {
+	text-align: center ;
+}

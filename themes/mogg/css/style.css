@@ -1,0 +1,87 @@
+/***********************************************************
+ * CSS main file for all website's pages, except play page *
+ ***********************************************************/
+
+/**************************
+ * General considerations *
+ * ************************/
+body {
+	background-color: #4B371D ;
+	margin: 0 ;
+}
+/* Colapsed tables, with emphased table-headers */
+table {
+	border-collapse: collapse ;/* Bugs in FF with colspan */
+	/*border-spacing: 0 ;*/
+}
+thead, th {
+	background-color: #F4ECD2 ;
+	text-align: center ;
+	font-weight: bold ;
+}
+table, th, td {
+	border: 1px solid #4B371D ;
+}
+h1 {
+	padding-left: 5px ;
+}
+h2, h3, h4, h5, h6 {
+	padding-left: 10px ;
+	margin-top: 5px ;
+}
+h1, h2, h3, h4, h5, h6 {
+	background-color: #F4ECD2 ;
+	margin-bottom: 10px ; 
+}
+
+/* "clickable" labels */
+label	{
+	display: block ;
+	cursor: pointer ;
+	margin-left: 5px ;
+}
+button, input[type=submit], input[type=button] {
+	background-color: #F4ECD2 ;
+	border-color: #F4ECD2 ;
+}
+p > input, p > button {
+	margin-left: 5px ;
+}
+ul {
+	margin: 0px ;
+	padding-left: 30px ;
+}
+/***************************
+ * General purpose classes *
+ ***************************/
+.fullwidth {
+	width: 100% ;
+}
+.nowrap {
+	white-space: nowrap ;
+}
+.section { /* Colorized background */
+	background-color: #EADAA2 ;
+}
+.overscroll {
+	overflow: auto ;
+}
+/*
+
+*/
+#tail td {
+	background-color: #EADAA2 ;
+}
+.yes, .yes * {
+	background-color: lightgreen !important ;
+}
+.no, .no * {
+	background-color: lightpink !important ;
+}
+.little, .little * {
+	background-color: lightyellow !important ;
+}
+.duno, .duno * {
+	background-color: lightgray !important ;
+}
+

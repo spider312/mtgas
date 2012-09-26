@@ -1,0 +1,88 @@
+! = important, à corriger en priorité
+* = en cours de correction / développement
+~ = corrigé / développé, en cours de test
+? = non reproductible / ne sera pas forcément implémenté ou corrigé
+/ = impossible à corriger actuellement
+
+ === Bugs ===
+! Reorganisation de l'accueil
+! Lands en side
+! Draft : cube + dblclick pour select + cocher ready
+! Land qui remonte en main
+message de changezone des tokens *2
+card copy attrs + nom plus évident
+le spectacteur peut interagir avec son board et donc regarder les cartes en main
+hover colonne de droite new builder
+reminder
+? target from card in unselzone
+? trigger sur les cartes qu'on contrôle dans le BF adverse
+le dernier joueur dans le tournois ne voit pas son status réinitialisé
+steps +1/-1 pour les planeswalkers (+/-X)
+SpideR undoes tutors 1 cards
+Cascade
+pleins de cartes au grave : alignement avec les traits de délimitation de zone
+unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs
+faced down card is now 2/2 (-2/-3)
+quand ancestral se résoud, elle revient sur le BF
+parsing + rotation des flip cards
+play with top card revealed + shuffle
+dblclick opponent battlefield
+No types found for token Wurm.Deathtouch
+no untap dans la main de l'adversaire
+face up over network
+move when change zone from bf to bf
+hover carte dans un grave
+' dans le chat tournament
+détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent
+inactivité des joueurs sur la page tournois
+
+ --- Canvas ---
+Agrandir "turnsheight" plutôt que créer une marge sous le canvas
+infobulle
+Bouton de phase
+timeout du title (actuellement se trigger sur réception d'un ping)
+mise en cache de turn, hand ?, battlefield ?
+
+ --- Admin ---
+Pagination dans les résultats de la recherche
+AJAX dans la gestion des extensions
+
+ --- Parsing ---
+Différencier les effets statiques des capacités activées (ex : Selesnya Guildmage qui a un boost_bf)
+Double card : cost, type
+AE
+dual cards (color, CC, etc.)
+
+ === Evolutions ===
+* Mise en cache (session) des données renvoyées régulièrement (tournament draft/build ?)
+* admin panel (tournaments)
+! Autorisations sur les spectacteurs (possibilité pour les joueurs de refuser, de montrer leur main)
+Types de counters (+1/+1, level, charge, loyalty ...)
+? Interaction entre page de tchat du tournois et les games en cours
+build de limité : button empty deck
+? Séparer la sélection du reste du dessin de la carte dans le cache
+multiple daemons
+Liste des joueurs qui draftent (http://www.wizards.com/magic/magazine/article.aspx?x=mtg/daily/feature/203&dcmp=ilc-mtgrss)
+Empiler les permanents du même type
+gestion des raccourcis claviers à base de tableaux
+autosave build limité
+Ne pas afficher les cartes de la zone source pendant le DND ?
+Stats sur le BF ? (somme des manas, somme des forces)
+Etape de build entre 2 rondes en limité ?
+Détection de clones dans le player merge, non MàJ du last update sur merge
+server log
+Visual stack
+Command Zone
+Nettoyage / refonte de l'activation d'un menu
+? Image card loading timeout (for browsers not triggering an error on local file loading)
+
+===[ Tournament ]=====================================================
+! Améliorer le drafter (cacher des cartes, trier)
+Bots de draft
+
+===[ Data ]==================================================================
+? Cards banned for limited (Ante, physical action - chaos orb style)
+Slivers
+
+=== Chromium ===
+Validate side

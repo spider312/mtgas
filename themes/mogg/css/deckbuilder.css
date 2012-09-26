@@ -1,0 +1,72 @@
+/* imported from style.css, not sharing color theme */
+table {
+	border-collapse: collapse ;
+}
+thead, th {
+	background-color: lightgray ;
+	text-align: center ;
+	font-weight: bold ;
+}
+th, td {
+	border: 1px solid darkgray ;
+}
+/* /imported */
+
+tr {
+	cursor: pointer ; 
+}
+.comment {
+	background-color: lightgray ;
+	font-style: italic ;
+}
+.selected {
+	outline: 2px solid red ;
+}
+#buttons {
+	position: absolute ;
+	bottom: 0 ;
+	left: 0 ;
+	width: 100% ;
+	margin: 0 ;
+}
+#cardlist {
+	width: 300px ;
+	margin: 0 ;
+	padding: 0 ;
+}
+#deck {
+	position: absolute ;
+	left: 450px ;
+	top: 0 ;
+	width: 300px ;
+}
+#buttons {
+	position: fixed ;
+	left: 350px ;
+	top: 100px ;
+	width: 50px ;
+}
+#maindeck {
+	background-color: lightcyan ;
+}
+#sideboard {
+	background-color: lightgreen ;
+}
+#zoom {
+	position: fixed ;
+	right: 0 ;
+	top: 0 ;
+	width: 250px ;
+}
+#stats {
+	list-style-type: none ;
+	padding: 0 ;
+	position: fixed ;
+	right: 0 ;
+	bottom: 0 ;
+	width: 250px ;
+}
+#stats li {
+	background-color: lightgray ;
+	border: 1px solid darkgray ;
+}

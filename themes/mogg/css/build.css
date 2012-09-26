@@ -1,0 +1,88 @@
+table {
+	border-collapse:collapse;
+}
+td {
+	padding: 0 ;
+}
+td.th {
+	text-align: center ;
+	font-weight: bold ;
+}
+#pool td, #deck td {
+	vertical-align: top ; /* Otherwise, each columns is vertically centered in table */
+}
+#pool div, #deck div, #land div {
+	cursor: pointer ;
+	width: 235px ;
+	height: 25px ;
+	border: 2px solid lime ; /* Stupid default color, to see errors. should be replaced by class just under*/
+	background-image: url('http://img.mogg.fr/img/back.jpg') ;
+	background-position: center -11px ; /* show only card name + cost in their frame */
+	background-repeat: no-repeat ;
+	background-size: 250px auto ;
+}
+#land div {
+	text-align: right ;
+	padding-right: 10px ;
+	padding-top: 2px ;
+	background-position: center -5px ; /* Black Border */
+	background-size: 255px auto ;
+}
+.emptycol {
+	width: 235px ;
+	border-color: transparent !important ;
+	font-style:italic ;
+}
+div.L {
+	border-color: sienna !important ;
+}
+div.C {
+	border-color: black !important ;
+}
+div.U {
+	border-color: lightgray !important ;
+}
+div.R {
+	border-color: GoldenRod !important ;
+}
+div.M {
+	border-color: OrangeRed !important ;
+}
+#filter-color {
+	position: fixed ;
+	top: 0 ;
+	left: 200px ;
+	padding: 5px ;
+}
+#filter-rarity {
+	position: fixed ;
+	top: 0 ;
+	left: 500px ;
+	padding: 5px ;
+}
+.manacheck {
+	display: inline-block ;
+	background-color: white ;
+	border: 2px outset darkgray ;
+}
+.checked {
+	background-color: lightgray ;
+	border-style: inset ;
+}
+.manacheck input {
+	display: none ;
+}
+#zoom {
+	display: none ;
+}
+#zoom.disp {
+	display: inline !important ;
+	position: fixed ;
+}
+#transformed {
+	display: none ;
+}
+#transformed.disp {
+	display: inline !important ;
+	position: fixed ;
+}

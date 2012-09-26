@@ -1,0 +1,12 @@
+#booster_cards {
+	line-height: 0 ;
+}
+#booster_cards img {
+	border: 3px solid black ;
+}
+#booster_cards img.picking {
+	border-color: green ;
+}
+#booster_cards img.pick {
+	border-color: lime ;
+}

@@ -1,0 +1,74 @@
+table {
+	width: 96% ;
+	margin: 2% ;
+	margin-top: 0 ;
+}
+ol {
+	margin: 0 ;
+}
+.errored {
+	border: 2px solid red ;
+}
+#readme button {
+	float: right ;
+}
+/* Index is divided in 2 columns */
+#left_col, #right_col {
+	float: left ;
+	/* | 2% |   47%   | 2% |   47%   | 2% | = 100% */
+	width: 47% ;
+	margin-left: 2% ;
+	margin-bottom: 2% ;
+}
+/* Each divided in sections */
+#profile, #games, #tournaments, #decks {
+	width: 100% ;
+	margin-top: 25px ;
+}
+#readme, #header, #footer, #browser {
+	margin: 2% ;
+}
+#readme, #header {
+	margin-bottom: 0px ; /* This margin is managed by col_left/right */
+}
+#readme p, #header p, #header ul {
+	margin: 0 ;
+}
+#footer {
+	clear: both ;
+	text-align: center ;
+}
+#browser {
+	background-image: url(http://www.mozilla.com/img/home/download-logo.png) ;
+	background-repeat: no-repeat ;
+	padding-left: 110px ;
+	height: 100px ;
+}
+/* Table lines enhancement */
+td a {
+	display: block ;
+	text-decoration: none ;
+	color: black ;
+}
+#decks_table tbody tr:hover, #past_tournaments tr:hover {
+	background-color: #F4ECD2 ;
+}
+#decks_table input[type=text] {
+	width: 100% ;
+}
+.registered {
+	background-color: #F4ECD2 ;
+}
+/* Forms */
+#tournament_options {
+	padding: 2px ;
+}
+#tournament_options.hidden legend {
+	display: block ;
+}
+#tournament_options #tournament_options_toggle {
+	display: inline ;
+}
+#tournament_options.hidden * {
+	display: none ;
+}

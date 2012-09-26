@@ -1,0 +1,45 @@
+/* ========== Menu ========== */
+.menu {
+	position: absolute ;
+	margin: 0 ;
+	padding: 0 ;
+	border-spacing: 0 ;
+	border-collapse: separate ;
+	cursor: default ; /* Avoid text cursor on menu entries */
+	background-color: white ;
+	border: 1px solid #AAAAAA ;
+}
+.text { /* TD without an HR */
+	padding-right: 15px !important ;
+}
+.menu td	{
+	border-width: 0 ;
+	white-space: nowrap ;
+	font-size: 0.85em ;
+	font-family: Verdana, Geneva, sans-serif ;
+	margin: 0 ;
+	padding-left: 5px ;
+	padding-right: 5px ;
+	padding-top: 0 ;
+	padding-bottom: 0 ;
+	border: 1px solid white ; /* Will be colorized hover */
+}
+.menu hr	{
+	color: darkgray ; /* Both for maximal compatibility */
+	background-color: darkgray ;
+	margin: 0 ;
+}
+.menu .active:hover	{
+	background-color: #90B2DE ;
+	border-color: #4B6E99 ;
+	color: white ;
+}
+.menu .inactive	{
+	color: darkgray ;
+}
+.menu .submenu {
+	background-image: url('../iconSubMenu.png') ;
+	background-position: right center ;
+	background-repeat: no-repeat ;
+
+}

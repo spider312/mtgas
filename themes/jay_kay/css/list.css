@@ -1,0 +1,65 @@
+.cardlist {
+	z-index: 2 ;
+	position: absolute ;
+	top: 1% ;
+	width: 256px ;
+	height: 97% ;
+	border: 3px outset black ;
+	background-color: white ;
+}
+.listtool {
+	font-size: small ;
+}
+.listtool div	{
+	cursor: pointer ;
+	color: white ;
+	background-color: black ;
+	font-weight: bold ;
+	font-size: 18px ;
+	padding: 1px ;
+	height: 22px ;
+}
+.but_close	{
+	cursor: pointer ;
+	position: absolute ;
+	right: 1px ;
+	top: 1px ;
+	width: 21px ;
+	height: 21px ;
+}
+label	{
+	display: block ;
+	cursor: pointer ;
+}
+#cards {
+	margin: 0 ;
+	padding: 0 ;
+	overflow-y: scroll ; /* Force scrollbar to appear in order to fix list's width */
+	overflow-x: hidden ; /* No need to display, needed in CSS ? */
+}
+ul#cards li	{ /* All LI, 'all' + 'card's */
+	/*margin: 1px ;*/
+	list-style-type: none ;
+	height: 23px ;
+}
+li.all	{
+	border: 1px solid black ;
+	text-align: center ;
+	font-weight: bold ;
+	cursor: pointer ;
+}
+li.card	{
+	border: 1px solid black ;
+	border-top: 0 ;
+	background-image: url('http://img.mogg.fr/MIDRES/back.jpg') ;
+	background-position: center -11px ;
+	background-repeat: no-repeat ;
+	background-size: 250px auto ;
+}
+li.dragged	{
+	opacity: .8 ;
+	background-color: lime ;
+}
+li.draggedover {
+	opacity: .5 ;
+}
