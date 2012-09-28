@@ -131,7 +131,7 @@ function tournament_start($tournament) {
 	$duration = $data->rounds_duration ;
 	if ( ! is_numeric($data->rounds_number) )
 		$data->rounds_number = rounds_number(count($players)) ;
-	//$data->rounds_number = max($data->rounds_number, rounds_number(count($players))) ; // Set at least the number of rounds implied by players
+	$data->rounds_number = max($data->rounds_number, rounds_number(count($players))) ; // Set at least the number of rounds implied by players
 	// Update tournament
 	$tournament->status = 5 ;
 	$tournament->round = 1 ;

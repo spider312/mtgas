@@ -36,6 +36,7 @@ draft à 4 : une seule ronde
 transparency off et step icons
 Drop : le tournois ne disparait pas de la liste
 accents dans les pseudos
+joueur inactif => défaite
 
  --- Canvas ---
 Agrandir "turnsheight" plutôt que créer une marge sous le canvas
