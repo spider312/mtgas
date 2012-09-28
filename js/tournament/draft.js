@@ -70,7 +70,7 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 			for ( var i = 0 ; i < cards.length ; i++ ) {
 				var card = cards[i] ;
 				// Image in div
-				var img = Img(booster_cards, content.ext, card.name, card.attrs) ;
+				var img = Img(booster_cards, card.ext, card.name, card.attrs) ;
 				img.id = i + 1 ;
 				if ( parseInt(img.id) == Math.abs(data.booster.pick) )
 					img.className = 'pick' ;
@@ -104,26 +104,25 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 		// Update pool
 		if ( data.player.deck != cache_pool ) {
 			cache_pool = data.player.deck ; // Caching deck parsing
-			node_empty(drafted_cards) ;
-			var lines = deck_parse(data.player.deck) ;
-			for ( var i = 0 ; i < lines.length ; i++) {
-				var line = lines[i] ;
-				switch ( typeof line ) {
-					case 'string' : 
-						var h2 = document.createElement('h2') ;
-						h2.appendChild(document.createTextNode(line)) ;
-						drafted_cards.appendChild(h2) ;
-						break ;
-					case 'object' :
-						var attrs = {} ;
-						if ( lines[i][3] > 0 )
-							attrs.nb = lines[i][3] ;
-						var img = Img(drafted_cards, lines[i][1], lines[i][2], attrs) ;
-						break ;
-					default : 
-						alert(typeof line) ;
+			$.post('json/deck.php', {'deck': cache_pool}, function(data) {
+				node_empty(drafted_cards) ;
+				for ( var i = 0 ; i < data.side.length ; i++) {
+					var line = data.side[i] ;
+					switch ( typeof line ) {
+						case 'string' : 
+							var h2 = document.createElement('h2') ;
+							h2.appendChild(document.createTextNode(line)) ;
+							drafted_cards.appendChild(h2) ;
+							break ;
+						case 'object' :
+							Img(drafted_cards, line.ext, line.name, line.attrs)
+							break ;
+						default : 
+							alert(typeof line) ;
+					}
 				}
-			}
+
+			}, 'json') ;
 		}
 		window.setTimeout(draft, draft_timer, id) ;
 	}) ;

@@ -92,5 +92,13 @@ if ($handle = opendir('../'.$raw_dir)) {
    </ul>
   </div>
 
+  <div class="section">
+   <h1>Card inclusion statistics</h1>
+   <ul>
+    <li><a href="/sealed_parse.php">Update</a></li>
+    <li><a href="/sealed_top.php">Show</a></li>
+   </ul>
+  </div>
+
  </body>
 </html>

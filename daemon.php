@@ -239,7 +239,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				echo count($splice)." cards spliced\n" ;
 		}
 		$data = json_decode($tournament->data) ;
-		if ( count($content->cards) > 0 ) { // There are cards left in boosters, pass them
+		if ( property_exists($content, 'cards') && count($content->cards) > 0 ) { // There are cards left in boosters, pass them
 			$min_order = 0 ; // If players are numbered from 1 to n, add this to the "0 ... n-1" default orders
 			$nb_players = mysql_num_rows($players_query) ;
 			if ( $nb_players > 1 ) { // Only rotate if there are several players

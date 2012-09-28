@@ -33,6 +33,7 @@ function unhostedlogout(ev) {
 }
 */
 $(function() { // On page load
+	document.getElementById('game_name').focus() ; // Give focus on page load
 	ajax_error_management() ;
 	// Synchronize PHPSESSID cookie with stored player ID (in case player ID comes from profile importing)
 	player_id = $.cookie(session_id) ;
@@ -42,6 +43,15 @@ $(function() { // On page load
 		$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
 		window.location = window.location ; // Curent web page isn't informed ID changed, reload
 	}
+	// Identity and auto-open on first visit
+	fv = document.getElementById('firstvisit') ;
+	cn = document.getElementById('choose_nick') ;
+	is = document.getElementById('identity_shower') ;
+	if ( ( localStorage['profile_nick'] == null ) || ( localStorage['profile_nick'] == '' ) || ( localStorage['profile_nick'] == 'Nickname' ) ) {
+		fv.classList.add('disp') ;
+		cn.nick.focus() ;
+	} else
+	       	update_identity_shower() ;
 	// Fields that will be saved on change/blur, and restored on load
 		// Profile
 	save_restore('profile_nick') ; // Player's nickname
@@ -66,7 +76,6 @@ $(function() { // On page load
 	}) ;
 	save_restore('draft_boosters') ; // hidden for saving
 	save_restore('sealed_boosters') ;
-	document.getElementById('game_name').focus() ; // Give focus on page load
 // === [ EVENTS ] ==============================================================
 	// Form adapting to user selections
 		// Boosters
@@ -294,6 +303,27 @@ $(function() { // On page load
 			document.location = document.location ;
 		}
 	}, false) ;
+	// Profile
+	cn.addEventListener('submit', function(ev) {
+		var nick = ev.target.nick.value ;
+		if ( ( nick != null ) && ( nick != '' ) && ( nick != 'Nickname' ) ) {
+			save_restore('profile_nick') ; // Player's nickname
+			last_working_avatar = document.getElementById('avatar_demo').src ; // Backup default avatar, for future errors (before save/restore !)
+			var avatar_apply = function(field) { document.getElementById('avatar_demo').src = field.value ; } ;
+			save_restore('profile_avatar', avatar_apply, avatar_apply) ; // Player's avatar
+			fv.classList.remove('disp') ;
+			update_identity_shower() ;
+		} else {
+			ev.target.nick.focus() ;
+			ev.target.nick.select() ;
+		}
+		ev.preventDefault() ;
+	}, false) ;
+	is.addEventListener('click', function(ev) {
+		fv.classList.add('disp') ;
+		cn.nick.focus() ;
+		cn.nick.select() ;
+	}, false) ;
 	// Display decks list
 	decks_list() ;
 	get_extensions() ;
@@ -303,6 +333,13 @@ $(function() { // On page load
 	tournaments_timer(document.getElementById('pending_tournaments'), document.getElementById('tournament_no')
 		, document.getElementById('running_tournaments'), document.getElementById('running_tournament_no')) ;
 }) ;
+function update_identity_shower() {
+	node_empty(is) ;
+	var img = create_img(localStorage['profile_avatar'])
+	img.height = 30 ;
+	is.appendChild(img) ;
+	is.appendChild(create_text(localStorage['profile_nick'])) ;
+}
 // === [ TIMERS ] ==============================================================
 function games_timer(pending_games, cell_no, running_games, running_games_no) {
 // Requests from server a list of pending games, and display them in prepared tables

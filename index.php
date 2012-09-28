@@ -26,6 +26,21 @@ html_head(
 ?>
 
  <body>
+  <div id="firstvisit">
+   <div class="section">
+    <form id="choose_nick">
+     <h1>Identity</h1>
+     <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
+     <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
+      Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
+      <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
+      <a href="javascript:gallery()">Gallery</a>
+     </label>
+     <!--input type="submit" value="Save"-->
+     <button id="identity_close" title="Close identity window"><img src="/themes/jay_kay/deckbuilder/button_ok.png"></button>
+    </form>
+   </div>
+  </div>
 <?php
 html_menu() ;
 include 'includes/Browser.php' ;
@@ -126,7 +141,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       <input type="text" id="tournament_name" name="name" value="Tournament's name" size="64">
      </label>
      <label title="Number of players">Players : 
-      <input type="text" id="tournament_players" name="players" value="8" size="2" maxlength="2">
+      <input type="text" id="tournament_players" name="players" value="2" size="2" maxlength="2">
      </label>
      <label id="tournament_suggestions_label" title="Classical suggestions for tournament's boosters">Boosters suggestions : 
       <select id="tournament_suggestions"></select>
@@ -210,65 +225,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
   <div id="right_col">
    <div id="profile" class="section">
-    <h1>Profile</h1>
-    <h2>Identity</h2>
-    <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
-    <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
-     Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
-     <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
-     <a href="javascript:gallery()">Gallery</a>
-    </label>
-    <label>Theme : 
-     <select id="theme">
-<?php
-$dir = "themes";
-if (is_dir($dir)) {
-	if ($dh = opendir($dir)) {
-		while (($file = readdir($dh)) !== false)
-			if ( ( $file != '.' ) && ( $file != '..' ) ) {
-				if ( $file == $default_theme )
-					echo "      <option value=\"$file\" selected>$file (default)</option>\n" ;
-				else
-					echo "      <option value=\"$file\">$file</option>\n" ;
-			}
-		closedir($dh);
-	}
-}
-?>
-     </select>
-    </label>
-
-    <h2>Login / Register</h2>
-<?php
-if ( array_key_exists('login', $_SESSION) && array_key_exists('password', $_SESSION) ) {
-	$email = $_SESSION['login'] ;
-	$password = $_SESSION['password'] ;
-	include 'includes/db.php' ;
-	$q = query("SELECT `content` FROM `profile` WHERE `email` = '$email' AND `password` = '$password' ;") ;
-	$nb = mysql_num_rows($q) ;
-} else 
-	$nb = 0 ;
-if ( $nb == 1 ) {
-	echo 'You are logged as '.$email ;
-?>
-     <form id="logout" action="json/logout.php">
-     <input type="submit" value="Logout">
-    </form>
-<?php
-} else {
-?>
-    <form id="login" action="json/login.php">
-     <label>Email : <input type="text" name="email"></label>
-     <label>Password : <input type="password" name="password"></label>
-     <label title="If checked, your current data will be sent to server, otherwise, data will be downloaded from server and will overwrite your current data">Overwrite with current data<input type="checkbox" name="overwrite"></label>
-     <input type="submit" value="Login / Register">
-    </form>
-<?php
-}
-?>
-
    <!--div id="decks" class="section" -->
-    <h2>Decks</h2>
+    <h1>Decks</h1>
     <!-- preloaded deck list -->
     <table id="decks_table">
      <thead>
@@ -319,11 +277,69 @@ if ( $nb == 1 ) {
     <div>You may want to download some <a href="decks/preconstructed/" target="_blank">preconstructed decks</a> (right click on one, "copy link", paste in "download" form)</div>
    <!--/div--><!-- id="decks" -->
 
+    <h1>Profile</h1>
+    <!--h2>Identity</h2>
+    <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
+    <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
+     Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
+     <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
+     <a href="javascript:gallery()">Gallery</a>
+    </label-->
+
 <?php
 html_options() ;
 ?>
+    <label>Theme : 
+     <select id="theme">
+<?php
+$dir = "themes";
+if (is_dir($dir)) {
+	if ($dh = opendir($dir)) {
+		while (($file = readdir($dh)) !== false)
+			if ( ( $file != '.' ) && ( $file != '..' ) ) {
+				if ( $file == $default_theme )
+					echo "      <option value=\"$file\" selected>$file (default)</option>\n" ;
+				else
+					echo "      <option value=\"$file\">$file</option>\n" ;
+			}
+		closedir($dh);
+	}
+}
+?>
+     </select>
+    </label>
 
-    <h2>Profile management</h2>
+    <h2>Server-side profile</h2>
+<?php
+if ( array_key_exists('login', $_SESSION) && array_key_exists('password', $_SESSION) ) {
+	$email = $_SESSION['login'] ;
+	$password = $_SESSION['password'] ;
+	include 'includes/db.php' ;
+	$q = query("SELECT `content` FROM `profile` WHERE `email` = '$email' AND `password` = '$password' ;") ;
+	$nb = mysql_num_rows($q) ;
+} else 
+	$nb = 0 ;
+if ( $nb == 1 ) {
+	echo 'You are logged as '.$email ;
+?>
+     <form id="logout" action="json/logout.php">
+     <input type="submit" value="Logout">
+    </form>
+<?php
+} else {
+?>
+    <form id="login" action="json/login.php">
+     <label>Email : <input type="text" name="email"></label>
+     <label>Password : <input type="password" name="password"></label>
+     <label title="If checked, your current data will be sent to server, otherwise, data will be downloaded from server and will overwrite your current data">Overwrite with current data<input type="checkbox" name="overwrite"></label>
+     <input type="submit" value="Login / Register">
+    </form>
+<?php
+}
+?>
+
+
+    <h2>Local profile</h2>
     <!--form id="unhosted-login">
      <span id="unhosted-span"></span>
      <input id="unhosted-input" type="text" name="login" placeholder="you@yourremotestorage">

@@ -155,6 +155,7 @@ function html_menu($additionnal_entries=null) {
 		echo '    <a title="'.$entry->title.'" target="_blank" href="'.$entry->url.'">'.$entry->name.'</a>'.$separator."\n" ;
 	}
 	//echo '    <span id="hidemenu" onclick="hide_menu()">hide</span>'."\n" ;
+	echo '    <a id="identity_shower" title="Change nickname and avatar">Nickname</a>' ;
 	echo '   </div>'."\n\n" ;
 }
 function html_options() { // Displays options window

@@ -95,6 +95,13 @@ ul {
 	float: right ;
 	cursor: pointer !important ;
 }
+#identity_shower {
+	float: right ;
+	cursor: pointer ;
+}
+#identity_shower img {
+	vertical-align: middle ;
+}
 /***************************
  * General purpose classes *
  ***************************/

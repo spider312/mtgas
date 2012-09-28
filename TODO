@@ -7,7 +7,7 @@
  === Bugs ===
 ! Reorganisation de l'accueil
 ! Lands en side
-! Draft : cube + dblclick pour select + cocher ready
+! Draft : dblclick pour select + cocher ready
 ! Land qui remonte en main
 message de changezone des tokens *2
 card copy attrs + nom plus évident
@@ -22,8 +22,6 @@ SpideR undoes tutors 1 cards
 Cascade
 pleins de cartes au grave : alignement avec les traits de délimitation de zone
 unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs
-faced down card is now 2/2 (-2/-3)
-quand ancestral se résoud, elle revient sur le BF
 parsing + rotation des flip cards
 play with top card revealed + shuffle
 dblclick opponent battlefield
@@ -32,9 +30,12 @@ no untap dans la main de l'adversaire
 face up over network
 move when change zone from bf to bf
 hover carte dans un grave
-' dans le chat tournament
-détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent
+détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
 inactivité des joueurs sur la page tournois
+draft à 4 : une seule ronde
+transparency off et step icons
+Drop : le tournois ne disparait pas de la liste
+accents dans les pseudos
 
  --- Canvas ---
 Agrandir "turnsheight" plutôt que créer une marge sous le canvas

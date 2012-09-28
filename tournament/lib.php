@@ -232,6 +232,7 @@ function round_same_previous($tournament, $players) { // Verifies all future rou
 	return false ; // No same matches
 }
 function game_same_previous($creator, $joiner, $results) {
+	global $matchset ;
 	foreach ( $results as $round_nb => $round ) { // Each past rounds
 		foreach ( $round as $table_nb => $match ) { // Each matches from round
 			if (
@@ -243,6 +244,7 @@ function game_same_previous($creator, $joiner, $results) {
 			}
 		}
 	}
+	$matchset .= ' - '.$creator->nick." Vs ".$joiner->nick."\n" ;
 }
 function round_create_matches($tournament, &$players) { // Modifies players list in order to avoid 2 consecutives players to have already encountered each other during previous round. Returns if it succed
 	global $matchset ;
@@ -262,10 +264,10 @@ function round_create_matches($tournament, &$players) { // Modifies players list
 				$joiner = $spl[0] ;
 				$new_players[] = $creator ;
 				$new_players[] = $joiner ;
-				$matchset .= ' - '.$creator->nick." Vs ".$joiner->nick."\n" ;
+				//$matchset .= ' - '.$creator->nick." Vs ".$joiner->nick."\n" ;
 				break ; // Joiner found, stop browsing players left
-			} else
-				$matchset .= ' - '.$creator->nick." Already encountered ".$player->nick."\n" ;
+			}// else
+				//$matchset .= ' - '.$creator->nick." Already encountered ".$player->nick."\n" ;
 		if ( $joiner == null ) {
 			$matchset .= $creator->nick." can't find an opponent\n" ;
 			return false ; // It fails to find 
@@ -327,12 +329,19 @@ function tournament_all_players($tournament) {
 function players_score_compare($player1, $player2) { // Sent to usort to compare scores from 2 players, for pairings (no tie breakers)
 	return $player2->score->matchpoints - $player1->score->matchpoints ;
 }
-function players_end_compare($player1, $player2) { // Sent to usort to compare scores from 2 players, for (with tie breakers)
+function players_end_compare($player1, $player2) { // Sent to usort to compare scores from 2 players, for ranking (with tie breakers)
 	$result = 0 ;
 	// Tie breakers
 	if ( $player1->score->matchpoints != $player2->score->matchpoints )
 		$result = $player2->score->matchpoints - $player1->score->matchpoints ;
 	else {
+		if ( 
+			! property_exists($player1->score, 'opponentmatchwinpct')
+			|| ! property_exists($player2->score, 'opponentmatchwinpct')
+			|| ! property_exists($player1->score, 'opponentgamewinpct')
+			|| ! property_exists($player2->score, 'opponentgamewinpct')
+		)
+			return 0 ; // Computed after each round, may crash if called before first round end
 		if ( $player1->score->opponentmatchwinpct != $player2->score->opponentmatchwinpct )
 			$result = $player2->score->opponentmatchwinpct - $player1->score->opponentmatchwinpct ;
 		else
