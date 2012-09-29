@@ -251,15 +251,15 @@ function unselzone(result) { // Common
 			context.strokeStyle = bordercolor ;
 			context.strokeRect(.5, .5, this.w, this.h) ;
 		} else
-			if ( ( this.type == 'library' ) || ( this.type == 'graveyard' ) ) {
-				if ( this.player == game.player)
-					var y = 0 ;
-				else
-					var y = this.h - 2 ;
+			if (
+					( this.type == 'graveyard' ) // Graveyard for both players
+					|| ( ( this.player == game.player ) && ( this.type == 'library' ) )
+					|| ( ( this.player != game.player ) && ( this.type == 'exile' ) )
+			) {
 				context.strokeStyle = bordercolor ;
 				context.beginPath();
-				context.moveTo(.5 + smallzonemargin, y+.5) ;
-				context.lineTo(.5+this.w - smallzonemargin, y+.5) ;
+				context.moveTo(.5 + smallzonemargin, .5) ;
+				context.lineTo(.5+this.w - smallzonemargin, .5) ;
 				context.stroke() ;
 			}
 		if ( ( game.target.tmp != null ) && ( game.target.tmp.targeted == this ) ) {
