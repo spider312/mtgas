@@ -7,7 +7,7 @@ menu_add('Forum', 'http://forum.mogg.fr', 'Discuss the game, help improve it') ;
 //menu_add('Blog', 'http://blog.mogg.fr', 'Keep yourself informed about Mogg\'s evolution') ;
 menu_add('Top players', '/top.php', 'Player rankings based on games played and won, for various periods') ;
 //menu_add('Your stats', '/stats.php', 'Some statistics on your games played') ; // Broken for huge playing players
-menu_add('Your data', '/player.php', 'Replays') ; // Broken for huge playing players
+menu_add('Your data', '/player.php', 'Replays') ;
 
 include_once 'config.php' ;
 
@@ -23,6 +23,7 @@ if ( array_key_exists('theme', $_COOKIE) )
 		$theme = $_COOKIE['theme'] ;
 
 menu_add('<img src="/themes/'.$theme.'/icon-facebook.png" alt="Facebook">', 'https://www.facebook.com/mogg.fr', 'Another way to keep yourself informed : Mogg.fr on facebook') ;
+menu_add('Keyboard &amp; mouse shortcuts', '/doc/GUI.php', 'Keyboard &amp; mouse shortcuts') ;
 // MySQL
 $mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
 if ( ! $mysql_connection )
