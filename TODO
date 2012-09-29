@@ -9,34 +9,37 @@
 ! Lands en side
 ! Draft : dblclick pour select + cocher ready
 ! Land qui remonte en main
+no untap dans la main de l'adversaire
+dblclick opponent battlefield
+play with top card revealed + shuffle
+steps +1/-1 pour les planeswalkers (+/-X)
+transparency off et step icons
 message de changezone des tokens *2
 card copy attrs + nom plus évident
 le spectacteur peut interagir avec son board et donc regarder les cartes en main
-hover colonne de droite new builder
-reminder
-? target from card in unselzone
-? trigger sur les cartes qu'on contrôle dans le BF adverse
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
-steps +1/-1 pour les planeswalkers (+/-X)
 SpideR undoes tutors 1 cards
-Cascade
-pleins de cartes au grave : alignement avec les traits de délimitation de zone
+pleins de cartes au grave (opponent ?) : alignement avec les traits de délimitation de zone
 unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs
-parsing + rotation des flip cards
-play with top card revealed + shuffle
-dblclick opponent battlefield
-No types found for token Wurm.Deathtouch
-no untap dans la main de l'adversaire
 face up over network
 move when change zone from bf to bf
-hover carte dans un grave
-détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
-inactivité des joueurs sur la page tournois
-draft à 4 : une seule ronde
-transparency off et step icons
+détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215), attachement d'une carte depuis le BF adverse ?
+inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
 accents dans les pseudos
-joueur inactif => défaite
+identity shower dans les pages autres que l'accueil
+
+reminder
+Cascade
+parsing + rotation des flip cards
+No types found for token Wurm.Deathtouch
+hover carte dans un grave
+? target from card in unselzone
+? trigger sur les cartes qu'on contrôle dans le BF adverse
+
+ --- Chrome ---
+' dans le builder
+touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  --- Canvas ---
 Agrandir "turnsheight" plutôt que créer une marge sous le canvas

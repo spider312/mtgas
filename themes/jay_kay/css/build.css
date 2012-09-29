@@ -146,10 +146,13 @@ div.S {
 	height: 90% ;
 	left: -230px ;
 	-moz-transition: all 0.1s ease-in;
+	-webkit-transition: all 0.1s ease-in;
 }
 #stats:hover {
 	-moz-transform: translate(230px) ;
-	-moz-transition: all 0.1s ease-in; 
+	-moz-transition: all 0.1s ease-in ;
+	-webkit-transform: translate(230px) ;
+	-webkit-transition: all 0.1s ease-in ;
 }
 /* Log */
 #tournament {
@@ -159,10 +162,13 @@ div.S {
 	height: 90% ;
 	right: -230px ;
 	-moz-transition: all 0.1s ease-in;
+	-webkit-transition: all 0.1s ease-in;
 }
 #tournament:hover {
 	-moz-transform: translate(-230px) ;
 	-moz-transition: all 0.1s ease-in; 
+	-webkit-transform: translate(-230px) ;
+	-webkit-transition: all 0.1s ease-in; 
 }
 #tournament ul {
 	padding-left: 0 ;

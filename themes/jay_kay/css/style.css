@@ -64,6 +64,12 @@ ul {
 	margin: 0px ;
 	padding-left: 30px ;
 }
+a {
+	color: black ;
+}
+a:visited {
+	color: dimgray ;
+}
 /*
  *
  **/
