@@ -68,7 +68,10 @@ a {
 	color: black ;
 }
 a:visited {
-	color: dimgray ;
+	color: darkred ;
+}
+a:hover {
+	color: dimgrey ;
 }
 /*
  *

@@ -6,7 +6,7 @@
   <link rel="icon" type="image/jpg" href="/themes/mogg/favicon.jpg">
  </head>
  <body>
-  <table>
+  <table border="1">
    <tr><th colspan="2">Game keyboard shortcuts</th></tr>
    <tr>
     <td>Any printable character</td>
@@ -27,10 +27,6 @@
    <tr>
     <td>Ctrl+Shift+Space</td>
     <td>Current step's default action (untap, draw ...), then next step (like double click on a step)</td>
-   </tr>
-   <tr>
-    <td>Ctrl+Shift+Space</td>
-    <td>Next step and default action for current step</td>
    </tr>
    <tr>
     <td>Ctrl+i</td>
@@ -133,7 +129,7 @@
    </tr>
    <tr>
     <td>Ctrl+Alt+PgDn</td>
-    <td>Remove a counter and -1/-1 from selected cards</td>
+    <td>Remove a counter and -1/-1 from selected cards (like removing a +1/+1 counter, not like adding a -1/-1 counter)</td>
    </tr>
    <tr>
     <td>Ctrl+up/down/left/right</td>
@@ -142,12 +138,28 @@
 
    <tr><th colspan="2">Phases buttons</th></tr>
    <tr>
+    <td>Click button on steps' right</td>
+    <td>Default action for current step (untap, triggers upkeep, draw, declare attackers, damages), then enter next step. On last step, next turn</td>
+   </tr>
+   <tr>
+    <td>Right click button on steps' right</td>
+    <td>Enter previous step</td>
+   </tr>
+   <tr>
+    <td>Ctrl + click button on steps' right</td>
+    <td>Enter last step</td>
+   </tr>
+   <tr>
+    <td>Ctrl + right click button on steps' right</td>
+    <td>Enter first step</td>
+   </tr>
+   <tr>
     <td>Click a step</td>
     <td>Enter that step</td>
    </tr>
    <tr>
     <td>Double click a step</td>
-    <td>Default action for that step (untap, draw ...) then enter next step. On last step, next turn</td>
+    <td>Like button on steps' right, but for double clicked step</td>
    </tr>
 
    <tr><th colspan="2">Mouse actions - Left button</th></tr>
@@ -165,11 +177,11 @@
    </tr>
    <tr>
     <td>Double click on battlefield / hand's background</td>
-    <td>Select every card in zone</td>
+    <td>Select every card on double clicked line</td>
    </tr>
    <tr>
     <td>Double click library</td>
-    <td>Action chosen in options on main page (defaults to "look top N cards of library")</td>
+    <td>Action chosen in options (defaults to "look top N cards of library")</td>
    </tr>
    <tr>
     <td>Double click exile or graveyard</td>
@@ -202,7 +214,7 @@
     <td>Move selected card to bottom of that zone</td>
    </tr>
    <tr>
-    <td>Ctrl+Drag'n'drop cards on a battlefield</td>
+    <td>Ctrl+Drag'n'drop cards to a battlefield</td>
     <td>Plays selected cards face down</td>
    </tr>
    <tr>
@@ -211,7 +223,7 @@
    </tr>
    <tr>
     <td>Drag'n'drop cards from hand to manapool</td>
-    <td>Check if card is playable with current mana, then if yes, plays it removing used mana from pool, otherwise, change mouse cursor</td>
+    <td>Check if card is playable with current mana, then if yes, plays it removing used mana from pool (playability is indicated by mouse cursor when draging over mana pool)</td>
    </tr>
 
    <tr><th colspan="2">Mouse actions - Right button</th></tr>
@@ -224,16 +236,17 @@
     <td>
      Create an arrow from selected cards to droped element
      <ul>
-      <li>Default arrow is yellow and going away on next phase</li>
-      <li>Shift while draging makes the arrow red and going away on next step</li>
-      <li>Ctrl while draging makes the arrow green and going away on next turn</li>
-      <li>Alt while draging makes the arrow blue and never going away</li>
+      <li>Default arrow is yellow and going away on next <strong>phase</strong></li>
+      <li>Shift while draging makes the arrow red and going away on next <strong>step</strong></li>
+      <li>Ctrl while draging makes the arrow green and going away on next <strong>turn</strong></li>
+      <li>Alt while draging makes the arrow blue and <strong>never</strong> going away</li>
       <li>Creating an arrow deletes previous arrows between the same elements (better way to delete a blue arrow, for example)</li>
      </ul>
     </td>
    </tr>
 
    <tr><th colspan="2">Debug</th></tr>
+   <tr><td colspan="2">A "debug" option adds entries to various menus, and displays log messages (essentially non blocking errors) in history</td></tr>
    <tr>
     <td>Ctrl+l</td>
     <td>Display log messages</td>

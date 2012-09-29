@@ -26,7 +26,7 @@ move when change zone from bf to bf
 détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215), attachement d'une carte depuis le BF adverse ?
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
-accents dans les pseudos
+accents dans les pseudos (dans la liste des registered players sur la page d'accueil uniquement)
 identity shower dans les pages autres que l'accueil
 
 reminder
