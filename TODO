@@ -9,7 +9,6 @@
 ! Lands en side
 ! Draft : dblclick pour select + cocher ready
 ! Land qui remonte en main
-no untap dans la main de l'adversaire
 dblclick opponent battlefield
 play with top card revealed + shuffle
 steps +1/-1 pour les planeswalkers (+/-X)
@@ -36,6 +35,7 @@ No types found for token Wurm.Deathtouch
 hover carte dans un grave
 ? target from card in unselzone
 ? trigger sur les cartes qu'on contrôle dans le BF adverse
+import multiple deck : tous sont save sous le même nom
 
  --- Chrome ---
 ' dans le builder

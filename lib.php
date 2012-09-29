@@ -7,7 +7,7 @@ menu_add('Forum', 'http://forum.mogg.fr', 'Discuss the game, help improve it') ;
 //menu_add('Blog', 'http://blog.mogg.fr', 'Keep yourself informed about Mogg\'s evolution') ;
 menu_add('Top players', '/top.php', 'Player rankings based on games played and won, for various periods') ;
 //menu_add('Your stats', '/stats.php', 'Some statistics on your games played') ; // Broken for huge playing players
-menu_add('Your data', '/player.php', 'Replays') ;
+menu_add('Your data', '/player.php', 'Lists duels and tournaments you participated, allowing to replay them') ;
 
 include_once 'config.php' ;
 

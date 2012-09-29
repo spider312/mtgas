@@ -318,13 +318,16 @@ function card_prototype() {
 		context.strokeRect(lw, lw, this.w-2*lw, this.h-2*lw) ;
 			// Inner line : card object status (attacking, revealed, won't untap)
 		var color = this.bordercolor ;
-		if ( this.zone.selzone ) {
-			if ( this.attrs.attacking )
-				color = 'red' ;
-			else if ( ( this.zone.type == 'hand' ) && ( this.attrs.visible == true ) )
-				color = 'blue' ;
-			else if ( ( this.attrs.no_untap ) || ( this.attrs.no_untap_once ) )
-				color = 'maroon' ;
+		if ( this.zone.selzone && this.is_visible() ) {
+			if ( this.zone.type == 'hand' ) {
+				if ( this.attrs.visible == true )
+					color = 'blue' ;
+			} else if ( this.zone.type == 'battlefield' ) {
+				if ( this.attrs.attacking )
+					color = 'red' ;
+				else if ( ( this.attrs.no_untap ) || ( this.attrs.no_untap_once ) )
+					color = 'maroon' ;
+			}
 		}
 		if ( color != this.bordercolor ) { // Need to draw inner line
 			context.strokeStyle = color ;
