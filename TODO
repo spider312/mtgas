@@ -16,7 +16,6 @@ message de changezone des tokens *2
 card copy attrs + nom plus évident
 le spectacteur peut interagir avec son board et donc regarder les cartes en main
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
-* SpideR undoes tutors 1 cards
 pleins de cartes au grave (opponent ?) : alignement avec les traits de délimitation de zone
 unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs
 face up over network

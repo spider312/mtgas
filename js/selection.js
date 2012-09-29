@@ -546,12 +546,11 @@ function Selection() {
 						} else if ( zone.type == 'hand' ) {
 							if ( oldzone.type == 'battlefield' )
 								word = 'bounces '+cardname ;
-							else if ( ( oldzone.type == 'library' ) && ( oldindex >= oldzone.cards.length ) ){
+							else if ( ( oldzone.type == 'library' ) && ( ( oldindex >= oldzone.cards.length ) || ( this.type == 'undo' ) ) ) {
 								word = 'draws '+cardname ;
 								sound = 'draw' ;
 							} else
 								word = 'tutors '+cardname ;
-						
 						} else if ( zone.type == 'graveyard' ) {
 							if ( oldzone.type == 'battlefield' )
 								word = 'destroys '+cardname ;
