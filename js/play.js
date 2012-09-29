@@ -36,6 +36,8 @@ function start() { // When page is loaded : initialize everything
 	}, false) ;
 	document.getElementById('transparency').addEventListener('change', function(ev) {
 		refresh_cards_in_selzone() ;
+		for ( var i in game.turn.steps )
+			game.turn.steps[i].refresh() ;
 		resize_window() ;
 	}, false) ;
 	save_restore_options() ;

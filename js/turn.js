@@ -117,12 +117,14 @@ function Step(name, icon, func, menu) { // Steps, essentially evenmential behavi
 		}
 		if ( drawborder )
 			context.strokeRect(.5, .5, this.w-1, this.h-1) ;
-		if ( ( alpha > 0 ) && ( localStorage['transparency'] == 'true' ) ) {
-			canvas_set_alpha(alpha, context) ;
+		if ( alpha > 0 ) {
+			if ( localStorage['transparency'] == 'true' )
+				canvas_set_alpha(alpha, context) ;
 			context.globalCompositeOperation = 'source-atop' ; // Only cover image where it's been drawn
 			context.fillRect(.5, .5, this.w, this.h) ;
 			context.globalCompositeOperation = 'source-over' ;
-			canvas_reset_alpha(context) ;
+			if ( localStorage['transparency'] == 'true' )
+				canvas_reset_alpha(context) ;
 		}
 	}
 	// Accessors
