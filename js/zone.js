@@ -959,7 +959,7 @@ function battlefield(player) {
 		cy = min(cy, bfrows-1) ;
 		// Invert
 		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
-			cy = bfrows - cy - 1 ;
+			cy = bfrows - cy ;
 		return {'x': cx, 'y': cy} ;
 	}
 	// Initialisation
