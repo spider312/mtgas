@@ -657,7 +657,13 @@ function switch_booster($source, $dest, $tournament) {
 	$query = "UPDATE `booster` SET `player` = '$dest' WHERE
 	`tournament` = '".$tournament->id."' AND `player` = '$source' ;" ;
 	query($query) ;
-	if ( mysql_affected_rows() != 1 )
-		echo mysql_affected_rows().' results affected by query '.$query."\n" ;
+	//if ( mysql_affected_rows() != 1 )
+	//	echo mysql_affected_rows().' results affected by query '.$query."\n" ;
+	if ( mysql_matched_rows() != 1 )
+		echo mysql_matched_rows().' results affected by query '.$query."\n" ;
+}
+function mysql_matched_rows() {
+	$_kaBoom=explode(' ',mysql_info());
+	return $_kaBoom[2];
 }
 ?>
