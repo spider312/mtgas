@@ -1,5 +1,7 @@
 <?php
 function ranking_to_file($file='ranking/week.json', $period='WEEK', $plength=1) {
+	if ( ! is_dir('ranking') )
+		mkdir('ranking') ;
 	$fh = fopen($file, 'w') or die('can\'t open file') ;
 	$players = ranking($period, $plength) ;
 	fwrite($fh, json_encode($players));
