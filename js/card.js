@@ -1217,7 +1217,8 @@ function card_prototype() {
 		if ( result ) { // There is no card on destination : move
 			if ( this.get_attachedto() != null ) {
 				this.detach() ;
-				this.sync() ;
+				//this.sync() ;
+				this.sync_attrs = clone(this.attrs) ;
 			} else
 				this.clean_battlefield() ;
 			this.set_grid(xdest, ydest) ;

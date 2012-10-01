@@ -438,7 +438,7 @@ function Selection() {
 			if ( card.zone.type == 'battlefield' ) { // Leaving a BF
 				// Changing a token's zone (+duplicates), except for from BF to BF
 				if ( ( card.type == 'token' ) && ( zone.type != 'battlefield' ) ) {
-					message(card.controler.name+' destroys '+card.get_name(), 'zone') ;
+					//message(card.controler.name+' destroys '+card.get_name(), 'zone') ;
 					card.del() ;
 					continue ;
 				}
