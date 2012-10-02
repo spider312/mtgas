@@ -891,6 +891,7 @@ function battlefield(player) {
 	}
 	mybf.untapall = function() {
 		var sel = new Selection() ;
+		var redraw = false ;
 		for ( var i in this.cards ) {
 			var card = this.cards[i] ;
 			if ( ! game.player.attrs.untap_all )
@@ -900,12 +901,16 @@ function battlefield(player) {
 			if ( ( ! game.player.attrs.untap_creatures ) && ( card.is_creature() ) )
 				continue ;
 			if ( ! card.has_attr('no_untap') ) {
-				if ( card.attrs.no_untap_once )
+				if ( card.attrs.no_untap_once ) {
 					card.attrs.no_untap_once = false ;
-				else
+					card.refresh() ;
+					redraw = true ;
+				} else
 					sel.add(card) ;
 			}
 		}
+		if ( redraw)
+			draw() ;
 		sel.tap(false) ;
 	}
 	mybf.refresh_pt = function(boost_bf) { // Refresh all powtou that may be affected by a card. Called on any changezone, and on transform
