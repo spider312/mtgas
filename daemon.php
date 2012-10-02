@@ -133,7 +133,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				tournament_log($tournament->id, '', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				if ( array_search('CUB', $data->boosters) !== FALSE ) {// Singleton
+				if ( ( array_search('CUB', $data->boosters) !== FALSE ) || ( array_search('OMC', $data->boosters) !== FALSE ) ) { // Singleton
 					$card_connection = card_connect() ;
 					$cards = query_as_array('	SELECT
 						`card`.`name`,

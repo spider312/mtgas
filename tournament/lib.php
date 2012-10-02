@@ -569,7 +569,7 @@ function booster_as_array_with_ext($ext='', &$ext_cards=null) {
 	}
 	$foil = ( rand(1, $proba_foil) == 1 ) ;
 	// 0-1 foil
-	if ( $foil && ( $ext != 'CUB' ) ) { // CUB don't want foils, they break unicity
+	if ( $foil && ( $ext != 'CUB' ) && ( $ext != 'OMC' ) ) { // CUB don't want foils, they break unicity
 		$c-- ;
 		$result[] = rand_card($cardsf, $ext_cards) ; // Uses it's own card list, so won't be removed from 'normal' cards lists
 	}
@@ -635,7 +635,7 @@ SB: $nb [$ext] Swamp" ;
 function pool_open($boosters, $name='', &$cards=null) {
 	$pool = '// Sealed pool for tournament '.$name."\n" ;
 	foreach ( $boosters as $i => $booster ) {
-		if ( $booster == 'CUB' )
+		if ( ( $booster == 'CUB' ) || ( $booster == 'OMC' ) )
 			$booster_content = booster_as_mwdeck($booster, &$cards) ;
 		else
 			$booster_content = booster_as_mwdeck($booster) ;
