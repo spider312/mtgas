@@ -13,7 +13,6 @@
 play with top card revealed + shuffle
 steps +1/-1 pour les planeswalkers (+/-X)
 card copy attrs + nom plus évident
-le spectacteur peut interagir avec son board et donc regarder les cartes en main
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 face up over network
 inactivité des joueurs sur la page tournois, joueur inactif => défaite

@@ -240,11 +240,14 @@ function Turn(game) {
 					menu.addline() ;
 					if ( tournament > 0 )
 						menu.addline('Tournament', function() { window.open('tournament/?id='+tournament) ; }) ;
-					if ( iso(logtext) && ( logtext.length > 0 ) )
-						menu.addline('Watch logs', 	log_clear) ;
+					menu.addline('Main page (new tab)', function() { window.open('./') ; }) ;
 					menu.addline('Quit', function() { onUnload() ; window.location.replace('./') ; }) ; // onUnload because menu has focus at this moment, window don't trigger unload event
-					if ( localStorage['debug'] == 'true' )
+					if ( localStorage['debug'] == 'true' ) {
+						menu.addline() ;
+						if ( iso(logtext) && ( logtext.length > 0 ) )
+							menu.addline('Watch logs', 	log_clear) ;
 						menu.addline('Tail (debug)', function() { window.open('tail.php?game='+game.id) ; }) ;
+					}
 					menu.start(ev) ;
 					break ;
 			}
