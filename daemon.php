@@ -133,7 +133,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				tournament_log($tournament->id, '', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				if ( ( array_search('CUB', $data->boosters) !== FALSE ) || ( array_search('OMC', $data->boosters) !== FALSE ) ) { // Singleton
+				if ( array_search('CUB', $data->boosters) !== FALSE ) { // Singleton
 					$card_connection = card_connect() ;
 					$cards = query_as_array('	SELECT
 						`card`.`name`,
@@ -148,7 +148,23 @@ while ( sleep($daemon_delay) !== FALSE ) {
 					WHERE
 						`card`.`id` = `card_ext`.`card`
 						AND `extension`.`id` = `card_ext`.`ext`
-					'."AND `extension`.`se` = 'CUB' ; ", 'Get cards in Cube', $card_connection) ;
+					'."AND `extension`.`se` = 'CUB' ; ", 'Get cards in Cube (modified)', $card_connection) ;
+				} else if ( array_search('OMC', $data->boosters) !== FALSE ) {
+					$card_connection = card_connect() ;
+					$cards = query_as_array('	SELECT
+						`card`.`name`,
+						`card`.`attrs`,
+						`card_ext`.`nbpics`,
+						`card_ext`.`rarity`,
+						`extension`.`se`
+					FROM
+						`card`,
+						`card_ext`,
+						`extension`
+					WHERE
+						`card`.`id` = `card_ext`.`card`
+						AND `extension`.`id` = `card_ext`.`ext`
+					'."AND `extension`.`se` = 'OMC' ; ", 'Get cards in Cube (original)', $card_connection) ;
 				} else
 					$cards = null ;
 				if ( $data->clone_sealed ) { // Each player has the same deck
@@ -162,7 +178,8 @@ while ( sleep($daemon_delay) !== FALSE ) {
 					foreach ( $players as $player ) {
 						query("UPDATE `registration`
 							SET
-								`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), &$cards)."' 
+							
+							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), &$cards)."' 
 							WHERE
 								`tournament_id` = '".$tournament->id."'
 								AND `player_id` = '".$player->player_id."'
