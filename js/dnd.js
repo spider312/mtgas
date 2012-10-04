@@ -2,7 +2,7 @@
 function drag_init(card, ev) {
 	if ( game.draginit != null )
 		log('DND already inited') ;
-	else {
+	else if ( ! spectactor ) {
 		if ( iso(ev) ) { // With an event (from canvas) : store where user clicked on card representation
 			game.dragxoffset = ev.clientX - card.x ;
 			game.dragyoffset = ev.clientY - card.y ;
@@ -18,9 +18,9 @@ function drag_init(card, ev) {
 	}
 }
 function drag_start() {
-	if ( game.draginit == null )
-		log('DND not inited')
-	else {
+	if ( game.draginit == null ) {
+		//log('DND not inited')
+	} else {
 		if ( game.drag != null )
 			log('DND already started') ;
 		else {
