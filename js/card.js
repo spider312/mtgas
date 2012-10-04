@@ -820,6 +820,8 @@ function card_prototype() {
 						var counter = 0 ;
 					else
 						var counter = this.attrs.counter ;
+					if ( this.is_planeswalker() && ! inarray('-X', steps) )
+						steps.push('+X') ;
 					for ( i in steps ) {
 						var step = parseInt(steps[i]) ;
 						if ( step != 0 ) {
@@ -2117,8 +2119,6 @@ function card_prototype() {
 		var attach_to = this ; // By default, attach to dropped card
 		while ( attach_to.attrs.attachedto != null ) // But if it is attached itself, attach to bottom attached card
 			attach_to = attach_to.attrs.attachedto ;
-		//if ( attach_to != this )
-			//return attach_to.attach_recieve(attached) ;
 		if ( attach_to != attached ) {
 			var x = attached.grid_x ; // Back-up to place cards attached to attaching card
 			var y = attached.grid_y ;
@@ -2137,7 +2137,7 @@ function card_prototype() {
 				changeattach.detach() ;
 				changeattach.place(x, y) ;
 			}
-			this.refreshpowthou() ;
+			attach_to.refreshpowthou() ;
 		}
 	}
 	this.detach = function() { // If this is attached to another, detach from it

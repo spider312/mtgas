@@ -10,7 +10,6 @@
 ! Lands en side
 ! Draft : dblclick pour select + cocher ready
 ! Land/ancestral qui remonte en main
-? dblclick opponent battlefield
 play with top card revealed + shuffle
 steps +1/-1 pour les planeswalkers (+/-X)
 unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs

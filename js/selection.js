@@ -228,8 +228,12 @@ function Selection() {
 	}
 		// Counters
 	this.add_counter = function(nb) {
-		if ( !isn(nb) )
-			nb = prompt_int('How many counters to add for '+this.cards_names()+' ?', 1) ;
+		if ( !isn(nb) ) {
+			var i = 1 ;
+			if ( nb == '-X' )
+				i = -1 ;
+			nb = prompt_int('How many counters to add for '+this.cards_names()+' ?', i) ;
+		}
 		if ( nb != 0 )
 			if ( this.add_counter_recieve(nb) ) {
 				this.sync({'counter': nb}) ;
