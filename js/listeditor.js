@@ -28,23 +28,26 @@ function card_list_edit(zone, dest, n) {
 			dest = zone.player.battlefield ;
 	// Message + first displayed card
 	zone.editor_window = document.createElement('div') ;
-	var message = 'looks at ' ;
+	var m = 'looks at ' ;
 	if ( isn(n) ) { // If user wants to watch only top N cards
 		if ( n == 0 ) {
 			zone.editor_window.close() ;
 			return false ;
 		} else {
 			if ( n > 0 ) {
-				message += ' top '+n+' cards of ' ;
+				m += ' top '+n+' cards of ' ;
 				zone.editor_window.firstcard = zone.cards[zone.cards.length-n-1] ; // Remember the first card the list shouldn't display
 			} else {
-				message += ' bottom '+(-n)+' cards of ' ;
+				m += ' bottom '+(-n)+' cards of ' ;
 				zone.editor_window.firstcard = zone.cards[-n] ; // Remember the first card the list shouldn't display
 			}
 		}
 	}
-	message += zone.player.name+'\'s '+zone.type ;
-	message_send(message) ;
+	m += zone.player.name+'\'s '+zone.type ;
+	if ( spectactor )
+		message(game.spectactors[spectactor_id].name+' '+m) ;
+	else
+		message_send(m) ;
 	// Display
 	var ol = game.player.lists_opened() + game.opponent.lists_opened() ;
 	zone.editor_window.style.right = (300 * ol ) + 'px' ;
@@ -62,7 +65,11 @@ function card_list_edit(zone, dest, n) {
 		var zone = eval(div.zone) ;
 		zone.editor_window = null ;
 		div.parentNode.removeChild(div) ;
-		message_send('stops looking at '+zone.player.name+'\'s '+zone.type) ; // Crashes when called after main window was destroyed (on page leave)
+		m = 'stops looking at '+zone.player.name+'\'s '+zone.type ;
+		if ( spectactor )
+			message(game.spectactors[spectactor_id].name+' '+m) ;
+		else
+			message_send(m) ;
 		for ( var i = 0 ; i < zone.cards.length ; i++ ) {
 			zone.cards[i].watching = false ; // Reinit watching for all cards in watched zone
 			zone.cards[i].load_image() ;

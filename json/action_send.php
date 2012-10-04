@@ -15,7 +15,7 @@ if (
 	( $player_id != $match->creator_id ) && ( $player_id != $match->joiner_id ) // Sender is nor creator nor joiner, he may not send action
 	&& ( $type != 'spectactor' ) && ( $type != 'text' ) // Unless action is spectactor or text
 ) {
-	//$data->msg = 'As a spectactor, you are not allowed to send actions' ;
+	$data->msg = 'As a spectactor, you are not allowed to send actions : '.$type.'('.$param.')' ;
 	die(json_encode($data)) ;
 }
 

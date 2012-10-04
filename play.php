@@ -10,6 +10,7 @@ $client_status = 'Unknown' ; // Is client creator, joiner, goldfish, or spectact
 $goldfish = 'false' ;
 $creator = 'false' ;
 $spectactor = 'false' ;
+$spectactor_id = '' ;
 if ( ( $player_id == $row->joiner_id ) && ( $player_id != $row->creator_id ) ) { // I am joiner but not a goldfish
 	$client_status = 'Joiner' ;
 	// Me : joiner
@@ -33,6 +34,7 @@ if ( ( $player_id == $row->joiner_id ) && ( $player_id != $row->creator_id ) ) {
 	} else {
 		$client_status = 'Spectactor' ;
 		$spectactor = 'true' ;
+		$spectactor_id = $player_id ;
 	}
 	// Me : creator
 	$player_nick = $row->creator_nick ;
@@ -72,6 +74,7 @@ switch ( $status ) {
 if ( $replay == 1 ) {
 	$client_status = 'Replay' ;
 	$spectactor = 'true' ;
+	$spectactor_id = $player_id ;
 	$player_score = 0 ; // In order to trigger score changes
 	$opponent_score = 0 ;
 }
@@ -129,6 +132,7 @@ $(function() { // When page is loaded : initialize everything
 	creator = <?php echo $creator ; ?> ; // Am i that game's creator ?
 	goldfish = <?php echo $goldfish ; ?> ; // Is the game a goldfish ?
 	spectactor = <?php echo $spectactor ; ?> ; // Am i a spectactor ?
+	spectactor_id = '<?php echo $spectactor_id ; ?>' ; // Am i a spectactor ?
 	replay = <?php echo $replay ; ?> ; // Replay
 	tournament = <?php echo $row->tournament ; ?> ;
 	round = <?php echo $row->round ; ?> ;

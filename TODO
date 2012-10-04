@@ -12,7 +12,6 @@
 ! Land/ancestral qui remonte en main
 play with top card revealed + shuffle
 steps +1/-1 pour les planeswalkers (+/-X)
-unequip ou destroy token, ouverture, fermeture de zone : message chez les spectacteurs
 card copy attrs + nom plus évident
 le spectacteur peut interagir avec son board et donc regarder les cartes en main
 le dernier joueur dans le tournois ne voit pas son status réinitialisé

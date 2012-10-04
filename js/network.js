@@ -160,7 +160,7 @@ function action_unstack() {
 		return $.post('json/action_send.php', params, function(data) {
 			game.action_stack.shift() ;
 			if ( ( iss(data.msg) ) && ( data.msg != '' ) )
-				alert(data.msg) ;
+				log(data.msg) ;
 			if ( data.newround ) {
 				new_round() ;
 				return false ;
