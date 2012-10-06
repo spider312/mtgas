@@ -138,37 +138,36 @@ div.S {
 	display: inline !important ;
 	position: fixed ;
 }
-/* Stats */
-#stats {
-	position: absolute ;
+/* Log & Stats common + animation */
+#stats, #tournament {
+	position: fixed ;
 	width: 250px ;
 	top: 5% ;
 	height: 90% ;
-	left: -230px ;
-	-moz-transition: all 0.1s ease-in;
-	-webkit-transition: all 0.1s ease-in;
+	transition: all 0.2s ;
+	-moz-transition: all 0.2s ;
+	-webkit-transition: all 0.2s ;
+	-o-transition: all 0.2s ;
+	-ms-transition: all 0.2s ;
+	transition-timing-function: ease-in-out ;
+	-moz-transition-timing-function: ease-in-out ;
+	-webkit-transition-timing-function: ease-in-out ;
+	-o-transition-timing-function: ease-in-out ;
+	-ms-transition-timing-function: ease-in-out ;
 }
-#stats:hover {
-	-moz-transform: translate(230px) ;
-	-moz-transition: all 0.1s ease-in ;
-	-webkit-transform: translate(230px) ;
-	-webkit-transition: all 0.1s ease-in ;
+/* Stats */
+#stats {
+	left: -230px ;
+}
+#stats:hover { /* It's hidden, let's show it */
+	left: -1px ;
 }
 /* Log */
 #tournament {
-	position: absolute ;
-	width: 250px ;
-	top: 5% ;
-	height: 90% ;
 	right: -230px ;
-	-moz-transition: all 0.1s ease-in;
-	-webkit-transition: all 0.1s ease-in;
 }
-#tournament:hover {
-	-moz-transform: translate(-230px) ;
-	-moz-transition: all 0.1s ease-in; 
-	-webkit-transform: translate(-230px) ;
-	-webkit-transition: all 0.1s ease-in; 
+#tournament:hover { /* It's hidden, let's show it */
+	right: -1px ;
 }
 #tournament ul {
 	padding-left: 0 ;
@@ -183,4 +182,8 @@ div.S {
 #tournament.highlight {
 	border-color: red ;
 	border-width: 5px ;
+}
+#log_ul {
+	overflow-y: auto ;
+	height: 70% ;
 }

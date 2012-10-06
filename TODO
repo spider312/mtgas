@@ -5,7 +5,7 @@
 / = impossible à corriger actuellement
 
  === Bugs ===
-!! détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215), attachement d'une carte depuis le BF adverse ?
+!! détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
 ! Reorganisation de l'accueil
 ! Lands en side
 ! Draft : dblclick pour select + cocher ready
@@ -31,6 +31,7 @@ import multiple deck : tous sont save sous le même nom
 grimgrin no untap
 use move when change zone from bf to bf
 Modularize unicity in boosters (CUB, OMC*) + daemon
+chargement asynchrone
 
  --- Chrome ---
 ' dans le builder
