@@ -655,6 +655,7 @@ function add_card(ext, name, num, nb, to) {
 			if ( ! data.ext )
 				log(data.name+' has no ext') ;
 			else {
+				// Recieved a card, manage ext
 				var ext = extension_select(data, row.ext(), row.attrs) ;
 				row.extlist = ext ;
 				row.exts = data.ext ;
@@ -666,6 +667,10 @@ function add_card(ext, name, num, nb, to) {
 					row.cells[1].appendChild(ext) ;
 					row.cells[1].classList.add('nopadding') ;
 				}
+				// Manage name (in case it's not exactly the same in deck file and in DB)
+				node_empty(row.cells[2]) ;
+				row.card = data.name ;
+				row.cells[2].appendChild(document.createTextNode(row.card)) ;
 			}
 		}
 		if ( data.attrs ) {

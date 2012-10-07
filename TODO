@@ -19,6 +19,9 @@ inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
 accents dans les pseudos (dans la liste des registered players sur la page d'accueil uniquement)
 identity shower dans les pages autres que l'accueil
+position de la carte pendant le DND sur le BF adverse
+ctrl + flèches sur le BF adverse inversé
+manapool empty on each step
 
 reminder
 Cascade
@@ -32,6 +35,7 @@ grimgrin no untap
 use move when change zone from bf to bf
 Modularize unicity in boosters (CUB, OMC*) + daemon
 chargement asynchrone
+deckbuilder double face, split
 
  --- Chrome ---
 ' dans le builder
