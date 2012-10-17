@@ -16,21 +16,27 @@ if ( mysql_num_rows($q) == 0 ) {
 			$result->msg .= 'Wrong password. ' ;
 		} else {
 			// Merge stored object and param
-			$json = json_decode(stripslashes($json)) ;
+			$json = json_decode($json) ;
 			$content = json_decode($profile->content) ;
-			$result->msg = 'Changes'."\n" ;
+			$log = 'Changes'."\n" ;
 			foreach( $json as $k => $v ) {
 				if ( $v == null ) {
 					unset($content->$k) ;
-					$result->msg .= ' (deleted)' ;
-				} else
+					$log .= $k.' deleted'."\n" ;
+				} else {
+					if ( property_exists($content, $k) )
+						$log .= $k.' : '.$content->$k.' -> '.$v."\n" ;
+					else
+						$log .= $k.' : '.$v."\n" ;
 					$content->$k = $v ;
+				}
 			}
-			$content = mysql_real_escape_string(json_encode($content)) ;
-			$result->msg = $content ;
 			// Store merged object
+			$content = mysql_real_escape_string(json_encode($content)) ;
 			$u = query("UPDATE `profile` SET `content` = '$content' WHERE `email` = '$email' AND `password` = '$password' ;") ;
-			//$result->affected = mysql_affected_rows() ;
+			// Return
+			$result->affected = mysql_affected_rows() ;
+			//$result->msg = $log ;
 		}
 	} else
 		$result->msg .= 'Profile unfetchable. ' ;

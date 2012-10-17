@@ -309,17 +309,19 @@ function store(key, value) {
 	else
 		localStorage[key] = value ;
 	if ( $.cookie && ( $.cookie('login') != null ) )  { // Logged-in : send new value
+		var e = document.getElementById(key) ;
+		if ( e != null )
+			e.parentNode.classList.add('updating') ;
 		var json = {} ;
 		json[key] = value ;
-		$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(d) {
-			if ( ( d.affected != 0 ) && ( d.affected != 1 ) ) {
-				var msg = 'Something went wrong : '+d.affected ;
-				if ( ( typeof d.msg == 'string' ) && ( d.msg != '' ) )
-					alert(msg+' : \n'+d.msg) ;
-				else
-					alert(msg) ;
+		$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(data) {
+			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
+				alert(data.msg) ;
+			else if ( ( data.affected != 0 ) && ( data.affected != 1 ) ) {
+				alert('Something went wrong : '+data.affected) ;
 				$.cookie('login', null) ;
-			}
+			} else if ( e != null )
+				e.parentNode.classList.remove('updating') ;
 		}, 'json') ;
 	}
 }

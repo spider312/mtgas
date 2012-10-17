@@ -184,20 +184,22 @@ $(function() { // On page load
 			}, function(data) {
 				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
 					alert(data.msg) ;
-				// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
-				if ( ( data.send ) || ev.target.overwrite.checked ) {
-					$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
-						document.location = document.location ; // Refresh login form
-					}, 'json') ;
-				// If server sent data, store them
-				} else if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
-					var profile = JSON.parse(data.recieve) ;
-					localStorage.clear() ;
-					for ( var i in profile )
-						localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
-					document.location = document.location ; // Refresh all data
-				} else
-					alert('Nothing happend') ;
+				else {
+					// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
+					if ( ( data.send ) || ev.target.overwrite.checked ) {
+						$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
+							document.location = document.location ; // Refresh login form
+						}, 'json') ;
+					// If server sent data, store them
+					} else if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
+						var profile = JSON.parse(data.recieve) ;
+						localStorage.clear() ;
+						for ( var i in profile )
+							localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
+						document.location = document.location ; // Refresh all data
+					} else
+						alert('Nothing happend') ;
+				}
 			}) ;
 			return eventStop(ev) ;
 		}, false) ;
@@ -272,26 +274,27 @@ $(function() { // On page load
 		if ( ev.target.profile_file.files.length == 0 )
 			alert('Please browse to the saved profile file you want to restore') ;
 		else {
-			var file = ev.target.profile_file.files.item(0) ;
-			if ( ! file.getAsText ) {
-				alert('Your browsers doesn\'t support profile restoring. Please use firefox') ;
-				return null ;
-			}
-			var text = file.getAsText('utf-8') ;
-			try {
-				var profile = JSON.parse(text) ;
-			} catch (e) {
-				alert('The file '+file.fileName+' ('+file.type+') doesn\'t appears to be a valid MTGAS profile file (json)') ;
-				return null ;
-			}
-			if ( confirm('Are you sure you want to overwrite all your personnal data (nick, avatar, decks, tokens) with ones stored in profile file with nick '+profile.profile_nick) ) {
-				ev.target.profile_file.value = '' ;
-				localStorage.clear() ;
-				for ( var i in profile )
-					store(i, profile[i]) ;
-				alert('All data were overwritten, reloading page') ;
-				document.location = document.location ;
-			}
+			var form = ev.target ; // Used in reader.onload, where ev is another event
+			var reader = new FileReader() ; // https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
+			reader.onload = function(ev) {
+				var text = ev.target.result ;
+				try {
+					var profile = JSON.parse(text) ;
+				} catch (e) {
+					alert('The file '+file.fileName+' ('+file.type+') doesn\'t appears to be a valid MTGAS profile file (json)') ;
+					return null ;
+				}
+				if ( confirm('Are you sure you want to overwrite all your personnal data (nick, avatar, decks, options) with ones stored in profile file with nick '+profile.profile_nick) ) {
+					form.profile_file.value = '' ;
+					localStorage.clear() ;
+					for ( var i in profile )
+						store(i, profile[i]) ;
+					alert('All data were overwritten, reloading page') ;
+					document.location = document.location ;
+				}
+
+			} ;
+			reader.readAsText(form.profile_file.files.item(0)) ;
 		}
 	}, false) ;
 	document.getElementById('clear').addEventListener('click', function(ev) {
