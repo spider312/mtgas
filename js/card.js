@@ -1057,7 +1057,7 @@ function card_prototype() {
 		this.zone.cards.splice(index, 0, this) ; // Insert this card into zone
 		if ( visible == false ) { // Card forced as face down
 			this.on_face_down() ;
-			//this.sync() ; // ?
+			this.sync() ; // Face up on cards played face down from hand doesn't works without
 		} else {
 			if ( ( oldzone.type != 'battlefield' ) || ( this.zone.type != 'battlefield' ) ) { // Don't reinit if going from a BF to a BF
 				var vi = this.attrs.visible ;

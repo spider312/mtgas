@@ -10,13 +10,11 @@
 ! Lands en side
 ! Land/ancestral qui remonte en main
 play with top card revealed + shuffle
-steps +1/-1 pour les planeswalkers (+/-X)
 card copy attrs + nom plus évident
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
-face up over network
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
-accents dans les pseudos (dans la liste des registered players sur la page d'accueil uniquement)
+
 identity shower dans les pages autres que l'accueil
 position de la carte pendant le DND sur le BF adverse
 

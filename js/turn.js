@@ -246,7 +246,7 @@ function Turn(game) {
 						menu.addline() ;
 						if ( iso(logtext) && ( logtext.length > 0 ) )
 							menu.addline('Watch logs', 	log_clear) ;
-						menu.addline('Tail (debug)', function() { window.open('tail.php?game='+game.id) ; }) ;
+						menu.addline('Tail', function() { window.open('tail.php?game='+game.id) ; }) ;
 					}
 					menu.start(ev) ;
 					break ;
