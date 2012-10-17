@@ -47,11 +47,11 @@ function card_prototype() {
 		this.init_attrs(attrs) ;
 		// Expected and no need to sync
 		this.expected_attrs('manas', attrs) ;
-		this.expected_attrs('color', attrs) ;
+		//this.expected_attrs('color', attrs) ;
 		this.expected_attrs('converted_cost', attrs) ;
 		//this.expected_attrs('types', attrs) ;
 		//this.expected_attrs('subtypes', attrs) ;
-		this.expected_attrs('tokens', attrs) ;
+		//this.expected_attrs('tokens', attrs) ;
 		this.expected_attrs('transformed_attrs', attrs) ;
 		if ( this.transformed_attrs)
 			attrs.transformed = false ; // Default value
@@ -106,7 +106,7 @@ function card_prototype() {
 // === [ GETTERS ] =============================================================
 	// Generic
 	this.is_color = function(color) {
-		if ( iss(this.color) && ( this.color.indexOf(color) != -1 ) )
+		if ( iss(this.attrs.color) && ( this.attrs.color.indexOf(color) != -1 ) )
 			return true ;
 		if ( iso(this.animated_attrs) && iss(this.animated_attrs.color) && ( this.animated_attrs.color.indexOf(color) != -1 ) )
 			return true ;
@@ -813,9 +813,9 @@ function card_prototype() {
 					// Counters
 					var c = menu.addline('Set counters',		card.setcounter) ;
 					if ( card.attrs.transformed && card.transformed_attrs)
-						var steps = card.transformed_attrs.steps ;
+						var steps = clone(card.transformed_attrs.steps) ;
 					else
-						var steps = this.attrs.steps
+						var steps = clone(this.attrs.steps)
 					if ( ( ! steps ) || ( steps.length < 1 ) )
 						var steps = ['+1', '-1'] ;
 					if ( ! this.attrs.counter )
@@ -848,8 +848,8 @@ function card_prototype() {
 						if ( card.transformed_attrs.tokens )
 							tokens = card.transformed_attrs.tokens ;
 					} else {
-						if ( card.tokens )
-							tokens = card.tokens ;
+						if ( card.attrs.tokens )
+							tokens = card.attrs.tokens ;
 					}
 					for ( var i = 0 ; i < tokens.length ; i++ ) {
 						var ext = card.ext ;
@@ -2169,7 +2169,7 @@ function card_prototype() {
 	this.duplicate_recieve = function(id) {
 		var attrs = clone(this.attrs) ;
 		this.duplicate_attrs('cost', attrs) ;
-		this.duplicate_attrs('color', attrs) ;
+		//this.duplicate_attrs('color', attrs) ;
 		this.duplicate_attrs('converted_cost', attrs) ;
 		//this.duplicate_attrs('types', attrs) ;
 		//this.duplicate_attrs('subtypes', attrs) ;
