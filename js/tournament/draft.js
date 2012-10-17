@@ -85,6 +85,13 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 							alert(data.msg) ;
 					}) ;
 				}, false) ;
+				img.addEventListener('dblclick', function(ev) { // On click
+					ev.target.className = 'picking' ;
+					$.getJSON('json/draft.php', {'id': id, 'pick': ev.target.id, 'ready': 1}, function(data) { // Mark as ready
+						if ( data.msg )
+							alert(data.msg) ;
+					}) ;
+				}, false) ;
 				// Transform
 				if ( iso(card.attrs.transformed_attrs) && iss(card.attrs.transformed_attrs.name) ) {
 					game.image_cache.load(card_images(card_image_url(content.ext, card.attrs.transformed_attrs.name, card.attrs)), function(img, tag) {

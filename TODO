@@ -8,7 +8,6 @@
 !! détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
 ! Reorganisation de l'accueil
 ! Lands en side
-! Draft : dblclick pour select + cocher ready
 ! Land/ancestral qui remonte en main
 play with top card revealed + shuffle
 steps +1/-1 pour les planeswalkers (+/-X)
@@ -20,7 +19,6 @@ Drop : le tournois ne disparait pas de la liste
 accents dans les pseudos (dans la liste des registered players sur la page d'accueil uniquement)
 identity shower dans les pages autres que l'accueil
 position de la carte pendant le DND sur le BF adverse
-ctrl + flèches sur le BF adverse inversé
 
 reminder
 Cascade
