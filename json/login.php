@@ -10,6 +10,7 @@ if ( mysql_num_rows($q) == 0 ) { // Register
 	$r = query("INSERT INTO `profile` ( `email`, `password`, `content` ) VALUES ( '$email', MD5('$password'), '{}' )") ;
 	if ( mysql_affected_rows() == 1 ) {
 		$result->msg .= 'Creation OK' ;
+		mail($email, 'Account created on '.$url, 'This email confirms your online profile on '.$url.' has been created.') ;
 		$result->send = true ;
 		$_SESSION['login'] = $email ;
 		$_SESSION['password'] = md5($password) ;
