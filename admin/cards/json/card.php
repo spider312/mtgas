@@ -14,7 +14,6 @@ if ( array_key_exists('card_id', $_GET) ) {
 	$card['text'] = stripslashes($card['text']) ;
 	$attrs = new attrs($card) ;
 	$attrs = JSON_encode($attrs) ;
-	//die(mysql_real_escape_string($card['text'])) ;
 	$query = query("UPDATE 
 		`card`
 	SET

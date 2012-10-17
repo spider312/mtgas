@@ -312,7 +312,7 @@ function store(key, value) {
 		var json = {} ;
 		json[key] = value ;
 		$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(d) {
-			if ( d.affected != 1 ) {
+			if ( ( d.affected != 0 ) && ( d.affected != 1 ) ) {
 				var msg = 'Something went wrong : '+d.affected ;
 				if ( ( typeof d.msg == 'string' ) && ( d.msg != '' ) )
 					alert(msg+' : \n'+d.msg) ;

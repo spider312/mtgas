@@ -184,21 +184,20 @@ $(function() { // On page load
 			}, function(data) {
 				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
 					alert(data.msg) ;
-				if ( ( data.send ) || ( ev.target.overwrite.checked ) ) {
+				// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
+				if ( ( data.send ) || ev.target.overwrite.checked ) {
 					$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
-						if ( d.affected != 1 )
-							alert('Something went wrong : '+d.affected) ;
-						else
-							document.location = document.location ;
+						document.location = document.location ; // Refresh login form
 					}, 'json') ;
-				}
-				if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
+				// If server sent data, store them
+				} else if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
 					var profile = JSON.parse(data.recieve) ;
 					localStorage.clear() ;
 					for ( var i in profile )
 						localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
-					document.location = document.location ;
-				}
+					document.location = document.location ; // Refresh all data
+				} else
+					alert('Nothing happend') ;
 			}) ;
 			return eventStop(ev) ;
 		}, false) ;

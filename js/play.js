@@ -27,6 +27,18 @@ function start() { // When page is loaded : initialize everything
 	document.getElementById('options_close').addEventListener('click', function(ev) {
 		document.getElementById('options').classList.remove('disp') ;
 	}, false) ;
+	/* Not exactly the same as a F11 fullscreen : asks user, unsets on focus change, doesn't trigger resize, background becomes black
+	document.getElementById('fullscreen').addEventListener('click', function(ev) { // https://developer.mozilla.org/en-US/docs/DOM/Using_full-screen_mode
+		var elem = document.body ;
+		if (elem.requestFullScreen) {
+			elem.requestFullScreen();
+		} else if (elem.mozRequestFullScreen) {
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullScreen) {
+			elem.webkitRequestFullScreen();
+		}
+	}, false) ;
+	*/
 	document.getElementById('invert_bf').addEventListener('change', function(ev) {
 		resize_window() ;
 	}, false) ;

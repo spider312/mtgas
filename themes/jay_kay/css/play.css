@@ -187,6 +187,15 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	right: 10px ;
 	bottom: 10px ;
 }
+#fullscreen {
+	position: absolute ;
+	right: 70px ;
+	bottom: 10px ;
+}
+#fullscreen img, #options_close img {
+	width: 32px ;
+	height: 32px ;
+}
 /* Choice window (triggers, dredge ...)*/
 #choicewin {
 	z-index: 2 ;

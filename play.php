@@ -194,10 +194,11 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
    <li style="color: RoyalBlue">Alt : Definitive</li>
   </ul>
   <div id="options">
+   <!--button id="fullscreen" title="Sets the window fullscreen"><img src="/themes/<?php echo $theme ; ?>/fullscreen.png" alt="fullscreen"></button-->
 <?php
 html_options() ;
 ?>
-   <button id="options_close" title="Close options window. Each option is applied when changing it, there is no 'apply' nor 'cancel'"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/button_ok.png"></button>
+   <button id="options_close" title="Close options window. Each option is applied when changing it, there is no 'apply' nor 'cancel'"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/button_ok.png" alt="close"></button>
   </div>
   <div id="log_window">
    <textarea id="log_area" readonly="readonly"></textarea>

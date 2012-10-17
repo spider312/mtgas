@@ -1,0 +1,10 @@
+#stats {
+	position: absolute ;
+	right: 0px ;
+	top: 150px ;
+	width: 300px ;
+}
+
+.updating {
+	background-color: red ;
+}
