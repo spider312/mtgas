@@ -382,8 +382,6 @@ function save_restore_options() {
 function save_restore(field, onsave, onrestore) {
 	var myfield = document.getElementById(field) ;
 	if ( myfield != null ) {
-		if ( typeof onsave == 'function' )
-			myfield.onsave = onsave ;
 		// Prepare save trigger
 		switch ( myfield.type ) { // Depending on type
 			case 'hidden': // Hidden
@@ -414,6 +412,9 @@ function save_restore(field, onsave, onrestore) {
 		}
 		if ( typeof onrestore == 'function' )
 			onrestore(myfield) ;
+		// In order it only triggers on user action save, not with call in this method
+		if ( typeof onsave == 'function' )
+			myfield.onsave = onsave ;
 	}
 }
 function save(myfield) {
