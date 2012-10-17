@@ -594,8 +594,12 @@ function onKeyPress(ev) {
 					break ;
 				case KeyEvent.DOM_VK_UP :
 					var cards = game.selected.get_cards() ;
+					if ( ( game.selected.zone.player != game.player ) && ( localStorage['invert_bf'] == 'true' ) ) // Inverted opponent BF
+						var step = 1 ;
+					else
+						var step = -1 ;
 					for ( var i in cards )
-						cards[i].place(cards[i].grid_x, cards[i].grid_y - 1) ;
+						cards[i].place(cards[i].grid_x, cards[i].grid_y + step) ;
 					break ;
 				case KeyEvent.DOM_VK_RIGHT :
 					var cards = game.selected.get_cards() ;
@@ -604,8 +608,12 @@ function onKeyPress(ev) {
 					break ;
 				case KeyEvent.DOM_VK_DOWN :
 					var cards = game.selected.get_cards() ;
+					if ( ( game.selected.zone.player != game.player ) && ( localStorage['invert_bf'] == 'true' ) ) // Inverted opponent BF
+						var step = -1 ;
+					else
+						var step = 1 ;
 					for ( var i in cards )
-						cards[i].place(cards[i].grid_x, cards[i].grid_y + 1) ;
+						cards[i].place(cards[i].grid_x, cards[i].grid_y + step) ;
 					break ;
 				default : 
 					handled = false ; // Let browser manage this key
