@@ -49,8 +49,8 @@ function card_prototype() {
 		this.expected_attrs('manas', attrs) ;
 		this.expected_attrs('color', attrs) ;
 		this.expected_attrs('converted_cost', attrs) ;
-		this.expected_attrs('types', attrs) ;
-		this.expected_attrs('subtypes', attrs) ;
+		//this.expected_attrs('types', attrs) ;
+		//this.expected_attrs('subtypes', attrs) ;
 		this.expected_attrs('tokens', attrs) ;
 		this.expected_attrs('transformed_attrs', attrs) ;
 		if ( this.transformed_attrs)
@@ -113,14 +113,14 @@ function card_prototype() {
 		return false ;
 	}
 	this.is_supertype = function(type) {
-		if ( iso(this.supertypes) && ( this.supertypes.indexOf(type) != -1 ) )
+		if ( iso(this.attrs.supertypes) && ( this.attrs.supertypes.indexOf(type) != -1 ) )
 			return true ;
 		if ( iso(this.animated_attrs) && iso(this.animated_attrs.supertypes) && ( this.animated_attrs.supertypes.indexOf(type) != -1 ) )
 			return true ;
 		return false ;
 	}
 	this.is_type = function(type) {
-		if ( iso(this.types) && ( this.types.indexOf(type) != -1 ) )
+		if ( iso(this.attrs.types) && ( this.attrs.types.indexOf(type) != -1 ) )
 			return true ;
 		if ( iso(this.animated_attrs) && iso(this.animated_attrs.types) && ( this.animated_attrs.types.indexOf(type) != -1 ) )
 			return true ;
@@ -142,14 +142,14 @@ function card_prototype() {
 		if ( this.attrs.transformed && iso(this.transformed_attrs) ) // Transformed subtypes REPLACE subtypes
 			return this.transformed_attrs.subtypes ;
 		else
-			return this.subtypes ;
+			return this.attrs.subtypes ;
 	}
 	// Types
 	this.get_types = function() {
 		if ( this.attrs.transformed && iso(this.transformed_attrs) )
 			return this.transformed_attrs.types ;
 		else
-			return this.types ;
+			return this.attrs.types ;
 	}
 	this.is_creature = function() {
 		return inarray('creature', this.get_types()) || iso(this.animated_attrs) ;
@@ -172,7 +172,7 @@ function card_prototype() {
 			if ( this.zone.type == 'battlefield' )
 				name = 'faced down card' ;
 		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
-			name += ' copying '+this.attrs.copy.get_name() ;
+			name = this.attrs.copy.get_name()+' copied by '+name
 		return name ;
 	}
 	this.debug_name = function() {
@@ -541,7 +541,9 @@ function card_prototype() {
 	}
 // === [ EVENTS ] ==============================================================
 	this.mouseover = function(ev) {
-		//game.settittle(this.get_name()+' in '+this.zone.get_name()) ;
+		var name = this.get_name() ;
+		if ( name.length > 10 ) 
+			game.settittle(name) ;
 		this.zoom() ;
 		game.hover = this ;
 		this.refresh() ; // For bug "cards reversed in starting hand"
@@ -574,7 +576,7 @@ function card_prototype() {
 		}
 	}
 	this.mouseout = function(ev) {
-		//game.settittle('') ;
+		game.settittle('') ;
 		if ( ( game.draginit == null ) && ( game.current_targeting == null ) )
 			game.canvas.style.cursor = '' ;
 		if ( this.zone.selzone ) { // BF + hand utils (DND, target)
@@ -1732,9 +1734,9 @@ function card_prototype() {
 				case 'types' : // Tarmogoyf
 					var types = [] ;
 					for ( var i in from )
-						for ( var j in from[i].types )
-							if ( ! inarray(from[i].types[j], types) )
-								types.push(from[i].types[j]) ;
+						for ( var j in from[i].attrs.types )
+							if ( ! inarray(from[i].attrs.types[j], types) )
+								types.push(from[i].attrs.types[j]) ;
 					result += types.length ;
 					break ;
 				default :
@@ -2169,8 +2171,8 @@ function card_prototype() {
 		this.duplicate_attrs('cost', attrs) ;
 		this.duplicate_attrs('color', attrs) ;
 		this.duplicate_attrs('converted_cost', attrs) ;
-		this.duplicate_attrs('types', attrs) ;
-		this.duplicate_attrs('subtypes', attrs) ;
+		//this.duplicate_attrs('types', attrs) ;
+		//this.duplicate_attrs('subtypes', attrs) ;
 		this.duplicate_attrs('tokens', attrs) ;
 		this.duplicate_attrs('transformed_attrs', attrs) ;
 		var duplicate = new Token(id, this.ext, this.name, this.zone, attrs, this.imgurl_relative()) ;
@@ -2192,14 +2194,15 @@ function card_prototype() {
 			return false ;
 		}
 		message(this.get_name()+' becomes a copy of '+card.get_name()) ; // get it without "copy of ..." suffix
-		//this.attrs = clone(card.attrs) ;
+		this.attrs = clone(card.attrs) ;
 		this.attrs.copy = card ;
-		if ( iso(card.img) ) // Target image already loaded
-			this.refresh() ;
-		else // Target image not loaded, load and trigger refresh
-			card.load_image(function(img, card) {
-				card.refresh() ;
-			}, this) ;
+		// Refresh data linked to attrs
+		this.refreshpowthou() ; // Own
+		this.zone.refresh_pt(true) ; // Other cards on BF
+		// Load copied card image & trigger refresh when loaded
+		card.load_image(function(img, card) {
+			card.refresh() ;
+		}, this) ;
 		return true ;
 	}
 	this.uncopy = function() {
@@ -2209,8 +2212,11 @@ function card_prototype() {
 	this.uncopy_recieve = function() {
 		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) ) {
 			var copy = this.attrs.copy ;
-			//this.attrs = this.orig_attrs ;
+			this.attrs = clone(this.orig_attrs) ;
 			this.attrs.copy = null ;
+			// Refresh data linked to attrs
+			this.refreshpowthou() ; // Own
+			this.zone.refresh_pt(true) ; // Other cards on BF
 			this.refresh() ;
 			message(this.get_name()+' isn\'t anymore a copy of '+copy.get_name()) ;
 		} else
@@ -2250,7 +2256,7 @@ function card_prototype() {
 	}
 	this.morph = function() {
 		if ( this.zone.type != 'battlefield' ) {
-			this.types = ['creature'] ;
+			this.attrs.types = ['creature'] ;
 			this.changezone(this.owner.battlefield, false) ;
 		} else
 			this.face_down() ;

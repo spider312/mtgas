@@ -5,12 +5,12 @@
 / = impossible à corriger actuellement
 
  === Bugs ===
+!! better attrs management
 !! détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
 ! Reorganisation de l'accueil
 ! Lands en side
 ! Land/ancestral qui remonte en main
 play with top card revealed + shuffle
-card copy attrs + nom plus évident
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
