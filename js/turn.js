@@ -677,7 +677,7 @@ function steps_init(turn) {
 		// Draw : triggers dredge, if not, draw
 		//	menu allowing to change number of cards drawn
 		new Step('draw', 'Draw.png', function(turn) { // Draw step (dredge)
-			if ( turn.mine() && ( localStorage['remind_triggers'] == 'true' ) ) {
+			if ( turn.mine() ) {
 				var player = turn.current_player ;
 				// List
 				dredge_list = create_ul() ;
