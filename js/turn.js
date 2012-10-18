@@ -681,8 +681,8 @@ function steps_init(turn) {
 				var player = turn.current_player ;
 				// List
 				dredge_list = create_ul() ;
-				if ( localStorage['remind_triggers'] == 'true' ) ) {
-					for ( var i in player.graveyard.cards ) {
+				if ( localStorage['remind_triggers'] == 'true' ) {
+					for ( var i in player.graveyard.cards ) { // Search for dredge cards
 						var card = player.graveyard.cards[i] ;
 						if ( isn(card.attrs.dredge) ) { // Card has dredge, create a li
 							var dredge_li = popup_li(card, dredge_list) ;

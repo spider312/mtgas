@@ -235,9 +235,9 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 		for ( var i = 0 ; i < this.battlefield.cards.length ; i++ ) { // Each card on BF
 			var card = this.battlefield.cards[i] ;
 			for ( var j in obj ) { // Each attr in param
-				if ( iso(card[j]) ) { // Searched field is an array, check each of its values
-					for ( var k = 0 ; k < card[j].length ; k++ )
-						if ( card[j][k] == obj[j] ) {
+				if ( iso(card.attrs[j]) ) { // Searched field is an array, check each of its values
+					for ( var k in card.attrs[j] )
+						if ( card.attrs[j][k] == obj[j] ) {
 							res++ ;
 							break ;
 						}
