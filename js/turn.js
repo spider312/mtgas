@@ -681,29 +681,31 @@ function steps_init(turn) {
 				var player = turn.current_player ;
 				// List
 				dredge_list = create_ul() ;
-				for ( var i in player.graveyard.cards ) {
-					var card = player.graveyard.cards[i] ;
-					if ( isn(card.attrs.dredge) ) { // Card has dredge, create a li
-						var dredge_li = popup_li(card, dredge_list) ;
-						// Events
-						if ( card.attrs.dredge <= player.library.cards.length ) { // Clicks events if card is dredgeable
-							dredge_li.addEventListener('click', function(ev) { // Click to select
-								if ( dredge_win.selected != null )
-									dredge_win.selected.classList.remove('selected') ;
-								dredge_win.selected = ev.target ;
-								dredge_win.selected.classList.add('selected') ;
-								document.getElementById('button_ok').disabled = false ;
-							}, false) ;
-							dredge_li.addEventListener('dblclick', function(ev) { // DblClick to dredge
-								if ( ev.target.card.dredge() )
-									dredge_win.parentNode.removeChild(dredge_win) ;
-								game.turn.incstep() ;
-							}, false) ;
-							dredge_li.title = 'Click to select, double click to dredge, or cancel button to draw' ;
-						} else { // Indicate card isn't dredgeable
-							dredge_li.classList.add('no') ;
-							dredge_li.title = 'Impossible to dredge '+card.name+' (Dredge '+card.attrs.dredge+') with '
-							dredge_li.title += player.library.cards.length+' card'+prepend_s(player.library.cards.length)+' in library' ;
+				if ( localStorage['remind_triggers'] == 'true' ) ) {
+					for ( var i in player.graveyard.cards ) {
+						var card = player.graveyard.cards[i] ;
+						if ( isn(card.attrs.dredge) ) { // Card has dredge, create a li
+							var dredge_li = popup_li(card, dredge_list) ;
+							// Events
+							if ( card.attrs.dredge <= player.library.cards.length ) { // Clicks events if card is dredgeable
+								dredge_li.addEventListener('click', function(ev) { // Click to select
+									if ( dredge_win.selected != null )
+										dredge_win.selected.classList.remove('selected') ;
+									dredge_win.selected = ev.target ;
+									dredge_win.selected.classList.add('selected') ;
+									document.getElementById('button_ok').disabled = false ;
+								}, false) ;
+								dredge_li.addEventListener('dblclick', function(ev) { // DblClick to dredge
+									if ( ev.target.card.dredge() )
+										dredge_win.parentNode.removeChild(dredge_win) ;
+									game.turn.incstep() ;
+								}, false) ;
+								dredge_li.title = 'Click to select, double click to dredge, or cancel button to draw' ;
+							} else { // Indicate card isn't dredgeable
+								dredge_li.classList.add('no') ;
+								dredge_li.title = 'Impossible to dredge '+card.name+' (Dredge '+card.attrs.dredge+') with '
+								dredge_li.title += player.library.cards.length+' card'+prepend_s(player.library.cards.length)+' in library' ;
+							}
 						}
 					}
 				}
