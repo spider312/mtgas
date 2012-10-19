@@ -336,15 +336,17 @@ function draw() {
 			else
 				log('Unkwnown direction : '+xd+', '+yd) ; 			
 		}
-		var end = new Date()
-		var end = end.getMilliseconds() + end.getSeconds()*1000 ;
-		var time = end - begin ;
-		var txt = 'Display : '+time+'ms' ;
-		txt += ' Ping : '+ping+'ms' ;
-		//txt += ' Frames : '+draw_counter ;
-		//txt += ' Message : '+bench ;
-		//txt += ' Selection : '+game.selected.zone ;
-		canvas_text_tr(game.context, txt, game.turn.x + game.turn.w-5, game.turn.y+5, 'white', paperwidth) ;
+		if ( localStorage['debug'] == 'true' ) {
+			var end = new Date()
+			var end = end.getMilliseconds() + end.getSeconds()*1000 ;
+			var time = end - begin ;
+			var txt = 'Display : '+time+'ms' ;
+			txt += ' Ping : '+ping+'ms' ;
+			//txt += ' Frames : '+draw_counter ;
+			//txt += ' Message : '+bench ;
+			//txt += ' Selection : '+game.selected.zone ;
+			canvas_text_tr(game.context, txt, game.turn.x + game.turn.w-5, game.turn.y+5, 'white', paperwidth) ;
+		}
 		game.drawing = false ;
 	} else 
 		log('framedrop') ;

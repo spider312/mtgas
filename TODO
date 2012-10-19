@@ -26,7 +26,6 @@ hover carte dans un grave
 import multiple deck : tous sont save sous le même nom
 use move when change zone from bf to bf
 Modularize unicity in boosters (CUB, OMC*) + daemon
-chargement asynchrone
 deckbuilder double face, split
 
  --- Chrome ---
@@ -51,6 +50,7 @@ AE
 dual cards (color, CC, etc.)
 
  === Evolutions ===
+chargement asynchrone
 * Mise en cache (session) des données renvoyées régulièrement (tournament draft/build ?)
 * admin panel (tournaments)
 ! Autorisations sur les spectacteurs (possibilité pour les joueurs de refuser, de montrer leur main)
@@ -63,13 +63,13 @@ Liste des joueurs qui draftent (http://www.wizards.com/magic/magazine/article.as
 Empiler les permanents du même type
 gestion des raccourcis claviers à base de tableaux
 autosave build limité
-Ne pas afficher les cartes de la zone source pendant le DND ?
-Stats sur le BF ? (somme des manas, somme des forces)
-Etape de build entre 2 rondes en limité ?
+? Ne pas afficher les cartes de la zone source pendant le DND
+? Stats sur le BF (somme des manas, somme des forces)
+? Etape de build entre 2 rondes en limité
 Détection de clones dans le player merge, non MàJ du last update sur merge
 server log
 Visual stack
-Command Zone
+? Command Zone
 Nettoyage / refonte de l'activation d'un menu
 ? Image card loading timeout (for browsers not triggering an error on local file loading)
 

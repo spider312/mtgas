@@ -1054,6 +1054,9 @@ function card_prototype() {
 		return this.zone.cards.indexOf(this) ;
 	}
 	this.setzone = function(zone, visible, index, xzone, yzone) { // Change a card's zone, here goes stuff to do on new zone
+		if ( ( zone.type != 'battlefield' ) && ( this.owner != zone.player ) ) {
+			zone = this.owner[zone.type] ;
+		}
 		var oldzone = this.zone ;
 		this.zone = zone ; // Set new zone
 		if ( typeof visible != 'boolean' )
