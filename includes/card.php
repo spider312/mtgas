@@ -516,6 +516,7 @@ function manage_text($name, $text, $target) {
 			if ( 
 				( $txt == 'does not untap during its controller\'s untap phase' )
 				|| ( $txt == 'doesn\'t untap during its controller\'s untap phase' )
+				|| ( $txt == 'doesn\'t untap during your untap step' )
 			)
 				$target->no_untap = true ;
 			if ( preg_match('/^with (.*) (.*) counters? on it(.*)/', $txt, $matches) ) {
