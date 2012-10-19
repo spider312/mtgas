@@ -284,7 +284,8 @@ function card_prototype() {
 		}
 		// Then draw card on top
 		context.save() ; // For rotation
-		// Card may be drawn at specific coordinates (DND for ex), otherwise, draw it at its own coordinates
+		// Card may be drawn at specific coordinates (DND for ex), otherwise, draw it at its own coordinates*
+		var indnd = ( isn(x) && isn(y) ) ;
 		if ( ! isn(x) )
 			x = this.x ; //- this.zone.x ;
 		if ( ! isn(y) )
@@ -294,7 +295,10 @@ function card_prototype() {
 		var angle = 0 ;
 		if ( ( this.zone.type == 'battlefield' ) && this.attrs.tapped )
 			angle += 90 ;
-		if ( this.zone.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
+		var is_top = this.zone.player.is_top ;
+		if ( indnd && ( game.drag != null ) && game.selected.isin(this) && ( game.widget_under_mouse != null ) && ( game.widget_under_mouse.type == 'battlefield' ) ) // Draging current card on top BF
+			is_top = game.widget_under_mouse.player.is_top ;
+		if ( is_top && ( localStorage['invert_bf'] == 'true' ) )
 			angle += 180 ;
 		if ( angle > 0 )
 			context.rotate(angle* Math.PI / 180) ;

@@ -839,6 +839,18 @@ function battlefield(player) {
 					if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
 						from.y += cardheight ;
 					context.strokeRect(from.x-.5, from.y-.5, w, h) ;
+					/* Focus on hovered grid cell
+					if (
+						( game.mouseX > from.x ) && ( game.mouseX < from.x + w ) &&
+						( game.mouseY > from.y ) && ( game.mouseY < from.y + h )
+					   ) {
+						//log(i+', '+j) ;
+						canvas_set_alpha(.5, context) ;
+						context.fillStyle = 'red' ;
+						context.fillRect(from.x-.5, from.y-.5, w, h) ;
+						canvas_set_alpha(.1, context) ;
+					}
+					*/
 				}
 			}
 			canvas_reset_alpha(context) ;
@@ -964,7 +976,7 @@ function battlefield(player) {
 		cy = min(cy, bfrows-1) ;
 		// Invert
 		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
-			cy = bfrows - cy ;
+			cy = bfrows - cy - 1 ;
 		return {'x': cx, 'y': cy} ;
 	}
 	// Initialisation
