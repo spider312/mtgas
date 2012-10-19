@@ -630,6 +630,23 @@ function hand(player) {
 			menu.addline('Undo last draw', 		this.undo) ;
 			menu.addline('Mulligan',		this.mulligan) ;
 			menu.addline() ;
+			var all_revealed = true ;
+			var all_hidden = true ;
+			if ( this.cards.length == 0 ) {
+				var all_revealed = false ;
+				var all_hidden = false ;
+			} else
+				for ( var i = 0 ; i < this.cards.length ; i++ ) {
+					var card = this.cards[i] ;
+					if ( card.attrs.visible )
+						all_hidden = false ;
+					else
+						all_revealed = false ;
+				}
+			if ( ! all_revealed )
+				menu.addline('Reveal hand', this.reveal, true) ;
+			if ( ! all_hidden )
+				menu.addline('Hide hand', this.reveal, false) ;
 			menu.addline('Discard randomly ...', 	this.rand_changezone, this.player.graveyard) ;
 		} else
 			menu.addline('Hand') ;
@@ -726,6 +743,10 @@ function hand(player) {
 			if ( x > this.cards[i].x + this.cards[i].w/2 )
 				return i ;
 		return this.cards.length ;
+	}
+	myhand.reveal = function(b) {
+		var sel = new Selection(this.cards) ;
+		sel.reveal_from_hand(b) ;
 	}
 	return myhand ;
 }
