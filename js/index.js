@@ -1,37 +1,4 @@
 // index.js : Management of MTGAS index (games list, preloaded decks ...)
-/*
-function DisplayConnectionState() {
-	var form = document.getElementById('unhosted-login') ;
-	form.removeEventListener('submit', unhostedlogin, false) ;
-	form.removeEventListener('submit', unhostedlogout, false) ;
-	if(remoteStorage.isConnected()) {
-		document.getElementById('unhosted-submit').value='Disconnect';
-		document.getElementById('unhosted-span').innerHTML=remoteStorage.getUserAddress();
-		document.getElementById('unhosted-input').style.display='none';
-		form.target = '_blank' ;
-		form.addEventListener('submit', unhostedlogout, false) ;
-	} else {
-		document.getElementById('unhosted-submit').value='Sign in';
-		document.getElementById('unhosted-span').innerHTML='';
-		document.getElementById('unhosted-input').style.display='';
-		form.target = '' ;
-		form.addEventListener('submit', unhostedlogin, false) ;
-	}
-}
-function unhostedlogin(ev) {
-	if ( ev.target.login.value != '' )
-		remoteStorage.connect(ev.target.login.value, 'mtgas') ;
-	else
-		alert('Please type a login') ;
-	ev.preventDefault() ;
-	DisplayConnectionState() ;
-}
-function unhostedlogout(ev) {
-	remoteStorage.disconnect() ;
-	ev.preventDefault() ;
-	DisplayConnectionState() ;
-}
-*/
 $(function() { // On page load
 	document.getElementById('game_name').focus() ; // Give focus on page load
 	ajax_error_management() ;

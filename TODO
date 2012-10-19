@@ -16,10 +16,9 @@ inactivité des joueurs sur la page tournois, joueur inactif => défaite
 Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
 Boost conditionnels (cranial plating)
+Pseudo des spectacteurs dans la page tournois
 
 reminder
-Cascade
-parsing + rotation des flip cards
 hover carte dans un grave
 ? target from card in unselzone
 ? trigger sur les cartes qu'on contrôle dans le BF adverse
@@ -47,7 +46,8 @@ AJAX dans la gestion des extensions
 Différencier les effets statiques des capacités activées (ex : Selesnya Guildmage qui a un boost_bf)
 Double card : cost, type
 AE
-dual cards (color, CC, etc.)
+? dual cards (color, CC, etc.)
+parsing + rotation des flip cards
 
  === Evolutions ===
 chargement asynchrone

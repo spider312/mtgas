@@ -174,7 +174,7 @@ function html_options() { // Displays options window
      <label title="Display right click\'s drag\'n\'drop helper"><input id="helpers" type="checkbox" checked="checked">Helpers</label>
     </fieldset>
 
-	  <fieldset><legend>Behaviour</legend>
+    <fieldset><legend>Behaviour</legend>
      <label title="Choose what happend when you doubleclick on library">Library double-click action : 
       <select id="library_doubleclick_action">
        <option value="look_top_n" title="Ask how many cards to look, then look that many cards from top of library. Default behaviour">Look top N cards</option>

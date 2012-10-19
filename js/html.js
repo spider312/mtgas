@@ -300,6 +300,18 @@ function create_td(row, text, colspan) {
 		cell.colSpan = colspan ;
 	return cell ;
 }
+// Advanced form functionnalities
+function hide_menu() {
+	$('#header').animate({
+		opacity: 0,
+	}, 1000, function() {
+		$('#search,#decksection,#infos').animate({
+			'top': 0,
+			'height': '95%'
+		}) ;
+		// Animation complete.
+	});
+}
 // User vars
 function store(key, value) {
 	if ( typeof value == 'undefined' )
@@ -325,59 +337,19 @@ function store(key, value) {
 		}, 'json') ;
 	}
 }
-// Advanced form functionnalities
-function hide_menu() {
-	$('#header').animate({
-		opacity: 0,
-	}, 1000, function() {
-		$('#search,#decksection,#infos').animate({
-			'top': 0,
-			'height': '95%'
-		}) ;
-		// Animation complete.
-	});
-}
-function cardimages_apply(cardimages, cardimages_choice) {
-	for ( var i = 0 ; i < cardimages_choice.options.length ; i++ )
-		if ( localStorage['cardimages'] == cardimages_choice.options[i].value )
-			cardimages_choice.selectedIndex = i ;
-	var cardimages_link = document.getElementById('cardimages_link') ;
-	if ( cardimages_choice.value == '' ) {
-		cardimages.type = 'text' ;
-		cardimages_link.style.display = '' ;
-	} else {
-		cardimages.type = 'hidden' ;
-		cardimages_link.style.display = 'none' ;
+function save(myfield) {
+	var field = myfield.id ;
+	if ( myfield.type == 'checkbox' )
+		var value = myfield.checked ;
+	else
+		var value = myfield.value ;
+	if ( value != localStorage[field] ) {
+		store(field, value) ;
+		if ( typeof myfield.onsave == 'function' )
+			myfield.onsave(myfield) ;
+		return true ;
 	}
-}
-function save_restore_options() {
-	save_restore('sounds', function(input) {
-		if ( ( input.checked ) && ( typeof game != 'undefined' ) ) // Enabling sound
-			game.sound.loadall() ; // Load them in case they're not
-	}) ;
-	save_restore('remind_triggers') ;
-	save_restore('place_creatures') ;
-	save_restore('place_noncreatures') ;
-	save_restore('place_lands') ;
-	save_restore('cardimages', function(field) {$.cookie('cardimages', field.value) ; }) ; // Write value in cookies in order PHP to get it
-	var cardimages = document.getElementById('cardimages') ;
-	var cardimages_choice = document.getElementById('cardimages_choice') ;
-	cardimages_apply(cardimages, cardimages_choice) ;
-	cardimages_choice.addEventListener('change', function(ev) {
-		cardimages.value = ev.target.value ;
-		localStorage['cardimages'] = ev.target.value ;
-		$.cookie('cardimages', ev.target.value) ;
-		cardimages_apply(cardimages, cardimages_choice) ;
-	}, false) ;
-	save_restore('check_preload_image') ;
-	save_restore('library_doubleclick_action') ;
-	save_restore('auto_draw') ;
-	save_restore('draft_auto_ready') ;
-	save_restore('invert_bf') ;
-	save_restore('helpers') ;
-	save_restore('debug') ;
-	save_restore('transparency') ;
-	save_restore('display_card_names') ;
+	return false ;
 }
 function save_restore(field, onsave, onrestore) {
 	var myfield = document.getElementById(field) ;
@@ -417,19 +389,49 @@ function save_restore(field, onsave, onrestore) {
 			myfield.onsave = onsave ;
 	}
 }
-function save(myfield) {
-	var field = myfield.id ;
-	if ( myfield.type == 'checkbox' )
-		var value = myfield.checked ;
-	else
-		var value = myfield.value ;
-	if ( value != localStorage[field] ) {
-		store(field, value) ;
-		if ( typeof myfield.onsave == 'function' )
-			myfield.onsave(myfield) ;
-		return true ;
+
+function cardimages_apply(cardimages, cardimages_choice) {
+	for ( var i = 0 ; i < cardimages_choice.options.length ; i++ )
+		if ( localStorage['cardimages'] == cardimages_choice.options[i].value )
+			cardimages_choice.selectedIndex = i ;
+	var cardimages_link = document.getElementById('cardimages_link') ;
+	if ( cardimages_choice.value == '' ) {
+		cardimages.type = 'text' ;
+		cardimages_link.style.display = '' ;
+	} else {
+		cardimages.type = 'hidden' ;
+		cardimages_link.style.display = 'none' ;
 	}
-	return false ;
+}
+function save_restore_options() {
+	save_restore('sounds', function(input) {
+		if ( ( input.checked ) && ( typeof game != 'undefined' ) ) // Enabling sound
+			game.sound.loadall() ; // Load them in case they're not
+	}) ;
+	save_restore('remind_triggers') ;
+	save_restore('place_creatures') ;
+	save_restore('place_noncreatures') ;
+	save_restore('place_lands') ;
+	save_restore('cardimages', function(field) {$.cookie('cardimages', field.value) ; }) ; // Write value in cookies in order PHP to get it
+	var cardimages = document.getElementById('cardimages') ;
+	var cardimages_choice = document.getElementById('cardimages_choice') ;
+	cardimages_apply(cardimages, cardimages_choice) ;
+	cardimages_choice.addEventListener('change', function(ev) {
+		cardimages.value = ev.target.value ;
+		save(cardimages) ;
+		//localStorage['cardimages'] = ev.target.value ;
+		$.cookie('cardimages', ev.target.value) ;
+		cardimages_apply(cardimages, cardimages_choice) ;
+	}, false) ;
+	save_restore('check_preload_image') ;
+	save_restore('library_doubleclick_action') ;
+	save_restore('auto_draw') ;
+	save_restore('draft_auto_ready') ;
+	save_restore('invert_bf') ;
+	save_restore('helpers') ;
+	save_restore('debug') ;
+	save_restore('transparency') ;
+	save_restore('display_card_names') ;
 }
 // Popup
 function popup(title, ok_func, ok_title, cancel_func, cancel_title) {

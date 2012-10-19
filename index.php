@@ -36,7 +36,6 @@ html_head(
       <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
       <a href="javascript:gallery()">Gallery</a>
      </label>
-     <!--input type="submit" value="Save"-->
      <button id="identity_close" title="Close identity window"><img src="/themes/jay_kay/deckbuilder/button_ok.png"></button>
     </form>
    </div>
@@ -58,9 +57,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
   <div id="left_col">
    <div id="games" class="section">
     <h1>Duels</h1>
-    <!-- method=post because of amount of data contained in a deckfile -->
     <h2>Create</h2>
-    <form id="game_create" action="json/game_create.php" method="post">
+    <form id="game_create" action="json/game_create.php" method="post"><?/* method=post because of amount of data contained in a deckfile */ ?>
      <input id="creator_nick" type="hidden" name="nick" value="">
      <input id="creator_avatar" type="hidden" name="avatar" value="">
      <input id="creator_deck" type="hidden" name="deck" value="">
@@ -278,14 +276,6 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
    <!--/div--><!-- id="decks" -->
 
     <h1>Profile</h1>
-    <!--h2>Identity</h2>
-    <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
-    <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
-     Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
-     <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
-     <a href="javascript:gallery()">Gallery</a>
-    </label-->
-
 <?php
 html_options() ;
 ?>
@@ -328,6 +318,7 @@ if ( $nb == 1 ) {
 <?php
 } else {
 ?>
+    <div>Please be sure <a href="http://forum.mogg.fr/viewtopic.php?pid=65#p65">you really need it</a> before create a server side profile (and you probably don't if you always connect here from the same computer)</div>
     <form id="login" action="json/login.php">
      <label>Email : <input type="text" name="email"></label>
      <label>Password : <input type="password" name="password"></label>
@@ -338,13 +329,7 @@ if ( $nb == 1 ) {
 }
 ?>
 
-
     <h2>Local profile</h2>
-    <!--form id="unhosted-login">
-     <span id="unhosted-span"></span>
-     <input id="unhosted-input" type="text" name="login" placeholder="you@yourremotestorage">
-     <input id="unhosted-submit" type="submit" value="Unhosted login">
-    </form-->
     <form id="backup" action="download_file.php" method="post" title="Downloads a profile file, that can be restored on another mtgas (nick, avatars, decks, tokens ...)">
      <input type="hidden" id="profile_filename" name="name" value="">
      <input type="hidden" id="profile_content" name="content" value="">
