@@ -133,6 +133,15 @@ function inarray(value, arr) {
 			return true ;
 	return false
 }
+function shuffle(ary) {
+	var s = [];
+	while (ary.length) {
+		var e = ary.splice(Math.random() * ary.length, 1) ;
+		s.push(e[0]) ;
+	}
+	while (s.length)
+		ary.push(s.pop());
+}
 // Time
 function time_disp(duration) { // In seconds
 	var prefix = '' ;

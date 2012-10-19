@@ -371,7 +371,7 @@ function manage_types($type, $target) {
 }
 $colors = array('W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
-$creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry' );
+$creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade' );
 function manacost($str) { // Simplify mana cost, removing $ { } from various syntax
 	return str_replace(array('%', '{', '}'), '', $str) ;
 }

@@ -918,6 +918,11 @@ function card_prototype() {
 					}
 					if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
 						menu.addline('Uncopy '+this.attrs.copy.get_name(),	card.uncopy) ;
+					// Cascade
+					if ( this.attrs.cascade) {
+						menu.addline('Cascade ', this.cascade) ;
+					}
+					// No untap
 					menu.addline() ;
 					if ( isb(card.attrs.no_untap) )
 						var no_untap = card.attrs.no_untap ;
@@ -2289,6 +2294,28 @@ function card_prototype() {
 		} else {
 			message('You can\'t dredge '+nb+' with '+this.owner.library.cards.length+' cards in your library') ;
 			return false ;
+		}
+	}
+	this.cascade = function() {
+		var tobottom = new Selection() ;
+		var tobf = new Selection() ;
+		var i = 0 ;
+		do {
+			var card = this.controler.library.cards[this.controler.library.cards.length-1-i++] ;
+			if ( ( ! card.is_land() ) && ( card.converted_cost < this.converted_cost ) ) {
+				tobf.add(card) ;
+				break ;
+			} else
+				tobottom.add(card) ;
+		} while (this.controler.library.cards.length > i) ;
+		if ( tobf.cards.length != 1 )
+			message('Nothing to cascade under '+this.converted_cost) ;
+		else
+			tobf.changezone(this.controler.battlefield) ;
+		if ( tobottom.cards.length > 0 ) {
+			shuffle(tobottom.cards) ;
+			tobottom.changezone(this.controler.exile) ;
+			tobottom.changezone(this.controler.library, null, 0) ;
 		}
 	}
 }
