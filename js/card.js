@@ -1771,9 +1771,12 @@ function card_prototype() {
 			result += this.attrs.pow_eot ;
 		// Attach
 		var a = this.get_attached() ;
-		for ( var i = 0 ; i < a.length ; i++ )
+		for ( var i = 0 ; i < a.length ; i++ ) {
 			if ( iso(a[i].attrs.bonus) && isn(a[i].attrs.bonus.pow) )
 				result += a[i].attrs.bonus.pow ;
+			if ( iso(a[i].attrs.powtoucond) )
+				result += a[i].get_pow_cond('pow') ;
+		}
 		// Boost
 		result += this.apply_boost('pow') ;
 		return result
@@ -1796,9 +1799,12 @@ function card_prototype() {
 			result += this.attrs.thou_eot ;
 		// Attach
 		var a = this.get_attached() ;
-		for ( var i = 0 ; i < a.length ; i++ )
+		for ( var i = 0 ; i < a.length ; i++ ) {
 			if ( iso(a[i].attrs.bonus) && isn(a[i].attrs.bonus.tou) )
 				result += a[i].attrs.bonus.tou ;
+			if ( iso(a[i].attrs.powtoucond) )
+				result += a[i].get_pow_cond('thou') ;
+		}
 		// Boost
 		result += this.apply_boost('tou') ;
 		return result

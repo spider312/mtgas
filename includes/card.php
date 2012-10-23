@@ -371,7 +371,19 @@ function manage_types($type, $target) {
 }
 $colors = array('W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
-$creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade' );
+$creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade', 'changeling');
+// General conditions considerations
+$conds = array() ; // List conditions
+$conds['battlefield'] = 'you control' ;
+$conds['!battlefield'] = 'your opponents control' ;
+$conds['battlefields'] = 'on the battlefield' ;
+//$conds['counter'] = 'counters on it' ;
+$conds['graveyard'] = 'in your graveyard' ;
+$conds['graveyards'] = 'in all graveyards' ;
+// Regex schemes
+$manacost = '[{}%0-9WUBRG]+' ;
+$boost = '[+-][0-9XY]+' ;
+$boosts = '(?<pow>'.$boost.')\/(?<tou>'.$boost.')' ;
 function manacost($str) { // Simplify mana cost, removing $ { } from various syntax
 	return str_replace(array('%', '{', '}'), '', $str) ;
 }
@@ -435,19 +447,12 @@ function manage_all_text($name, $text, $target) {
 	}
 }
 function manage_text($name, $text, $target) {
-	// Regex schemes
-	$manacost = '[{}%0-9WUBRG]+' ;
-	$boost = '[+-][0-9XY]+' ;
-	$boosts = '(?<pow>'.$boost.')\/(?<tou>'.$boost.')' ;
 	// Various types
-	global $cardtypes, $colors ;
+	global $manacost, $boost, $boosts, $cardtypes, $colors ;
 	// Workarounds
-	$text = str_replace ('comes into play', 'enters the battlefield', $text) ; // Old style CIP
+	$text = str_replace('comes into play', 'enters the battlefield', $text) ; // Old style CIP
 	$text = preg_replace('/\(.*\)/', '', $text) ; // Remove reminder texts as they can interfere in parsing (vanishing reminder has text for upkeep trigger for exemple)
 	// Card attributes
-		// Everywhere
-	if ( stripos($text, 'Changeling') !== false )
-		$target->changeling = true ;
 		// In hand
 	if ( preg_match('/Cycling ('.$manacost.')/', $text, $matches) )
 		$target->cycling = manacost($matches[1]) ;
@@ -466,6 +471,8 @@ function manage_text($name, $text, $target) {
 		$target->retrace = true ;
 	if ( preg_match('/Dredge (\d+)/', $text, $matches) )
 		$target->dredge = intval($matches[1]) ;
+	if ( preg_match('/Scavenge ('.$manacost.')/', $text, $matches) )
+		$target->scavenge = manacost($matches[1]) ;
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) )
 		$target->vanishing = intval($matches[1]) ;
@@ -536,26 +543,6 @@ function manage_text($name, $text, $target) {
 		// Upkeep trigger
 	if ( preg_match('/At the beginning of your upkeep, (.*)/', $text, $matches) )
 		$target->trigger_upkeep = stripslashes($matches[1]) ;
-	// Attach/Equip-boost
-	if ( preg_match('/(Equipped|Enchanted) creature gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
-		if ( strpos($matches['after'], 'until end of turn') === FALSE ) { // Umezawa's Jitte
-			if ( ! isset($target->bonus) )
-				$target->bonus = new simple_object() ;
-			$target->bonus->pow = intval($matches['pow']) ;
-			$target->bonus->tou = intval($matches['tou']) ;
-			global $creat_attrs ;
-			foreach ( $creat_attrs as $creat_attr ) // Also parse keywords such as vigilance, lifelink ...
-				apply_creat_attrs($matches[4], $creat_attr, $target->bonus) ;
-		}
-	}
-	if ( preg_match('/(Equipped|Enchanted) creature doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
-		if ( ! isset($target->bonus) )
-			$target->bonus = new simple_object() ;
-		$target->bonus->no_untap = true ;
-	}
-	// Living weapon
-	if ( strpos($text, 'Living weapon') !== false )
-		$target->living_weapon = true ;
 	// Creature attributes (permanent attributes for exalt)
 	global $creat_attrs ;
 	foreach ( $creat_attrs as $creat_attr )
@@ -563,20 +550,13 @@ function manage_text($name, $text, $target) {
 	// Type-specific
 		// Planeswalkers are managed in "all lines"
 		// Creatures : pow, thou, lifelink ...
+	global $conds ; 
 	if ( is_array($target->types) && array_search('creature', $target->types) !== false ) {
 		if ( isset($target->note) && is_string($target->note) && preg_match('/^'.$boosts.'$/', $target->note, $matches) ) {
 			unset($target->note) ;
 			$target->pow += $target->counter * intval($matches['pow']) ;
 			$target->thou += $target->counter * intval($matches['tou']) ;
 		}
-		// General conditions considerations
-		$conds = array() ; // List conditions
-		$conds['battlefield'] = 'you control' ;
-		$conds['!battlefield'] = 'your opponents control' ;
-		$conds['battlefields'] = 'on the battlefield' ;
-		//$conds['counter'] = 'counters on it' ;
-		$conds['graveyard'] = 'in your graveyard' ;
-		$conds['graveyards'] = 'in all graveyards' ;
 		// Conditionnal pow and tou (*/*)
 		if ( preg_match('/(.*)'.$name.'.{0,3} power (?<both>.*) equal to the number of (?<next>.*)/', $text, $m) ) {
 			if ( preg_match('/^(?<type>.*) named (?<name>.*) (?<cond>'.implode('|', $conds).')/', $m['next'], $matches)
@@ -650,32 +630,39 @@ function manage_text($name, $text, $target) {
 					default:
 						//msg($name.' : '.$m['who'].' -> '.$m['what']) ;
 				}
-
 			//} elseif ( preg_match('/(?<who>.*) [has|have] (?<what>.*)/', $what, $m) ) {
 			} /*else
 				msg(' * '.$name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;*/
 		}
 		// Conditionnal poly boost (+1/+1 for each ...)
-		if ( preg_match('/'.$name.' gets '.$boosts.' for each (?<what>.*)/', $text, $matches ) ) { // Counting
-			if ( preg_match('/(?<other>other )?(?<what>.*)( card)? (?<where>'.implode('|', $conds).')( named (?<name>.*))?/', $matches['what'], $m) ) {
-				$target->powtoucond = new simple_object() ;
-				$target->powtoucond->what = 'cards' ;
-				$target->powtoucond->pow = intval($matches['pow']) ;
-				$target->powtoucond->thou = intval($matches['tou']) ;
-				$target->powtoucond->from = array_search($m['where'], $conds) ;
-				$what = str_replace(' card', '', strtolower($m['what'])) ;
-				if ( array_search($what, $cardtypes) !== false )
-					$target->powtoucond->cond = 'type='.$what ;
-				else
-					$target->powtoucond->cond = 'ctype='.$what ;
-				if ( array_key_exists('name', $m) )
-					$target->powtoucond->cond = 'name='.$m['name'] ;
-				if ( array_key_exists('other', $m) )
-					$target->powtoucond->other = true ;
-			} //else 
-				//msg($name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;
+		if ( preg_match('/'.$name.' gets '.$boosts.' for each (?<what>.*)/', $text, $matches ) )
+			conditionnal_poly_boost($target, $matches, $matches['what']) ;
+	}
+	// Attach/Equip-boost
+	if ( preg_match('/(Equipped|Enchanted) creature gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
+		if ( strpos($matches['after'], 'until end of turn') === FALSE ) { // Umezawa's Jitte
+			if ( preg_match('/for each (?<what>.*)/', $matches['after'], $matches_after) ) {
+				conditionnal_poly_boost($target, $matches, $matches_after['what']) ;
+			} else {
+				if ( ! isset($target->bonus) )
+					$target->bonus = new simple_object() ;
+				$target->bonus->pow = intval($matches['pow']) ;
+				$target->bonus->tou = intval($matches['tou']) ;
+				global $creat_attrs ;
+				foreach ( $creat_attrs as $creat_attr ) // Also parse keywords such as vigilance, lifelink ...
+					apply_creat_attrs($matches[4], $creat_attr, $target->bonus) ;
+			}
 		}
 	}
+	if ( preg_match('/(Equipped|Enchanted) creature doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
+		if ( ! isset($target->bonus) )
+			$target->bonus = new simple_object() ;
+		$target->bonus->no_untap = true ;
+	}
+	// Living weapon
+	if ( strpos($text, 'Living weapon') !== false )
+		$target->living_weapon = true ;
+
 	// Token creation
 	$last_working_reg = '/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+) creature token/' ;
 	$test_reg = '/(?<number>\w+) [legendary ]?(?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (<color>.*) creature token/' ;
@@ -788,5 +775,25 @@ function apply_creat_attrs($text, $attr, $target) {
 	$attr_name = str_replace(' ', '_', $attr) ; // For attrs with a space in their name, such as "first strike"
 	if ( stripos($text, $attr) !== false )
 		$target->$attr_name = true ;
+}
+function conditionnal_poly_boost($target, $matches, $text) { // Parses text after 'foreach'
+	global $conds, $cardtypes ;
+	if ( preg_match('/(?<other>other )?(?<what>.*)( card)? (?<where>'.implode('|', $conds).')( named (?<name>.*))?/', $text, $m) ) {
+		$target->powtoucond = new simple_object() ;
+		$target->powtoucond->what = 'cards' ;
+		$target->powtoucond->pow = intval($matches['pow']) ;
+		$target->powtoucond->thou = intval($matches['tou']) ;
+		$target->powtoucond->from = array_search($m['where'], $conds) ;
+		$what = str_replace(' card', '', strtolower($m['what'])) ;
+		if ( array_search($what, $cardtypes) !== false )
+			$target->powtoucond->cond = 'type='.$what ;
+		else
+			$target->powtoucond->cond = 'ctype='.$what ;
+		if ( array_key_exists('name', $m) )
+			$target->powtoucond->cond = 'name='.$m['name'] ;
+		if ( array_key_exists('other', $m) && ( $m['other'] == 'other ') )
+			$target->powtoucond->other = true ;
+	} //else 
+		//msg($name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;
 }
 ?>

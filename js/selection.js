@@ -450,10 +450,6 @@ function Selection() {
 				delete card.x ; // if going to another BF, setzone must not clean
 				delete card.y ;
 			}
-			if ( ( card.zone.type == 'battlefield' ) || ( zone.type == 'battlefield' ) ) { // Leaving or entering a BF : all that can modify it by its presence
-				if ( iso(card.attrs.boost_bf) ) // Card that boosts all creatures
-					boost_bf = true ;
-			}
 			if ( ( card.zone.type == 'sideboard' ) || ( zone.type == 'sideboard' ) ) // Leaving sideboard or going to sideboard
 				card.orig_zone = zone ; // Update "orig zone", used for future sideboards, working on recieve (such as F5)
 			// Changing a card's zone (or a token from BF to BF)
@@ -481,8 +477,8 @@ function Selection() {
 		}
 		//this.zone = zone ; // All cards have been moved, inform selection that its zone changed
 		// On each changezone, refresh all powtou from all creat on all BF (only if they have to, such as tarmo, or if a card moving may affects them, such as goblin king)
-		game.player.battlefield.refresh_pt(boost_bf)
-		game.opponent.battlefield.refresh_pt(boost_bf) ;
+		game.player.battlefield.refresh_pt() ;
+		game.opponent.battlefield.refresh_pt() ;
 		if ( isf(oldzone.refresh) ) // Side doesn't have
 			oldzone.refresh() ; // At least one card was removed, refresh zone
 		else

@@ -947,14 +947,8 @@ function battlefield(player) {
 		sel.tap(false) ;
 	}
 	mybf.refresh_pt = function(boost_bf) { // Refresh all powtou that may be affected by a card. Called on any changezone, and on transform
-		for ( var i = 0 ; i < this.cards.length ; i++ ) {
-			var card = this.cards[i] ;
-			if (
-				boost_bf // Card triggering is affecting all BF's cards
-				|| iso(card.attrs.powtoucond) // Current card depends on zones content (Tarmo)
-			 )
-				card.refreshpowthou() ;
-		}
+		for ( var i = 0 ; i < this.cards.length ; i++ )
+			this.cards[i].refreshpowthou() ;
 	}
 	mybf.ingrid = function(x,y) {
 		if ( !isn(x) || !isn(y) )
@@ -966,7 +960,7 @@ function battlefield(player) {
 		var pos = this.grid_at(ev.clientX, ev.clientY) ;
 		for ( var i in this.cards ) {
 			var card = this.cards[i] ;
-			if ( between(pos.y, card.grid_y, card.grid_y+2) && ( card.attrs.attachedto == null ) )
+			if ( between(pos.y, card.grid_y-1, card.grid_y+1) && ( card.attrs.attachedto == null ) )
 				game.selected.add(card) ;
 		}
 	}
