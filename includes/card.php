@@ -662,7 +662,6 @@ function manage_text($name, $text, $target) {
 	// Living weapon
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
-
 	// Token creation
 	$last_working_reg = '/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+) creature token/' ;
 	$test_reg = '/(?<number>\w+) [legendary ]?(?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (<color>.*) creature token/' ;
@@ -721,7 +720,6 @@ function manage_text($name, $text, $target) {
 	}
 	// Animate
 	if ( preg_match('/((?<cost>.*)\s*:\s*)?(?<eot>Until end of turn, )?'.addcslashes($name, '/').' (.* it )?becomes an? (?<pow>\d)\/(?<tou>\d) (?<rest>.*)/', $text, $matches) ) {
-		//msg($matches[0]) ;
 		$animated = new simple_object() ;
 		if ( $matches['cost'] != '' )
 			$animated->cost = manacost($matches['cost']) ;
