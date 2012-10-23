@@ -444,6 +444,7 @@ function graveyard(player) {
 				var fbsubmenu = new menu_init(this) ;
 				var dredgesubmenu = new menu_init(this) ;
 				var retracesubmenu = new menu_init(this) ;
+				var scavengesubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -466,6 +467,11 @@ function graveyard(player) {
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
+					if ( iss(card.attrs.scavenge) ) {
+						var l = scavengesubmenu.addline(card.name+' ('+card.attrs.scavenge+')', card.changezone, this.player.exile) ;
+						l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
 				}
 				var addline = false ;
 				if ( creatsubmenu.items.length > 0 ) {
@@ -482,6 +488,10 @@ function graveyard(player) {
 				}
 				if ( retracesubmenu.items.length > 0 ) {
 					menu.addline('Retrace ('+retracesubmenu.items[0].length+')', retracesubmenu) ;
+					addline = true ;
+				}
+				if ( scavengesubmenu.items.length > 0 ) {
+					menu.addline('Scavenge ('+scavengesubmenu.items[0].length+')', scavengesubmenu) ;
 					addline = true ;
 				}
 				if ( addline )
