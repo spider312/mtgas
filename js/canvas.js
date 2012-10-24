@@ -49,6 +49,7 @@ function resize_window(ev) {
 	// Base dimensions depending on window size and global params
 	paperwidth = window.innerWidth - cardimagewidth ; // Right frame
 	paperheight = window.innerHeight ;
+	turnsheight = minturnsheight ; // Reinitialize it or it never shorten
 	// Compute other from that ones
 	bfwidth = paperwidth - elementwidth - manapoolswidth ;
 	bfheight = ( paperheight - turnsheight ) / 2 - handheight ;
@@ -81,7 +82,8 @@ function resize_window(ev) {
 	bfheight = 2 * gridsmarginv + bfrows * gridsheight
 	handwidth = bfwidth + manapoolswidth ;
 	paperwidth = elementwidth + handwidth ;
-	paperheight = 2 * bfheight + 2 * handheight + turnsheight ;
+	//paperheight = 2 * bfheight + 2 * handheight + turnsheight ;
+	turnsheight = paperheight - 2 * ( bfheight + handheight ) ;
 	elementheight = Math.floor( ( paperheight - turnsheight ) / 8 ) ;
 	// Compute other related data
 	cardxoffset = Math.floor( ( gridswidth - cardwidth ) / 2 ) ;
@@ -485,7 +487,6 @@ function widget_cache_update(ev) {
 			}
 		}
 	}
-	//var widget = game.widget_under_mouse ; // Use cache
 	return widget ;
 }
 function widget_under_mouse(ev) {
@@ -496,7 +497,6 @@ function widget_under_mouse(ev) {
 		if ( dot_in_rect(d, r) )
 			return widget ;
 	}
-	//log('No widget under '+ev.clientX+', '+ev.clientY) ;
 	return null ;
 }
 // === [ LIBRARY ] =============================================================
@@ -542,20 +542,6 @@ function canvas_stretch_img(context, img, x, y, w, h, margin) { // Stretch an im
 	context.drawImage(img, x, y, new_w, new_h) ;
 	context.restore() ;
 }
-// === [ Basic shapes ] ===
-function canvas_rounded_rect(ctx, x, y, width, height, radius) {
-	ctx.beginPath() ;
-	ctx.moveTo(x,y+radius) ;
-	ctx.lineTo(x,y+height-radius) ;
-	ctx.quadraticCurveTo(x,y+height,x+radius,y+height) ;
-	ctx.lineTo(x+width-radius,y+height) ;
-	ctx.quadraticCurveTo(x+width,y+height,x+width,y+height-radius) ;
-	ctx.lineTo(x+width,y+radius) ;
-	ctx.quadraticCurveTo(x+width,y,x+width-radius,y) ;
-	ctx.lineTo(x+radius,y) ;
-	ctx.quadraticCurveTo(x,y,x,y+radius) ;
-	ctx.stroke();  
-}
 // === [ Text ] ===
 function canvas_text(ctx, text, x, y, color, mw) {
 	if ( iss(color) ) {
@@ -570,8 +556,6 @@ function canvas_text(ctx, text, x, y, color, mw) {
 	else
 		ctx.fillText(text, x, y) ;
 }
-/*function canvas_frame(ctx, x, y, w, h, xp, yp, margin) {
-}*/
 // Following functions draw text with given corner (t = top, l = left, b = bottom, r = right, c = center) at x, y
 	// With frame
 function canvas_framed_text_c(ctx, text, x, y, color, mw, fillcolor, fontsize) {

@@ -36,7 +36,7 @@ else
 	// Paper internal
 handheight = 90 ;
 elementwidth = 100 ;
-turnsheight = 50 ;
+minturnsheight = 50 ;
 manapoolswidth = 31 ;
 	// Grid
 bfrows = 7 ;

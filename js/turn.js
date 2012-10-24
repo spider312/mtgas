@@ -170,7 +170,7 @@ function Phase(turn, name) { // Phases and their link to steps, essentially draw
 	this.draw = function(context) {
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
-			canvas_rounded_rect(context, this.x+.5, this.y+.5, this.w, this.h, 10) ;
+			context.roundedRect(this.x+.5, this.y+.5, this.w, this.h, 10) ;
 		}
 	}
 	// Referencing

@@ -30,10 +30,8 @@ deckbuilder double face, split
 touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  --- Canvas ---
-Agrandir "turnsheight" plutôt que créer une marge sous le canvas
 infobulle
 timeout du title (actuellement se trigger sur réception d'un ping)
-mise en cache de turn, hand ?, battlefield ?
 
  --- Admin ---
 Pagination dans les résultats de la recherche
