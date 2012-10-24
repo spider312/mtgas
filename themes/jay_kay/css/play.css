@@ -293,15 +293,3 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 #chatbox .land	{
 	background-color: wheat ; /*sandybrown, peru, tan, wheat */
 }
-/* Infobulle */
-.infobulle	{
-	cursor: pointer ;
-	color: red ;
-	position: absolute ;
-	background-color: black ;
-	opacity: .85 ;
-	padding: 5px ;
-	font-size: 0.85em ;
-	font-family: Verdana, Geneva, sans-serif ;
-	border-radius: 5px;
-}
