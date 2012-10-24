@@ -30,7 +30,6 @@ deckbuilder double face, split
 touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  --- Canvas ---
-infobulle
 timeout du title (actuellement se trigger sur réception d'un ping)
 
  --- Admin ---
@@ -39,7 +38,7 @@ AJAX dans la gestion des extensions
 
  --- Parsing ---
 Différencier les effets statiques des capacités activées (ex : Selesnya Guildmage qui a un boost_bf)
-Double card : cost, type
+? Double card : cost, type
 AE
 ? dual cards (color, CC, etc.)
 parsing + rotation des flip cards

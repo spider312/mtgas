@@ -29,6 +29,65 @@ function Widget(obj) {
 	obj.set_coords(0, 0, 0, 0) ;
 	return obj ;
 }
+// Class for infobulle
+function InfoBulle() {
+	this.txt = '' ;
+	this.timer = null ;
+	this.date = null ;
+	this.timeout = 10000 ;
+	this.fadeout_duration = 1000 ;
+	this.fadeout = this.timeout - this.fadeout_duration ;
+	this.canvas = function() {
+		if ( this.date == null )
+			return null ;
+		var date = new Date() ;
+		if ( date - this.date > this.timeout )
+			return null ;
+		var canvas = document.createElement('canvas') ;
+		var context = canvas.getContext('2d') ;
+		// Data
+		var margin = 8 ;
+		var b_h = 12 ;
+		context.font = b_h+'pt Arial' ;
+		// Dimensions
+		var w = context.measureText(this.txt).width + 2 * margin ;
+		var h = b_h + 2 * margin ;
+		canvas.width = w ;
+		canvas.height = h ;
+		// Fade out
+		if ( date - this.date > this.fadeout ) {
+			var elapsed_time = ( date - this.date ) ;
+			var time_left = this.timeout - elapsed_time ;
+			var alpha = time_left / this.fadeout_duration ;
+			canvas_set_alpha(alpha, context) ;
+		}
+		// Border / Background
+		context.fillStyle = 'black' ;
+		context.strokeStyle = 'white' ;
+		context.roundedRect(.5, .5, w-1, h-1, margin, true, false) ;
+		// Text
+		context.fillStyle = 'red' ;
+		context.font = b_h+'pt Arial' ;
+		var mx = ( w - context.measureText(this.txt).width ) / 2 ;
+		var my = ( h - b_h ) / 2
+		context.fillText(this.txt, mx, b_h + my, w) ;
+		return canvas ;
+	}
+	this.set = function(txt) {
+		this.txt = txt ;
+		this.date = new Date() ;
+		draw() ;
+		window.setTimeout(function() { // After fadeout delay
+			game.infobulle.timer = window.setInterval(function() { // Trigger repetedly
+				draw() ; // Draw
+			}, 40) ; // At the eye-rate
+		}, this.fadeout) ;
+		window.setTimeout(function() { // After timeout delay
+			window.clearInterval(game.infobulle.timer) ;
+			game.infobulle.timer = null ;
+		}, this.timeout) ;
+	}
+}
 function resize_window(ev) {
 	var chatbox = document.getElementById('chatbox') ; // ? Should be cached
 	var sendbox = document.getElementById('sendbox') ;
@@ -186,46 +245,6 @@ function resize_player_zone(player) { // Resize all zones for a player
 	player.manapool.coords_compute() ;
 	player.manapool.refreshall() ;
 }
-function infobulle(message, x, y) {
-	var bulle = create_div(message) ;
-	document.body.appendChild(bulle) ;
-	bulle.classList.add('infobulle') ; // After sizing, 'cuz it contains visibility = none
-	bulle.style.display = 'inline' ; // Div are blocks, bloc width is browser's inside width
-	if ( isn(x) )
-		bulle.style.left = x + 'px' ;
-	else
-		bulle.style.left = Math.round((window.innerWidth-bulle.scrollWidth)/2) + 'px' ;
-	if ( isn(y) )
-		bulle.style.top = y + 'px' ;
-	else
-		bulle.style.top = Math.round((window.innerHeight-bulle.scrollHeight)/2) + 'px' ;
-	bulle.disapear = function() {
-		this.to = window.setTimeout(function(param) {
-			$(param).fadeOut(500, function() {
-				bulle.del() ;
-			}) ;
-		}, 3000, this) ;
-	}
-	bulle.del = function() {
-		window.clearTimeout(this.to) ;
-		document.body.removeChild(this) ;
-	}
-	bulle.set = function(message) {
-		// Change message
-		this.textContent = message
-		// Reinit fadeout
-		window.clearTimeout(this.to) ;
-		this.disapear() ;
-	}
-	bulle.style.display = 'none' ; // For fadein
-	$(bulle).fadeIn(500, function() {
-		this.disapear() ;
-		bulle.addEventListener('click', function() {
-			this.del() ;
-		}, false) ;
-	}) ;
-	return bulle ;
-}
 // === [ MAIN DRAW ] ===========================================================
 function draw() {
 	//draw_counter++ ;
@@ -338,6 +357,15 @@ function draw() {
 			else
 				log('Unkwnown direction : '+xd+', '+yd) ; 			
 		}
+		// Infobulle
+		if ( game.infobulle ) {
+			var ib = game.infobulle.canvas() ;
+			if ( ib != null ) {
+				var y = 4 * elementheight + ( turnsheight - ib.height ) / 2 ;
+				game.context.drawImage(ib, game.turn.button.x + game.turn.button.w + 5, y+.5) ;
+			}
+		}
+		// Additionnal information
 		if ( localStorage['debug'] == 'true' ) {
 			var end = new Date()
 			var end = end.getMilliseconds() + end.getSeconds()*1000 ;

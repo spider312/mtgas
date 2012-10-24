@@ -17,7 +17,7 @@ function card_list_edit_n(zone, dest, bottom) {
 function card_list_edit(zone, dest, n) {
 	// Unicity
 	if ( zone.editor_window != null ) {
-		infobulle('Already open : '+zone.get_name()) ;
+		game.infobulle.set('Already open : '+zone.get_name()) ;
 		return false ;
 	}
 	// Dest

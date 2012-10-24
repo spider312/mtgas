@@ -18,11 +18,11 @@ function side_start(player, winner) {
 	var but_switch = create_button(create_img(theme_image('deckbuilder/1leftarrow.png')[0], '=&gt;'), function(ev) {
 		var doc = ev.target.parentNode ;
 		if ( ! doc.selected['deck'] ) {
-			infobulle('Please select a card in deck before swapping') ;
+			game.infobulle.set('Please select a card in deck before swapping') ;
 			return null ;
 		}
 		if ( ! doc.selected['side'] ) {
-			infobulle('Please select a card in side before swapping') ;
+			game.infobulle.set('Please select a card in side before swapping') ;
 			return null ;
 		}
 		side_swap(doc.selected['deck'], doc.selected['side'], doc) ;

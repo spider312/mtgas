@@ -703,11 +703,11 @@ function onFocus(ev) {
 // Log
 function log_clear() {
 	if ( typeof logtext != 'object') {
-		infobulle('Log doesn\'t exist ') ;
+		game.infobulle.set('Log doesn\'t exist ') ;
 		return false ;
 	}
 	if ( logtext.length == 0 ) {
-		infobulle('Log is empty') ;
+		game.infobulle.set('Log is empty') ;
 		return false ;
 	}
 	var txt = '' ;

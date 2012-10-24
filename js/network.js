@@ -2,7 +2,6 @@
 // + chat utils
 function network_loop() { // Things to do regulary
 	active_player = game.player ; // Used to distinguish actions initiated by current player and those initiated by its opponent and transmitted by net
-	previous_lagometer = null ;
 	if ( ! game.websockets ) { // Ajax
 		toid = null ;
 		querydate = new Date() ;
@@ -78,13 +77,7 @@ function manage_actions(round) {
 	}
 	// Display opponent's lagometter
 	if ( round.opponent_lag > 5 )
-		if ( previous_lagometer == null )
-			previous_lagometer = infobulle('Opponent\'s inactivity : '+time_disp(round.opponent_lag)) ;
-		else
-			previous_lagometer.set('Opponent\'s inactivity : '+time_disp(round.opponent_lag)) ;
-	else
-		if ( previous_lagometer != null )
-			previous_lagometer = null ;
+		game.infobulle.set('Opponent\'s inactivity : '+time_disp(round.opponent_lag)) ;
 	// Display round's time left / game's elapsed time
 	if ( round.timeleft )
 		var time = time_disp(round.timeleft)+ ' left in round' ;

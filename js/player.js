@@ -84,6 +84,7 @@ function Game(id, player_id, player_nick, player_avatar, player_score, opponent_
 			this.title = title ;
 	}
 	this.movedate = new Date() ;
+	this.infobulle = new InfoBulle() ;
 }
 function Player(game, is_top, id, name, avatar, score) { // game as a param as it's not already a global
 	// Methods

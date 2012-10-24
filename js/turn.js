@@ -420,10 +420,10 @@ function Turn(game) {
 			var fl = this.current_player.focuslists() ;
 			fl += this.current_player.opponent.focuslists() ;
 			if ( fl != '' )
-				infobulle('Please close lists : '+fl, this.phases[n].x, this.phases[n].y) ;
+				game.infobulle.set('Please close lists : '+fl) ;
 			else  {
 				// Check for stopped steps between
-				if ( n > this.step ) {
+				if ( n > this.step )
 					for ( var i = this.step ; i < n ; i++ )
 						if ( this.steps[i].stoped ) {
 							message('Opponent required a stop at step '+this.steps[i].name) ;
@@ -432,7 +432,6 @@ function Turn(game) {
 							else
 								n = i ;
 						}
-				}
 				// Go to desired step
 				result = this.setstep_recieve(n) ;
 				action_send('step', {'step': result}) ;
