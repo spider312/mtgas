@@ -503,8 +503,8 @@ function NextStep() {
 	this.update = function() {
 		this.context.clearRect(0, 0, this.w, this.h) ;
 		// Border / Background
-		this.context.fillStyle = 'lightgray' ;
-		this.context.strokeStyle = 'darkgray' ;
+		this.context.fillStyle = 'Gainsboro' ;
+		this.context.strokeStyle = 'gray' ;
 		this.context.roundedRect(0, 0, this.w, this.h, 5, true, false)
 		this.context.roundedRect(1.5, 1.5, this.w-3, this.h-3, 3, true)
 		// Text
@@ -513,7 +513,7 @@ function NextStep() {
 			txt = nounize(step.phase.name)
 		else
 			txt = nounize(step.phase.name) + ' : ' + nounize(step.name) ;
-		var b_h = 12 ;
+		var b_h = 11 ;
 		this.context.fillStyle = 'black' ;
 		this.context.font = b_h+'pt Arial' ;
 		var mx = ( this.w - this.context.measureText(txt).width ) / 2 ;

@@ -114,6 +114,7 @@ function menu_init(target) {
 							cell.classList.add('active') ;
 							cell.args = item.args ;
 							cell.addEventListener('mousedown', menu.activate, false) ;
+							check.addEventListener('mousedown', menu.activate, false) ;
 							// Mouseover image zoom
 							if ( item.moimg ) {
 								cell.mouimg = document.getElementById('zoom').src ; // Preparing mouseOut
@@ -182,25 +183,33 @@ function menu_init(target) {
 		return this ;
 	}
 	this.activate = function(ev) {
+		ev.stopPropagation() ;
 		var target = menu.target ;
-		if ( ev.target.item )
-			var item = ev.target.item ;
-		else
-			var item = ev.target.parentNode.item ;
+		var item = null ;
+		var t = ev.target ;
+		while ( iso(t.parentNode) && ( item == null ) ) {
+			if ( iso(t.item) )
+				item = t.item ;
+			else
+				t = t.parentNode ;
+		} // Here 't' contains the table cell
+		if ( item == null ) {
+			log('Unable to find item in clicked element ('+ev.target+')\'s ancestors') ;
+			return false ;
+		}
 		if ( item.override_target )
-			target = ev.target.item.override_target ;
+			target = item.override_target ;
 		menu.stop() ;
 		if ( ! isn(target.length) )
-			item.action.apply(target, this.args) ;
-		else // Used for menu actions on selection that are not managed by "Selection", to remove when all will be managed
+			item.action.apply(target, t.args) ;
+		else // Used for menu actions on selection that are not managed by "Selection", TODO remove when all will be managed
 			for ( var i = 0 ; i < target.length ; i++ )
-				item.action.apply(target[i], this.args) ;
+				item.action.apply(target[i], t.args) ;
 		var t = this ;
 		while ( t.parentMenu != undefined ) {
 			if ( typeof t.stop == 'function' )
 				t.stop() ;
 			log('t.stop == '+t.stop+' ('+typeof t.stop+')') ;
-			//log(t) ;
 			t = t.parentMenu ;
 		}
 		//return eventStop(ev) ;
