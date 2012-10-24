@@ -34,29 +34,34 @@ function InfoBulle() {
 	this.txt = '' ;
 	this.timer = null ;
 	this.date = null ;
-	this.timeout = 10000 ;
+	this.timeout = 5000 ;
 	this.fadeout_duration = 1000 ;
 	this.fadeout = this.timeout - this.fadeout_duration ;
-	this.canvas = function() {
+	this.display = function() {
 		if ( this.date == null )
-			return null ;
+			return false ;
 		var date = new Date() ;
 		if ( date - this.date > this.timeout )
-			return null ;
+			return false ;
+		return true ;
+	}
+	this.canvas = function() {
 		var canvas = document.createElement('canvas') ;
 		var context = canvas.getContext('2d') ;
+		var date = new Date() ;
 		// Data
 		var margin = 8 ;
 		var b_h = 12 ;
-		context.font = b_h+'pt Arial' ;
 		// Dimensions
+		context.font = b_h+'pt Arial' ;
 		var w = context.measureText(this.txt).width + 2 * margin ;
 		var h = b_h + 2 * margin ;
 		canvas.width = w ;
 		canvas.height = h ;
-		// Fade out
-		if ( date - this.date > this.fadeout ) {
-			var elapsed_time = ( date - this.date ) ;
+		// Fade
+		var elapsed_time = ( date - this.date ) ;
+			// Out
+		if ( elapsed_time > this.fadeout ) {
 			var time_left = this.timeout - elapsed_time ;
 			var alpha = time_left / this.fadeout_duration ;
 			canvas_set_alpha(alpha, context) ;
@@ -73,17 +78,23 @@ function InfoBulle() {
 		context.fillText(this.txt, mx, b_h + my, w) ;
 		return canvas ;
 	}
+	this.draw = function(context) {
+		var ib = this.canvas() ;
+		var y = 4 * elementheight + ( turnsheight - ib.height ) / 2 ;
+		context.drawImage(ib, game.turn.button.x + game.turn.button.w + 5, y+.5) ;
+	}
 	this.set = function(txt) {
 		this.txt = txt ;
 		this.date = new Date() ;
 		draw() ;
 		window.setTimeout(function() { // After fadeout delay
 			game.infobulle.timer = window.setInterval(function() { // Trigger repetedly
-				draw() ; // Draw
+				//game.infobulle.draw(game.context) ; // Draw
+				draw() ;
 			}, 40) ; // At the eye-rate
 		}, this.fadeout) ;
 		window.setTimeout(function() { // After timeout delay
-			window.clearInterval(game.infobulle.timer) ;
+			window.clearInterval(game.infobulle.timer) ; // Stop fadeout refreshing
 			game.infobulle.timer = null ;
 		}, this.timeout) ;
 	}
@@ -358,13 +369,8 @@ function draw() {
 				log('Unkwnown direction : '+xd+', '+yd) ; 			
 		}
 		// Infobulle
-		if ( game.infobulle ) {
-			var ib = game.infobulle.canvas() ;
-			if ( ib != null ) {
-				var y = 4 * elementheight + ( turnsheight - ib.height ) / 2 ;
-				game.context.drawImage(ib, game.turn.button.x + game.turn.button.w + 5, y+.5) ;
-			}
-		}
+		if ( iso(game.infobulle ) && game.infobulle.display() )
+			game.infobulle.draw(game.context) ;
 		// Additionnal information
 		if ( localStorage['debug'] == 'true' ) {
 			var end = new Date()
