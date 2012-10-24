@@ -110,7 +110,7 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	width: 195px ;
 	height: 175px ;
 	margin: 0 ;
-	/*resize: none;*/
+	resize: none;
 }
 /* Log */
 #log_window {
@@ -304,15 +304,4 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	font-size: 0.85em ;
 	font-family: Verdana, Geneva, sans-serif ;
 	border-radius: 5px;
-}
-/* Targets */
-.target {
-	z-index: 3 ;
-}
-/* Button "next step" */
-#nextstep {
-	z-index: 1 ;
-	position: absolute ;
-	height: 35px ;
-	width: 150px ;
 }

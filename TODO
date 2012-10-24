@@ -8,16 +8,14 @@
 !! better attrs management
 !! détachement d'une carte => bug la carte attachée ou l'autre ou les deux disparaissent (card.js:1215)
 ! Reorganisation de l'accueil
-! Lands en side
+? Lands en side
 ! Land/ancestral qui remonte en main
-play with top card revealed + shuffle
+! play with top card revealed + shuffle
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
-Drop : le tournois ne disparait pas de la liste
+? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
-Boost conditionnels (cranial plating)
 Pseudo des spectacteurs dans la page tournois
-suspend
 
 reminder
 hover carte dans un grave
@@ -35,7 +33,6 @@ touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
  --- Canvas ---
 Agrandir "turnsheight" plutôt que créer une marge sous le canvas
 infobulle
-Bouton de phase
 timeout du title (actuellement se trigger sur réception d'un ping)
 mise en cache de turn, hand ?, battlefield ?
 

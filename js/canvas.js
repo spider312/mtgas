@@ -570,8 +570,8 @@ function canvas_text(ctx, text, x, y, color, mw) {
 	else
 		ctx.fillText(text, x, y) ;
 }
-function canvas_frame(ctx, x, y, w, h, xp, yp, margin) {
-}
+/*function canvas_frame(ctx, x, y, w, h, xp, yp, margin) {
+}*/
 // Following functions draw text with given corner (t = top, l = left, b = bottom, r = right, c = center) at x, y
 	// With frame
 function canvas_framed_text_c(ctx, text, x, y, color, mw, fillcolor, fontsize) {

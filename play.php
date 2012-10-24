@@ -167,7 +167,7 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
 
  <body>
   <canvas id="paper"></canvas>
-  <button id="nextstep" title="Click : Trigger step and go next step. Ctrl+click : End turn. Right click : Go previous step">uninitialized</button>
+  <!--button id="nextstep" title="Click : Trigger step and go next step. Ctrl+click : End turn. Right click : Go previous step">uninitialized</button-->
   <div id="rightframe">
    <img id="zoom" draggable="false" src="<?php echo $cardimages_default ; ?>/back.jpg" oncontextmenu="event.preventDefault() ; ">
    <div id="timeleft">Timeleft</div>

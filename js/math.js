@@ -99,6 +99,9 @@ function collision(object1, object2) {
 	return true ;
 }
 // String
+function nounize(str) {
+	return str[0].toUpperCase() + str.toLowerCase().substr(1) ;
+}
 function getGetOrdinal(n) {
 	var s=["th","st","nd","rd"],
 	v=n%100;

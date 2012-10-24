@@ -254,7 +254,7 @@ function Turn(game) {
 	}
 	this.dblclick = function(ev) {
 		var step = this.step_under_mouse(ev) ;
-		if ( step != null )
+		if ( ( step != null ) && isf(step.dblclick) )
 			step.dblclick(ev) ;
 	}
 	this.step_under_mouse = function(ev) {
@@ -263,17 +263,11 @@ function Turn(game) {
 			if ( dot_in_rect(new dot(ev.clientX, ev.clientY), step.rect()) )
 				return step ;
 		}
+		if ( ( this.button != null ) && dot_in_rect(new dot(ev.clientX, ev.clientY), this.button.rect()) )
+			return this.button ;
 		return null ;
 	}
 	// Design
-	this.update_button = function() {
-		node_empty(this.button) ;
-		var step = this.steps[this.step] ;
-		txt = step.phase.name ;
-		if ( step.phase.name != step.name )
-			txt += ' : '+step.name ;
-		this.button.appendChild(document.createTextNode(txt)) ;
-	}
 	this.coords_compute = function() {
 		var phases_x = elementwidth + manapoolswidth ;
 		var phases_y = 4 * elementheight ;
@@ -293,17 +287,12 @@ function Turn(game) {
 				buttons_x += buttons_w + 5 ;
 			}
 			phase_w = buttons_x - phase_x ;
-			// Coordinates
 			phase.set_coords(phases_x + phase_x, phases_y + phase_y, phase_w, phase_h) ;
 			phase_x += phase_w + 5 ;
 			buttons_x = phase_x + 5 ;
 		}
-		//this.button.thing = this ;
-			// Positionning
-		var margin = ( turnsheight - this.button.offsetHeight ) / 2 ;
-		this.button.style.top = (bfheight + handheight + margin )+'px' ;
-		var lastphase = this.phases[this.phases.length-1] ;
-		this.button.style.left = (lastphase.x + lastphase.w + 10)+'px' ; // Left align
+		if ( this.button != null )
+			this.button.set_coords(phases_x + phase_x + 5, phases_y + buttons_y, 150, buttons_h) ;
 	}
 	this.draw = function(context) {
 		// Border / background
@@ -324,6 +313,9 @@ function Turn(game) {
 		// Steps
 		for ( var i = 0 ; i < this.steps.length ; i++ )
 			this.steps[i].draw(context) ;
+		// Button
+		if ( this.button != null )
+			this.button.draw(context) ;
 	}
 	// Accessors
 	this.toString = function() {
@@ -479,7 +471,8 @@ function Turn(game) {
 			game.player.manapool.empty() ;
 		game.sound.play('tap') ;
 		message(active_player.name+' declares phase '+this.phase.name+', Step '+game.turn.steps[this.step].name, 'step') ;
-		this.update_button() ;
+		if ( this.button != null )
+			this.button.update() ;
 		return this.step ;
 	}
 	// Initialisation
@@ -490,37 +483,68 @@ function Turn(game) {
 	this.phase = this.steps[this.step].phase ;
 	this.current_player = game.creator ;
 	// Button
-	this.button = document.getElementById('nextstep') ;
-		// Events
-	if ( ! game.player.access() )
-		this.button.disabled = true ;
-	else {
-		this.button.addEventListener('click', function(ev) {
-			if ( ev.ctrlKey )
-				game.turn.setstep(game.turn.steps.length-1) ;
-			else {
-				if ( ev.shiftKey )
-					game.turn.incstep() ;
-				else
-					game.turn.trigger_step() ;
-			}
-			draw() ; // Button click
-			ev.stopImmediatePropagation() ;
-		}, false) ;
-		this.button.addEventListener('contextmenu', function(ev) {
-			var result = eventStop(ev) ;
-			if ( ev.ctrlKey )
-				game.turn.setstep(0) ;
-			else
-				game.turn.decstep(ev.shiftKey) ; // this.trigger_step
-			draw() ; // Button contextmenu
-			ev.stopImmediatePropagation() ;
-			return result ;
-		}, false) ;
-		this.button.addEventListener('mousemove', canvasMouseMove, false) ;
-		this.button.addEventListener('mouseup', canvasMouseUp, false) ;
+	if ( game.player.access() )
+		this.button = new NextStep() ;
+}
+function NextStep() {
+	Widget(this) ;
+	this.mouseover = function(ev) {
+		game.settittle('Click : Trigger, go next. Right click : Go previous') ;
+		game.canvas.style.cursor = 'pointer' ;
 	}
-	this.update_button() ;
+	this.mouseout = function(ev) {
+		game.settittle('') ;
+		game.canvas.style.cursor = '' ;
+	}
+
+	this.rect = function() { // Coordinates of rectangle representation of step (for "under mouse")
+		return new rectwh(this.x, this.y, this.w, this.h) ;
+	}
+	this.update = function() {
+		this.context.clearRect(0, 0, this.w, this.h) ;
+		// Border / Background
+		this.context.fillStyle = 'lightgray' ;
+		this.context.strokeStyle = 'darkgray' ;
+		this.context.roundedRect(0, 0, this.w, this.h, 5, true, false)
+		this.context.roundedRect(1.5, 1.5, this.w-3, this.h-3, 3, true)
+		// Text
+		var step = game.turn.steps[game.turn.step] ;
+		if ( step.phase.name == step.name )
+			txt = nounize(step.phase.name)
+		else
+			txt = nounize(step.phase.name) + ' : ' + nounize(step.name) ;
+		var b_h = 12 ;
+		this.context.fillStyle = 'black' ;
+		this.context.font = b_h+'pt Arial' ;
+		var mx = ( this.w - this.context.measureText(txt).width ) / 2 ;
+		var my = ( this.h - b_h ) / 2
+		this.context.fillText(txt, mx, b_h + my, this.w) ;
+	}
+	this.draw = function(context) {
+		context.drawImage(this.cache, this.x, this.y) ;
+	}
+	this.click = function(ev) {
+		switch ( ev.which ) {
+			case 1 :
+				if ( ev.ctrlKey )
+					game.turn.setstep(game.turn.steps.length-1) ;
+				else {
+					if ( ev.shiftKey )
+						game.turn.incstep() ;
+					else
+						game.turn.trigger_step() ;
+				}
+				break ;
+			case 3 :
+				if ( ev.ctrlKey )
+					game.turn.setstep(0) ;
+				else
+					game.turn.decstep(ev.shiftKey) ; // this.trigger_step
+				break ;
+			default :
+				log('Unmanaged button : '+ev.which) ;
+		}
+	}
 }
 // === [ STEP CODE ] ===========================================================
 function steps_init(turn) {
@@ -590,10 +614,11 @@ function steps_init(turn) {
 						var li = popup_li(card, trigger_list) ;
 						li.title = 'Remove a time counter' ;
 						li.func = function(card) {
-							if ( c == 1 )
-								card.place(0, card.y) ; // Suspended card is now cast
+							var c = card.getcounter() ;
 							if ( c > 0 )
 								card.addcounter(-1) ;
+							if ( c == 1 )
+								card.place(0, card.grid_y) ; // Suspended card is now cast
 						}
 					}
 					if ( card.attrs.echo ) {
