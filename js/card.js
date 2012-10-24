@@ -578,6 +578,11 @@ function card_prototype() {
 				}
 			}
 		}
+		// Display hovered card on top of other
+		if ( ! this.zone.selzone ) {
+			this.zone.refresh() ;
+			draw() ;
+		}
 	}
 	this.mouseout = function(ev) {
 		game.settittle('') ;
@@ -601,6 +606,11 @@ function card_prototype() {
 					game.target.tmp.out(this) ;
 					this.refresh('/targeted') ;
 				}
+		}
+		// Display hovered card on top of other
+		if ( ! this.zone.selzone ) {
+			this.zone.refresh() ;
+			draw() ;
 		}
 	}
 	this.mousedown = function(ev) {

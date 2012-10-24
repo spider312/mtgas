@@ -202,6 +202,11 @@ function unselzone(result) { // Common
 	// Drawing
 	result.draw = function(context) {
 		context.drawImage(this.cache, this.x, this.y) ;
+		/*
+		var card = game.card_under_mouse ;
+		if ( ( card != null ) && ( card.zone == this ) )
+			card.draw(context, card.x, card.y) ;
+			*/
 	}
 	result.refresh = function() { // Compute coordinates for all zone's cards, called on each adding/removing of cards, or visibility change
 		if ( this.editor_window != null )
@@ -280,13 +285,17 @@ function unselzone(result) { // Common
 		} else {
 			if ( this.vcards <= 1 ) // No visible card, draw back, 1 visible card, draw it
 				this.cards[this.cards.length-1].draw(context, card.x - this.x, card.y - this.y) ;
-			else // More than 1 visible card
+			else { // More than 1 visible card
 				for ( var i = this.vcards-1 ; i >= 0 ; i-- ) // Draw them
 					if ( i < this.cards.length ) { // ???
 						var idx = this.cards.length-i-1 ; // this.cards.length - 1 = top index, i = 0-n top visible cards
 						var card = this.cards[idx] ;
 						card.draw(context, card.x - this.x, card.y - this.y) ;
 					}
+				var card = game.card_under_mouse ;
+				if ( ( card != null ) && ( card.zone == this ) )
+					card.draw(context, card.x - this.x, card.y - this.y) ;
+			}
 		}
 	}
 	// Init
