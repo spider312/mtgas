@@ -40,7 +40,8 @@ while ( $row = mysql_fetch_object($query) ) {
 // Running tournaments
 $data->tournaments_running = query_as_array("SELECT
 		*,
-		TIMESTAMPDIFF(SECOND, `creation_date`, NOW()) as age
+		TIMESTAMPDIFF(SECOND, `creation_date`, NOW()) as age,
+		TIMESTAMPDIFF(SECOND, NOW(), `due_time`) as time_left
 	FROM `tournament`
 	WHERE
 		`status` > '1'

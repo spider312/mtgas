@@ -203,7 +203,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
         <td>Type</td>
         <td>Name</td>
         <td>Status</td>
-        <td>Age</td>
+        <td title="Before end of current phase, or round">Time left</td>
         <td>Players</td>
        </tr>
       </thead>

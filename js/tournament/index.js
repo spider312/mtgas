@@ -23,6 +23,7 @@ function start(tournament_id) {
 	data = {} ;
 	last_id = 0 ;
 	$.ajaxSetup({ cache: false });
+	spectactors = [] ;
 	timer(tournament_id, player_id, data, last_id, true) ;
 }
 function player_get(players, id) {
@@ -53,6 +54,13 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 				return null ;
 			}
 		update(data, rdata) ;
+		// Spectactor
+		if ( firsttime && ( player_get(data.players, player_id) == null ) )
+			$.getJSON('json/spectactor.php', {'id': tournament_id, 'nick': localStorage['profile_nick']}, function(data) {
+				if ( data.nb != 1 )
+					alert(data.nb+' affected rows') ;
+			}) ;
+		//
 		var t_status = parseInt(data.status) ; // Tournament's status
 		// List players and their scores
 		if ( iso(data.players) && ( prev_data != JSON.stringify(data.players) ) ) {
@@ -269,11 +277,19 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 					toplink.textContent = 'Currently, you should be '+tournament_status(p_status+1)+notabene ;
 			}
 		}
-		if ( iso(rdata.log) )
+		if ( iso(rdata.log) ) {
 			while ( rdata.log.length > 0 ) {
 				line = rdata.log.shift() ;
 				last_id = parseInt(line.id) ;
 				pid = line.sender ;
+				if ( line.type == 'spectactor' ) {
+					var found = false
+					for ( var j = 0 ; j < spectactors.length ; j++ )
+						if ( spectactors[j].id == pid )
+							found = true ;
+					if ( ! found )
+						spectactors.push({'id': pid, 'nick': line.value}) ;
+				}
 				if ( pid == '' )
 					nick = 'Server' ;
 				else {
@@ -281,10 +297,15 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 					for ( var j in data.players )
 						if ( data.players[j].player_id == pid )
 							nick = data.players[j].nick ;
+					if ( nick == pid )
+						for ( var j = 0 ; j < spectactors.length ; j++ )
+							if ( spectactors[j].id == pid )
+								nick = spectactors[j].nick ;
 				}
 				var msg = tournament_log_message(line, nick) ;
 				tournament_log.appendChild(create_li((new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString()+' '+msg)) ;
 			}
+		}
 		window.setTimeout(timer, tournament_timer, tournament_id, player_id, data, last_id, false) ; // Refresh in 1 sec
 	}) ;
 }

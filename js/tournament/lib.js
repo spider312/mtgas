@@ -113,6 +113,9 @@ function tournament_log_message(line, nick) {
 		case 'players' :
 			msg = 'Tournament has enough players' ;
 			break ;
+		case 'spectactor' :
+			msg = nick+' joined as spectactor' ;
+			break ;
 		case 'draft' :
 			msg = 'Draft started' ;
 			break ;
