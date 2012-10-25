@@ -151,10 +151,9 @@ function tournament_start($tournament) {
 	return $tournament ;
 }
 function round_start($tournament) { // Called on round end, first round is in tournament_start
-	$data = json_decode($tournament->data) ;
-	$duration = $data->rounds_duration ;
 	// Update results cache
 	$data = json_decode($tournament->data) ;
+	$duration = $data->rounds_duration ;
 	$round = $tournament->round ;
 	$data->results->$round = query_as_array("SELECT `id`, `creator_id`, `creator_score`, `joiner_id`, `joiner_score` FROM `round`
 		WHERE `tournament` = '".$tournament->id."' AND `round` = '".$tournament->round."' ; ") ;

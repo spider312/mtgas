@@ -79,7 +79,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 	while ( $tournament = mysql_fetch_object($query) ) {
 		// All players
 		$players_query = query("SELECT `player_id`, `nick` FROM `registration` WHERE `registration`.`tournament_id` = '".$tournament->id."' ; ") ;
-		if ( mysql_num_rows($players_query) >= $tournament->min_players ) {// Enough players
+		if ( mysql_num_rows($players_query) >= $tournament->min_players ) { // Enough players
 			// Give random numbers to players
 			$players = array() ;
 			while ( $player = mysql_fetch_object($players_query) )
@@ -94,14 +94,19 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			}
 			$data = json_decode($tournament->data) ;
 			$data->players = $players ;
-			query("UPDATE `tournament`
+			$data_str = json_encode($data) ;
+			$data_str = mysql_real_escape_string($data_str) ;
+			//echo $data_str ;
+			$q = "UPDATE `tournament`
 			SET
 				`status` = 2,
 				`update_date` = NOW(),
 				`due_time` = NOW(), 
-				`data` = '".json_encode($data)."'
+				`data` = '$data_str'
 			WHERE
-				`id` = '".$tournament->id."' ; ") ;
+				`id` = '".$tournament->id."' ; " ;
+			query($q) ;
+			//echo $q ;
 			tournament_log($tournament->id, '', 'players', '') ;
 		}
 	}

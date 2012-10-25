@@ -97,7 +97,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       <thead>
        <tr>
         <td>Game name</td>
-        <td>Creator</td>
+	<td>Creator</td>
+        <td colspan="2">Score</td>
         <td>Joiner</td>
         <td>Age</td>
         <td>Inactivity</td>

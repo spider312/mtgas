@@ -383,6 +383,8 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 				var tr = create_tr(running_games,
 					create_a(round.name, url),
 					creator,
+					round.creator_score,
+					round.joiner_score,
 					joiner,
 					create_a(time_disp(round.age), url),
 					create_a(time_disp(round.inactivity), url)
@@ -473,7 +475,7 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				var tournament = JSON.parse(t.data) ;
 				var age = create_a(time_disp(t.age), url, null, title) ;
 				age.classList.add('nowrap') ;
-				var playerlist = create_a(list_players(tournament), url, null, title) ;
+				var playerlist = create_a(list_players(t), url, null, title) ;
 				playerlist.classList.add('nowrap') ;
 				var tr = create_tr(running_tournaments, 
 					create_a(t.type, url, null, title), 
