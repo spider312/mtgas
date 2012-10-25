@@ -149,7 +149,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       <input type="text" id="tournament_boosters" name="boosters" value="" maxlength="128">
       <input type="button" id="boosters_reset" value="Reset">
      </label>
-     <label id="booster_suggestions_label">Custom booster : 
+     <label id="booster_suggestions_label" title="Add one booster by selecting it in list">Custom booster : 
       <select id="booster_suggestions">
        <option disabled="disabled">Waiting for list</option>
       </select>

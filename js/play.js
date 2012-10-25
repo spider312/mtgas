@@ -143,7 +143,7 @@ function start() { // When page is loaded : initialize everything
 		if ( spectactor ) {
 			new Spectactor($.cookie(session_id), localStorage['profile_nick']) ; // Declare itself as a spectactor
 			action_send('spectactor', {'name': localStorage['profile_nick']}, function(data){log('Connection successfull')}) ; // And send to other players
-			game.socket_registration = {'type': 'register', 'game': game.id, 'nick': localStorage['profile_nick'], 'player_id': $.cookie(session_id)} ;
+			//game.socket_registration = {'type': 'register', 'game': game.id, 'nick': localStorage['profile_nick'], 'player_id': $.cookie(session_id)} ;
 		} else {
 			autotext_init() ;
 			window.addEventListener('keypress',	onKeyPress,	false) ; // Key press
@@ -234,6 +234,9 @@ function manage_action(action) {
 		case 'spectactor' :
 			new Spectactor(action.sender, param.name) ;
 			break ;
+		case 'allow' :
+			game.spectactors[param.spectactor].allow(active_player) ;
+			break ;
 		// Game actions
 			// Communication
 		case 'text' :
@@ -273,10 +276,10 @@ function manage_action(action) {
 			param.player.sync_recieve(eval(param.attrs)) ;
 			break ;
 		case 'join' :
-			message('* '+active_player.name+' has join') ;
+			message(active_player.name+' has join', 'join') ;
 			break ;
 		case 'quit' :
-			message('* '+active_player.name+' has quit') ;
+			message(active_player.name+' has quit', 'join') ;
 			break ;
 		// Zone actions
 		case 'zsync': // Zone sync (shuffle, zone reordering)

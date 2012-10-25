@@ -251,6 +251,9 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	background-color: red ;
 	white-space: pre ;
 }
+#chatbox .join	{
+	background-color: PaleGreen ;
+}
 #chatbox .win	{
 	background-color: yellow ;
 }

@@ -212,14 +212,13 @@ function message_send(text, meaning) {
 	action_send('msg', {'text': text}) ;
 	message(game.player.name+' '+text, meaning) ;
 }
-function message(text, meaning, other_meaning) {
-	if ( typeof meaning != 'string' )
-		meaning = 'text'
+function message(text, meaning, dom) {
 	chatbox = $('#chatbox')[0] ;
 	var scrbot = chatbox.scrollHeight - ( chatbox.scrollTop + chatbox.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
 	var table = document.getElementById('chathisto') ;
 	var row = table.insertRow(-1) ; // At the end
 	var cell = row.insertCell(-1) ;
+	// Title
 	var title = '' ;
 	if ( sent_time == null ) {
 		var r = new Date() ;
@@ -231,15 +230,37 @@ function message(text, meaning, other_meaning) {
 		title += ', Recieved '+recieve_time.getHours()+':'+recieve_time.getMinutes()+':'+recieve_time.getSeconds() ;
 	}
 	cell.title = title ;
+	// Text
 	if ( iss(text) )
 		cell.appendChild(document.createTextNode(text)) ;
 	else
 		cell.appendChild(text) ;
-	cell.classList.add(meaning) ;
-	if ( iss(other_meaning) )
-		cell.classList.add(other_meaning) ;
-	if ( ! message_filter[meaning] )
+	// Meaning
+	var displayed = false ;
+	if ( iso(meaning) ) { // Multiple
+		for ( var i = 0 ; i < meaning.length ; i++ ) {
+			cell.classList.add(meaning[i]) ;
+			if ( message_filter[meaning[i]] )
+				displayed = true ;	
+		}
+	} else if ( iss(meaning) ) { // Single
+		cell.classList.add(meaning) ;
+		if ( message_filter[meaning] )
+			displayed = true ;	
+	} else { // None
+		//log('Unknown type for meaning : '+typeof meaning+' : '+text) ;
+		var m = 'text' ;
+		cell.classList.add(m) ; // Defaults
+		if ( message_filter[m] )
+			displayed = true ;	
+	}
+	// DOM
+	if ( iso(dom) && ( dom != null ) )
+		cell.appendChild(dom) ;
+	// Filter
+	if ( ! displayed )
 		cell.classList.add('filtered') ;
+	// Scroll
 	if ( scrbot == 0 )
 		chatbox.scrollTop = chatbox.scrollHeight ;
 }
@@ -248,6 +269,7 @@ function init_chat() {
 	// Chat, must be declared before using of "log"
 		// Filtering
 	message_filter = {
+		join: true,
 		text: true,
 		win: true,
 		turn: true,
@@ -265,6 +287,7 @@ function init_chat() {
 		bug: ( localStorage['debug'] == 'true' )
 	}
 	message_filter_name = {
+		join: 'Joins / parts',
 		text: 'Texts',
 		win: 'Wins / Loses',
 		turn: 'New turns',

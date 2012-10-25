@@ -87,8 +87,11 @@ function create_text(text) {
 function create_div(content) {
 	return create_element('div', content) ;
 }
-function create_span(content) {
-	return create_element('span', content) ;
+function create_span() {
+	var span = create_element('span', arguments[0]) ;
+	for ( var i = 1 ; i < arguments.length ; i++)
+		span.appendChild(arguments[i]) ;
+	return span
 }
 function create_img(src, alt, title) {
 	var img = document.createElement('img') ;

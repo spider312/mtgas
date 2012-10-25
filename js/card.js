@@ -306,7 +306,7 @@ function card_prototype() {
 		context.drawImage(this.cache, 0, 0) ;
 		context.restore() ; // For rotation
 	}
-	this.refresh = function(from) { // Compute coordinates for all zone's cards, called on each adding/removing of cards, or visibility change
+	this.refresh = function(from) { // Redraw canvas cache
 		var context = this.context ;
 		context.clearRect(0, 0, this.w, this.h) ;
 		// card border is a rectangle with width double (half shown, half hidden under image)

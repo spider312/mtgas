@@ -513,6 +513,7 @@ function Selection() {
 					message(active_player.name+' cycles '+this.cards_names(oldzone)) ;
 					break ;
 				default :
+					var meaning = ['zone'] ;
 					var fw = '' ;
 					switch ( this.type ) {
 						case 'undo' :
@@ -529,7 +530,6 @@ function Selection() {
 					var cardname = this.cards_names(oldzone) ; // Save card names before changing zone, as it may change with attributes (transform)
 					var word = 'moves '+cardname+' from '+oldzone.get_name()+' to '+zone.get_name() ;
 					sound = 'move' ;
-					var meaning = null ;
 					if ( oldzone.player == zone.player )
 						if ( zone.type == 'exile' )
 								word = 'exiles '+cardname+' from '+oldzone.type ;
@@ -538,7 +538,7 @@ function Selection() {
 								word = 'plays '+cardname ;
 								for ( var i = 0 ; i < this.cards.length ; i++ ) // Brownish background if at least a land is played
 									if ( this.cards[i].is_land() ) {
-										meaning = 'land' ;
+										meaning.push('land') ;
 										break ;
 									}
 							} else if ( oldzone.type == 'graveyard' )
@@ -558,7 +558,7 @@ function Selection() {
 								word = 'discards '+cardname ;
 						} else if ( zone.type == 'library' )
 							word = 'moves '+cardname+' from '+oldzone.get_name()+' '+card.position_name('to', 'to') ;
-					message(active_player.name+' '+fw+word, 'zone', meaning) ;
+					message(active_player.name+' '+fw+word, meaning) ;
 			}
 		}
 		if ( sound != '' )

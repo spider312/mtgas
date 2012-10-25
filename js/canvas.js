@@ -79,9 +79,17 @@ function InfoBulle() {
 		return canvas ;
 	}
 	this.draw = function(context) {
+		var obj = null ;
+		if ( iso(game.turn.button) )
+			obj = game.turn.button
+		else // Spectactor doesn't have a next step button, place on phases right
+			obj = game.turn.phases[game.turn.phases.length-1] ;
+		var x = 0 ;
+		if ( obj != null )
+			x = obj.x + obj.w + 5 ;
 		var ib = this.canvas() ;
 		var y = 4 * elementheight + ( turnsheight - ib.height ) / 2 ;
-		context.drawImage(ib, game.turn.button.x + game.turn.button.w + 5, y+.5) ;
+		context.drawImage(ib, x, y+.5) ;
 	}
 	this.set = function(txt) {
 		this.txt = txt ;
