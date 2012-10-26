@@ -277,35 +277,8 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 					toplink.textContent = 'Currently, you should be '+tournament_status(p_status+1)+notabene ;
 			}
 		}
-		if ( iso(rdata.log) ) {
-			while ( rdata.log.length > 0 ) {
-				line = rdata.log.shift() ;
-				last_id = parseInt(line.id) ;
-				pid = line.sender ;
-				if ( line.type == 'spectactor' ) {
-					var found = false
-					for ( var j = 0 ; j < spectactors.length ; j++ )
-						if ( spectactors[j].id == pid )
-							found = true ;
-					if ( ! found )
-						spectactors.push({'id': pid, 'nick': line.value}) ;
-				}
-				if ( pid == '' )
-					nick = 'Server' ;
-				else {
-					nick = pid ;
-					for ( var j in data.players )
-						if ( data.players[j].player_id == pid )
-							nick = data.players[j].nick ;
-					if ( nick == pid )
-						for ( var j = 0 ; j < spectactors.length ; j++ )
-							if ( spectactors[j].id == pid )
-								nick = spectactors[j].nick ;
-				}
-				var msg = tournament_log_message(line, nick) ;
-				tournament_log.appendChild(create_li((new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString()+' '+msg)) ;
-			}
-		}
+		if ( iso(rdata.log) )
+			tournament_log_ul(tournament_log, rdata.log, data.players, spectactors) ;
 		window.setTimeout(timer, tournament_timer, tournament_id, player_id, data, last_id, false) ; // Refresh in 1 sec
 	}) ;
 }

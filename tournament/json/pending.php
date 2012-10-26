@@ -47,8 +47,8 @@ $data->tournaments_running = query_as_array("SELECT
 		`status` > '1'
 		AND `status` < '6'
 		ORDER BY `id` ASC") ;
-foreach ( $data->tournaments_running as $k => $t )
-	$t->players = query_as_array("SELECT * FROM `registration` WHERE `tournament_id`='".$t->id."'") ;
+/*foreach ( $data->tournaments_running as $k => $t )
+	$t->players = query_as_array("SELECT * FROM `registration` WHERE `tournament_id`='".$t->id."'") ;*/
 
 // Is a tournament waiting for you ?
 $query = query("SELECT id FROM `registration`, `tournament` WHERE

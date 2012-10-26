@@ -158,3 +158,35 @@ function tournament_log_message(line, nick) {
 	}
 	return msg ;
 }
+function tournament_log_ul(tournament_log, log, players, spectactors) {
+	node_empty(tournament_log) ;
+	while ( log.length > 0 ) {
+		line = log.shift() ;
+		last_id = parseInt(line.id) ;
+		pid = line.sender ;
+		if ( line.type == 'spectactor' ) {
+			var found = false
+			for ( var j = 0 ; j < spectactors.length ; j++ )
+				if ( spectactors[j].id == pid )
+					found = true ;
+			if ( ! found )
+				spectactors.push({'id': pid, 'nick': line.value}) ;
+		}
+		if ( pid == '' )
+			nick = 'Server' ;
+		else {
+			nick = pid ;
+			for ( var j in players )
+				if ( players[j].player_id == pid )
+					nick = players[j].nick ;
+			if ( nick == pid )
+				for ( var j = 0 ; j < spectactors.length ; j++ )
+					if ( spectactors[j].id == pid )
+						nick = spectactors[j].nick ;
+		}
+		var msg = tournament_log_message(line, nick) ;
+		var li = create_li(msg) ;
+		li.title = (new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString() ;
+		tournament_log.appendChild(li) ;
+	}
+}

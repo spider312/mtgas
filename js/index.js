@@ -473,10 +473,9 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				var url = 'tournament/?id='+t.id ;
 				var title = 'View tournament '+t.type+' : '+t.name ;
 				var tournament = JSON.parse(t.data) ;
-				//var age = create_a(time_disp(t.age), url, null, title) ;
 				var age = create_a(time_disp(t.time_left), url, null, title) ;
 				age.classList.add('nowrap') ;
-				var playerlist = create_a(list_players(t), url, null, title) ;
+				var playerlist = create_a(list_players(tournament), url, null, title) ;
 				playerlist.classList.add('nowrap') ;
 				var tr = create_tr(running_tournaments, 
 					create_a(t.type, url, null, title), 

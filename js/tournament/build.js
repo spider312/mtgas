@@ -132,6 +132,7 @@ function init() {
 	saved = false ;
 	tournament = null ;
 	ajax_error_management() ;
+	spectactors = [] ;
 }
 function start() {
 	// Link between mana colors array and mana color checks
@@ -279,27 +280,6 @@ function timer(id) {
 		else {
 			document.getElementById('timeleft').value = time_disp(parseInt(data.timeleft)) ;
 			window.setTimeout(timer, sealed_timer, id) ; // Refresh in 30 secs
-			if ( iso(data.log) && ( data.log.length > loglength ) ) {
-				if ( tournament_log.children.length != 0 ) // Some messages already recieved
-					document.getElementById('tournament').classList.add('highlight') ;
-				loglength = data.log.length ;
-				node_empty(tournament_log) ;
-				while ( data.log.length > 0 ) {
-					line = data.log.shift() ;
-					last_id = parseInt(line.id) ;
-					pid = line.sender ;
-					if ( pid == '' )
-						nick = 'Server' ;
-					else {
-						nick = pid ;
-						for ( var j in data.players )
-							if ( data.players[j].player_id == pid )
-								nick = data.players[j].nick ;
-					}
-					var msg = tournament_log_message(line, nick) ;
-					tournament_log.appendChild(create_li((new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString()+' '+msg)) ;
-				}
-			}
 			if ( iso(data.players)) {
 				node_empty(players_ul) ;
 				for ( var i = 0 ; i < data.players.length ; i++ ) {
@@ -310,6 +290,12 @@ function timer(id) {
 					li.appendChild(document.createTextNode(data.players[i].nick)) ;
 					players_ul.appendChild(li) ;
 				}
+			}
+			if ( iso(data.log) && ( data.log.length > loglength ) ) {
+				if ( tournament_log.children.length != 0 ) // Some messages already recieved
+					document.getElementById('tournament').classList.add('highlight') ;
+				loglength = data.log.length ;
+				tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
 			}
 		}
 	}) ;
