@@ -35,11 +35,6 @@ h1 {
 	box-shadow: 0 0 3px 1px #1f1a14;
 	text-align: center ;
 }
-
-h3, h4, h5, h6 {
-	padding-left: 10px ;
-	margin-top: 5px ;
-}
 h2{
 	background-color: #907c6c ;
 	margin-bottom: 20px ; 
@@ -47,16 +42,20 @@ h2{
 	padding-left: 10px ;
 	font-family:"courier new", arial;
 }
+h3, h4, h5, h6 {
+	padding-left: 10px ;
+	margin-top: 5px ;
+}
 /* "clickable" labels */
 label	{
 	display: block ;
 	cursor: pointer ;
 	margin-left: 5px ;
 }
-button, input[type=submit], input[type=button] {
+/*button, input[type=submit], input[type=button] {
 	background-color: #907c6c ;
 	border-color: #1f1a14 ;
-}
+}*/
 p > input, p > button {
 	margin-left: 5px ;
 }
@@ -99,10 +98,6 @@ a:hover {
 }
 #header a:active {
 	color : #1F1A14 ;
-}
-#hidemenu {
-	float: right ;
-	cursor: pointer !important ;
 }
 #identity_shower {
 	float: right ;

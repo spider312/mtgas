@@ -662,14 +662,18 @@ function decks_list() {
 			row.title = deck_content ;
 			row.id = deck_name ;
 			var radio = create_radio('deck', deck_name, (deck_name == localStorage['deck']), ' ', 'fullwidth') ;
-			radio.firstChild.id = 'radio_'+deck_name
+			radio.firstChild.id = 'radio_'+deck_name ;
 			deck_name_s = deck_name ;
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
-			row.insertCell(-1).appendChild(create_label('radio_'+deck_name, deck_name_s)) ;
-			row.insertCell(-1).appendChild(radio).addEventListener('change', function(ev) {
+			var cell = row.insertCell(-1) ;
+			cell.appendChild(create_label('radio_'+deck_name, deck_name_s)) ;
+			cell.colSpan = 2 ;
+			var cell = row.insertCell(-1) ;
+			cell.appendChild(radio).addEventListener('change', function(ev) {
 				store(ev.target.name, ev.target.value) ;
 			}, false) ;
+			cell.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament' ;
 			row.insertCell(-1).appendChild(create_button('Goldfish', function(ev) {
 				var row = node_parent_search(ev.target, 'TR') ;
 				if ( load_profile('self', ev) ) { // Load data from profil to goldfish self

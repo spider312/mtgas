@@ -154,7 +154,6 @@ function html_menu($additionnal_entries=null) {
 			$separator = ' - ' ;
 		echo '    <a title="'.$entry->title.'" target="_blank" href="'.$entry->url.'">'.$entry->name.'</a>'.$separator."\n" ;
 	}
-	//echo '    <span id="hidemenu" onclick="hide_menu()">hide</span>'."\n" ;
 	echo '    <a id="identity_shower" title="Change nickname and avatar">Nickname</a>'."\n" ;
 	echo '   </div>'."\n\n" ;
 }

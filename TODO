@@ -15,19 +15,14 @@ le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
-Placement des cartes quand la ligne est pleine
 
 reminder
 ? target from card in unselzone
 ? trigger sur les cartes qu'on contrôle dans le BF adverse
 import multiple deck : tous sont save sous le même nom
-use move when change zone from bf to bf
+? use move when change zone from bf to bf
 Modularize unicity in boosters (CUB, OMC*) + daemon
 deckbuilder double face, split
-
- --- Chrome ---
-' dans le builder
-touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  --- Canvas ---
 timeout du title (actuellement se trigger sur réception d'un ping)
@@ -42,6 +37,10 @@ Différencier les effets statiques des capacités activées (ex : Selesnya Guild
 AE
 ? dual cards (color, CC, etc.)
 parsing + rotation des flip cards
+
+ --- Chrome ---
+' dans le builder
+touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  === Evolutions ===
 chargement asynchrone

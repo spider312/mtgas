@@ -64,8 +64,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      <input id="creator_deck" type="hidden" name="deck" value="">
      <label title="Game's name">
       Name : 
-      <input id="game_name" type="text" name="name" value="Game's name" size="64">
-      <input class="create" type="submit" value="" accesskey="c" title="Create game">
+      <input id="game_name" type="text" name="name" placeholder="Game's name" size="64" title="Please specify type, rules applied">
+      <input class="create" type="submit" value="Create" accesskey="c" title="Create game">
      </label>
     </form>
 
@@ -137,7 +137,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       </select>
      </label>
      <label title="Tournament's name">Name : 
-      <input type="text" id="tournament_name" name="name" value="Tournament's name" size="64">
+      <input type="text" id="tournament_name" name="name" placeholder="Tournament's name" size="64">
      </label>
      <label title="Number of players">Players : 
       <input type="text" id="tournament_players" name="players" value="2" size="2" maxlength="2">
@@ -155,7 +155,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       </select>
       <input id="booster_add" type="button" value="Add">
      </label>
-     <fieldset id="tournament_options" class="hidden">
+     <fieldset id="tournament_options" class="hidden" title="Click the + to get more options">
       <legend><input type="button" id="tournament_options_toggle" value="+">Options</legend>
       <label title="Force more rounds than number of players would imply">Number of rounds : 
        <input type="text" name="rounds_number" value="0">
@@ -169,7 +169,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      </fieldset>
      <input type="hidden" id="draft_boosters" name="draft_boosters" value="">
      <input type="hidden" id="sealed_boosters" name="sealed_boosters" value="">
-     <input class="create" type="submit" value="">
+     <input class="create" type="submit" value="Create">
     </form>
 
     <h2>Join</h2>
@@ -231,6 +231,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      <thead>
       <tr>
        <th>Name</th>
+       <th id="decks_spacer"></th>
        <th>Select</th>
        <th colspan="4">Actions</th>
       </tr>
@@ -240,30 +241,28 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       <tr title="A deck from scratch">
        <form id="deck_create" method="get" action="deckbuilder.php">
         <th>New deck</th>
-        <td colspan="4"><input type="text" name="deck" title="Name of the deck"></td>
-        <td>
-         <input type="submit" value="Create" class="fullwidth">
-        </td>
+        <td colspan="5"><input type="text" name="deck" placeholder="Deck name" title="Name of the deck"></td>
+        <th><input type="submit" value="Create" class="fullwidth"></th>
        </tr>
       </form>
       <!-- Load form -->
       <tr title="Deck files on your computer">
        <th>Import</th>
-       <td colspan="4">
+       <td colspan="5">
         <form id="upload">
-         <input type="file" multiple id="deckfile" name="deckfile" class="fullwidth" accesskey="u" title="Deck files (in MWS (.mwDeck) or Aprentice (.dec) file format). You can select multiple with Ctrl, Shift or mouse selection">
+         <input type="file" multiple id="deckfile" name="deckfile" class="fullwidth" accesskey="u" placeholder="test" title="Deck files (in MWS (.mwDeck) or Aprentice (.dec) file format). You can select multiple with Ctrl, Shift or mouse selection">
       </form>
        </td>
-       <td><input type="submit" value="Import" class="fullwidth"></td>
+       <th><input type="submit" value="Import" class="fullwidth"></th>
       </tr>
       <!-- Download form -->
       <form id="download" action="" method="get">
        <tr title="A deck file hosted by a web-server, paste the 'export MWS' link on a deck on mtgtop8.com for example">
         <th>Download</th>
-        <td colspan="4">
-          <input id="deck_url" type="text" name="deck_url" title="URL of the deck file (in MWS (.mwDeck) or Aprentice (.dec) file format)">
+        <td colspan="5">
+          <input id="deck_url" type="text" name="deck_url" placeholder="Deck URL" title="URL of the deck file (in MWS (.mwDeck) or Aprentice (.dec) file format)">
         </td>
-        <td><input type="submit" value="Download" class="fullwidth"></td>
+        <th><input type="submit" value="Download" class="fullwidth"></th>
        </tr>
       </form>
      </tfoot>

@@ -303,18 +303,6 @@ function create_td(row, text, colspan) {
 		cell.colSpan = colspan ;
 	return cell ;
 }
-// Advanced form functionnalities
-function hide_menu() {
-	$('#header').animate({
-		opacity: 0,
-	}, 1000, function() {
-		$('#search,#decksection,#infos').animate({
-			'top': 0,
-			'height': '95%'
-		}) ;
-		// Animation complete.
-	});
-}
 // User vars
 function store(key, value) {
 	if ( typeof value == 'undefined' )
