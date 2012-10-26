@@ -421,6 +421,7 @@ function Selection() {
 		this.zone = zone ; // All cards have been moved, inform selection that its zone changed
 		var boost_bf = false ;
 		var oldindex = 0 ; // Index of top moving card, used to distinguish drawn cards and tutored cards
+		var errored = new Selection() ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
 			var idx = card.zone.cards.indexOf(card) ;
@@ -465,7 +466,8 @@ function Selection() {
 				//visible = true ; // If card was visible in previous zone, it keeps being
 			if ( ! card.setzone(zone, visible, index, xdest, ydest) ) {
 				log('Something went wrong in setzone('+zone+', '+index+', '+xzone+', '+yzone+'), reverting') ;
-				card.setzone(oldzone, null, null, card.x, card.y) ; // If it failed, send back to previous zone
+				errored.add(card) ;
+				//card.setzone(oldzone, null, null, card.x, card.y) ; // If it failed, send back to previous zone
 			}
 			// Setzone succeded
 			oldzone.cards.splice(oldzone.cards.indexOf(card),1) ; // Remove card from old zone
@@ -563,6 +565,7 @@ function Selection() {
 		}
 		if ( sound != '' )
 			game.sound.play(sound) ;
+		errored.changezone(oldzone) ;
 		return true ;
 	}
 	this.moveinzone = function(to_index) { // Change a card's index inside its own zone

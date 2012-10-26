@@ -10,12 +10,11 @@
 ! Reorganisation de l'accueil
 ? Lands en side
 ! Land/ancestral qui remonte en main
-! play with top card revealed + shuffle
+? play with top card revealed + shuffle
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
-Pseudo des spectacteurs dans la page tournois
 Placement des cartes quand la ligne est pleine
 
 reminder

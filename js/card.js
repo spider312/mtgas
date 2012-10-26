@@ -1069,9 +1069,8 @@ function card_prototype() {
 		return this.zone.cards.indexOf(this) ;
 	}
 	this.setzone = function(zone, visible, index, xzone, yzone) { // Change a card's zone, here goes stuff to do on new zone
-		if ( ( zone.type != 'battlefield' ) && ( this.owner != zone.player ) ) {
+		if ( ( zone.type != 'battlefield' ) && ( this.owner != zone.player ) )
 			zone = this.owner[zone.type] ;
-		}
 		var oldzone = this.zone ;
 		this.zone = zone ; // Set new zone
 		if ( typeof visible != 'boolean' )
@@ -1100,8 +1099,10 @@ function card_prototype() {
 				xzone = min(xzone, bfcols-1) ;
 				yzone = max(yzone, 0) ;
 				yzone = min(yzone, bfrows-1) ;
-				if ( ! this.place_recieve(xzone, yzone) )
+				if ( ! this.place_recieve(xzone, yzone) ) {
 					log('Failed to place '+this.name+' at '+xzone+', '+yzone) ;
+					return false ;
+				}
 				this.refreshpowthou() ;
 				this.zone.refresh_card(this) ;
 				break ;
@@ -1199,23 +1200,30 @@ function card_prototype() {
 		// In case of moving multiple cards to battlefield, each one has offsets indicating relative positions of each other
 		var i = xzone ;
 		var j = yzone ;
-		// Loop once on every cards in grid
-		var oneturn = false ;
+		// Loop all place_offset in line, then idem for all other lines
+		var k = 0 ;
+		var l = 1 ; // Try lines from top to bottom
+		if ( j == this.zone.grid[0].length - 1 ) // Trying to place on last line
+			var l = -1 ; // Try lines from bottom to top
 		while ( ! this.move(i, j) ) {
-			if ( oneturn && ( xzone == i ) && ( yzone == j ) ) { // We tried all positions
+			// Here, placing at i, j failed, let's find out next plausible position
+			if ( this.zone.grid_full() ) { // Tried all positions
 				log('Tried all positions, zone is full') ;
 				return false ;
 			}
-			i += place_offset ;
-			if ( i >= this.zone.grid.length ) { // End of line of grid, go next line
-				i = 0 ;
-				j += place_offset ;
-				if ( j >= this.zone.grid[i].length ) {
-					if ( ! oneturn ) { // End of grid, mark we end it 1 time
-						oneturn = true ;
-						j = 0 ;
-					}
-				}
+			if ( this.zone.grid_line_full(j) ) { // Line is full
+				j += l ; // Try next line, in desired direction
+				i = 0 ; // Try from left
+				k = 0 ; // Try without offset
+				// Stay inside grid
+				if ( j >= this.zone.grid[i].length )
+					j = 0 ;
+				if ( j < 0 )
+					j = this.zone.grid[i].length ;
+			} else { // Line isn't full
+				i += place_offset ;
+				if ( i >= this.zone.grid.length ) // End of line of grid with this offset, trying another offset
+					i = ++k ;
 			}
 		}
 		this.zone.refresh_card(this) ;

@@ -924,6 +924,7 @@ function battlefield(player) {
 		}
 	}
 	// Methods
+		// Grid
 	mybf.gridinit = function() { // Used in rearange
 		this.grid = Array() ;
 		for ( var i = 0 ; i < bfcols ; i++ ) {
@@ -931,6 +932,12 @@ function battlefield(player) {
 			for ( var j = 0 ; j < bfrows ; j++ )
 				this.grid[i][j] = null ;
 		}
+	}
+	mybf.ingrid = function(x,y) {
+		if ( !isn(x) || !isn(y) )
+			return false ;
+		else
+			return ( ( x >= 0 ) && ( x < bfcols ) && ( y >= 0 ) && ( y < bfrows ) ) ;
 	}
 	mybf.rearange = function() {
 		this.gridinit() ;
@@ -941,47 +948,20 @@ function battlefield(player) {
 		}
 		this.refresh() ;
 	}
-	mybf.untapall = function() {
-		var sel = new Selection() ;
-		var redraw = false ;
-		for ( var i in this.cards ) {
-			var card = this.cards[i] ;
-			if ( ! game.player.attrs.untap_all )
-				continue ;
-			if ( ( ! game.player.attrs.untap_lands ) && ( card.is_land() ) )
-				continue ;
-			if ( ( ! game.player.attrs.untap_creatures ) && ( card.is_creature() ) )
-				continue ;
-			if ( ! card.has_attr('no_untap') ) {
-				if ( card.attrs.no_untap_once ) {
-					card.attrs.no_untap_once = false ;
-					card.refresh() ;
-					redraw = true ;
-				} else
-					sel.add(card) ;
-			}
-		}
-		if ( redraw)
-			draw() ;
-		sel.tap(false) ;
+	mybf.grid_line_full = function(line) {
+		if ( ( line < 0 ) || ( line >= bfrows ) )
+			return true ; // Not in grid
+		for ( var j = 0 ; j < bfcols ; j++ ) // Searching for 1 empty cell
+			if ( this.grid[j][line] == null )
+				return false ; // Found, line isn't full
+		return true ; // Not found, line is full
 	}
-	mybf.refresh_pt = function(boost_bf) { // Refresh all powtou that may be affected by a card. Called on any changezone, and on transform
-		for ( var i = 0 ; i < this.cards.length ; i++ )
-			this.cards[i].refreshpowthou() ;
-	}
-	mybf.ingrid = function(x,y) {
-		if ( !isn(x) || !isn(y) )
-			return false ;
-		else
-			return ( ( x >= 0 ) && ( x < bfcols ) && ( y >= 0 ) && ( y < bfrows ) ) ;
-	}
-	mybf.selectall = function(ev) {
-		var pos = this.grid_at(ev.clientX, ev.clientY) ;
-		for ( var i in this.cards ) {
-			var card = this.cards[i] ;
-			if ( between(pos.y, card.grid_y-1, card.grid_y+1) && ( card.attrs.attachedto == null ) )
-				game.selected.add(card) ;
-		}
+	mybf.grid_full = function() {
+		for ( var i = 0 ; i < bfcols ; i++ )
+			for ( var j = 0 ; j < bfrows ; j++ )
+				if ( this.grid[i][j] == null )
+					return false ;
+		return true ;
 	}
 	mybf.grid_coords = function(gx, gy) { // Takes coords in grid, returns coords in canvas
 		if ( ! isn(gx) )
@@ -1012,6 +992,43 @@ function battlefield(player) {
 		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
 			cy = bfrows - cy - 1 ;
 		return {'x': cx, 'y': cy} ;
+	}
+	// Other BF specific
+	mybf.refresh_pt = function(boost_bf) { // Refresh all powtou that may be affected by a card. Called on any changezone, and on transform
+		for ( var i = 0 ; i < this.cards.length ; i++ )
+			this.cards[i].refreshpowthou() ;
+	}
+	mybf.selectall = function(ev) {
+		var pos = this.grid_at(ev.clientX, ev.clientY) ;
+		for ( var i in this.cards ) {
+			var card = this.cards[i] ;
+			if ( between(pos.y, card.grid_y-1, card.grid_y+1) && ( card.attrs.attachedto == null ) )
+				game.selected.add(card) ;
+		}
+	}
+	mybf.untapall = function() {
+		var sel = new Selection() ;
+		var redraw = false ;
+		for ( var i in this.cards ) {
+			var card = this.cards[i] ;
+			if ( ! game.player.attrs.untap_all )
+				continue ;
+			if ( ( ! game.player.attrs.untap_lands ) && ( card.is_land() ) )
+				continue ;
+			if ( ( ! game.player.attrs.untap_creatures ) && ( card.is_creature() ) )
+				continue ;
+			if ( ! card.has_attr('no_untap') ) {
+				if ( card.attrs.no_untap_once ) {
+					card.attrs.no_untap_once = false ;
+					card.refresh() ;
+					redraw = true ;
+				} else
+					sel.add(card) ;
+			}
+		}
+		if ( redraw)
+			draw() ;
+		sel.tap(false) ;
 	}
 	// Initialisation
 	mybf.gridinit() ;
