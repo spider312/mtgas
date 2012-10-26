@@ -106,12 +106,12 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       </thead>
       <tbody id="running_games_no" style="display: none ;">
        <tr>
-        <td colspan="5">No running games</td>
+        <td colspan="7">No running games</td>
        </tr>
       </tbody>
       <tbody id="running_games">
        <tr>
-        <td colspan="6">Waiting for list of running games</td>
+        <td colspan="7">Waiting for list of running games</td>
        </tr>
       </tbody>
      </table>

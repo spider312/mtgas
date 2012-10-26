@@ -48,7 +48,6 @@ parsing + rotation des flip cards
 chargement asynchrone
 * Mise en cache (session) des données renvoyées régulièrement (tournament draft/build ?)
 * admin panel (tournaments)
-! Autorisations sur les spectacteurs (possibilité pour les joueurs de refuser, de montrer leur main)
 Types de counters (+1/+1, level, charge, loyalty ...)
 ? Interaction entre page de tchat du tournois et les games en cours
 build de limité : button empty deck
