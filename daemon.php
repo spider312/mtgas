@@ -47,7 +47,6 @@ while ( sleep($daemon_delay) !== FALSE ) {
 // === [ TOURNAMENTS ] ===
 	// Remove not-pending-anymore tournaments
 	query("UPDATE `tournament` SET `status` = '0' WHERE `status` = '1' AND TIMESTAMPDIFF(SECOND, `creation_date`, NOW()) > $tournament_timeout ; ") ;
-	$data->affected_tournaments = mysql_affected_rows() ;
 	if ( $log && ( mysql_affected_rows() > 0 ) )
 		echo mysql_affected_rows().' pending tournaments canceled for timeout ('.$tournament_timeout." sec)\n" ;
 
@@ -94,19 +93,14 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			}
 			$data = json_decode($tournament->data) ;
 			$data->players = $players ;
-			$data_str = json_encode($data) ;
-			$data_str = mysql_real_escape_string($data_str) ;
-			//echo $data_str ;
-			$q = "UPDATE `tournament`
+			query("UPDATE `tournament`
 			SET
 				`status` = 2,
 				`update_date` = NOW(),
 				`due_time` = NOW(), 
-				`data` = '$data_str'
+				`data` = '".mysql_real_escape_string(json_encode($data))."'
 			WHERE
-				`id` = '".$tournament->id."' ; " ;
-			query($q) ;
-			//echo $q ;
+				`id` = '".$tournament->id."' ; ") ;
 			tournament_log($tournament->id, '', 'players', '') ;
 		}
 	}
@@ -133,7 +127,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 					`round` = '".$tournament->round."',
 					`update_date` = NOW(),
 					`due_time` = TIMESTAMPADD(SECOND, ".draft_time().", NOW()),
-					`data` = '".json_encode($data)."'
+					`data` = '".mysql_real_escape_string(json_encode($data))."'
 				WHERE `id` = '".$tournament->id."' ; ") ;
 				tournament_log($tournament->id, '', 'draft', '') ;
 				break ;
@@ -196,7 +190,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 					`round` = '0',
 					`update_date` = NOW(),
 					`due_time` = TIMESTAMPADD(SECOND, $build_duration, NOW()),
-					`data` = '".json_encode($data)."'
+					`data` = '".mysql_real_escape_string(json_encode($data))."'
 				WHERE `id` = '".$tournament->id."' ; ") ;
 				tournament_log($tournament->id, '', 'build', '') ;
 				break ;
@@ -311,7 +305,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			`status` = '".$tournament->status."',
 			`due_time` = TIMESTAMPADD(SECOND, $delay, NOW()), 
 			`round` = '".$tournament->round."', 
-			`data` = '".json_encode($data)."'
+			`data` = '".mysql_real_escape_string(json_encode($data))."'
 		WHERE `id` = '".$tournament->id."' ;") ;
 	}
 
