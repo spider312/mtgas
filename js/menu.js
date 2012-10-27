@@ -79,7 +79,7 @@ function menu_init(target) {
 					// Links
 					cell.item = item ;
 					cell.menu = menu ;
-					cell.parentMenu = parentMenu ;
+					menu.parentMenu = parentMenu ;
 					// Click / hover actions depending on item action
 					cell.addEventListener('mouseover', function(ev) { // When mouse overs any element of a menu, close all its submenus
 						if ( ! this.menu )
@@ -91,8 +91,6 @@ function menu_init(target) {
 								menu.stop() ;
 							}
 						}
-						//log(''+ev.originalTarget.parentMenu) ; // Leaving
-						//log(''+ev.relatedTarget.parentMenu) ; // Going to
 					}, false) ;
 					for ( var k = 0 ; k < item.buttons.length ; k++ ) {
 						var but = create_button(item.buttons[k].text) ;
@@ -120,7 +118,10 @@ function menu_init(target) {
 								cell.mouimg = document.getElementById('zoom').src ; // Preparing mouseOut
 								cell.moimg = item.moimg ;
 								cell.addEventListener('mouseover', function(ev) {
-									game.image_cache.load(clone(ev.target.moimg), function(img, card) {
+									var t = ev.target ;
+									while ( ! iso(t.moimg) && ( t.parentNode != null ) )
+										t = t.parentNode ;
+									game.image_cache.load(clone(t.moimg), function(img, card) {
 										var zoom = document.getElementById('zoom') ;
 										ev.target.mouimg = zoom.src
 										zoom.src = img.src ;
@@ -199,18 +200,20 @@ function menu_init(target) {
 		}
 		if ( item.override_target )
 			target = item.override_target ;
-		menu.stop() ;
+		// Apply action
 		if ( ! isn(target.length) )
 			item.action.apply(target, t.args) ;
 		else // Used for menu actions on selection that are not managed by "Selection", TODO remove when all will be managed
 			for ( var i = 0 ; i < target.length ; i++ )
 				item.action.apply(target[i], t.args) ;
-		var t = this ;
-		while ( t.parentMenu != undefined ) {
-			if ( typeof t.stop == 'function' )
-				t.stop() ;
-			log('t.stop == '+t.stop+' ('+typeof t.stop+')') ;
-			t = t.parentMenu ;
+		// Close current menu and all of its parents
+		var m = t.menu ;
+		while ( m != null ) {
+			//if ( typeof m.stop == 'function' )
+				m.stop() ;
+			//else
+				//log('m.stop == '+m.stop+' ('+typeof m.stop+')') ;
+			m = m.parentMenu ;
 		}
 		//return eventStop(ev) ;
 	}

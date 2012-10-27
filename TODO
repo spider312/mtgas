@@ -15,6 +15,7 @@ le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
+menu : activer un sumbenu ne supprime pas le menu parent
 
 reminder
 ? target from card in unselzone

@@ -383,8 +383,8 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 				var tr = create_tr(running_games,
 					create_a(round.name, url),
 					creator,
-					round.creator_score,
-					round.joiner_score,
+					create_a(round.creator_score, url),
+					create_a(round.joiner_score, url),
 					joiner,
 					create_a(time_disp(round.age), url),
 					create_a(time_disp(round.inactivity), url)
@@ -659,7 +659,10 @@ function decks_list() {
 			var deck_name = decks[i] ;
 			var deck_content = deck_get(deck_name) ;
 			var row = table.insertRow(-1) ; 
-			row.title = deck_content ;
+			if ( deck_content == '' )
+				row.title = 'Deck list is empty' ;
+			else
+				row.title = deck_content ;
 			row.id = deck_name ;
 			var radio = create_radio('deck', deck_name, (deck_name == localStorage['deck']), ' ', 'fullwidth') ;
 			radio.firstChild.id = 'radio_'+deck_name ;

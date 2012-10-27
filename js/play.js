@@ -168,7 +168,7 @@ function start() { // When page is loaded : initialize everything
 			window.addEventListener('beforeunload',	onBeforeUnload,	false) ; // Confirm page closure
 			window.addEventListener('unload',	onUnload,	false) ; // Page closure
 			action_send('join', {'player': game.player.toString()}, function(data){log('Connection successfull')}) ;
-			game.socket_registration = {'type': 'register', 'game': game.id, 'nick': game.player.name, 'player_id': game.player.id} ;
+			//game.socket_registration = {'type': 'register', 'game': game.id, 'nick': game.player.name, 'player_id': game.player.id} ;
 		}
 		window.addEventListener('focus',	onFocus,	false) ; // On focus, clean unfocused new unseen actions
 		game.websockets = false ;
@@ -296,6 +296,9 @@ function manage_action(action) {
 		case 'zone' :
 			if ( iss(param.type) && ( param.type != '' ) )
 				param.cards.settype(param.type) ;
+			for ( var i = 0 ; i < param.cards.cards.length ; i++ ) // If opponent moved cards in selection, remove those cards from selection
+				if ( inarray(param.cards.cards[i], game.selected.cards) )
+					game.selected.remove(param.cards.cards[i]) ;
 			param.cards.changezone_recieve(param.zone, param.visible, param.index, param.x, param.y) ;
 			break ;
 		case 'sattrs' :

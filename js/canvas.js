@@ -463,6 +463,12 @@ function canvasDblClick(ev) {
 	if ( ( widget != null ) && isf(widget.dblclick) )
 		widget.dblclick(ev) ;
 	draw() ; // Canvas dblClick
+	/* Can't stop doubleclick selecting zoom in chromium
+	ev.preventDefault() ;
+	ev.stopPropagation() ;
+	ev.stopImmediatePropagation() ;
+	*/
+	return eventStop(ev) ;
 }
 function canvasEventStop(ev) { // Under windows, canvas doesn't seem to trigger events such as contextmenu or click, we must trigger event on window and cancel it only if canvas is targeted
 	if ( ev.target.id == 'paper' )

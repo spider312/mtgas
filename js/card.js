@@ -757,10 +757,93 @@ function card_prototype() {
 				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
 					var selected = [card] ; //new Selection([card])
 				var menu = new menu_init(selected) ;
-				if ( selected.length > 1 )
-					menu.addline(selected.length+' cards in '+selected[0].zone.get_name()) ;
-				else
-					menu.addline(selected[0].get_name()) ;
+				// First item : selection specific
+				if ( selected.length > 1 ) // Multiple cards, just show the number
+					menu.addline(selected.length+' cards') ;
+				else { 
+					// Card specific submenu
+					var cardmenu = new menu_init(selected) ;
+					if ( card.controler.access() ) {
+						// Morph
+						if ( card.owner.me && iss(card.attrs.morph) )
+							if ( card.attrs.visible == false) {
+								card.attrs.visible = true ; // Temporary shunt visibility for morph display
+								cardmenu.addline('Morph as '+card.name+' ('+card.attrs.morph+')', card.face_up).moimg = card.imgurl() ;
+								card.attrs.visible = false ; // End of Temporary shunt visibility for morph display
+							} else {
+								cardmenu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
+							}
+						// Transform
+						if ( card.transformed_attrs ) {
+							var l = cardmenu.addline('Transform', card.toggle_transform) ;
+							l.checked = card.attrs.transformed ;
+							this.attrs.transformed = ! this.attrs.transformed ;
+							var test = card.imgurl() ;
+							log(test) ;
+							l.moimg = test ;
+							this.attrs.transformed = ! this.attrs.transformed ;
+						}
+						// Tokens
+						var tokens = [] ;
+						if ( card.attrs.transformed && card.transformed_attrs ) {
+							if ( card.transformed_attrs.tokens )
+								tokens = card.transformed_attrs.tokens ;
+						} else {
+							if ( card.attrs.tokens )
+								tokens = card.attrs.tokens ;
+						}
+						for ( var i = 0 ; i < tokens.length ; i++ ) {
+							var ext = card.ext ;
+							var name = tokens[i].name ;
+							var attrs = tokens[i].attrs ;
+							var nname = name ; // Name + number, for eldrazi spawn or other multiple-images tokens
+							if ( name == 'Eldrazi Spawn' ) // No number specified, add one at random
+								nname += rand(3) + 1 ;
+							var img = nname ; // Base img
+							if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
+								img += '.'+attrs.pow+'.'+attrs.thou ;
+							img += '.jpg' ;
+							// Little workaround to find an existing image if token isn't from extension
+							// (generally it's from an older extension from the bloc)
+							if ( ! iso(game.tokens_catalog[ext]) || ! iss(game.tokens_catalog[ext][img]) ) {
+								if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) )
+									ext = 'EXT' ;
+								else {
+									for ( var j in game.tokens_catalog )
+										if ( iss(game.tokens_catalog[j][img]) ) {
+											ext = j ;
+											break ;
+										}
+									log(img+' found in no extension') ;
+								}
+							}
+							if ( isn(attrs.pow) && isn(attrs.thou) )
+								var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
+							else
+								var txt = name ;
+							if ( tokens[i].nb > 1 )
+								txt += ' x '+tokens[i].nb
+							var l = cardmenu.addline(txt, create_token, ext, name, card.zone, attrs, tokens[i].nb) ;
+							l.moimg = card_images(token_image_url(ext, nname, attrs)) ;
+						}
+						// Animate
+						if ( iso(card.attrs.animate) ) {
+							for ( var i = 0 ; i < card.attrs.animate.length ; i++ ) {
+								var anim = card.attrs.animate[i] ;
+								var name = 'Animate as '+anim.pow+'/'+anim.tou
+								if ( iso(anim.subtypes) )
+									name += ' '+anim.subtypes.join(' ') ;
+								if ( iss(anim.cost) )
+									name += ' ('+anim.cost+')' ;
+								cardmenu.addline(name, card.animate, anim) ;
+							}
+						}
+						// Cascade
+						if ( this.attrs.cascade)
+							cardmenu.addline('Cascade ', this.cascade) ;
+					}
+					menu.addline(selected[0].get_name(), cardmenu) ;
+				}
 				menu.addline() ;
 				if ( ! card.controler.access()  )
 					menu.addline('No action') ;
@@ -769,36 +852,20 @@ function card_prototype() {
 						msg = 'Untap' ;
 					else
 						msg = 'Tap' ;
-					menu.addline(msg,  game.selected.tap, ! card.attrs.tapped).override_target = game.selected ;
+					var entry = menu.addline('Tap',  game.selected.tap, ! card.attrs.tapped) ;
+					entry.override_target = game.selected ;
+					entry.checked = card.attrs.tapped ;
 					// Attacking status
 					if ( card.attrs.attacking ) // Any moment, if attacking
 						menu.addline('Cancel attack', game.selected.attack, this).override_target = game.selected ;
-					// Card's controler is declaring attackers
-					if ( card.is_creature() && ( card.zone.player == game.turn.current_player ) && ( game.turn.step == 5 ) ) // During attackers declaration step
-						menu.addline('Attack without tapping', game.selected.attack_notap, this).override_target = game.selected ;
-					//menu.addline() ;
+					else
+						// Card's controler is declaring attackers
+						if ( card.is_creature() && ( card.zone.player == game.turn.current_player ) && ( game.turn.step == 5 ) ) // During attackers declaration step
+							menu.addline('Attack without tapping', game.selected.attack_notap, this).override_target = game.selected ;
 					var submenu = new menu_init(selected) ;
 					this.changezone_menu(submenu) ;
 					menu.addline('Move', submenu) ;
 					menu.addline() ;
-					// Morph
-					if ( card.owner.me && iss(card.attrs.morph) )
-						if ( card.attrs.visible == false) {
-							card.attrs.visible = true ; // Temporary shunt visibility for morph display
-							menu.addline('Morph as '+card.name+' ('+card.attrs.morph+')', card.face_up).moimg = card.imgurl() ;
-							card.attrs.visible = false ; // End of Temporary shunt visibility for morph display
-						} else {
-							menu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
-						}
-					// Transform
-					if ( card.transformed_attrs ) {
-						var l = menu.addline('Transform', card.toggle_transform) ;
-						l.checked = card.attrs.transformed ;
-						this.attrs.transformed = ! this.attrs.transformed ;
-						var test = card.imgurl() ;
-						l.moimg = test ;
-						this.attrs.transformed = ! this.attrs.transformed ;
-					}
 					// P/T
 					var pt = menu.addline('Set P/T', 		card.ask_powthou) ;
 					pt.buttons.push({'text': '+1', 'callback': function(ev, cards) {
@@ -807,11 +874,6 @@ function card_prototype() {
 					pt.buttons.push({'text': '-1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou(-1, -1) ;
 					}}) ;
-					/*if ( isb(card.attrs.switch_pt) )
-						var switch_pt = card.attrs.switch_pt ;
-					else
-						var switch_pt = false ;
-					menu.addline('Switch P/T', 		card.switch_powthou).checked = switch_pt ;*/
 					var pteot = menu.addline('Change P/T until EOT',	card.ask_powthou_eot) ;	
 					pteot.buttons.push({'text': '+1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou_eot(1, 1) ;
@@ -819,11 +881,6 @@ function card_prototype() {
 					pteot.buttons.push({'text': '-1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou_eot(-1, -1) ;
 					}}) ;
-					/*if ( isb(card.attrs.switch_pt_eot) )
-						var switch_pt_eot = card.attrs.switch_pt_eot ;
-					else
-						var switch_pt_eot = false ;
-					menu.addline('Switch P/T until EOT', 	card.switch_powthou_eot).checked = switch_pt_eot ;*/
 					// Counters
 					var c = menu.addline('Set counters',		card.setcounter) ;
 					if ( card.attrs.transformed && card.transformed_attrs)
@@ -856,69 +913,15 @@ function card_prototype() {
 					}
 					// Note
 					menu.addline('Set a note', card.setnote) ;
-					// Tokens
-					var tokens = [] ;
-					if ( card.attrs.transformed && card.transformed_attrs ) {
-						if ( card.transformed_attrs.tokens )
-							tokens = card.transformed_attrs.tokens ;
-					} else {
-						if ( card.attrs.tokens )
-							tokens = card.attrs.tokens ;
-					}
-					for ( var i = 0 ; i < tokens.length ; i++ ) {
-						var ext = card.ext ;
-						var name = tokens[i].name ;
-						var attrs = tokens[i].attrs ;
-						var nname = name ; // Name + number, for eldrazi spawn or other multiple-images tokens
-						if ( name == 'Eldrazi Spawn' ) // No number specified, add one at random
-							nname += rand(3) + 1 ;
-						var img = nname ; // Base img
-						if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
-							img += '.'+attrs.pow+'.'+attrs.thou ;
-						img += '.jpg' ;
-						// Little workaround to find an existing image if token isn't from extension
-						// (generally it's from an older extension from the bloc)
-						if ( ! iso(game.tokens_catalog[ext]) || ! iss(game.tokens_catalog[ext][img]) ) {
-							if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) )
-								ext = 'EXT' ;
-							else {
-								for ( var j in game.tokens_catalog )
-									if ( iss(game.tokens_catalog[j][img]) ) {
-										ext = j ;
-										break ;
-									}
-								log(img+' found in no extension') ;
-							}
-						}
-						if ( isn(attrs.pow) && isn(attrs.thou) )
-							var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
-						else
-							var txt = name ;
-						if ( tokens[i].nb > 1 )
-							txt += ' x '+tokens[i].nb
-						var l = menu.addline(txt, create_token, ext, name, card.zone, attrs, tokens[i].nb) ;
-						l.moimg = card_images(token_image_url(ext, nname, attrs)) ;
-					}
-					// Animate
-					if ( iso(card.attrs.animate) ) {
-						for ( var i = 0 ; i < card.attrs.animate.length ; i++ ) {
-							var anim = card.attrs.animate[i] ;
-							var name = 'Animate as '+anim.pow+'/'+anim.tou
-							if ( iso(anim.subtypes) )
-								name += ' '+anim.subtypes.join(' ') ;
-							if ( iss(anim.cost) )
-								name += ' ('+anim.cost+')' ;
-							menu.addline(name, card.animate, anim) ;
-						}
-					}
 					menu.addline() ;
+					// Face down
 					if ( card.is_visible() )
 						fufunc = card.face_down ;
 					else
 						fufunc = card.face_up ;
 					menu.addline('Face down',		fufunc).checked = ( card.attrs.visible == false ) ;
+					// Duplicate
 					menu.addline('Duplicate',		card.duplicate) ;
-					//menu.addline('Switch controler',	card.controler_switch) ;
 					// Copy
 					var tby = game.target.targetedby(card) ;
 					if ( ( tby.length == 1 ) && ( ( tby[0].type == 'card' ) || ( tby[0].type == 'token' ) ) ) { 
@@ -928,10 +931,6 @@ function card_prototype() {
 					}
 					if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
 						menu.addline('Uncopy '+this.attrs.copy.get_name(),	card.uncopy) ;
-					// Cascade
-					if ( this.attrs.cascade) {
-						menu.addline('Cascade ', this.cascade) ;
-					}
 					// No untap
 					menu.addline() ;
 					if ( isb(card.attrs.no_untap) )
@@ -952,20 +951,29 @@ function card_prototype() {
 				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
 					var selected = [card] ; //new Selection([card])
 				var menu = new menu_init(selected) ;
-				menu.addline(selected.length+' cards in '+selected[0].zone.get_name()) ;
+				// First item : selection specific
+				if ( selected.length > 1 ) // Multiple cards, just show the number
+					menu.addline(selected.length+' cards') ;
+				else { 
+					// Card specific submenu
+					var cardmenu = new menu_init(selected) ;
+					if ( card.controler.access() ) {
+						if ( iss(card.attrs.morph) )
+							cardmenu.addline('Morph', card.morph) ;
+						if ( isn(card.attrs.suspend) )
+							cardmenu.addline('Suspend ('+card.attrs.suspend_cost+')', card.suspend) ;
+						if ( iss(card.attrs.cycling) )
+							cardmenu.addline('Cycle ('+card.attrs.cycling+')',	card.cycle) ;
+					}
+					menu.addline(selected[0].get_name(), cardmenu) ;
+				}
 				menu.addline() ;
-				if ( card.controler.access()  ) {
+				if ( card.controler.access() ) {
 					this.changezone_menu(menu) ;
 					menu.addline() ;
 					var line = menu.addline('Reveal', 	game.selected.toggle_reveal_from_hand, card)
 					line.checked = ( card.attrs.visible == true ) ;
 					line.override_target = game.selected ;
-					if ( iss(card.attrs.morph) )
-						menu.addline('Morph', card.morph) ;
-					if ( isn(card.attrs.suspend) )
-						menu.addline('Suspend ('+card.attrs.suspend_cost+')', card.suspend) ;
-					if ( iss(card.attrs.cycling) )
-						menu.addline('Cycle ('+card.attrs.cycling+')',	card.cycle) ;
 				}
 				break ;
 			case 'library' :
@@ -2324,14 +2332,14 @@ function card_prototype() {
 		var tobottom = new Selection() ;
 		var tobf = new Selection() ;
 		var i = 0 ;
-		do {
+		while (this.controler.library.cards.length > i) {
 			var card = this.controler.library.cards[this.controler.library.cards.length-1-i++] ;
 			if ( ( ! card.is_land() ) && ( card.converted_cost < this.converted_cost ) ) {
 				tobf.add(card) ;
 				break ;
 			} else
 				tobottom.add(card) ;
-		} while (this.controler.library.cards.length > i) ;
+		}
 		if ( tobf.cards.length != 1 )
 			message('Nothing to cascade under '+this.converted_cost) ;
 		else

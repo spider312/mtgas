@@ -167,9 +167,9 @@ foreach ( $ext as $i => $value ) {
      </script>
      <form action="card.php" method="get">
       <input type="hidden" name="id" value="<?php echo $card_bdd['id'] ; ?>">
-      <input type="text" name="ext" value="EXT">
-      <input type="text" name="rarity" value="C">
-      <input type="text" name="nbpics" value="1">
+      <input type="text" name="ext" value="EXT" size="4">
+      <input type="text" name="rarity" value="C" size="1">
+      <input type="text" name="nbpics" value="1" size="2">
       <input type="submit" value="Add">
      </form>
     </td>

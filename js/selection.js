@@ -443,7 +443,6 @@ function Selection() {
 			if ( card.zone.type == 'battlefield' ) { // Leaving a BF
 				// Changing a token's zone (+duplicates), except for from BF to BF
 				if ( ( card.type == 'token' ) && ( zone.type != 'battlefield' ) ) {
-					//message(card.controler.name+' destroys '+card.get_name(), 'zone') ;
 					card.del() ;
 					continue ;
 				}
@@ -462,12 +461,11 @@ function Selection() {
 			if ( isn(card.yoffset) )
 				ydest += card.yoffset ;
 				// Set zone
-			//if ( card.attrs.visible )
+			//if ( card.is_visible() )
 				//visible = true ; // If card was visible in previous zone, it keeps being
 			if ( ! card.setzone(zone, visible, index, xdest, ydest) ) {
 				log('Something went wrong in setzone('+zone+', '+index+', '+xzone+', '+yzone+'), reverting') ;
 				errored.add(card) ;
-				//card.setzone(oldzone, null, null, card.x, card.y) ; // If it failed, send back to previous zone
 			}
 			// Setzone succeded
 			oldzone.cards.splice(oldzone.cards.indexOf(card),1) ; // Remove card from old zone
@@ -477,7 +475,6 @@ function Selection() {
 					break ;
 			}
 		}
-		//this.zone = zone ; // All cards have been moved, inform selection that its zone changed
 		// On each changezone, refresh all powtou from all creat on all BF (only if they have to, such as tarmo, or if a card moving may affects them, such as goblin king)
 		game.player.battlefield.refresh_pt() ;
 		game.opponent.battlefield.refresh_pt() ;
