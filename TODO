@@ -15,7 +15,9 @@ le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
-menu : activer un sumbenu ne supprime pas le menu parent
+le spectactor voit un message de join tout en haut de l'historique + un message de rejoin au moment où il join
+reveal hand spectactors qui la montre à l'adversaire
+click pleins de fois sur le bouton + trigger upkeep
 
 reminder
 ? target from card in unselzone

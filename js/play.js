@@ -139,6 +139,8 @@ function start() { // When page is loaded : initialize everything
 			delay.parentNode.insertBefore(left, delay.nextSibling) ;
 		}) ;
 	else { // Not replay mode, prepare chat, keyboard events, past actions and ajax loop
+		game.websockets = false ;
+		network_loop() ; // Recieve previous actions before sending spectactor / join
 		chat_start() ;
 		if ( spectactor ) {
 			new Spectactor($.cookie(session_id), localStorage['profile_nick']) ; // Declare itself as a spectactor
@@ -171,8 +173,6 @@ function start() { // When page is loaded : initialize everything
 			//game.socket_registration = {'type': 'register', 'game': game.id, 'nick': game.player.name, 'player_id': game.player.id} ;
 		}
 		window.addEventListener('focus',	onFocus,	false) ; // On focus, clean unfocused new unseen actions
-		game.websockets = false ;
-		network_loop() ;
 	}
 }
 function new_round() {

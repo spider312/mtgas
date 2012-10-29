@@ -314,12 +314,15 @@ function Spectactor(id, name) {
 	this.allow = function(player) {
 		if ( ! inarray(player, this.allowed) ) {
 			this.allowed.push(player) ;
-			var zone = player.hand ;
-			zone.default_visibility = true ;
-			for ( var i = 0 ; i < zone.cards.length ; i++ )
-				//zone.cards[i].refresh() ;
-				zone.cards[i].load_image() ;
-			message(player.get_name()+' allowed '+this.name) ;
+			if ( $.cookie(session_id) == this.id )  {
+				var zone = player.hand ;
+				zone.default_visibility = true ;
+				for ( var i = 0 ; i < zone.cards.length ; i++ )
+					//zone.cards[i].refresh() ;
+					zone.cards[i].load_image() ;
+				message(player.get_name()+' allowed you') ;
+			} else
+				message(player.get_name()+' allowed '+this.name) ;
 		} else
 			message(player.get_name()+' already allowed '+this.name) ;
 	}
