@@ -393,15 +393,15 @@ function Turn(game) {
 	}
 	// Step triggers
 	this.trigger_step = function() { // Triggers step specific action then next step (or delegate to step action the step nexting)
-		var res = false ;
+		this.triggering = false ;
 		if ( isf(this.steps[this.step].func) ) { // Current step is triggerable
 			this.button.disabled = true ;
-			res = this.steps[this.step].func(this) ; // Trigger it
-			if ( ! res ) // If it didn't block, next step
+			this.triggering = this.steps[this.step].func(this) ; // Trigger it
+			if ( ! this.triggering ) // If it didn't block, next step
 				this.incstep() ;
 		} else // Not triggerable
 			this.incstep() ; // Just go next step
-		return res ;
+		return this.triggering ;
 	}
 	// Step change sortcuts
 	this.incstep = function() {
@@ -416,6 +416,7 @@ function Turn(game) {
 		if ( game.player.access() )
 			this.button.disabled = false ;
 		if ( this.step != n ) {
+			this.triggering = false ;
 			// Check if lists are open before changing step
 			var fl = this.current_player.focuslists() ;
 			fl += this.current_player.opponent.focuslists() ;
@@ -481,6 +482,7 @@ function Turn(game) {
 	this.step = 0 ;
 	this.phase = this.steps[this.step].phase ;
 	this.current_player = game.creator ;
+	this.triggering = false ;
 	// Button
 	if ( game.player.access() )
 		this.button = new NextStep() ;
@@ -523,26 +525,29 @@ function NextStep() {
 		context.drawImage(this.cache, this.x, this.y) ;
 	}
 	this.click = function(ev) {
-		switch ( ev.which ) {
-			case 1 :
-				if ( ev.ctrlKey )
-					game.turn.setstep(game.turn.steps.length-1) ;
-				else {
-					if ( ev.shiftKey )
-						game.turn.incstep() ;
+		if ( game.turn.triggering )
+			message('Finish resolving your triggers before going next step') ;
+		else
+			switch ( ev.which ) {
+				case 1 :
+					if ( ev.ctrlKey )
+						game.turn.setstep(game.turn.steps.length-1) ;
+					else {
+						if ( ev.shiftKey )
+							game.turn.incstep() ;
+						else
+							game.turn.trigger_step() ;
+					}
+					break ;
+				case 3 :
+					if ( ev.ctrlKey )
+						game.turn.setstep(0) ;
 					else
-						game.turn.trigger_step() ;
-				}
-				break ;
-			case 3 :
-				if ( ev.ctrlKey )
-					game.turn.setstep(0) ;
-				else
-					game.turn.decstep(ev.shiftKey) ; // this.trigger_step
-				break ;
-			default :
-				log('Unmanaged button : '+ev.which) ;
-		}
+						game.turn.decstep(ev.shiftKey) ; // this.trigger_step
+					break ;
+				default :
+					log('Unmanaged button : '+ev.which) ;
+			}
 	}
 }
 // === [ STEP CODE ] ===========================================================
