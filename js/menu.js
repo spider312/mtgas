@@ -209,10 +209,7 @@ function menu_init(target) {
 		// Close current menu and all of its parents
 		var m = t.menu ;
 		while ( m != null ) {
-			//if ( typeof m.stop == 'function' )
-				m.stop() ;
-			//else
-				//log('m.stop == '+m.stop+' ('+typeof m.stop+')') ;
+			m.stop() ;
 			m = m.parentMenu ;
 		}
 		//return eventStop(ev) ;
@@ -229,4 +226,17 @@ function menu_init(target) {
 }
 function menu_clean(menu) {
 	delete menu ;
+}
+function menu_merge(menu, name, submenu) { // Adds to 'menu' a 'submenu' if it has multiple item, otherwise, just add the only item
+	if ( ( submenu.items.length > 0 ) && ( submenu.items[0].length == 1 ) ) {
+		var mi = submenu.items[0][0] ;
+		var l = menu.addline(name+' : '+mi.text, mi.action, mi.args) ;
+		if ( isb(mi.checked) )
+			l.checked = mi.checked ;
+		if ( iso(mi.moimg) )
+			l.moimg = mi.moimg ;
+		if ( iso(mi.buttons) )
+			l.buttons = mi.buttons ;
+	} else
+		menu.addline(name, submenu) ;
 }

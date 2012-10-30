@@ -768,9 +768,7 @@ function card_prototype() {
 							var l = cardmenu.addline('Transform', card.toggle_transform) ;
 							l.checked = card.attrs.transformed ;
 							this.attrs.transformed = ! this.attrs.transformed ;
-							var test = card.imgurl() ;
-							log(test) ;
-							l.moimg = test ;
+							l.moimg = card.imgurl() ;
 							this.attrs.transformed = ! this.attrs.transformed ;
 						}
 						// Tokens
@@ -832,16 +830,12 @@ function card_prototype() {
 						if ( this.attrs.cascade)
 							cardmenu.addline('Cascade ', this.cascade) ;
 					}
-					menu.addline(selected[0].get_name(), cardmenu) ;
+					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
 				menu.addline() ;
 				if ( ! card.controler.access()  )
 					menu.addline('No action') ;
 				else {
-					if ( card.attrs.tapped )
-						msg = 'Untap' ;
-					else
-						msg = 'Tap' ;
 					var entry = menu.addline('Tap',  game.selected.tap, ! card.attrs.tapped) ;
 					entry.override_target = game.selected ;
 					entry.checked = card.attrs.tapped ;
@@ -955,7 +949,7 @@ function card_prototype() {
 						if ( iss(card.attrs.cycling) )
 							cardmenu.addline('Cycle ('+card.attrs.cycling+')',	card.cycle) ;
 					}
-					menu.addline(selected[0].get_name(), cardmenu) ;
+					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
 				menu.addline() ;
 				if ( card.controler.access() ) {
