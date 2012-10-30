@@ -15,8 +15,8 @@ le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
-le spectactor voit un message de join tout en haut de l'historique + un message de rejoin au moment où il join
-click pleins de fois sur le bouton + trigger upkeep
+~ le spectactor voit un message de join tout en haut de l'historique + un message de rejoin au moment où il join
+copy de carte qui est hidden
 
 reminder
 ? target from card in unselzone

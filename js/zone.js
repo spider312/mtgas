@@ -119,6 +119,12 @@ function VisibleZone(player, type) {
 				game.card_under_mouse.mouseover(ev) ;
 			if ( ( game.card_under_mouse == null ) && isf(this.mouseover) )
 				this.mouseover(ev) ;
+			// Display hovered card on top of other
+			if ( ! this.zone.selzone ) {
+				this.zone.refresh() ;
+				draw() ;
+			}
+
 		}
 		return card ;
 	}
