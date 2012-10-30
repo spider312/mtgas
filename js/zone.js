@@ -77,11 +77,8 @@ function Zone(player, type) {
 		action_send('zsync', attrs) ;
 	}
 	this.sync_recieve = function(sel, shuffle) {
-		if ( this.cards.length != sel.cards.length ) {
-			/*if ( ! confirm('Reordering zone '+this.get_name()+' would change its cards number ('+this.cards.length+' -> '+sel.cards.length+')\nSure you wanna do that ?') )
-				return false ;*/
+		if ( this.cards.length != sel.cards.length )
 			log('Recieved a zone reordering that will change card nb for '+this.get_name()+' ('+this.cards.length+' -> '+sel.cards.length+')') ;
-		}
 		this.cards = sel.cards ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
 			this.cards[i].visible = null ;
@@ -120,8 +117,8 @@ function VisibleZone(player, type) {
 			if ( ( game.card_under_mouse == null ) && isf(this.mouseover) )
 				this.mouseover(ev) ;
 			// Display hovered card on top of other
-			if ( ! this.zone.selzone ) {
-				this.zone.refresh() ;
+			if ( ! this.selzone ) {
+				this.refresh() ;
 				draw() ;
 			}
 
@@ -208,11 +205,6 @@ function unselzone(result) { // Common
 	// Drawing
 	result.draw = function(context) {
 		context.drawImage(this.cache, this.x, this.y) ;
-		/*
-		var card = game.card_under_mouse ;
-		if ( ( card != null ) && ( card.zone == this ) )
-			card.draw(context, card.x, card.y) ;
-			*/
 	}
 	result.refresh = function() { // Compute coordinates for all zone's cards, called on each adding/removing of cards, or visibility change
 		if ( this.editor_window != null )
@@ -222,8 +214,6 @@ function unselzone(result) { // Common
 			for ( var i = 0 ; i < this.cards.length ; i++ ) {
 				var card = this.cards[i] ;
 				card.coords_set(this.x + ( this.w - cardwidth ) / 2, this.y + ( this.h - cardheight ) / 2) ; // Centered in zone
-				//card.x = this.x + ( this.w - cardwidth ) / 2 ;
-				//card.y = this.y + ( this.h - cardheight ) / 2 ;
 			}
 			// Count how many top cards are visible
 			var topidx = this.cards.length - 1 ;
@@ -246,8 +236,6 @@ function unselzone(result) { // Common
 					for ( var i = this.vcards-1 ; i >= 0 ; i-- ) {
 						var card = this.cards[topidx-i] ;
 						card.coords_set(this.x + xo + this.w - cardswidth, this.y + yo + this.h - cardsheight) ;
-						//card.x = Math.floor(this.x + xo + this.w - cardswidth) ; 
-						//card.y = Math.floor(this.y + yo + this.h - cardsheight) ;
 						xo += xm ;
 						yo += ym ;
 					}
@@ -346,6 +334,8 @@ function virtual_unselzones(result) { // Unselzones + life
 		}
 	}
 	result.mouseout = function(ev) {
+		if ( game.card_under_mouse != null )
+			this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
 		game.settittle('') ;
 		if ( game.target.tmp != null )
 			game.target.tmp.out(this) ;
