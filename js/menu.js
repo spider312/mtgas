@@ -230,7 +230,8 @@ function menu_clean(menu) {
 function menu_merge(menu, name, submenu) { // Adds to 'menu' a 'submenu' if it has multiple item, otherwise, just add the only item
 	if ( ( submenu.items.length > 0 ) && ( submenu.items[0].length == 1 ) ) {
 		var mi = submenu.items[0][0] ;
-		var l = menu.addline(name+' : '+mi.text, mi.action, mi.args) ;
+		var l = menu.addline(name+' : '+mi.text, mi.action) ;
+		l.args = mi.args ;
 		if ( isb(mi.checked) )
 			l.checked = mi.checked ;
 		if ( iso(mi.moimg) )

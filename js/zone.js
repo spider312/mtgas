@@ -334,8 +334,8 @@ function virtual_unselzones(result) { // Unselzones + life
 		}
 	}
 	result.mouseout = function(ev) {
-		if ( game.card_under_mouse != null )
-			this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
+		//if ( game.card_under_mouse != null )
+			//this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
 		game.settittle('') ;
 		if ( game.target.tmp != null )
 			game.target.tmp.out(this) ;
