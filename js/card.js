@@ -367,7 +367,7 @@ function card_prototype() {
 			var bottom = this.w-2*lw+1 ;
 			var left = lw ;
 			var right = this.h-2*lw+1 ;
-			if ( this.is_visible() && ( localStorage['display_card_names'] == 'true' ) ) { // || ( game.hover == this )
+			if ( this.is_visible() && ( localStorage['display_card_names'] == 'true' ) ) {
 				// Name
 				var name = this.get_name() ;
 				if ( name.length > 10 )
@@ -549,7 +549,6 @@ function card_prototype() {
 		if ( name.length > 10 ) 
 			game.settittle(name) ;
 		this.zoom() ;
-		game.hover = this ;
 		this.refresh() ; // For bug "cards reversed in starting hand"
 		if ( ( game.draginit == null ) && ( game.current_targeting == null ) ) // Not dragging nor targeting
 			game.canvas.style.cursor = 'pointer' ;

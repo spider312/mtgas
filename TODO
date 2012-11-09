@@ -18,7 +18,6 @@ identity shower dans les pages autres que l'accueil
 ~ le spectactor voit un message de join tout en haut de l'historique + un message de rejoin au moment où il join
 copy de carte qui est hidden
 http://mogg.fr/play.php?id=8485 c_5683445 Mystic Gate moving from game.creator.hand to game.creator.battlefield but should be in game.creator.library
-game.card_under_mouse != game.hover ?
 
 reminder
 ? target from card in unselzone
