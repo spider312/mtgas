@@ -3,15 +3,21 @@ include 'lib.php' ;
 include 'includes/db.php' ;
 include 'includes/card.php' ;
 include 'includes/deck.php' ;
+$ddate = '2012-11-06' ;
+$date = param($_GET, 'date', $ddate) ;
+if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
+	$date = $ddate ;
+$name = param($_GET, 'name', '') ;
 ini_set ('max_execution_time', 0); 
 ini_set ('memory_limit', '256M'); 
 $card_connection = card_connect() ;
 // All decks from all sealed events
-$r = query_as_array("
-SELECT
+$q = "SELECT
 	`registration`.`player_id`,
 	`registration`.`deck`,
 	`tournament`.`id`,
+	`tournament`.`name`,
+	`tournament`.`creation_date`,
 	`tournament`.`data`
 FROM
 	`registration`, `tournament`
@@ -19,14 +25,21 @@ WHERE
 	`registration`.`tournament_id` = `tournament`.`id`
 	AND `tournament`.`min_players` > 1
 	AND `tournament`.`type` = 'sealed'
-	AND `tournament`.`creation_date` > '2012-08-19'
-;") ;
+	AND `tournament`.`creation_date` > '$date'
+" ;
+if ( $name != '' )
+	$q .= "	AND `tournament`.`name` LIKE '%$name%'
+" ;
+$q .= " ;" ;
+$r = query_as_array($q) ;
 echo 'Query : '.count($r)."\n" ;
 // Parse each
 $start = microtime(true) ;
 $cards = array() ;
 $i = 0 ;
+echo '<pre>' ;
 foreach ( $r as $d ) {
+	print_r($d) ;
 	$data = json_decode($d->data) ;
 	if ( property_exists($data, 'score') && property_exists($data->score, $d->player_id) && property_exists($data->score->{$d->player_id}, 'gamepoints') ) {
 		$deck = deck2arr($d->deck, true) ;
@@ -36,11 +49,11 @@ foreach ( $r as $d ) {
 		foreach ( $deck->side as $id => $card ) // Not played cards
 			update_score($card->id) ;
 		$i++ ;
-		echo $i."\t" ;
+		echo $i." : ".$d->creation_date." - ".$d->name."\n" ;
 	} else
-		echo 'Unparsed : '.$d->id ;
+		echo 'Unparsed : '.$d->id."\n" ;
 }
-echo "\n".'Parse ('.$i.') : '.(microtime(true)-$start).'s'."\n" ;
+echo "\n</pre>".'Parse ('.$i.') : '.(microtime(true)-$start).'s'."\n" ;
 // Table will be filled, start by empty it
 query('TRUNCATE TABLE `mtg`.`pick` ; ', 'truncate', $card_connection) ;
 // Insert

@@ -95,7 +95,11 @@ if ($handle = opendir('../'.$raw_dir)) {
   <div class="section">
    <h1>Card inclusion statistics</h1>
    <ul>
-    <li><a href="/sealed_parse.php">Update</a></li>
+    <form action="/sealed_parse.php">
+     <input type="date" name="date" placeholder="Starting date">
+     <input type="text" name="name" placeholder="Name mask">
+     <input type="submit" value="Update">
+    </form>
     <li><a href="/sealed_top.php">Show</a></li>
    </ul>
   </div>
