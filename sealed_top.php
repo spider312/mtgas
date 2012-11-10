@@ -29,7 +29,7 @@ function option_value($value, $default) {
  <select name="type">
   <option <?php option_value("", $type) ; ?>>All types</option>
   <option <?php option_value("land", $type) ; ?>>Land</option>
-  <option <?php option_value("artefact", $type) ; ?>>Artefact</option>
+  <option <?php option_value("artifact", $type) ; ?>>Artifact</option>
   <option <?php option_value("enchantment", $type) ; ?>>Enchant</option>
   <option <?php option_value("creature", $type) ; ?>>Creature</option>
   <option <?php option_value("planeswalker", $type) ; ?>>Planeswalker</option>
