@@ -124,6 +124,7 @@ div.S {
 .manacheck input {
 	display: none ;
 }
+/* Zoom */
 #zoom {
 	display: none ;
 }
@@ -137,6 +138,19 @@ div.S {
 #transformed.disp {
 	display: inline !important ;
 	position: fixed ;
+}
+/* Card stats inside zoom */
+#cardstats {
+	position: absolute ;
+	left: 20px ;
+	top: 45px ;
+	background-color: rgba(255, 255, 255, .70) ;
+	border: 1px solid black ;
+	padding: 5px ;
+}
+#cardstats ul {
+	list-style-type: none ;
+	padding-left: 0 ;
 }
 /* Log & Stats common + animation */
 #stats, #tournament {

@@ -39,11 +39,13 @@ $cards = array() ;
 $i = 0 ;
 echo '<pre>' ;
 foreach ( $r as $d ) {
-	print_r($d) ;
 	$data = json_decode($d->data) ;
 	if ( property_exists($data, 'score') && property_exists($data->score, $d->player_id) && property_exists($data->score->{$d->player_id}, 'gamepoints') ) {
 		$deck = deck2arr($d->deck, true) ;
-		$score = $data->score->{$d->player_id}->gamepoints/6 ; // 3 gamepoints per game win : 6 gamepoint = win, 3 gamepoints = lose 2-1, 0 gamepoints = lose 2-0
+		$rounds_number = 1 ;
+		if ( $data->rounds_number > $rounds_number )
+			$rounds_number = $data->rounds_number ;
+		$score = $data->score->{$d->player_id}->gamepoints/(6*$rounds_number) ; // 3 gamepoints per game win : 6 gamepoint = win, 3 gamepoints = lose 2-1, 0 gamepoints = lose 2-0
 		foreach ( $deck->main as $id => $card ) // Played cards
 			update_score($card->id, 1, $score) ;
 		foreach ( $deck->side as $id => $card ) // Not played cards

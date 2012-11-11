@@ -107,6 +107,9 @@ function getGetOrdinal(n) {
 	v=n%100;
 	return n+(s[(v-20)%10]||s[v]||s[0]);
 }
+function disp_percent(nb) {
+	return Math.round(nb*100, 2)+'%' ;
+}
 function string_inspector(str) {
 	var result = '' ;
 	for ( var i = 0 ; i < str.length ; i++ ) 

@@ -6,6 +6,7 @@ function init() {
 	zoom = document.getElementById('zoom') ;
 	zoomed = document.getElementById('zoomed') ;
 	transformed = document.getElementById('transformed') ;
+	cardstats = document.getElementById('cardstats') ;
 	ready = document.getElementById('ready') ;
 	build_canvas = document.getElementById('build_canvas') ;
 	build_div = document.getElementById('build_div') ;
@@ -140,17 +141,6 @@ function start_tournament(id) { // Start all that is only related to current tou
 	loglength = 0 ;
 }
 function recieve(obj) { // Recieving a deck from server (curent player's one during tournament, parsed one during off-tournament editing) 
-	obj.side.sort(function(card1, card2) {
-		b = color_sort(card1, card2) ; // First sort by color
-		if ( b != 0 )
-			return b ;
-		// Then inside same color, sort by name
-		if ( card1.name == card2.name )
-			return 0 ;
-		if ( card1.name > card2.name )
-			return 1 ;
-		return -1 ;
-	})
 	poolcards.side.import(obj.side) ;
 	poolcards.main.import(obj.main) ;
 	deck_stats_cc(poolcards.main.cards) ;
@@ -163,6 +153,21 @@ function color_sort(card1, card2) {
 	if ( i2 < 0 ) i2 = 6 ;
 	return i1 - i2 ;
 }
+function alpha_sort(card1, card2) {
+	if ( card1.name == card2.name )
+		return 0 ;
+	if ( card1.name > card2.name )
+		return 1 ;
+	return -1 ;
+}
+function score_sort(card1, card2) {
+	if ( card1.stats.rank == card2.stats.rank )
+		return 0 ;
+	if ( card1.stats.rank > card2.stats.rank )
+		return 1 ;
+	return -1 ;
+}
+
 // === [ Timer ] ==============================================================
 function timer(id) {
 	$.getJSON('json/tournament.php', {'id': id, 'firsttime': true}, function(data) { // Get time left
@@ -300,6 +305,7 @@ function Pool() {
 	this.cols = [] ;
 	this.over = null ;
 	this.colsort = 'cost' ;
+	this.linsort = 'alpha' ;
 	// Accessors
 	this.toString = function() {
 		if ( this == poolcards.side )
@@ -364,6 +370,17 @@ function Pool() {
 				mfunc = function() { this.setsort('type') ; } ;
 			colmenu.addline('Type', mfunc) ;
 			menu.addline('Columns sorting', colmenu) ;
+			// Lines
+			var linmenu = new menu_init(this) ;
+			var mfunc = null ;
+			if ( this.linsort != 'alpha' )
+				mfunc = function() { this.setlinsort('alpha') ; } ;
+			linmenu.addline('Alphabetically', mfunc) ;
+			mfunc = null ;			
+			if ( this.linsort != 'rank' )
+				mfunc = function() { this.setlinsort('rank') ; } ;
+			linmenu.addline('Score', mfunc) ;
+			menu.addline('Line sorting', linmenu) ;
 			// Clear
 			if ( this == poolcards.main )
 				menu.addline('Clear', function(pool) {
@@ -392,6 +409,24 @@ function Pool() {
 	}
 	// Displaying
 	this.refresh = function() { // Compute all data for drawing
+		// Sort cards by line sorting
+		var zone = this ; // In order to be accessible in "array.sort"
+		this.cards.sort(function(card1, card2) {
+			var b = color_sort(card1.data, card2.data) ; // First sort by color
+			if ( b != 0 )
+				return b ;
+			switch ( zone.linsort ) {
+				case 'alpha' :
+					return alpha_sort(card1.data, card2.data) ;
+					break ;
+				case 'rank' :
+					return score_sort(card1.data, card2.data) ;
+					break ;
+				default:
+					alert('Unknown sorting : '+zone.linsort) ;
+			}
+		}) ;
+		// Divide cards into columns
 		this.cols = this.get_cards() ;
 		this.colnb = max(poolcards.main.cols.length, poolcards.side.cols.length) ;
 		// "zone" (pool) dimensions
@@ -427,7 +462,6 @@ function Pool() {
 				card.h = h ;
 			}
 		}
-
 	}
 	this.draw = function(context) {
 		for ( var i = 0 ; i < this.cols.length ; i++ ) { // Each column
@@ -505,6 +539,14 @@ function Pool() {
 		poolcards.main.refresh() ;
 		draw() ;
 	}
+	this.setlinsort = function(sorting) {
+		this.linsort = sorting ;
+		this.refresh() ;
+		poolcards.side.refresh() ;
+		poolcards.main.refresh() ;
+		draw() ;
+	}
+
 }
 function Card(pool, card) {
 	// Init
@@ -638,6 +680,20 @@ function Card(pool, card) {
 				top -= h - Math.floor(this.h) ;
 			zoom.style.top = top+'px' ;
 			zoom.addEventListener('contextmenu', this.contextmenu, false) ;
+			// Stats
+			node_empty(cardstats) ;
+			var card = this.data ;
+			if ( iso(card.stats) ) {
+				var ul = create_ul() ;
+				ul.appendChild(create_li('Opened : '+card.stats.sealed_open)) ;
+				ul.appendChild(create_li('Played : '+card.stats.sealed_play+' ('+disp_percent(card.stats.sealed_play_ratio)+')')) ;
+				ul.appendChild(create_li('Scored : '+card.stats.sealed_score+' ('+disp_percent(card.stats.sealed_score_ratio)+')')) ;
+				ul.appendChild(create_li('Scored / Played : '+disp_percent(card.stats.sealed_play_score_ratio))) ;
+				ul.appendChild(create_li('Rank : '+card.stats.rank+' / '+card.stats.count)) ;
+				ul.appendChild(create_li('Rank by : '+card.stats.order_by)) ;
+				cardstats.appendChild(ul) ;
+			}
+
 		}
 	}
 	this.mouseout = function(ev) {

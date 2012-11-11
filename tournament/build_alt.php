@@ -129,7 +129,7 @@ if ( $id > 0 ) {
 ?>
   </div>
 
-  <div id="zoom" class="nowrap"><img id="zoomed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Zoom on hovered card"><img id="transformed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Transformed part for zoom on hovered card"></div><!-- hidden by CSS, displayed on card hover -->
+  <div id="zoom" class="nowrap"><img id="zoomed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Zoom on hovered card"><img id="transformed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Transformed part for zoom on hovered card"><div id="cardstats"></div></div><!-- hidden by CSS, displayed on card hover -->
 <?php
 if ( is_file('../footer.php') )
 	include '../footer.php' ;

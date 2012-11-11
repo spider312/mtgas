@@ -63,10 +63,10 @@ function start_tournament(id) { // Start all that is only related to current tou
 	// Deck mw -> json (after creating lands because they will be filtered)
 	poolcards = null ;
 	$.getJSON('json/deck.php', {'id': id}, function(obj) { // Get deck as JS object
-		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
 		obj.side = obj.side.filter(filter_lands, 'sb') ;
-		disp_side(obj.side, pool) ;
+		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
 		obj.main = obj.main.filter(filter_lands, 'md') ;
+		disp_side(obj.side, pool) ;
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 		tournament_log = document.getElementById('log_ul') ;
