@@ -215,6 +215,8 @@ function timer(id) {
 }
 // === [ Drawing ] ============================================================
 function draw() {
+	var begin = new Date()
+	var begin = begin.getMilliseconds() + begin.getSeconds()*1000 ;
 	context.clearRect(0, 0, build_canvas.width, build_canvas.height) ;
 	// Zones
 	poolcards.side.draw(context) ;
@@ -233,6 +235,11 @@ function draw() {
 	context.moveTo(margin+.5, poolcards.separation.position+.5) ;
 	context.lineTo(build_canvas.width+.5 - margin, poolcards.separation.position+.5) ;
 	context.stroke() ;
+	var end = new Date()
+	var end = end.getMilliseconds() + end.getSeconds()*1000 ;
+	var time = end - begin ;
+	context.fillText(time+'ms', build_canvas.width+.5 - margin, poolcards.separation.position+.5, margin) ;
+
 }
 // === [ Events ] =============================================================
 function mousemove(ev) {
