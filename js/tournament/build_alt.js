@@ -161,11 +161,11 @@ function alpha_sort(card1, card2) {
 	return -1 ;
 }
 function score_sort(card1, card2) {
-	if ( card1.stats.rank == card2.stats.rank )
-		return 0 ;
-	if ( card1.stats.rank > card2.stats.rank )
-		return 1 ;
-	return -1 ;
+	if ( ! iso(card1.stats) || ! iso(card2.stats) ) // No stats present in one of the cards
+		return 0
+	if ( ! isn(card1.stats.rank) || ! isn(card2.stats.rank) ) // No rank present in on of the cards' stats
+		return 0
+	return card1.stats.rank - card2.stats.rank ;
 }
 
 // === [ Timer ] ==============================================================
@@ -238,6 +238,7 @@ function draw() {
 	var end = new Date()
 	var end = end.getMilliseconds() + end.getSeconds()*1000 ;
 	var time = end - begin ;
+	context.fillStyle = 'black' ;
 	context.fillText(time+'ms', build_canvas.width+.5 - margin, poolcards.separation.position+.5, margin) ;
 
 }
@@ -686,7 +687,10 @@ function Card(pool, card) {
 			if ( top + h > build_canvas.height )
 				top -= h - Math.floor(this.h) ;
 			zoom.style.top = top+'px' ;
-			zoom.addEventListener('contextmenu', this.contextmenu, false) ;
+			var lcard = this ;
+			zoom.addEventListener('contextmenu', function(ev) {
+				lcard.contextmenu(ev) ;
+			}, false) ;
 			// Stats
 			node_empty(cardstats) ;
 			var card = this.data ;
