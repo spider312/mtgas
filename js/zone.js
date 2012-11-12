@@ -93,7 +93,7 @@ function Zone(player, type) {
 	this.player = player ;
 	this.cards = new Array() ;
 	this.editor_window = null ;
-	this.visible = false ;
+	//this.visible = false ;
 }
 // Zone with a visual representation (widget)
 function VisibleZone(player, type) {
@@ -121,7 +121,6 @@ function VisibleZone(player, type) {
 				this.refresh() ;
 				draw() ;
 			}
-
 		}
 		return card ;
 	}
@@ -397,6 +396,12 @@ function library(player) {
 			}
 		} else
 			menu.addline('Library') ;
+		if ( localStorage['debug'] == 'true' )
+			menu.addline() ;
+			menu.addline('Debug internals', function(zone) {
+				log2(this) ;
+			}) ;
+
 		return menu.start(ev) ;
 	}
 	// Accessors
@@ -420,6 +425,10 @@ function library(player) {
 	mylib.unreveal_recieve = function() {
 		if ( this.player.attrs.library_revealed ) {
 			this.player.attrs.library_revealed = false ;
+			for ( var i in this.cards ) { // Recieving opponent's side end after ending side
+				this.cards[i].load_image() ;
+				this.cards[i].refresh() ;
+			}
 			message(this.player.name+' plays with top of his library hidden : '+this.cards[this.cards.length-1].name, 'note') ;
 			this.cards[this.cards.length-1].load_image() ;
 			return true ;

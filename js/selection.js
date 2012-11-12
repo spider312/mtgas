@@ -484,7 +484,7 @@ function Selection() {
 			log(game.opponent.get_name()+' sided '+this.cards.length+' cards') ;
 		switch ( oldzone.type ) {
 			case 'library' : // Left library
-				if ( oldzone.player.attrs.library_revealed )
+				if ( oldzone.player.attrs.library_revealed && ( oldzone.cards.length > 0 ) )
 					oldzone.cards[oldzone.cards.length-1].load_image() ; // Refresh top card of library
 				break ;
 		}

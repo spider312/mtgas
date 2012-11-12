@@ -136,17 +136,18 @@ function side_next(player, winner) {
 	return false ;
 }
 function side_newgame(winner) { // Exec by both players after siding (or not siding) or 1 time during goldfish
-	// Reinit game data (cards visible in library)
-	for ( var i in game.cards ) {
-		game.cards[i].watching = false ; // For cards made locally visible for side
-		game.cards[i].attrs.visible = null ; // For any card with forced visibility
-		game.cards[i].refresh() ;
-	}
 	game.player.library.refresh() ; // If no change in library top card and it was revealed
 	// Ask player for start if he should
 	if ( ask_for_start(winner) ) { // Then winner reinitializes all, loser will recieve the sync
 		game.player.init()
 		game.opponent.init() ;
+	}
+	// Reinit game data (cards visible in library)
+	for ( var i in game.cards ) {
+		game.cards[i].watching = false ; // For cards made locally visible for side
+		game.cards[i].attrs.visible = null ; // For any card with forced visibility
+		game.cards[i].load_image() ;
+		game.cards[i].refresh() ;
 	}
 }
 function ask_for_start(winner) { // If player did lose, ask him if he wants to start or draw
