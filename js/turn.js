@@ -629,7 +629,7 @@ function steps_init(turn) {
 						var li = popup_li(card, trigger_list) ;
 						li.title = 'Pay echo' ;
 						li.func = function(card) {
-							if ( ! confirm('Pay Echo cost of '+card.attrs.echo+' for '+card.get_name()+' ?') ) { // Echo paid, won't have to pay anymore
+							if ( confirm('Pay Echo cost of '+card.attrs.echo+' for '+card.get_name()+' ?') ) { // Echo paid, won't have to pay anymore
 								delete card.attrs.echo ;
 								card.sync() ;
 							} else // Not paid, sacrificed

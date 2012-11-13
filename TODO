@@ -10,7 +10,7 @@
 ! Reorganisation de l'accueil
 ? Lands en side
 ! Land/ancestral qui remonte en main
-? play with top card revealed + shuffle
+~ play with top card revealed + shuffle
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
 ? Drop : le tournois ne disparait pas de la liste
@@ -18,6 +18,10 @@ identity shower dans les pages autres que l'accueil
 ~ le spectactor voit un message de join tout en haut de l'historique + un message de rejoin au moment où il join
 copy de carte qui est hidden
 http://mogg.fr/play.php?id=8485 c_5683445 Mystic Gate moving from game.creator.hand to game.creator.battlefield but should be in game.creator.library
+Face down une carte équipée
+Option "shuffle & put on top" sur les cartes de la bibli
+Suspend, move, trigger plusieurs fois
+time_nanosleep dans le daemon
 
 reminder
 ? target from card in unselzone
