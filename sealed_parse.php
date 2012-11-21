@@ -3,7 +3,7 @@ include 'lib.php' ;
 include 'includes/db.php' ;
 include 'includes/card.php' ;
 include 'includes/deck.php' ;
-$ddate = '2012-11-06' ;
+$ddate = '2012-06-01' ;
 $date = param($_GET, 'date', $ddate) ;
 if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = $ddate ;

@@ -22,6 +22,7 @@ Face down une carte équipée
 Option "shuffle & put on top" sur les cartes de la bibli
 Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
+attacking sur les face down
 
 reminder
 ? target from card in unselzone
@@ -60,7 +61,7 @@ build de limité : button empty deck
 multiple daemons
 Liste des joueurs qui draftent (http://www.wizards.com/magic/magazine/article.aspx?x=mtg/daily/feature/203&dcmp=ilc-mtgrss)
 Empiler les permanents du même type
-gestion des raccourcis claviers à base de tableaux
+gestion des raccourcis claviers à base de tableaux http://craig.is/killing/mice
 autosave build limité
 ? Ne pas afficher les cartes de la zone source pendant le DND
 ? Stats sur le BF (somme des manas, somme des forces)
