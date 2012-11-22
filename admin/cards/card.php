@@ -49,6 +49,7 @@ function setimage(src) {
 function start() {
 	ajax_error_management() ;
 	document.getElementById('update_card').addEventListener('submit', function(ev) {
+		ev.target.parentNode.classList.add('updating') ;
 		$.getJSON(ev.target.action, {
 			'card_id': ev.target.card_id.value,
 			'card_name': ev.target.card_name.value,
@@ -57,12 +58,15 @@ function start() {
 			'text': ev.target.text.value,
 			'fixed_attrs': ev.target.fixed_attrs.value
 		}, function(data) {
+			ev.target.parentNode.classList.remove('updating') ;
 			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-				alert(data.msg) ;
-			if ( data.nb != 1 )
-				alert(data.nb) ;
-			else
-				alert('updated') ;
+				ev.target.submit.value = data.msg ;
+			else {
+				if ( data.nb != 1 )
+					ev.target.submit.value = data.nb+' rows updated' ;
+				else
+					ev.target.submit.value = 'Updated' ;
+			}
 		}) ;
 		return eventStop(ev) ;
 	}, false) ;
@@ -185,7 +189,7 @@ foreach ( $ext as $i => $value ) {
      <th>Cost</th>
      <td>
       <input type="text" name="cost" value="<?php echo $card_bdd['cost'] ; ?>">
-      <input type="submit" value="Update">
+      <input type="submit" name="submit" value="Update">
      </td>
     </tr>
     <tr>
@@ -208,7 +212,7 @@ foreach ( $ext as $i => $value ) {
      <th>Compiled</th>
      <td title="<?php $attrs = new attrs($card_bdd) ; echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><?php debug($attrs) ; ?></td>
     </tr>
-
+   </form>
 
   </table>
  </body>

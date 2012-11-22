@@ -271,7 +271,7 @@ if ( $thumb )
 	echo `bash -c "~/bin/thumb $ext"` ;
 else
 	echo 'No thumbnailing required' ;
- */
+*/
 ?>
  </body>
 </html>

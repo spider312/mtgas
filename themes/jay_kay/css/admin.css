@@ -4,3 +4,6 @@ div {
 .hlhover tr:hover {
 	background-color: #F4ECD2 ;
 }
+.updating {
+	background-color: red ;
+}

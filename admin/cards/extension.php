@@ -25,6 +25,7 @@ html_head(
 	)
 ) ;
 ?>
+
  <body>
 <?php
 html_menu() ;
@@ -39,6 +40,15 @@ if ( $arr = mysql_fetch_array($query) ) {
 }
 ?>
   <a href="extensions.php">Return to extension list</a>
+
+  <form id="update_ext" action="json/extension.php">
+   <input type="hidden" name="ext_id" value="<?php echo $ext_bdd['id'] ; ?>">
+    Priority : <input type="text" name="priority" size="2" value="<?php echo $ext_bdd['priority'] ; ?>">
+    Release date : <input type="text" name="release_date" size="10" value="<?php echo $ext_bdd['release_date'] ; ?>">
+    Bloc : <input type="text" name="bloc" size="2" value="<?php echo $ext_bdd['bloc'] ; ?>">
+    <input type="submit" name="submit" value="Update">
+  </form>
+
   <table>
    <tbody>
     <tr>

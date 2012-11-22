@@ -12,7 +12,25 @@ html_head(
 		, 'admin.css'
 	)
 ) ;
-$url = param($_GET, 'url', $cardimages_default) ;
+$url = param($_GET, 'url', '/home/hosted/mogg/img/HIRES/'/*$cardimages_default*/) ;
+$repair = param($_GET, 'repair', '') ;
+/*
+$content = file_get_contents($url.'/cardlist.php') ;
+$exts = json_decode($content) ;
+if ( $exts == NULL )
+	die(json_verbose_error(json_last_error())) ;
+ */
+function scan($dir) {
+	if ( is_dir($dir) ) {
+		$result = array() ;
+		foreach ( scandir($dir) as $file ) 
+			if ( ( $file != '..' ) && ( $file != '.' ) )
+				$result[$file] = scan($dir.'/'.$file) ;
+	} else
+		$result = '' ;
+	return $result ;
+}
+$exts = scan($url) ;
 ?>
  <body>
 <?php
@@ -34,20 +52,6 @@ html_menu() ;
      <th>Missing cards</th>
     </tr>
 <?
-$repair = param($_GET, 'repair', '') ;
-//$exts = json_decode(file_get_contents($url.'/cardlist.php')) ;
-$base = '/home/hosted/mogg/img/HIRES/' ;
-function scan($dir) {
-	if ( is_dir($dir) ) {
-		$result = array() ;
-		foreach ( scandir($dir) as $file ) 
-			if ( ( $file != '..' ) && ( $file != '.' ) )
-				$result[$file] = scan($dir.'/'.$file) ;
-	} else
-		$result = '' ;
-	return $result ;
-}
-$exts = scan($base) ;
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$query_b = query('SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '.$arr['id'].' AND `card`.`id` = `card_ext`.`card` ORDER BY `card`.`name`') ;
@@ -99,7 +103,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		$class = 'no' ;
 	echo '     <tr class="'.$class.'">'."\n" ;
-	echo '      <td>'.$arr['se'].'</td>'."\n" ;
+	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'">'.$arr['se'].'</a></td>'."\n" ;
 	echo '      <td>'.$nbcards.'</td>'."\n" ;
 	echo '      <td>'.$nbimages.'</td>'."\n" ;
 	echo '      <td>'."\n" ;
@@ -131,7 +135,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 		echo '      </ul>'."\n" ;
 	} else
 		if ( $nbimages == 0 )
-			echo '       <i>All</i>'."\n" ;
+			echo '       <strong>All</strong>'."\n" ;
 		else
 			echo '       <i>None</i>'."\n" ;
 	echo '      </td>'."\n" ;

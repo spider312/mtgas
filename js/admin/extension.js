@@ -1,13 +1,37 @@
 $(function() { // On page load
 	ajax_error_management() ;
+	// Extension update
+	document.getElementById('update_ext').addEventListener('submit', function(ev) {
+		ev.target.classList.add('updating') ;
+		$.getJSON(ev.target.action, {
+			'ext_id': ev.target.ext_id.value,
+			'priority': ev.target.priority.value,
+			'release_date': ev.target.release_date.value,
+			'bloc': ev.target.bloc.value
+		}, function(data) {
+			ev.target.classList.remove('updating') ;
+			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
+				ev.target.submit.value = data.msg ;
+			else {
+				if ( data.nb != 1 )
+					ev.target.submit.value = data.nb+' rows updated' ;
+				else
+					ev.target.submit.value = 'Updated' ;
+			}
+		}) ;
+		return eventStop(ev) ;
+	}, false) ;
+	// Cards management
 	var ext_h = document.getElementById('ext') ;
 	ext = ext_h.value ;
 	cardnb = document.getElementById('cardnb') ;
 	cards = [] ;
+	// Stats
 	stats_multi = document.getElementById('stats_multi') ;
 	stats_multi.addEventListener('click', function(ev) {
 		update_stats() ;
 	}, false) ;
+	// Display cards
 	update_list() ;
 }) ;
 function update_list() {
