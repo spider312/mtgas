@@ -23,6 +23,7 @@ Option "shuffle & put on top" sur les cartes de la bibli
 Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
 attacking sur les face down
+nombre de permanents sur chaque ligne
 
 reminder
 ? target from card in unselzone
@@ -46,9 +47,6 @@ AE
 ? dual cards (color, CC, etc.)
 parsing + rotation des flip cards
 
- --- Chrome ---
-' dans le builder
-touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
 
  === Evolutions ===
 chargement asynchrone
@@ -60,7 +58,7 @@ build de limité : button empty deck
 ? Séparer la sélection du reste du dessin de la carte dans le cache
 multiple daemons
 Liste des joueurs qui draftent (http://www.wizards.com/magic/magazine/article.aspx?x=mtg/daily/feature/203&dcmp=ilc-mtgrss)
-Empiler les permanents du même type
+? Empiler les permanents du même type
 gestion des raccourcis claviers à base de tableaux http://craig.is/killing/mice
 autosave build limité
 ? Ne pas afficher les cartes de la zone source pendant le DND
@@ -83,3 +81,5 @@ Slivers
 
 === Chromium ===
 Validate side
+' dans le builder
+touches x et y qui sont associées à 'perdre un life' et 'gagner un life'
