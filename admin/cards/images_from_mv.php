@@ -1,16 +1,10 @@
 <?php
 #!/bin/php
 
-$mv_ext_name = '2pd' ;
-$mogg_ext_name = 'P12' ;
-$nbcards =  ;
+$mv_ext_name = 'ivg' ; // Magic-ville's one !
+$mogg_ext_name = 'DDJ' ;
+$nbcards = 90 ;
 $nbtokens = 0 ;
-/*
-$mv_ext_name = 'm13' ;
-$mogg_ext_name = 'M13' ;
-$nbcards = 249 ;
-$nbtokens = 11 ;
-*/
 
 $basecardurl = 'http://www.magic-ville.com/fr/carte?'.$mv_ext_name ;
 $baseimgurl = 'http://www.magic-ville.com/pics/big/'.$mv_ext_name.'/' ;
@@ -55,14 +49,21 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 		return FALSE ;
 	}
 	$lastmatch = $matches[count($matches)-1] ;
-	$destfilename = trim($lastmatch[1]) ;
+	$basedestfilename = trim($lastmatch[1]) ;
 	// Create destination file name (and dir)
 	if ( preg_match('/\<b\>(\d+)\<\/b\>/', $html, $matchesnb) )
-		$destfilename .= $matchesnb[1] ;
-	if ( $token )
-		$destfilename = 'TK/'.$mogg_ext_name.'/'.$destfilename.'.1.1.jpg' ;
-	else
-		$destfilename = $mogg_ext_name.'/'.$destfilename.'.full.jpg' ;
+		$basedestfilename .= $matchesnb[1] ;
+	$nbpic = 0 ;
+	do {
+		$disp = '' ;
+		if ( $nbpic > 0 )
+			$disp = ''.$nbpic ;
+		if ( $token )
+			$destfilename = 'TK/'.$mogg_ext_name.'/'.$basedestfilename.$disp.'.1.1.jpg' ;
+		else
+			$destfilename = $mogg_ext_name.'/'.$basedestfilename.$disp.'.full.jpg' ;
+		$nbpic++ ;
+	} while ( is_file($destfilename) ) ;
 	echo $destfilename.' : ' ;
 	// Get the file
 	if ( ! is_file($destfilename) ) {
@@ -89,10 +90,12 @@ for ( $i = 1 ; $i <= $nbcards ; $i++ )
 	get_card($i, false) ;
 echo '</ul>' ;
 // Get tokens
-if ( ! is_dir('TK') )
-	mkdir('TK') ;
-if ( ! is_dir('TK/'.$mogg_ext_name) )
-	mkdir('TK/'.$mogg_ext_name) ;
-for ( $i = $nbcards ; $i <= $nbcards + $nbtokens ; $i++ )
-	get_card($i, true) ;
+if ( $nbtokens > 0 ) {
+	if ( ! is_dir('TK') )
+		mkdir('TK') ;
+	if ( ! is_dir('TK/'.$mogg_ext_name) )
+		mkdir('TK/'.$mogg_ext_name) ;
+	for ( $i = $nbcards ; $i <= $nbcards + $nbtokens ; $i++ )
+		get_card($i, true) ;
+}
 ?>

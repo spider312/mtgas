@@ -34,7 +34,7 @@ foreach ( $t as $tournament )
   <div class="section">
    <h1>Cards</h1>
    <ul>
-    <li><a href="cards/extensions.php">Extensions list</a></li>
+    <li><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>, <a href="http://www.crystalkeep.com/magic/misc/symbols.php">Unofficial one</a>)</li>
     <li>Install extension from text spoiler : 
 <?php
 include_once 'cards/lib.php' ;

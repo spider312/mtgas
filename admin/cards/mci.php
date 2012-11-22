@@ -38,7 +38,7 @@ if ( file_exists($cache_file) ) {
 	$html = file_get_contents($url) ;
 	file_put_contents($cache_file, $html) ;
 }
-?><div>Getting data from <?php echo $url ; ?></div><?php
+//echo '<div>Getting data from '.$url.'</div>'
 $nb = preg_match_all('#  <tr class="(even|odd)">
     <td align="right">(?<id>\d*[ab]?)</td>
     <td><a href="(?<url>/'.$ext.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
@@ -63,7 +63,7 @@ if ( $res = mysql_fetch_object($query) ) {
 		echo '  <p>'.mysql_affected_rows().' cards unlinked from '.$ext."</p>\n\n" ;
 	}
 } else {
-	$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".$matches[0]['ext']."')") ;
+	$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".mysql_real_escape_string($matches[0]['ext'])."')") ;
 	echo '<p>Extension not existing, creating</p>' ;
 	$ext_id = mysql_insert_id() ;
 }
@@ -74,9 +74,11 @@ if ( $res = mysql_fetch_object($query) ) {
     <th>Rarity</th>
     <th>Card</th>
     <th>Extension</th>
+    <th>Image</th>
    </tr>
 <?php
-foreach ( $matches as $match ) {
+$thumb = false ; // If i download images, i want them to be thumbed at the end
+foreach ( $matches as $i => $match ) {
 	$log = '' ;
 	$name = str_replace('á', 'a', $match['name']) ;
 	$name = str_replace('é', 'e', $name) ;
@@ -84,7 +86,6 @@ foreach ( $matches as $match ) {
 	$name = str_replace('ú', 'u', $name) ;
 	$name = str_replace('û', 'u', $name) ;
 	$name = str_replace('Æ', 'AE', $name) ;
-	$name = mysql_real_escape_string($name) ;
 	$rarity = substr($match['rarity'], 0, 1) ;
 	// Parse card itself
 	$cache_file = 'cache/'.str_replace('/', '_', $match['url']) ;
@@ -98,11 +99,15 @@ foreach ( $matches as $match ) {
         <p class="ctext"><b>(?<text>.*)</b></p>.*http\://gatherer.wizards.com/Pages/Card/Details.aspx\?multiverseid=(?<multiverseid>\d*)#s', substr($html, 0, 10240), $card_matches) ;
 	// Double cards : recompute name, mark as being second part (in which case card will be added, not replaced)
 	$second = false ;
-	if ( preg_match('/(.*) \((\1)\/(.*)\)/', $name, $name_matches) )
+	$image_name = $name ;
+	if ( preg_match('/(.*) \((\1)\/(.*)\)/', $name, $name_matches) ) {
 		$name = $name_matches[2] . ' / ' . $name_matches[3] ;
+		$image_name = $name_matches[2] . $name_matches[3] ;
+	}
 	if ( preg_match('/(.*) \((.*)\/(\1)\)/', $name, $name_matches) ) {
 		$second = true ;
 		$name = $name_matches[2] . ' / ' . $name_matches[3] ;
+		$image_name = $name_matches[2].$name_matches[3] ;
 	}
 	// Base checks
 	if ( $nb < 1 ) {
@@ -145,10 +150,11 @@ foreach ( $matches as $match ) {
 		$types = $types_matches['types'] ;
 		$text = $types_matches['loyalty']."\n".$text ;
 	}
-	$qs = query("SELECT * FROM card WHERE `name` = '$name' ; ") ;
+	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
 	echo "   <tr>\n" ;
 	echo "    <td>$name</td>\n" ;
 	echo "    <td>$rarity</td>\n" ;
+	$nbpics = 1 ; // Anticipating number for first card havin same name as next one
 	if ( $arr = mysql_fetch_array($qs) ) {
 		if ( $second ) { // Second part of a dual card
 			$add = "\n----\n$cost\n$types\n$text" ;
@@ -185,9 +191,8 @@ foreach ( $matches as $match ) {
 			$query = query("SELECT * FROM card_ext WHERE `card` = '$card_id' AND `ext` = '$ext_id' ;") ;
 			if ( $res = mysql_fetch_object($query) ) {
 				echo "<td>Already in extension</td>\n" ;
-				/*
+				$nbpics = $res->nbpics + 1  ;
 				if ( $apply) {
-					$nbpics = $res->nbpics + 1  ;
 					query("UPDATE card_ext SET `rarity` = '$rarity', `nbpics` = '$nbpics' WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
 					if ( mysql_affected_rows() > 0 ) {
 						$log .= 'Updated ('.mysql_affected_rows().') for '.$ext.' (' ;
@@ -199,7 +204,6 @@ foreach ( $matches as $match ) {
 					} else
 						$log .= 'Nothing' ;
 				}
-				*/
 			} else {
 				echo "<td>Not in extension</td>\n" ;
 				if ( $apply)
@@ -212,7 +216,7 @@ foreach ( $matches as $match ) {
 			// Insert card
 			query("INSERT INTO `mtg`.`card`
 			(`name` ,`cost` ,`types` ,`text`)
-			VALUES ('$name', '$cost', '$types', '$text');") ;
+			VALUES ('".mysql_real_escape_string($name)."', '$cost', '$types', '$text');") ;
 			$card_id = mysql_insert_id($mysql_connection) ;
 			// Link to extension
 			query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`) VALUES ('$card_id', '$ext_id', '$rarity', '1') ;") ;
@@ -220,9 +224,54 @@ foreach ( $matches as $match ) {
 		} else
 			$log .= '<b>Insert</b> : <ul><li>'.$name.'</li><li>'.$typescost.'</li><li>'.$types.'</li><li>'.$cost.'</li><li><pre>'.$text.'</pre></li></ul><b>Link</b> : <ul><li>'.$ext_id.'</li><li>'.$rarity.'</li>' ;
 	}
+	// Image
+	echo "    <td>" ;
+	$image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/HIRES/'.$ext.'/' ;
+	if ( $apply && ! is_dir($image_dir) ) {
+		mkdir($image_dir) ;
+		chmod($image_dir, 0750) ;
+		echo 'Dir created : '.$image_dir.'<br>' ;
+	}
+	$image_path = $image_dir.$image_name ;
+	if ( ( $nbpics > 1 ) || ( ( $i < count($matches) - 1 ) && ( $match['name'] == $matches[$i+1]['name'] ) ) ) // Next card has same name as current
+		$image_path .= $nbpics ; // Append its number to its name
+	$image_path .= '.full.jpg' ;
+	if ( is_file($image_path) )
+		echo "Existing" ;
+	else {
+		if ( $apply) {
+			$url = 'http://magiccards.info/scans/en/'.strtolower($ext).'/'.$match['id'].'.jpg' ;
+			$content = @file_get_contents($url) ;
+			if ( $content === FALSE )
+				echo 'Not DLable : '.$url ;
+			else {
+				$size = @file_put_contents($image_path, $content) ;
+				if ( $size === FALSE )
+					echo 'NOT updated' ;
+				else {
+					chmod($image_path, 0640) ;
+					echo 'updated ('.human_filesize($size).')' ;
+					$thumb = true ;
+				}
+			}
+
+
+
+		} else
+			echo "Not present" ;
+	}
+	echo "</td>" ;
 	echo "   </tr>\n" ;
 }
 ?>
   </table>
+<?php
+/*
+if ( $thumb )
+	echo `bash -c "~/bin/thumb $ext"` ;
+else
+	echo 'No thumbnailing required' ;
+ */
+?>
  </body>
 </html>

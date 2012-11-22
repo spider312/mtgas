@@ -6,6 +6,7 @@ include_once '../../includes/db.php' ;
 include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
 $sort = param($_GET, 'sort', 'rd') ;
+$order = param($_GET, 'order', 'ASC') ;
 html_head(
 	'Admin > Cards > Extensions list',
 	array(
@@ -22,9 +23,14 @@ html_menu() ;
    <h1>Extensions</h1>
    <a href="../">Return to admin</a>
    <form method="get">
+    Sort : 
     <select name="sort">
      <option value="rd">Release date</option>
      <option value="priority">Priority</option>
+    </select>
+    <select name="order">
+     <option value="ASC">Ascendency</option>
+     <option value="DESC">Descendency</option>
     </select>
     <input type="submit">
    </form>
@@ -45,7 +51,7 @@ if ( $ext != 0 ) {
      <th>Actions</th>
     </tr>
 <?php
-$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.' ASC') ;
+$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.' '.$order) ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$nbcards = 0 ;
 	$query_b = query('SELECT * FROM card_ext WHERE `ext` = '.$arr['id']) ;
@@ -55,7 +61,10 @@ while ( $arr = mysql_fetch_array($query) ) {
 	echo '     <td><a href="extension.php?ext='.$arr['se'].'">'.$arr['se'].'</a></td>'."\n" ;
 	echo '     <td>'.$arr['name'].'</td>'."\n" ;
 	echo '     <td>'.$nbcards.'</td>'."\n" ;
-	echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
+	if ( $arr['rd'] == 0 ) 
+		echo '     <td></td>'."\n" ;
+	else
+		echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
 	echo '     <td>'.$arr['priority'].'</td>' ;
 	echo '     <td><a href="?ext_del='.$arr['id'].'">del</a></td>'."\n" ;
 	echo '    </tr>'."\n" ;

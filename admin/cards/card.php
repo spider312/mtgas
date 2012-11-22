@@ -137,10 +137,9 @@ while ( $arr_ext = mysql_fetch_array($query) ) {
      <ul>
 <?php
 foreach ( $ext as $i => $value ) {
-	if ( $ext[$i]['nbpics'] == 0 ) {
-		echo '      <li><a href="extension.php?ext='.$ext[$i]['se'].'">'.$ext[$i]['name'].'</a> ('.$ext[$i]['rarity'].')'."\n" ;
-		echo '      </li>' ;
-	} else if ( $ext[$i]['nbpics'] == 1 ) {
+	if ( $ext[$i]['nbpics'] == 0 )
+		echo '      <li>'.$ext[$i]['name'].' ('.$ext[$i]['rarity'].')</li>' ;
+	else if ( $ext[$i]['nbpics'] == 1 ) {
 		$imgurl = $cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($card_bdd['name'])) ;
 		echo '      <li><a href="extension.php?ext='.$ext[$i]['se'].'" onmouseover="javascript:setimage(\''.$imgurl.'\')">'.$ext[$i]['name'].'</a> ('.$ext[$i]['rarity'].')'."\n" ;
 		echo '      </li>' ;

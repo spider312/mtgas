@@ -209,13 +209,13 @@ function card2obj($conn, $name, $ext='') {
 		`card_ext`.`ext` = '".ext_id($ext, $conn)."' AND
 		`card_ext`.`ext` = `extension`.`id` AND
 		`card_ext`.`nbpics` > 0
-	ORDER BY `extension`.`priority` DESC", 'Card\'s extension', $conn) ;
+	ORDER BY `extension`.`priority`, `extension`.`release_date` DESC", 'Card\'s extension', $conn) ;
 	if ( mysql_num_rows($query_b) == 0 ) { // Card not existing for this extension
 		$query_b = query("SELECT * FROM `card_ext`, `extension` WHERE
 			`card_ext`.`card` = '".$card->id."' AND
 			`extension`.`id` = `card_ext`.`ext` AND
 			`card_ext`.`nbpics` > 0
-		ORDER BY `extension`.`priority` DESC", 'Card\'s extensions', $conn) ; // All extensions for this card
+		ORDER BY `extension`.`priority`, `extension`.`release_date` DESC", 'Card\'s extensions', $conn) ; // All extensions for this card
 	}
 	if ( $ext_row = mysql_fetch_object($query_b) ) { // At least a result found in one of the queries
 		$card->ext = $ext_row->se ;
