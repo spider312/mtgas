@@ -795,6 +795,11 @@ function battlefield(player) {
 			}
 		}
 	}
+	mybf.parent_mousemove = mybf.mousemove ;
+	mybf.mousemove = function(ev) {
+		this.parent_mousemove(ev) ;
+		draw() ;
+	}
 	mybf.menu = function(ev) {
 		var mybf = this ;
 		var menu = new menu_init(mybf) ;
@@ -986,8 +991,8 @@ function battlefield(player) {
 	mybf.grid_at = function(cx, cy) { // Takes coords in canvas, returns coords in grid
 		cx -= this.x + gridsmarginh + cardxoffset ; // Relative to zone
 		cy -= this.y + gridsmarginv + cardyoffset ;
-		cx = Math.round(cx/gridswidth) ; // Scaled to grid
-		cy = Math.round(cy/gridsheight) ;
+		cx = Math.floor(cx/gridswidth) ; // Scaled to grid
+		cy = Math.floor(cy/gridsheight) ;
 		// Stay in grid
 		cx = max(cx, 0) ;
 		cx = min(cx, bfcols-1) ;

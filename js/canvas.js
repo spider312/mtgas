@@ -379,6 +379,32 @@ function draw() {
 		// Infobulle
 		if ( iso(game.infobulle ) && game.infobulle.display() )
 			game.infobulle.draw(game.context) ;
+		// Number of permanents
+		if ( ( game.widget_under_mouse ) && ( game.widget_under_mouse.type == 'battlefield' ) ) {
+			var coords = game.widget_under_mouse.grid_at(game.mouseX, game.mouseY) ;
+			var nb = 0 ;
+			for ( var i = 0 ; i < bfcols ; i++ )
+				if ( game.widget_under_mouse.grid[i][coords.y] != null )
+					nb++ ;
+			var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
+			/*
+			var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
+			var post = game.widget_under_mouse.grid_coords(coords.x, 0) ;
+			canvas_set_alpha(.2) ;
+			game.context.fillStyle = 'white' ;
+			game.context.fillRect(posl.x, posl.y, bfcols*gridswidth, gridsheight) ;
+			game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
+			canvas_reset_alpha() ;
+			/**/
+			if ( nb > 0 ) {
+				game.context.save()
+				canvas_set_alpha(.2) ;
+				game.context.font = gridsheight+"pt Arial";
+				canvas_text_tl(game.context, nb, pos.x, pos.y, 'white', gridswidth) ;
+				canvas_reset_alpha() ;
+				game.context.restore() ;
+			}
+		}
 		// Additionnal information
 		if ( localStorage['debug'] == 'true' ) {
 			var end = new Date()
@@ -535,6 +561,7 @@ function widget_cache_update(ev) {
 			}
 		}
 	}
+	draw() ;
 	return widget ;
 }
 function widget_under_mouse(ev) {

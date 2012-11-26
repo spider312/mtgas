@@ -23,7 +23,6 @@ Option "shuffle & put on top" sur les cartes de la bibli
 Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
 attacking sur les face down
-nombre de permanents sur chaque ligne
 
 reminder
 ? target from card in unselzone
