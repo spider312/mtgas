@@ -2283,8 +2283,8 @@ function card_prototype() {
 	}
 	this.morph = function() {
 		if ( this.zone.type != 'battlefield' ) {
-			this.attrs.types = ['creature'] ;
 			this.changezone(this.owner.battlefield, false) ;
+			this.attrs.types = ['creature'] ;
 		} else
 			this.face_down() ;
 		this.disp_powthou(2, 2) ;
