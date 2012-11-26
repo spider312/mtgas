@@ -50,6 +50,7 @@ html_menu() ;
      <th>Nb img</th>
      <th>Missing images</th>
      <th>Missing cards</th>
+     <th>Mean size</th>
     </tr>
 <?
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
@@ -70,6 +71,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	}
 	$images= array() ;
 	$unimagedcards = array() ;
+	$foldersize = 0 ;
 	if ( array_key_exists($arr['se'], $exts) ) {
 		//$images = get_object_vars($exts->$arr['se']) ;
 		$images = $exts[$arr['se']] ;
@@ -78,9 +80,10 @@ while ( $arr = mysql_fetch_array($query) ) {
 			$card = array_shift($cards) ;
 			for ( $i = 1 ; $i <= $card['nbpics'] ; $i++ ) {
 				$cardimg = card_img_by_name($card['name'], $i, $card['nbpics']) ;
-				if ( array_key_exists($cardimg, $images) )
+				if ( array_key_exists($cardimg, $images) ) {
 					unset($images[$cardimg]) ;
-				else {
+					$foldersize += filesize($url.$arr['se'].'/'.$cardimg) ;
+				} else {
 					// Dual cards have an image for each face, do the same on both
 					if ( ereg ('(.*) \((.*)\)', $card['name'], $regs) ) {
 						$card1 = card_img_by_name($regs[1]) ;
@@ -139,11 +142,19 @@ while ( $arr = mysql_fetch_array($query) ) {
 		else
 			echo '       <i>None</i>'."\n" ;
 	echo '      </td>'."\n" ;
+	if ( $nbimages == 0 )
+		echo '      <td>N/A</td>'."\n" ;
+	else
+		echo '      <td>'.human_filesize(round($foldersize/$nbimages)).'</td>'."\n" ;
 	echo '     </tr>'."\n" ;
-	unset($exts->$arr['se']) ;
+	//unset($exts->$arr['se']) ;
+	unset($exts[$arr['se']]) ;
+	//echo count($exts) ;
 }
 ?>
    </table>
+   Not found in DB : 
+   <pre><?php print_r($exts) ; ?></pre>
   </div>
  </body>
 </html>

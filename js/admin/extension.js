@@ -3,12 +3,7 @@ $(function() { // On page load
 	// Extension update
 	document.getElementById('update_ext').addEventListener('submit', function(ev) {
 		ev.target.classList.add('updating') ;
-		$.getJSON(ev.target.action, {
-			'ext_id': ev.target.ext_id.value,
-			'priority': ev.target.priority.value,
-			'release_date': ev.target.release_date.value,
-			'bloc': ev.target.bloc.value
-		}, function(data) {
+		$.getJSON(ev.target.action, form2param(ev.target), function(data) {
 			ev.target.classList.remove('updating') ;
 			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
 				ev.target.submit.value = data.msg ;

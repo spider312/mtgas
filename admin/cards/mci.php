@@ -38,7 +38,6 @@ if ( file_exists($cache_file) ) {
 	$html = file_get_contents($url) ;
 	file_put_contents($cache_file, $html) ;
 }
-//echo '<div>Getting data from '.$url.'</div>'
 $nb = preg_match_all('#  <tr class="(even|odd)">
     <td align="right">(?<id>\d*[ab]?)</td>
     <td><a href="(?<url>/'.$ext.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
@@ -70,6 +69,7 @@ if ( $res = mysql_fetch_object($query) ) {
 ?>
   <table>
    <tr>
+    <th>#</th>
     <th>Name</th>
     <th>Rarity</th>
     <th>Card</th>
@@ -114,13 +114,18 @@ foreach ( $matches as $i => $match ) {
 		echo '<td colspan="4">Unparsable : <textarea>'.$html.'</textarea></td></tr>' ;
 		continue ;
 	}
+	/*
 	if ( ( ! $second ) && ( intval($card_matches['multiverseid']) < 1 ) ) { // On MCI, second part of a card has no multiverseID
 		echo '<td>No multiverseID</td></tr>' ;
 		continue ;
 	}
+	 */
+	if ( intval($match['id']).'' != $match['id'] ) {
+		echo '<td colspan="4">Unmanaged double face cards</td></tr>' ;
+		continue ;
+	}
 	// Text
-	$text = mysql_real_escape_string($card_matches['text']) ;
-	$text = str_replace('<br><br>', "\n", $text) ; // Un-HTML-ise text
+	$text = str_replace('<br><br>', "\n", $card_matches['text']) ; // Un-HTML-ise text
 	$text = trim($text) ;
 	// Types / cost
 	$typescost = $card_matches['typescost'] ;
@@ -135,7 +140,7 @@ foreach ( $matches as $i => $match ) {
 		$cost = '' ; // 'cost' is empty
 	}
 	$types = str_replace('—', '-', $types) ; 
-	$types = mysql_real_escape_string($types) ;
+	//$types = mysql_real_escape_string($types) ;
 	// Cost
 	if ( preg_match('/(?<cost>.*) \((?<cc>\d*)\)/', $cost, $cost_matches) )
 		$cost = $cost_matches['cost'] ;
@@ -152,6 +157,7 @@ foreach ( $matches as $i => $match ) {
 	}
 	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
 	echo "   <tr>\n" ;
+	echo "    <td>".($i+1)."</td>\n" ;
 	echo "    <td>$name</td>\n" ;
 	echo "    <td>$rarity</td>\n" ;
 	$nbpics = 1 ; // Anticipating number for first card havin same name as next one
@@ -160,7 +166,7 @@ foreach ( $matches as $i => $match ) {
 			$add = "\n----\n$cost\n$types\n$text" ;
 			echo "    <td>Second part : $add</td>" ;
 			if ( $apply)
-				$q = query("UPDATE card SET `text` = CONCAT(`text`, '$add') WHERE `id` = $card_id ;") ;
+				$q = query("UPDATE card SET `text` = CONCAT(`text`, '".mysql_real_escape_string($add)."') WHERE `id` = $card_id ;") ;
 		} else {
 			echo "    <td>Existing<br>" ;
 			$card_id = $arr['id'] ;
@@ -172,7 +178,7 @@ foreach ( $matches as $i => $match ) {
 			}
 			if ( $arr['types'] != $types ) {
 				$log .= '<li>Types : ['.$arr['types'].'] -> ['.$types.']</li>' ;
-				$updates[] = "`types` = '$types'" ;
+				$updates[] = "`types` = '".mysql_real_escape_string($types)."'" ;
 			}
 			if ( trim($arr['text']) != $text ) {
 				$log .= '<li><acro title="'.htmlspecialchars($arr['text']."\n->\n".$text).'">Text</acro></li>' ;
@@ -191,8 +197,8 @@ foreach ( $matches as $i => $match ) {
 			$query = query("SELECT * FROM card_ext WHERE `card` = '$card_id' AND `ext` = '$ext_id' ;") ;
 			if ( $res = mysql_fetch_object($query) ) {
 				echo "<td>Already in extension</td>\n" ;
-				$nbpics = $res->nbpics + 1  ;
 				if ( $apply) {
+					$nbpics = $res->nbpics + 1  ;
 					query("UPDATE card_ext SET `rarity` = '$rarity', `nbpics` = '$nbpics' WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
 					if ( mysql_affected_rows() > 0 ) {
 						$log .= 'Updated ('.mysql_affected_rows().') for '.$ext.' (' ;
@@ -232,10 +238,10 @@ foreach ( $matches as $i => $match ) {
 		chmod($image_dir, 0750) ;
 		echo 'Dir created : '.$image_dir.'<br>' ;
 	}
-	$image_path = $image_dir.$image_name ;
 	if ( ( $nbpics > 1 ) || ( ( $i < count($matches) - 1 ) && ( $match['name'] == $matches[$i+1]['name'] ) ) ) // Next card has same name as current
-		$image_path .= $nbpics ; // Append its number to its name
-	$image_path .= '.full.jpg' ;
+		$image_name .= $nbpics ; // Append its number to its name
+	$image_name = card_img_by_name($image_name) ;
+	$image_path = $image_dir.$image_name ;
 	if ( is_file($image_path) )
 		echo "Existing" ;
 	else {

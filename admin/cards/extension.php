@@ -43,6 +43,9 @@ if ( $arr = mysql_fetch_array($query) ) {
 
   <form id="update_ext" action="json/extension.php">
    <input type="hidden" name="ext_id" value="<?php echo $ext_bdd['id'] ; ?>">
+    Code : <input type="text" name="se" size="4" value="<?php echo $ext_bdd['se'] ; ?>">
+    Alternate code : <input type="text" name="sea" size="4" value="<?php echo $ext_bdd['sea'] ; ?>">
+    Name : <input type="text" name="name" size="64" value="<?php echo $ext_bdd['name'] ; ?>">
     Priority : <input type="text" name="priority" size="2" value="<?php echo $ext_bdd['priority'] ; ?>">
     Release date : <input type="text" name="release_date" size="10" value="<?php echo $ext_bdd['release_date'] ; ?>">
     Bloc : <input type="text" name="bloc" size="2" value="<?php echo $ext_bdd['bloc'] ; ?>">

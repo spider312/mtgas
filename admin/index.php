@@ -80,7 +80,7 @@ if ($handle = opendir('../'.$raw_dir)) {
     </li>
     <!--li><a href="cards/parse_all.php">Install all cards from master text spoiler</a></li-->
     <li><a href="cards/compile.php">Compile cards (adds attributes specific to MTGAS in database)</a></li>
-    <li><a href="cards/check_images.php">Compare images and DB</a></li>
+    <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
     <li><a href="cards/check_integrity.php">Check database integrity</a></li>
    <ul>
   </div>

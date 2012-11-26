@@ -20,6 +20,19 @@ function eventLog(ev, from) {
 		res += ' ('+ev.target.thing+')' ;
 	log(res) ;
 }
+// Form
+function form2param(form) { // Returns an object of 'name -> value' for all elements of 'form' (without submit and unchanged values)
+	var result = {} ;
+	for ( var i = 0 ; i < form.elements.length ; i++) {
+		var el = form.elements[i] ;
+		if ( el.type == 'submit' )
+		       continue ;
+/*		if ( el.value == el.defaultValue )
+			continue ;*/
+		result[el.name] = el.value ;
+	}
+	return result ;
+}
 // Basic document management
 function document_add_css(doc, url) {
 	if ( typeof doc.createElement != 'function' ) {
@@ -380,7 +393,6 @@ function save_restore(field, onsave, onrestore) {
 			myfield.onsave = onsave ;
 	}
 }
-
 function cardimages_apply(cardimages, cardimages_choice) {
 	for ( var i = 0 ; i < cardimages_choice.options.length ; i++ )
 		if ( localStorage['cardimages'] == cardimages_choice.options[i].value )
