@@ -140,6 +140,7 @@ if ( array_key_exists('file', $_GET) ) {
 						$log .= ' updated data ('.mysql_affected_rows().')' ;
 				}
 			} else {
+				$card_id = 0 ; // Notices during first pass
 				if ( $apply ) {
 					$qc = query("INSERT INTO card (`name`, `cost`, `types`, `text`, `attrs`) VALUES ('$name', '$cost', '$types', '".mysql_real_escape_string($text)."', '".mysql_real_escape_string($compiled)."')") ;
 					$card_id = mysql_insert_id() ;

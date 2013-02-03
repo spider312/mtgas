@@ -459,7 +459,7 @@ function Turn(game) {
 			if ( cards.length > 0 ) { // remove attacking status
 				var sel = new Selection()
 				for ( var i in cards )
-					if ( cards[i].attrs.attacking )
+					if ( cards[i].attacking )
 						sel.add(cards[i]) ;
 				sel.attack_recieve(false, true) ; // Silently remove from attackers
 				sel.refresh('not attacking anymore') ;
@@ -795,7 +795,7 @@ function steps_init(turn) {
 				var exalted = 0 ;
 				for ( var i in game.player.battlefield.cards ) {
 					var card = game.player.battlefield.cards[i] ;
-					if ( card.attrs.attacking ) { // Attacking creatures
+					if ( card.attacking ) { // Attacking creatures
 						attacking.add(card) ;
 						if ( card.attrs.battle_cry ) // Battlecry
 							battlecry.add(card) ;

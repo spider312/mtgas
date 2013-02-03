@@ -47,11 +47,6 @@ function card_prototype() {
 		this.init_attrs(attrs) ;
 		// Expected and no need to sync
 		this.expected_attrs('manas', attrs) ;
-		//this.expected_attrs('color', attrs) ;
-		this.expected_attrs('converted_cost', attrs) ;
-		//this.expected_attrs('types', attrs) ;
-		//this.expected_attrs('subtypes', attrs) ;
-		//this.expected_attrs('tokens', attrs) ;
 		this.expected_attrs('transformed_attrs', attrs) ;
 		if ( this.transformed_attrs)
 			attrs.transformed = false ; // Default value
@@ -71,10 +66,6 @@ function card_prototype() {
 			attrs.counter = attrs.vanishing ;
 		if ( attrs.fading && ! attrs.counter )
 			attrs.counter = attrs.fading ;
-		attrs.attacking = false ;
-		attrs.attachedto = null ;
-		attrs.attached = new Array() ;
-		attrs.damages = 0 ;
 	}
 	this.expected_attrs = function(param, attrs) { // 'move' data
 		if ( attrs[param] ) {
@@ -276,7 +267,7 @@ function card_prototype() {
 	this.draw = function(context, x, y) {
 		// First, draw attached in reverse order
 		var attached = this.get_attached() ;
-		for ( var j = attached.length -1 ; j >= 0 ; j-- ) { // Attached card position is stored in that card (for selection, click, etc.)
+		for ( var j = attached.length - 1 ; j >= 0 ; j-- ) { // Attached card position is stored in that card (for selection, click, etc.)
 			var card = attached[j] ;
 			var xo = this.x - card.x ;
 			var yo = this.y - card.y ;
@@ -293,7 +284,7 @@ function card_prototype() {
 		context.translate(x+this.w/2, y+this.h/2) ; // For rotation
 		// Rotate
 		var angle = 0 ;
-		if ( ( this.zone.type == 'battlefield' ) && this.attrs.tapped )
+		if ( ( this.zone.type == 'battlefield' ) && this.tapped )
 			angle += 90 ;
 		var is_top = this.zone.player.is_top ;
 		if ( indnd && ( game.drag != null ) && game.selected.isin(this) && ( game.widget_under_mouse != null ) && ( game.widget_under_mouse.type == 'battlefield' ) ) // Draging current card on top BF
@@ -327,7 +318,7 @@ function card_prototype() {
 				if ( this.attrs.visible == true )
 					color = 'blue' ;
 			} else if ( this.zone.type == 'battlefield' ) {
-				if ( this.attrs.attacking )
+				if ( this.attacking )
 					color = 'red' ;
 				else if ( ( this.attrs.no_untap ) || ( this.attrs.no_untap_once ) )
 					color = 'maroon' ;
@@ -450,7 +441,7 @@ function card_prototype() {
 		*/
 	}
 	this.rect = function() { // Coordinates of rectangle representation of card (for "under mouse")
-		if ( this.attrs.tapped ) {
+		if ( this.tapped ) {
 			var d = ( this.h - this.w ) / 2
 			var x = this.x - d ;
 			var y = this.y + d ;				
@@ -552,7 +543,7 @@ function card_prototype() {
 		this.refresh() ; // For bug "cards reversed in starting hand"
 		if ( ( game.draginit == null ) && ( game.current_targeting == null ) ) // Not dragging nor targeting
 			game.canvas.style.cursor = 'pointer' ;
-		if ( ( this.zone.type == 'battlefield' ) && ( this.attrs.attachedto == null ) ) {
+		if ( ( this.zone.type == 'battlefield' ) && ( this.get_attachedto() == null ) ) {
 			var idx = this.IndexInZone() ;
 			if ( idx != 0 ) { // If not last card in its zone, set it last (will be drawn after other, and appear over)
 				this.zone.cards.splice(idx, 1) ;
@@ -680,7 +671,7 @@ function card_prototype() {
 				if ( this.is_creature() && ( this.zone.player == game.turn.current_player ) && ( game.turn.step == 5 ) )
 					game.selected.attack(this) ; // Must replace tap because vigilance creatures don't tap
 				else
-					game.selected.tap(!this.attrs.tapped) ;
+					game.selected.tap(!this.tapped) ;
 				break ;
 			case 'hand' :
 				var visible = null ; // Set to default visibility (not forced true) in order not to sync in default case
@@ -690,9 +681,7 @@ function card_prototype() {
 				game.selected.changezone(game.selected.zone.player.battlefield, visible, null) ;
 				// Create living weapon token
 				if ( this.attrs.living_weapon )
-					create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
-						tk.attach(lw) ;
-					}, this) ;
+					this.living_weapon() ;
 				break ;
 			default :
 				log('Impossible to dbclick a card in '+this.zone.type) ;
@@ -827,7 +816,7 @@ function card_prototype() {
 						}
 						// Cascade
 						if ( this.attrs.cascade)
-							cardmenu.addline('Cascade ', this.cascade) ;
+							cardmenu.addline('Cascade', this.cascade) ;
 					}
 					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
@@ -835,11 +824,11 @@ function card_prototype() {
 				if ( ! card.controler.access()  )
 					menu.addline('No action') ;
 				else {
-					var entry = menu.addline('Tap',  game.selected.tap, ! card.attrs.tapped) ;
+					var entry = menu.addline('Tap',  game.selected.tap, ! card.tapped) ;
 					entry.override_target = game.selected ;
-					entry.checked = card.attrs.tapped ;
+					entry.checked = card.tapped ;
 					// Attacking status
-					if ( card.attrs.attacking ) // Any moment, if attacking
+					if ( card.attacking ) // Any moment, if attacking
 						menu.addline('Cancel attack', game.selected.attack, this).override_target = game.selected ;
 					else
 						// Card's controler is declaring attackers
@@ -947,7 +936,14 @@ function card_prototype() {
 							cardmenu.addline('Suspend ('+card.attrs.suspend_cost+')', card.suspend) ;
 						if ( iss(card.attrs.cycling) )
 							cardmenu.addline('Cycle ('+card.attrs.cycling+')',	card.cycle) ;
+						// Create living weapon token
+						if ( card.attrs.living_weapon )
+							cardmenu.addline('Living weapon ', function() {
+								this.changezone(this.owner.battlefield) ;
+								this.living_weapon() ;
+							}) ;
 					}
+
 					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
 				menu.addline() ;
@@ -1083,8 +1079,14 @@ function card_prototype() {
 		}
 		switch ( this.zone.type ) { // Specific actions depending on zone type
 			case 'battlefield' : // to a battlefield
-				if ( iss(this.attrs.ciptc) && eval(this.attrs.ciptc) ) // Condition for coming into play tapped
-					this.attrs.tapped = true ;
+				if ( this.attrs.tapped // Comes into play tapped
+					|| ( iss(this.attrs.ciptc) && eval(this.attrs.ciptc) ) // Condition for coming into play tapped
+				   )
+					this.tapped = true ;
+				else
+					this.tapped = false ;
+				this.attacking = false ;
+				this.attrs.damages = 0 ;
 				// Force xdest,ydest to enter in grid, as when moving to extremes, system may be thinking we are moving outside
 				xzone = max(xzone, 0) ;
 				xzone = min(xzone, bfcols-1) ;
@@ -1249,9 +1251,10 @@ function card_prototype() {
 			this.set_grid(xdest, ydest) ;
 			this.zone.grid[this.grid_x][this.grid_y] = this ; // Move
 			// Consider attached cards as being @ new pos
-			if ( this.attrs.attached )
-				for ( var i = 0 ; i < this.attrs.attached.length ; i++ )
-					this.attrs.attached[i].set_grid(xdest, ydest) ;
+			var attached = this.get_attached() ;
+			if ( attached != null )
+				for ( var i = 0 ; i < attached.length ; i++ )
+					attached[i].set_grid(xdest, ydest) ;
 			game.sound.play('click') ;
 		}
 		return result ;
@@ -1403,12 +1406,6 @@ function card_prototype() {
 				else 
 					this.untap_as_normal_once_recieve() ;
 			}
-		if ( typeof attrs.attachedto != 'undefined' ) {
-			var attachedto = get_card(attrs.attachedto) ;
-			if ( this.get_attachedto() != attachedto )
-				if ( attachedto != null )
-					attachedto.attach_recieve(this) ;
-		}
 		if ( typeof attrs.copy != 'undefined' )
 			if ( attrs.copy != this.attrs.copy ) {
 				if ( attrs.copy != null ) {
@@ -1420,6 +1417,13 @@ function card_prototype() {
 				} else
 					this.uncopy_recieve() ;
 			}
+		/* Legacy ones, currently managed by another way */
+		if ( typeof attrs.attachedto != 'undefined' ) {
+			var attachedto = get_card(attrs.attachedto) ;
+			if ( this.get_attachedto() != attachedto )
+				if ( attachedto != null )
+					attachedto.attach_recieve(this) ;
+		}
 		this.sync_attrs = clone(this.attrs) ;
 	}
 	this.has_attr = function(attr) {
@@ -2129,54 +2133,53 @@ function card_prototype() {
 	}
 	// Attach
 	this.get_attachedto = function() { // Returns the card which this is attached, or null
-		if ( iso(this.attrs.attachedto) )
-			return this.attrs.attachedto ;
+		if ( iso(this.attachedto) )
+			return this.attachedto ;
 		return null ;
 	}
 	this.get_attached = function() { // Returns an array of cards attached to this
-		if ( this.attrs.attached )
-			var result = this.attrs.attached ;
-		else
-			var result = new Array() ;
-		return result ;
+		if ( ! iso(this.attached) )
+			this.attached = new Array() ;
+		return this.attached ;
 	}
 	this.attach = function(dragcard) { // Attach dragcard to this
 		this.attach_recieve(dragcard) ;
-		dragcard.sync() ;
+		//dragcard.sync() ;
+		action_send('attach', {'card': dragcard.toString(), 'to': this.toString()}) ;
 	}
 	this.attach_recieve = function(attached) {
 		var attach_to = this ; // By default, attach to dropped card
-		while ( attach_to.attrs.attachedto != null ) // But if it is attached itself, attach to bottom attached card
-			attach_to = attach_to.attrs.attachedto ;
+		while ( attach_to.get_attachedto() != null ) // But if it is attached itself, attach to bottom attached card
+			attach_to = attach_to.get_attachedto() ;
 		if ( attach_to != attached ) {
-			var x = attached.grid_x ; // Back-up to place cards attached to attaching card
-			var y = attached.grid_y ;
 			if ( attach_to.zone != attached.zone ) // If attached from hand, library, grave ...
 				attached.changezone_recieve(attach_to.zone) ; // First move it to desired zone
 			attached.detach() ; // If attached, detached from where it is attached
+			while ( ( attached.get_attached() != null ) && ( attached.get_attached().length > 0 ) ) { // If attached has itself attached cards, detach those and replace them
+				var changeattach = attached.get_attached()[0] ;
+				changeattach.detach() ;
+				changeattach.place() ;
+			}
 			// Mark 'attached' as attached to 'attach_to'
-			attached.attrs.attachedto = attach_to ;
+			attached.attachedto = attach_to ;
 			attach_to.get_attached().push(attached) ;
+			// Clean
 			attached.clean_battlefield() ;
 			attached.set_grid(attach_to.grid_x, attach_to.grid_y) ;
 			attach_to.place_recieve(attach_to.grid_x, attach_to.grid_y) ; // Re place it where it already is, in order to place correctly all attached
-			message(attached.get_name()+' attached to '+attach_to.get_name(), 'note') ;
-			while ( attached.attrs.attached.length > 0 ) { // If attached has itself attached cards, detach those and replace them
-				var changeattach = attached.attrs.attached[0] ;
-				changeattach.detach() ;
-				changeattach.place(x, y) ;
-			}
 			attach_to.refreshpowthou() ;
-		}
+			message(attached.get_name()+' attached to '+attach_to.get_name(), 'note') ;
+		} else
+			log('Can\'t attach to itself') ;
 	}
 	this.detach = function() { // If this is attached to another, detach from it
 		var from = this.get_attachedto() ;
 		if ( from != null ) {
-			if ( ! iso(from.attrs.attached) )
+			var attached = from.get_attached()
+			if ( attached == null )
 				return false ;
-			var attached = from.attrs.attached ;
 			attached.splice(attached.indexOf(this), 1) ;
-			this.attrs.attachedto = null ;
+			this.attachedto = null ;
 			if ( ! this.zone.player.attrs.siding ) // No detach message during side
 				message(this.get_name()+' detached from '+from.get_name(), 'note') ;
 			from.place_recieve(from.grid_x, from.grid_y) ; // Refresh their position
@@ -2195,12 +2198,6 @@ function card_prototype() {
 	}
 	this.duplicate_recieve = function(id) {
 		var attrs = clone(this.attrs) ;
-		this.duplicate_attrs('cost', attrs) ;
-		//this.duplicate_attrs('color', attrs) ;
-		this.duplicate_attrs('converted_cost', attrs) ;
-		//this.duplicate_attrs('types', attrs) ;
-		//this.duplicate_attrs('subtypes', attrs) ;
-		this.duplicate_attrs('tokens', attrs) ;
 		this.duplicate_attrs('transformed_attrs', attrs) ;
 		var duplicate = new Token(id, this.ext, this.name, this.zone, attrs, this.imgurl_relative()) ;
 		duplicate.get_name = function() {
@@ -2212,7 +2209,10 @@ function card_prototype() {
 	// Copy (cloning effect)
 	this.copy = function() {
 		var tby = game.target.targetedby(this) ;
-		if ( this.copy_recieve(tby[0]) ) 
+		var tocopy = tby[0] ;
+		while ( iso(tocopy.attrs.copy) )
+			tocopy = tocopy.attrs.copy ;
+		if ( this.copy_recieve(tocopy) ) 
 			this.sync() ;
 	}
 	this.copy_recieve = function(card) {
@@ -2221,7 +2221,7 @@ function card_prototype() {
 			return false ;
 		}
 		message(this.get_name()+' becomes a copy of '+card.get_name()) ; // get it without "copy of ..." suffix
-		this.attrs = clone(card.attrs) ;
+		this.attrs = clone(card.orig_attrs) ;
 		this.attrs.copy = card ;
 		// Refresh data linked to attrs
 		this.refreshpowthou() ; // Own
@@ -2317,14 +2317,14 @@ function card_prototype() {
 		var i = 0 ;
 		while (this.controler.library.cards.length > i) {
 			var card = this.controler.library.cards[this.controler.library.cards.length-1-i++] ;
-			if ( ( ! card.is_land() ) && ( card.converted_cost < this.converted_cost ) ) {
+			if ( ( ! card.is_land() ) && ( card.attrs.converted_cost < this.attrs.converted_cost ) ) {
 				tobf.add(card) ;
 				break ;
 			} else
 				tobottom.add(card) ;
 		}
 		if ( tobf.cards.length != 1 )
-			message('Nothing to cascade under '+this.converted_cost) ;
+			message('Nothing to cascade under '+this.attrs.converted_cost) ;
 		else
 			tobf.changezone(this.controler.battlefield) ;
 		if ( tobottom.cards.length > 0 ) {
@@ -2332,6 +2332,11 @@ function card_prototype() {
 			tobottom.changezone(this.controler.exile) ;
 			tobottom.changezone(this.controler.library, null, 0) ;
 		}
+	}
+	this.living_weapon = function() {
+		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
+			tk.attach(lw) ;
+		}, this) ;
 	}
 }
 function refresh_cards_in_zone(zone) {

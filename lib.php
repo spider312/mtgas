@@ -2,7 +2,7 @@
 // Includes
 include_once 'includes/lib.php' ;
 // Default menu entries
-menu_add('Chat', 'http://tchat.rs2i.net/?chan=mtg&soft=qwebirc', 'Meet other players') ;
+menu_add('Chat', 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', 'Meet other players') ;
 menu_add('Forum', 'http://forum.mogg.fr', 'Discuss the game, help improve it') ;
 //menu_add('Blog', 'http://blog.mogg.fr', 'Keep yourself informed about Mogg\'s evolution') ;
 menu_add('Top players', '/top.php', 'Player rankings based on games played and won, for various periods') ;

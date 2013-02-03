@@ -105,6 +105,8 @@ a:hover {
 }
 #identity_shower img {
 	vertical-align: middle ;
+	height: 30px ;
+	border: 1px solid red ;
 }
 /***************************
  * General purpose classes *
@@ -122,6 +124,9 @@ a:hover {
 }
 .overscroll {
 	overflow: auto ;
+}
+.hidden {
+	display: none ;
 }
 /*
 

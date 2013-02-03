@@ -12,14 +12,8 @@ html_head(
 		, 'admin.css'
 	)
 ) ;
-$url = param($_GET, 'url', '/home/hosted/mogg/img/HIRES/'/*$cardimages_default*/) ;
+$url = param($_GET, 'url', '/home/hosted/mogg/img/HIRES/') ;
 $repair = param($_GET, 'repair', '') ;
-/*
-$content = file_get_contents($url.'/cardlist.php') ;
-$exts = json_decode($content) ;
-if ( $exts == NULL )
-	die(json_verbose_error(json_last_error())) ;
- */
 function scan($dir) {
 	if ( is_dir($dir) ) {
 		$result = array() ;
@@ -31,6 +25,8 @@ function scan($dir) {
 	return $result ;
 }
 $exts = scan($url) ;
+unset($exts['TK']) ; // Don't compre Tokens
+unset($exts['back.jpg']) ;
 ?>
  <body>
 <?php

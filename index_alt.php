@@ -2,10 +2,7 @@
 include 'lib.php' ;
 html_head(
 	'Main page',
-	array(
-		'style.css'
-		, 'index.css'
-	),
+	array('../../../bootstrap/css/bootstrap.min.css', 'index_alt.css'),
 	array(
 		'lib/jquery.js'
 		, 'lib/jquery.cookie.js'
@@ -15,6 +12,7 @@ html_head(
 		, 'index.js'
 		, 'math.js'
 		, 'tournament/lib.js'
+//		, '../bootstrap/js/bootstrap.min.js'
 	), 
 	array(
 		'Canceled tournaments' => 'rss/tournaments.php?status=0', 
@@ -29,7 +27,7 @@ html_head(
   <div id="firstvisit">
    <div class="section">
     <form id="choose_nick">
-     <h1>Identity</h1>
+     <h2>Identity</h2>
      <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
      <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
       Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
@@ -41,7 +39,8 @@ html_head(
    </div>
   </div>
 <?php
-html_menu() ;
+bootstrap_menu() ;
+/*
 include 'includes/Browser.php' ;
 $browser = new Browser();
 if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVersion() < 5 ) ) {
@@ -52,25 +51,26 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
   </div>
 <?php
 }
+ */
 ?>
-
-  <div id="left_col">
+  <div class="container">
+  <div class="row-fluid">
+  <div id="left_col" class="span6">
    <div id="games" class="section">
-    <h1>Duels</h1>
-    <h2>Create</h2>
+    <h2>Duels</h2>
+    <h3>Create</h3>
     <form id="game_create" action="json/game_create.php" method="post"><?/* method=post because of amount of data contained in a deckfile */ ?>
      <input id="creator_nick" type="hidden" name="nick" value="">
      <input id="creator_avatar" type="hidden" name="avatar" value="">
      <input id="creator_deck" type="hidden" name="deck" value="">
-     <label title="Game's name">
-      Name : 
-      <input id="game_name" type="text" name="name" placeholder="Game's name" size="64" title="Please specify type, rules applied">
-      <input class="create" type="submit" value="Create" accesskey="c" title="Create game">
-     </label>
+     <div class="input-append">
+      <input id="game_name" type="text" name="name" placeholder="Game's name" size="64" title="Please specify format and all other deck restriction or rule you want to apply (tier1, casual, 2/3, sideboard, etc.)" required>
+      <button class="btn" type="submit" title="Create game">Create</button>
+     </div>
     </form>
 
-    <h2>Join</h2>
-    <table id="games_list">
+    <h3>Join</h3>
+    <table id="games_list" class="table table-condensed table-hover">
      <thead>
       <tr>
        <td>ID</td>
@@ -92,8 +92,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      </tbody>
     </table>
 
-    <h2>View</h2>
-     <table id="running_games_list">
+    <h3>View</h3>
+     <table id="running_games_list" class="table table-condensed table-hover">
       <thead>
        <tr>
         <td>Game name</td>
@@ -118,38 +118,55 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
    </div><!-- id="games" -->
 
    <div id="tournaments" class="section">
-    <h1>Tournaments</h1>
-    <h2>Create</h2>
-    <form id="tournament_create" action="tournament/json/create.php" method="post">
-     <label title="Tournament's format">Format : 
-      <select id="tournament_type" name="type">
-      <optgroup label="Limited">
-        <option value="draft">Draft</option>
-        <option value="sealed">Sealed</option>
-       </optgroup>
-       <optgroup label="Constructed">
-        <option value="vintage">Vintage (T1)</option>
-        <option value="legacy">Legacy (T1.5)</option>
-        <option value="extended">Extended (T1.X)</option>
-        <option value="standard">Standard (T2)</option>
-        <option value="edh">EDH</option>
-       </optgroup>
-      </select>
-     </label>
-     <label title="Tournament's name">Name : 
-      <input type="text" id="tournament_name" name="name" placeholder="Tournament's name" size="64">
-     </label>
-     <label title="Number of players">Players : 
-      <input type="text" id="tournament_players" name="players" value="2" size="2" maxlength="2">
-     </label>
+    <h2>Tournaments</h2>
+    <h3>Create</h3>
+    <form id="tournament_create" action="tournament/json/create.php" method="post" class="form-horizontal">
+     <div class="control-group"><?php // Format ?>
+      <label for="tournament_type" class="control-label" title="Tournament's format">Format</label>
+      <div class="controls">
+       <select id="tournament_type" name="type">
+        <optgroup label="Limited">
+         <option value="draft">Draft</option>
+         <option value="sealed">Sealed</option>
+        </optgroup>
+        <optgroup label="Constructed">
+         <option value="vintage">Vintage (T1)</option>
+         <option value="legacy">Legacy (T1.5)</option>
+         <option value="extended">Extended (T1.X)</option>
+         <option value="standard">Standard (T2)</option>
+         <option value="edh">EDH</option>
+        </optgroup>
+       </select>
+      </div>
+     </div>
+     <div class="control-group"><?php // Name ?>
+      <label for="tournament_name" class="control-label" title="Tournament's name">Name</label>
+      <div class="controls">
+       <input type="text" id="tournament_name" name="name" placeholder="Tournament's name" size="64" required>
+      </div>
+     </div>
+     <div class="control-group"><?php // Number of players ?>
+      <label for="" class="control-label" title="Number of players">Players</label>
+      <div class="controls">
+       <input type="number" id="tournament_players" name="players" value="2" size="2" maxlength="2" required>
+      </div>
+     </div>
      <div id="limited">
-      <label id="tournament_suggestions_label" title="Classical suggestions for tournament's boosters">Boosters suggestions : 
+     <div class="control-group"><?php // Booster suggestgions ?>
+      <label id="tournament_suggestions_label" for="tournament_suggestions" class="control-label" title="Classical suggestions for tournament's boosters">Boosters suggestions</label>
+      <div class="controls">
        <select id="tournament_suggestions"></select>
-      </label>
-      <label id="tournament_boosters_label" title="Tournament's boosters">Boosters for tournament : 
-       <input type="text" id="tournament_boosters" name="boosters" value="" maxlength="128">
-       <input type="button" id="boosters_reset" value="Reset">
-      </label>
+      </div>
+     </div>
+      <div class="control-group"><?php // Boosters ?>
+       <label id="tournament_boosters_label" for="tournament_boosters" class="control-label" title="Tournament's boosters">Boosters for tournament</label>
+       <div class="controls">
+        <div class="input-append">
+         <input type="text" id="tournament_boosters" name="boosters" value="" maxlength="128">
+         <button type="button" id="boosters_reset" class="btn">Reset</button>
+        </div>
+       </div>
+      </div>
       <label id="booster_suggestions_label" title="Add one booster by selecting it in list">Custom booster : 
        <select id="booster_suggestions">
         <option disabled="disabled">Waiting for list</option>
@@ -174,8 +191,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      <input class="create" type="submit" value="Create">
     </form>
 
-    <h2>Join</h2>
-     <table id="tournament_list">
+    <h3>Join</h3>
+     <table id="tournament_list" class="table">
       <thead>
        <tr>
         <td>ID</td>
@@ -198,8 +215,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       </tbody>
      </table>
 
-    <h2>View</h2>
-     <table id="running_tournament_list">
+    <h3>View</h3>
+     <table id="running_tournament_list" class="table">
       <thead>
        <tr>
         <td>Type</td>
@@ -224,12 +241,12 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
    </div><!-- id="tournaments" -->
   </div><!-- id="left_col" -->
 
-  <div id="right_col">
+  <div id="right_col" class="span6">
    <div id="profile" class="section">
    <!--div id="decks" class="section" -->
-    <h1>Decks</h1>
+    <h2>Decks</h2>
     <!-- preloaded deck list -->
-    <table id="decks_table">
+    <table id="decks_table" class="table table-condensed">
      <thead>
       <tr>
        <th>Name</th>
@@ -277,7 +294,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
     <div>You may want to download some <a href="decks/preconstructed/" target="_blank">preconstructed decks</a> (right click on one, "copy link", paste in "download" form)</div>
    <!--/div--><!-- id="decks" -->
 
-    <h1>Profile</h1>
+    <h2>Profile</h2>
 <?php
 html_options() ;
 ?>
@@ -301,7 +318,7 @@ if (is_dir($dir)) {
      </select>
     </label>
 
-    <h2>Server-side profile</h2>
+    <h3>Server-side profile</h3>
 <?php
 if ( array_key_exists('login', $_SESSION) && array_key_exists('password', $_SESSION) ) {
 	$email = $_SESSION['login'] ;
@@ -331,7 +348,7 @@ if ( $nb == 1 ) {
 }
 ?>
 
-    <h2>Local profile</h2>
+    <h3>Local profile</h3>
     <form id="backup" action="download_file.php" method="post" title="Downloads a profile file, that can be restored on another mtgas (nick, avatars, decks, tokens ...)">
      <input type="hidden" id="profile_filename" name="name" value="">
      <input type="hidden" id="profile_content" name="content" value="">
@@ -344,6 +361,7 @@ if ( $nb == 1 ) {
     <button id="clear" title="Erase all mtgas-related informations from your browser">Clear profile</button>
    </div><!-- id="profile" -->
   </div><!-- id="right_col" -->
+  </div><!-- class="row-fluid -->
 
   <!-- Goldfish hidden form -->
   <form id="goldfish" action="goldfish.php" method="post">
@@ -354,6 +372,9 @@ if ( $nb == 1 ) {
    <input id="goldfish_avatar" type="hidden" name="goldfish_avatar" value="themes/<?php echo $theme ; ?>/goldfish.png">
    <input id="goldfish_deck" type="hidden" name="goldfish_deck" value="">
   </form>
+
+
+  </div><!--class="container"-->
   
   <div id="footer" class="section">Website running MTGAS developpement version, hosted by <a href="mailto:mtg@spiderou.net">SpideR</a></div>
 <?php

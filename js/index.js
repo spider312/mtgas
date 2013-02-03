@@ -305,7 +305,7 @@ $(function() { // On page load
 function update_identity_shower() {
 	node_empty(is) ;
 	var img = create_img(localStorage['profile_avatar'])
-	img.height = 30 ;
+	//img.height = 30 ;
 	is.appendChild(img) ;
 	is.appendChild(create_text(localStorage['profile_nick'])) ;
 }
@@ -593,32 +593,40 @@ function save_tournament_boosters(boosters) { // When saving tournament boosters
 }
 function tournament_boosters(type) {
 	var boosters = document.getElementById('tournament_boosters') ;
-	var boosters_label = document.getElementById('tournament_boosters_label') ;
 	var suggestions = document.getElementById('tournament_suggestions') ;
-	var suggestions_label = document.getElementById('tournament_suggestions_label') ;
-	var booster_label = document.getElementById('booster_suggestions_label') ;
+	//var boosters_label = document.getElementById('tournament_boosters_label') ;
+	//var suggestions_label = document.getElementById('tournament_suggestions_label') ;
+	//var booster_label = document.getElementById('booster_suggestions_label') ;
+	var limited_div = document.getElementById('limited') ;
 	switch ( type ) {
 		case 0 : // Draft
+			limited_div.classList.remove('hidden') ;
 			boosters.value = localStorage.draft_boosters ;
 			boosters.size = 25 ;
 			content = draft_formats ;
 			break ;
 		case 1 : // Sealed
+			limited_div.classList.remove('hidden') ;
 			boosters.value = localStorage.sealed_boosters ;
 			boosters.size = 50 ;
 			content = sealed_formats
 			break ;
 		default : // Constructed
+			limited_div.classList.add('hidden') ;
+			/*
 			boosters_label.style.display = 'none' ;
 			suggestions_label.style.display = 'none' ;
 			booster_label.style.display = 'none' ;
 			boosters.value = '' ;
+			*/
 			return null ; // Next code is only executed for limited (boosters management)
 	}
 	// Fill boosters suggestions list
+	/*
 	boosters_label.style.display = '' ;
 	booster_label.style.display = '' ;
 	suggestions_label.style.display = '' ;
+	*/
 	var set = false ;
 		// Empty
 	while ( suggestions.options.length > 0 )

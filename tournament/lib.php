@@ -126,6 +126,7 @@ function registration_get($id=0, $player_id='') {
 		return null ;
 }
 function tournament_start($tournament) {
+	sleep(2) ;
 	$players = tournament_playing_players($tournament) ;
 	$data = json_decode($tournament->data) ;
 	$duration = $data->rounds_duration ;

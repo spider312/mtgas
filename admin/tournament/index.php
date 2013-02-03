@@ -54,7 +54,7 @@ if ( $data->rounds_duration != $round_duration / 60 )
 $r = query_as_array("SELECT * FROM `registration` WHERE `tournament_id` = '$id'  ;") ;
 $registrations = array() ;
 foreach ( $r as $registration ) {
-	$registrations[$registration->id] = $r ;
+	$registrations[$registration->player_id] = $r ;
 	if ( substr($registration->avatar, 0, 6) != 'http://' )
 		$registration->avatar = '../../'.$registration->avatar ;
 	echo '    <li><img src="'.$registration->avatar.'">'.$registration->nick.'</li>' ;
@@ -83,7 +83,10 @@ foreach ( $l as $log ) {
 		$sender = $registrations[$log->sender][0]->nick ;
 	else
 		$sender = 'server' ;
-	echo '    <li>'.$sender.' : '.$log->type.' : '.$log->value.'</li>'."\n" ;
+	echo '    <li>'.$sender.' : '.$log->type ; 
+	if ( ! empty($log->value) )
+		echo ' : '.$log->value ;
+	echo '</li>'."\n" ;
 }
 ?>
    </ul>

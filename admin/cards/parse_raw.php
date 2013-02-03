@@ -47,7 +47,10 @@ if ( array_key_exists('file', $_GET) ) {
 			$ext_id = mysql_insert_id() ;
 		}
 		for ( $i = 0 ; $i < count($cards) ; $i++ ) {
-			$name = mysql_real_escape_string(trim($cards[$i])) ;
+			$name = trim($cards[$i]) ;
+			$name = str_replace('’', "'", $name) ;
+			$name = str_replace('//', " / ", $name) ;
+			$name = mysql_real_escape_string($name) ;
 			$log = '<tr title="'.$name.'">' ;
 			$log = '<td>'.$name.'</td>' ;
 			$qs = query("SELECT id FROM card WHERE `name` = '$name'") ;

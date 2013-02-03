@@ -129,15 +129,16 @@ function VisibleZone(player, type) {
 		// Loop unattached cards
 		for ( var i = this.cards.length ; i > 0 ; i-- ) {
 			var card = this.cards[i-1] ;
-			if ( card.attrs.attachedto == null ) {
+			if ( card.get_attachedto() == null ) {
 				if ( dot_in_rect(new dot(ev.clientX, ev.clientY), card.rect()) )
 					return card ;
 				// Loop its attached
-				if ( iso(card.attrs) && iso(card.attrs.attached) )
-					for ( var j = 0 ; j < card.attrs.attached.length ; j++ ) {
-						var attached = card.attrs.attached[j] ;
-						if (dot_in_rect(new dot(ev.clientX, ev.clientY), attached.rect()) )
-							return attached ;
+				var attached = card.get_attached()
+				if ( attached != null )
+					for ( var j = 0 ; j < attached.length ; j++ ) {
+						var a = attached[j] ;
+						if (dot_in_rect(new dot(ev.clientX, ev.clientY), a.rect()) )
+							return a ;
 					}
 			}
 				
@@ -477,7 +478,7 @@ function graveyard(player) {
 						l.moimg = card.imgurl() ;
 					}
 					if ( isb(card.attrs.retrace) && card.attrs.retrace ) {
-						var l = retracesubmenu.addline(card.name+' ('+card.cost+')', card.changezone, this.player.battlefield) ;
+						var l = retracesubmenu.addline(card.name+' ('+card.attrs.cost+')', card.changezone, this.player.battlefield) ;
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
@@ -798,7 +799,8 @@ function battlefield(player) {
 	mybf.parent_mousemove = mybf.mousemove ;
 	mybf.mousemove = function(ev) {
 		this.parent_mousemove(ev) ;
-		draw() ;
+		if ( game.drag != null )
+			draw() ; // Refresh permanent counter
 	}
 	mybf.menu = function(ev) {
 		var mybf = this ;
@@ -908,7 +910,7 @@ function battlefield(player) {
 		// Cards
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.attrs.attachedto == null ) // All cards attached to nothing
+			if ( card.get_attachedto() == null ) // All cards attached to nothing
 				card.draw(context) ;
 		}
 	}
@@ -919,7 +921,7 @@ function battlefield(player) {
 			this.refresh_card(this.cards[i]) ;
 	}
 	mybf.refresh_card = function(card) { // Refresh one cards in zone
-		if ( card.attrs.attachedto == null ) { // Refresh all cards attached to nothing
+		if ( card.get_attachedto() == null ) { // Refresh all cards attached to nothing
 			if ( card.zone.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
 				var equip_offset = -10 ; // Invert equip offset
 			else
@@ -953,7 +955,7 @@ function battlefield(player) {
 		this.gridinit() ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.attrs.attachedto == null )
+			if ( card.get_attachedto() == null )
 				card.place(0, card.place_row()) ;
 		}
 		this.refresh() ;
@@ -1012,7 +1014,7 @@ function battlefield(player) {
 		var pos = this.grid_at(ev.clientX, ev.clientY) ;
 		for ( var i in this.cards ) {
 			var card = this.cards[i] ;
-			if ( between(pos.y, card.grid_y-1, card.grid_y+1) && ( card.attrs.attachedto == null ) )
+			if ( between(pos.y, card.grid_y-1, card.grid_y+1) && ( card.get_attachedto() == null ) )
 				game.selected.add(card) ;
 		}
 	}
@@ -1327,7 +1329,7 @@ function Life(player) {
 function creatures_deal_dmg(player) { // Each player's attacking creatures fights each creature blocking it
 	for ( var i in player.battlefield.cards ) { // Each attacker will be solved individually (won't manage correctly creatures blocking multiple attackers)
 		var card = player.battlefield.cards[i] ;
-		if ( card.attrs.attacking ) { // Attacking creatures
+		if ( card.attacking ) { // Attacking creatures
 			var pow = card.get_pow_total() ;
 			if ( card.has_attr('double_strike') )
 				pow *= 2 ;
@@ -1362,7 +1364,7 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 	if ( game.turn.current_player == attacking_player ) { // Changing life for defending player
 		for ( var i in attacking_player.battlefield.cards ) { // Sum
 			var card = attacking_player.battlefield.cards[i] ;
-			if ( card.attrs.attacking ) { // Attacking creatures
+			if ( card.attacking ) { // Attacking creatures
 				var pow = card.get_pow_total() ;
 				if ( card.has_attr('double_strike') )
 					pow *= 2 ;
@@ -1387,7 +1389,7 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 	} else { // Changing life for attacking player
 		for ( var i in defending_player.battlefield.cards ) { // Sum
 			var card = defending_player.battlefield.cards[i] ;
-			if ( card.attrs.attacking && // Attacking creatures
+			if ( card.attacking && // Attacking creatures
 			card.has_attr('lifelink') ) { // With lifelink's
 				var pow = card.get_pow_total() ;
 				if ( card.attrs.double_strike )

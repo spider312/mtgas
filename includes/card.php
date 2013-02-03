@@ -204,74 +204,6 @@ class attrs {
 					if ( $i = array_search($matches[1], $colornames) )
 						$this->color = $i ;
 				}
-				/*
-				$cost = stripslashes($arr['cost']) ;
-				//$cost = preg_replace('/\{(.)P\}/', '$1', $cost, -1, $n) ; // Phyrexian mana // Managed at the end of cost management				
-				// Phyrexian mana, after colors & converted has been managed
-				$cost = preg_replace('/\{WP\}/', 'Z', $cost, -1, $n) ; // White
-				$cost = preg_replace('/\{UP\}/', 'Y', $cost, -1, $n) ; // Blue
-				$cost = preg_replace('/\{BP\}/', 'E', $cost, -1, $n) ; // Black
-				$cost = preg_replace('/\{RP\}/', 'T', $cost, -1, $n) ; // Red
-				$cost = preg_replace('/\{GP\}/', 'H', $cost, -1, $n) ; // Green
-				$this->cost = $cost ;
-				$colors = array('W', 'U', 'B', 'R', 'G') ;
-				$hybrids = array(
-					'Q' => 'BG', 
-					'A' => 'GW', 
-					'P' => 'RW', 
-					'V' => 'UB', 
-					'L' => 'RG', 
-					'I' => 'UR', 
-					'O' => 'WB', 
-					'K' => 'BR', 
-					'S' => 'GU', 
-					'D' => 'WU', 
-				) ;
-				$phyrexian = array(
-					'W' => 'Z',
-					'U' => 'Y',
-					'B' => 'E',
-					'R' => 'T',
-					'G' => 'H'
-				) ;
-				if ( preg_match('`'.$arr['name'].' is ('.implode('|', $colornames).')`', $arr['text'], $matches) ) { // Color is indicated in card text
-					if ( $i = array_search($matches[1], $colornames) )
-						$this->color = $i ;
-				} else { // Color not in text, get it from manacost
-					$this->color = '' ;
-					foreach ( $colors as $color )
-						if ( strpos($this->cost, $color) !== false ) 
-							$this->color .= $color ;
-						else
-							foreach ( $hybrids as $hybrid => $equivalent )
-								if ( ( strpos($this->cost, $hybrid) !== false ) && ( strpos($equivalent, $color) !== false ) ) {
-									$this->color .= $color ;
-									break ; // One color is found, stop. different hybrids in cost should result in double color affectation otherwise
-								}
-					foreach ( $phyrexian as $orig => $color )
-						if ( strpos($this->cost, $color) !== false ) 
-							$this->color .= $orig ;
-					if ( $this->color == '' )
-						$this->color = 'X' ;
-				}
-				// Cut cost to determine converted cost
-				$this->converted_cost = '' ;
-				$cost = $this->cost ;
-				$cost = preg_replace('/\(2\/.\)/', '', $cost, -1, $n) ; // Hybrid uncolored/colored, CC = 2
-				$this->converted_cost += $n*2 ;
-				$cost = preg_replace('/\(.\/.\)/', '', $cost, -1, $n) ; // Hybrid colored/colored, CC = 1
-				$this->converted_cost += $n ;
-				$cost = preg_replace('/X/', '', $cost) ; // X, CC = 0
-				foreach ( $colors as $color ) { // Each color
-					$cost = preg_replace('/'.$color.'/', '', $cost, -1, $n) ; // CC = 1
-					$this->converted_cost += $n ;
-				}
-				foreach ( $hybrids as $hybrid => $equivalent ) {
-					$cost = preg_replace('/'.$hybrid.'/', '', $cost, -1, $n) ; // CC = 1
-					$this->converted_cost += $n ;
-				}
-				$this->converted_cost += intval($cost) ; // The rest is uncolored mana
-				*/
 			} else
 				die('No cost in array : '.$arr['name']) ;
 			// Types
@@ -308,8 +240,36 @@ class attrs {
 						echo 'No text for transformed '.$arr['name'].'('.$transform->name.')<br>' ;
 					$this->transformed_attrs = $transform ;
 				}
-				else
-					manage_all_text($arr['name'], $arr['text'], $this) ;
+				else {
+					// Dual / Flip
+					$pieces = explode("\n----\n", $arr['text']) ;
+					if ( count($pieces) > 1 ) {
+						manage_all_text($arr['name'], $pieces[0], $this) ;
+						$matches = explode("\n", $pieces[1]) ;
+						if ( strpos($arr['name'], '/') === false ) { // No "/" in name, it's a flip
+							$flip = new simple_object() ;
+							if ( count($matches) > 0 )
+								manage_types(array_shift($matches), $flip) ;
+							$this->flip = $flip ;
+							manage_all_text($arr['name'], implode("\n", $matches), $flip) ;
+						} else { // "/" in name, it's a dual
+							$dual = new simple_object() ;
+							if ( count($matches) > 0 )
+								$dual->manas = cost_explode(array_shift($matches)) ;
+							if ( count($matches) > 0 )
+								manage_types(array_shift($matches), $dual) ;
+							$this->dual = $dual ;
+							manage_all_text($arr['name'], implode("\n", $matches), $this) ;
+							// Apply colors to initial card
+							foreach ( $dual->manas as $mana ) // mana symbols
+								if ( ! isint($mana) ) // Is a mana
+									if ( $mana != 'X' ) // X is worth 0 and no color
+										$this->add_color($mana) ;
+
+						}
+					} else
+						manage_all_text($arr['name'], $arr['text'], $this) ;
+				}
 			} else
 				die('No text in array : '.$arr['name']) ;
 		}

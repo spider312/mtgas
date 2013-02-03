@@ -30,10 +30,11 @@ foreach ( $t as $tournament ) {
 	$players = tournament_all_players($tournament) ;
 	if ( count($players) < 1 )
 		continue ;
-	echo '<br>'.$tournament->id.' : '.count($players).' players' ;
+	echo $tournament->id.' : '.count($players).' players' ;
 	$round = 1 ;
 	$data = json_decode($tournament->data) ;
 	unset($data->results) ; // Will be recomputed
+	$data->results = NULL ;
 	// Re-compute rounds data
 	do {
 		$rdata = query_as_array("SELECT `id`, `creator_id`, `creator_score`, `joiner_id`, `joiner_score` FROM `round`
@@ -43,8 +44,10 @@ foreach ( $t as $tournament ) {
 		$round++ ;
 	} while ( count($rdata) > 0 ) ;
 	echo ', '.count($data->results).' rounds' ;
-	if ( count($data->results) < 1 ) // Can't compute scores without rounds
+	if ( count($data->results) < 1 ) { // Can't compute scores without rounds
+		echo ' : aborting<br>'."\n" ;
 		continue ;
+	}
 	unset($data->score) ;
 	// Define players scores and tie breakers
 	foreach ( $players as $player ) { // First loop to update all players scores
@@ -64,6 +67,7 @@ foreach ( $t as $tournament ) {
 	query("UPDATE `tournament` SET
 		`data` = '".mysql_real_escape_string(json_encode($data))."'
 	WHERE `id` = '".$tournament->id."' ; ") ;
+	echo ' : recomputed<br>'."\n" ;
 }
 ?>
   </pre>

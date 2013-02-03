@@ -337,6 +337,12 @@ function manage_action(action) {
 		case 'animate' :
 			param.card.animate_recieve(param.attrs) ;
 			break ;
+		case 'attach' :
+			var attachedto = get_card(param.to) ;
+			if ( param.card.get_attachedto() != attachedto )
+				if ( attachedto != null )
+					attachedto.attach_recieve(param.card) ;
+			break ;
 		default : 
 			log('Unknown action type : '+action.type) ;
 	}

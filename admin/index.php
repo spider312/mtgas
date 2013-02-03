@@ -19,16 +19,32 @@ html_menu() ;
 ?>
   <div class="section">
    <h1>Tournaments</h1>
+   <h2>Current</h2>
    <ul>
 <?php
-$t = query_as_array("SELECT `id`, `name` FROM `tournament` WHERE `status` > 1 AND `status` < 6 ;", 'tournament list', $mysql_connection) ;
+$t = query_as_array("SELECT `id`, `name` FROM `tournament` WHERE `status` > 0 AND `status` < 6 ;", 'tournament list', $mysql_connection) ;
 if ( count($t) == 0 )
 	echo '    <li>No running tournament</li>' ;
 foreach ( $t as $tournament )
 	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->name.'</a></li>'
 ?>
    </ul>
-   <li><a href="recompute_tournaments.php">Recompute</a></li>
+   
+   <h2>Previous</h2>
+   <ul>
+<?php
+$t = query_as_array("SELECT `id`, `name`, `creation_date` FROM `tournament` WHERE `status` = 0 OR `status` > 5 ORDER BY `creation_date` DESC LIMIT 0, 10 ;", 'tournament list', $mysql_connection) ;
+if ( count($t) == 0 )
+	echo '    <li>No previous tournament</li>' ;
+foreach ( $t as $tournament )
+	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->creation_date.' : '.$tournament->name.'</a></li>'
+?>
+   </ul>
+   
+   <h2>Administrative tasks</h2>
+   <ul>
+    <li><a href="recompute_tournaments.php">Recompute scores</a></li>
+   </ul>
   </div>
 
   <div class="section">

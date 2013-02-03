@@ -261,7 +261,7 @@ function Selection() {
 		var sel_a = new Selection() ; // Cards that will attack (creatures, not already attacking)
 		if ( ! iso(refcard) )
 			refcard = this.cards[0] ;
-		var tapping = ! ( refcard.attrs.tapped || refcard.attrs.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
+		var tapping = ! ( refcard.tapped || refcard.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
 			if ( card.is_creature() ) // Creatures attack
@@ -280,10 +280,10 @@ function Selection() {
 		var sel_t = new Selection() ; // Cards that will be [un]tapped (all except creatures with vigilance, except if untapping)
 		if ( ! iso(refcard) )
 			refcard = this.cards[0] ;
-		var tapping = ! ( refcard.attrs.tapped || refcard.attrs.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
+		var tapping = ! ( refcard.tapped || refcard.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.is_creature() && ( card.attrs.attacking != tapping ) ) // Creatures attack
+			if ( card.is_creature() && ( card.attacking != tapping ) ) // Creatures attack
 				sel_a.add(card) ;
 			if ( ( ! card.has_attr('vigilance') ) || ( ! tapping ) ) // All cards except vigilance creatures taps, except when untapping
 				sel_t.add(card) ;
@@ -302,7 +302,7 @@ function Selection() {
 		if ( ( this.cards.length < 1 ) || ( this.zone.type != 'battlefield' ) )
 			return false ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
-			this.cards[i].attrs.attacking = b ;
+			this.cards[i].attacking = b ;
 		this.refresh('attacking') ;
 		if ( ! silent )  {
 			if ( b )
@@ -329,7 +329,7 @@ function Selection() {
 			return false ;
 		b = ( b == true ) ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
-			this.cards[i].attrs.tapped = b ;
+			this.cards[i].tapped = b ;
 		if ( b )
 			var action = 'taps' ;
 		else

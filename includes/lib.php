@@ -1,4 +1,5 @@
 <?php
+// Params management
 function param_or_die($arr, $param, $name=null) {
 	if ( $name == null )
 		$name = $param ;
@@ -17,31 +18,32 @@ function message($txt='no text to send') {
 	$_SESSION['messages'][] = $txt ;
 }
 // Object
-function obj_compare($a, $b) {
+function object() {
+	return new simple_object() ;
+}
+class simple_object {
+	function __construct() {
+	}
+}
+function obj_compare($a, $b) { // Returns if $a has exactly the same structure and values as $b
 	if ( gettype($a) != gettype($b) )
 		return false ;
 	switch ( gettype($a) ) {
 		case 'object' :
-			foreach ( $a as $k => $v ) {
-				if ( ! isset($b->$k) || ( $b->$k != $v ) ) {
+			foreach ( $a as $k => $v )
+				if ( ! isset($b->$k) || ( $b->$k != $v ) )
 					return false ;
-				}
-			}
-			foreach ( $b as $k => $v ) {
-				if ( ! isset($a->$k) ) {
+			foreach ( $b as $k => $v )
+				if ( ! isset($a->$k) )
 					return false ;
-				}
-			}
 			return true ;
 			break ;
-		//case 'array' :
-		//	break ;
 		default :
 			return ( $a == $b ) ;
 	}
 	die('obj_compare') ;
 }
-function arr_diff($new, $old) {
+function arr_diff($new, $old) { // Returns $new without values that didn't changed from $old
 	$result = array() ;
 	foreach ( $new as $key => $value ) { // Each value to search
 		foreach ( $old as $k => $v ) { // Search in old
@@ -75,13 +77,6 @@ function obj_diff($new, $old) { // Returns only properties that changed between 
 	}
 	return $result ;
 }
-function object() {
-	return new simple_object() ;
-}
-class simple_object {
-	function __construct() {
-	}
-}
 // Numbers
 function addOrdinalNumberSuffix($num) {
 	if ( ! in_array(($num % 100), array(11,12,13)) ) {
@@ -101,30 +96,46 @@ function human_filesize($bytes, $decimals = 2) {
 }
 // HTML
 function add_css($args) {
-	global $theme ;
-	foreach ( $args as $arg ) { /*func_get_args()*/
-		if ( substr($arg, 0, 4) != 'http' )
-			$prefix = '/themes/'.$theme.'/css/' ;
-		else
-			$prefix = '' ;
-		echo '  <link type="text/css" rel="stylesheet" href="'.$prefix.$arg.'">'."\n" ;
+	if ( count($args) > 0 ) {
+		global $theme ;
+		echo '  <!-- CSS -->'."\n" ;
+		//echo '  <link type="text/css" rel="stylesheet" href="bootstrap/css/bootstrap.min.css">'."\n" ;
+		foreach ( $args as $arg ) { /*func_get_args()*/
+			if ( substr($arg, 0, 4) != 'http' )
+				$prefix = '/themes/'.$theme.'/css/' ;
+			else
+				$prefix = '' ;
+			echo '  <link type="text/css" rel="stylesheet" href="'.$prefix.$arg.'">'."\n" ;
+		}
+		echo '  <!-- /CSS -->'."\n" ;
+	}
+}
+function add_js($args) {
+	if ( count($args) > 0 ) {
+		echo '  <!-- JS -->'."\n" ;
+		//echo '  <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>'."\n" ;
+		foreach ( $args as $arg ) {
+			if ( substr($arg, 0, 4) != 'http' )
+				$prefix = '/js/' ;
+			else
+				$prefix = '' ;
+			echo '  <script type="text/javascript" src="'.$prefix.$arg.'"></script>'."\n" ;
+		}
+		echo '  <!-- /JS -->'."\n" ;
 	}
 }
 function add_rss($args) {
-	foreach ( $args as $title => $feed )
-		echo '  <link type="application/rss+xml" rel="alternate" title="'.$title.'" href="'.$feed.'">'."\n" ;
-}
-function add_js($args) {
-	foreach ( $args as $arg ) {
-		if ( substr($arg, 0, 4) != 'http' )
-			$prefix = '/js/' ;
-		else
-			$prefix = '' ;
-		echo '  <script type="text/javascript" src="'.$prefix.$arg.'"></script>'."\n" ;
+	if ( count($args) > 0 ) {
+		echo '  <!-- RSS -->'."\n" ;
+		foreach ( $args as $title => $feed )
+			echo '  <link type="application/rss+xml" rel="alternate" title="'.$title.'" href="'.$feed.'">'."\n" ;
+		echo '  <!-- /RSS -->'."\n" ;
 	}
 }
 function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
 	global $appname, $theme ;
+	//if ( ! in_array('style.css', $css) )
+	//	array_unshift($css, 'style.css') ;
 	echo '<!DOCTYPE html>
 <html>
  <head>
@@ -132,21 +143,52 @@ function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
   <title>'.$appname.' : '.$title.'</title>
   <link type="image/jpg" rel="icon" href="/themes/'.$theme.'/favicon.jpg">'."\n" ;
 	add_css($css) ;
-	add_rss($rss) ;
 	add_js($js) ;
+	add_rss($rss) ;
 	echo ' </head>'."\n" ;
 }
-function menu_entry($name, $url, $title='') {
-	$entry = new simple_object() ;
-	$entry->name = $name ;
-	$entry->url = $url ;
-	$entry->title = $title ;
-	return $entry ;
+class menu_entry {
+	function __construct($name, $url, $title='') {
+		$this->name = $name ;
+		$this->url = $url ;
+		$this->title = $title ;
+	}
+	function bootstrap_render($offset='       ') {
+		echo $offset.'<li ' ;
+		if ( $_SERVER['PHP_SELF'] == $this->url )
+			echo ' class="active"' ;
+		echo 'title="'.$this->title.'"><a href="'.$this->url.'">'.$this->name.'</a></li>'."\n" ;
+
+	}
 }
 function menu_add($name, $url, $title='') {
 	global $menu_entries ;
-	$menu_entries[] = menu_entry($name, $url, $title) ;
+	$menu_entries[] = new menu_entry($name, $url, $title) ;
 	return $menu_entries ;
+}
+function bootstrap_menu($additionnal_entries=null) {
+	global $menu_entries, $url, $appname ;
+	$home = ( $_SERVER['PHP_SELF'] == '/index_alt.php' ) ;
+	echo '   <!-- Navbar -->
+   <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+     <div class="container">
+      <ul class="nav">
+       <li' ;
+	if ( $home )
+		echo ' class="active"' ;
+	echo ' title="'.$appname.'\'s home"><a href="'.$url.'/index_alt.php">Home</a></li>'."\n" ;
+	foreach ( $menu_entries as $i => $entry )
+		$entry->bootstrap_render() ;
+	echo '      </ul>'."\n" ;
+	if ( $home )
+		echo '      <ul class="nav pull-right">
+       <li><a id="identity_shower" title="Change nickname and avatar" class="pull-right">Nickname</a></li>
+      </ul>'."\n" ;
+	echo '     </div>
+    </div>
+   </div>
+   <!-- /Navbar -->'."\n" ;
 }
 function html_menu($additionnal_entries=null) {
 	global $menu_entries, $url ;
@@ -220,6 +262,7 @@ function html_options() { // Displays options window
 
 ' ;
 }
+// JSON
 function json_verbose_error($i) {
 	switch ( $i ) {
 		case JSON_ERROR_NONE:

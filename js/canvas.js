@@ -383,9 +383,14 @@ function draw() {
 		if ( ( game.widget_under_mouse ) && ( game.widget_under_mouse.type == 'battlefield' ) ) {
 			var coords = game.widget_under_mouse.grid_at(game.mouseX, game.mouseY) ;
 			var nb = 0 ;
-			for ( var i = 0 ; i < bfcols ; i++ )
-				if ( game.widget_under_mouse.grid[i][coords.y] != null )
+			var pow = 0 ;
+			for ( var i = 0 ; i < bfcols ; i++ ) {
+				var card = game.widget_under_mouse.grid[i][coords.y] ;
+				if ( card != null ) {
 					nb++ ;
+					pow += card.get_pow_total() ;
+				}
+			}
 			var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
 			/*
 			var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
@@ -400,7 +405,10 @@ function draw() {
 				game.context.save()
 				canvas_set_alpha(.2) ;
 				game.context.font = gridsheight+"pt Arial";
-				canvas_text_tl(game.context, nb, pos.x, pos.y, 'white', gridswidth) ;
+				var txt = nb ;
+				if ( pow > 0 )
+					txt += ' : '+pow ;
+				canvas_text_tr(game.context, txt, pos.x+gridswidth, pos.y, 'white') ;
 				canvas_reset_alpha() ;
 				game.context.restore() ;
 			}

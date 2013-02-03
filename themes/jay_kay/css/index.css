@@ -81,11 +81,11 @@ td a {
 #tournament_options {
 	padding: 2px ;
 }
-#tournament_options.hidden legend {
-	display: block ;
-}
 #tournament_options #tournament_options_toggle {
 	display: inline ;
+}
+#tournament_options.hidden legend {
+	display: block ;
 }
 #tournament_options.hidden * {
 	display: none ;

@@ -1,10 +1,10 @@
 <?php
 #!/bin/php
 
-$mv_ext_name = 'ivg' ; // Magic-ville's one !
-$mogg_ext_name = 'DDJ' ;
-$nbcards = 90 ;
-$nbtokens = 0 ;
+$mv_ext_name = 'gtc' ; // Magic-ville's one !
+$mogg_ext_name = 'GTC' ;
+$nbcards = 249 ;
+$nbtokens = 8 ;
 
 $basecardurl = 'http://www.magic-ville.com/fr/carte?'.$mv_ext_name ;
 $baseimgurl = 'http://www.magic-ville.com/pics/big/'.$mv_ext_name.'/' ;
