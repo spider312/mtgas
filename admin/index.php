@@ -40,11 +40,6 @@ foreach ( $t as $tournament )
 	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->creation_date.' : '.$tournament->name.'</a></li>'
 ?>
    </ul>
-   
-   <h2>Administrative tasks</h2>
-   <ul>
-    <li><a href="recompute_tournaments.php">Recompute scores</a></li>
-   </ul>
   </div>
 
   <div class="section">
@@ -102,13 +97,6 @@ if ($handle = opendir('../'.$raw_dir)) {
   </div>
 
   <div class="section">
-   <h1>Player</h1>
-   <ul>
-    <li><a href="player_merge.php">Merge</a></li>
-   </ul>
-  </div>
-
-  <div class="section">
    <h1>Card inclusion statistics</h1>
    <ul>
     <form action="/sealed_parse.php">
@@ -117,6 +105,14 @@ if ($handle = opendir('../'.$raw_dir)) {
      <input type="submit" value="Update">
     </form>
     <li><a href="/sealed_top.php">Show</a></li>
+   </ul>
+  </div>
+
+  <div class="section">
+   <h1>Player</h1>
+   <ul>
+    <li><a href="player_merge.php">Merge</a></li>
+    <li><a href="recompute_tournaments.php">Recompute tournament's scores</a></li>
    </ul>
   </div>
 

@@ -11,6 +11,12 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
+	),
+	array(
+		'lib/jquery.js',
+		'html.js', // ajax_error_management
+		//'math.js', // isf
+		'admin/tournament.js'
 	)
 ) ;
 ?>
@@ -24,28 +30,42 @@ $data = json_decode($t->data) ;
   <div class="section">
    <h1>Tournament : <?php echo $t->name ; ?></h1>
    <h2>General data</h2>
-   <ul>
-    <li>ID : <?php echo $t->id ; ?></li>
-    <li>Created : <?php echo $t->creation_date ; ?></li>
-    <li>Tyle : <?php echo $t->type ; ?></li>
-    <li>Players : <?php echo $t->min_players ; ?></li>
-    <li>Status : <?php echo tournament_status($t->status) ; ?></li>
-    <li>Current round : <?php echo $t->round ; ?></li>
-    <li>Last update : <?php echo $t->update_date ; ?></li>
-    <li>Next due : <?php echo $t->due_time ; ?></li>
-    <li>Data :
-     <ul>
+   <form id="tournament_form" action="json.php">
+    <input type="hidden" name="id" value="<?php echo $id ; ?>">
+    <ul>
+     <li>ID : <?php echo $t->id ; ?></li>
+     <li>Created : <?php echo $t->creation_date ; ?></li>
+     <li>Tyle : <?php echo $t->type ; ?></li>
+     <li>Min players : <?php echo $t->min_players ; ?></li>
+     <li>Status :
+      <select name="status">
+<?php
+for ( $i = 0 ; $i < 7 ; $i++ )
+	echo '       <option value="'.$i.'"'.($t->status==$i?' selected':'').'>'.tournament_status($i).'</option>'."\n" ;
+?>
+      </select>
+     </li>
+     <li>Current round : <?php echo $t->round ; ?></li>
+     <li>Last update : <?php echo $t->update_date ; ?></li>
+     <li>
+      Next due : <input type="datetime" id="due_time" name="due_time" value="<?php echo $t->due_time ; ?>">
+      <button type="button" id="report_due">+ 10 min</button>
+     </li>
+     <li>Data :
+      <ul>
 <?php
 if ( $data->boosters )
-	echo '      <li>Boosters : '.implode(', ',$data->boosters).'</li>'."\n" ;
+	echo '       <li>Boosters : '.implode(', ',$data->boosters).'</li>'."\n" ;
 if ( $data->rounds_number > 0 )
-	echo '      <li>Forced rounds : '.$data->rounds_number.'</li>'."\n" ;
+	echo '       <li>Forced rounds : '.$data->rounds_number.'</li>'."\n" ;
 if ( $data->rounds_duration != $round_duration / 60 )
-	echo '      <li>Rounds duration : '.$data->rounds_duration.'</li>'."\n" ;
+	echo '       <li>Rounds duration : '.$data->rounds_duration.'</li>'."\n" ;
 ?>
-     </ul>
-    </li>
-   </ul>
+      </ul>
+     </li>
+    </ul>
+    <input type="submit" name="submit" value="Apply">
+   </form>
 
 
    <h2>Players</h2>
