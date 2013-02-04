@@ -1,4 +1,6 @@
+tid = 0 ; // Ugly workaround to passing id over 5 levels of function calling
 function start(tournament_id) {
+	tid = tournament_id ;
 	var player_id = $.cookie(session_id) ;
 	// Error management
 	ajax_error_management() ; 
@@ -23,14 +25,8 @@ function start(tournament_id) {
 	data = {} ;
 	last_id = 0 ;
 	$.ajaxSetup({ cache: false });
-	spectactors = [] ;
+	spectactors = new Spectactors() ;
 	timer(tournament_id, player_id, data, last_id, true) ;
-}
-function player_get(players, id) {
-	for ( var i in players )
-		if ( players[i].player_id == id )
-			return players[i] ;
-	return null ;
 }
 function update(g, l) { // Update global fields with local values
 	for ( var i in l )
@@ -55,7 +51,8 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 			}
 		update(data, rdata) ;
 		// Spectactor
-		if ( firsttime && ( player_get(data.players, player_id) == null ) )
+		tournament_spectactors(rdata.log, spectactors) ; // Populate from log
+		if ( ( ! firsttime ) && ( player_get(data.players, player_id) == null ) && ( spectactors.get(player_id) == null ) )
 			$.getJSON('json/spectactor.php', {'id': tournament_id, 'nick': localStorage['profile_nick']}, function(data) {
 				if ( data.nb != 1 )
 					alert(data.nb+' affected rows') ;
@@ -102,7 +99,8 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						create_td(tr, 'Player has no score Oo', 6) ;
 				} else
 					create_td(tr, 'Not available before first round\'s end', 6) ;
-				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self
+				var s = spectactors.get(player_id) ;
+				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self or allowed spectactor
 					var button_save = create_button('Save as ...', function(ev) {
 						var name = data.name ;
 						var player = ev.target.parentNode.parentNode.parentNode.player ;
@@ -112,7 +110,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						if ( name != null )
 							deck_set(name, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+data.name+'\n// CREATOR : '+player.nick+'\n// FORMAT : '+data.type+'\n'+player.deck) ;
 					}, 'Save deck in decklist') ;
-					var button_edit = create_submit('edit', 'Edit'/*, id, classname*/) ;
+					var button_edit = create_submit('edit', 'Edit') ;
 					button_edit.title = 'Enter in deck builder mode with this deck. Will ONLY be saved in your deck list' ;
 					var form_edit = create_form('build.php', 'post'
 						, create_hidden('deck', player.deck)
@@ -131,11 +129,18 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						}, 'End your participation in this tournament') ;
 						actions.appendChild(button_drop) ;
 					}
+				} else if ( ( s != null ) && ( s.is_allowed(player.player_id) ) ) {
+					var button_view = create_submit('view', 'View') ;
+					button_view.title = 'View deck while player builds it' ;
+					var actions = create_form('build.php', 'get'
+						, create_hidden('id', tournament_id)
+						, create_hidden('pid', player.player_id)
+						, button_view
+					) ;
+					actions[0].value = tournament_id ; // ???
 				} else {
-					//deck = 'Not viewable during the tournament' ;
 					actions = 'No action' ;
 				}
-				//create_td(tr, deck) ;
 				create_td(tr, actions) ;
 			}
 			var nbpl = parseInt(data.min_players) ;

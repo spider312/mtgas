@@ -168,13 +168,11 @@ function deck_xml_to_mw(str) {
 			return str ; // Not well-formed, return original string
 	// Apply XSL
 	var xhttp = new XMLHttpRequest();
-	xhttp.open('GET', 'xml_to_mw.xsl', false) ;
+	xhttp.open('GET', '/xml_to_mw.xsl', false) ;
 	xhttp.send('') ;
 	xsltProcessor = new XSLTProcessor();
 	xsltProcessor.importStylesheet(xhttp.responseXML);
 	resultDocument = xsltProcessor.transformToFragment(xml, document) ;
-	// Add to document to get content
-	var div = document.getElementById("deckloader") ;
-	div.appendChild(resultDocument);
+	var div = create_div(resultDocument) ; // Add to document to get content
 	return div.textContent ; // Return parsed string
 }

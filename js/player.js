@@ -318,7 +318,6 @@ function Spectactor(id, name) {
 				var zone = player.hand ;
 				zone.default_visibility = true ;
 				for ( var i = 0 ; i < zone.cards.length ; i++ )
-					//zone.cards[i].refresh() ;
 					zone.cards[i].load_image() ;
 				message(player.get_name()+' allowed you') ;
 			} else

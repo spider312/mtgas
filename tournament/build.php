@@ -3,15 +3,22 @@ include '../lib.php' ;
 include '../includes/db.php' ;
 include '../tournament/lib.php' ;
 $id = param($_GET, 'id', 0) ;
+$pid = param($_GET, 'pid', '') ;
 $name = param($_POST, 'name', '') ;
 $deck = param($_POST, 'deck', '') ;
 if ( $id > 0 ) {
 	$tournament = query_oneshot("SELECT * FROM `tournament` WHERE `id` = '$id' ; ", 'Tournament get') ; // Used for deck saving name
 	query("UPDATE `registration` SET `status` = '3' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;
 	$title = $tournament->name ;
+	if ( $pid == '' ) {
+		$pid = $player_id ;
+		$title = 'Building '.$tournament->name ;
+	} else
+		$title = 'Spectacting '.$tournament->name ;
+	$registration = query_oneshot("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$pid'; ", 'Tournament get') ;
 } else
-	$title = 'a previous tournament\'s deck' ;
-html_head('Building '.$title, 
+	$title = 'Building a previous tournament\'s deck' ;
+html_head($title, 
 	array(
 		'style.css',
 		'tournament.css',
@@ -31,9 +38,12 @@ html_head('Building '.$title,
 		'tournament/lib.js'
 	)
 ) ;
-if ( $id > 0 )
-	echo ' <body onload="start_tournament('.$id.')">'."\n" ;
-else
+if ( $id > 0 ) {
+	if ( $pid == $player_id ) 
+		echo ' <body onload="start_tournament('.$id.')">'."\n" ;
+	else
+		echo ' <body onload="start_spectactor('.$id.", '".addslashes($tournament->name)."', '".addslashes($registration->nick)."', '".str_replace("\n", "\\n\\\r\n", addslashes($registration->deck))."')\">"."\n" ;
+} else
 	echo ' <body onload="start_standalone(\''.addslashes($name)."', '".str_replace("\r\n", "\\n\\\r\n", addslashes($deck)).'\')">'."\n" ;
 ?>
   <div id="filter-color" class="section">
@@ -73,7 +83,6 @@ foreach ( array('C', 'U', 'R') as $rarity ) {
   <div id="info" class="section">
 <?php
 if ( $id > 0 ) {
-	$registration = query_oneshot("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$player_id'; ", 'Tournament get') ;
 	if ( $registration->ready == 0 )
 		$checked = '' ;
 	else
@@ -85,7 +94,7 @@ if ( $id > 0 ) {
 }
 ?>
    <input id="save" type="button" value="Save" title="Save modifications to your deck">
-   <br><a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a>
+   <br><!--a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a-->
   </div>
 
   <div id="stats" class="section">

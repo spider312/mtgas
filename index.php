@@ -273,7 +273,6 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
       <tr><td colspan="6">Waiting for preloaded decks to load</td></tr>
      </tbody>
     </table>
-    <div id="deckloader" style="display: none"></div>
     <div>You may want to download some <a href="decks/preconstructed/" target="_blank">preconstructed decks</a> (right click on one, "copy link", paste in "download" form)</div>
    <!--/div--><!-- id="decks" -->
 

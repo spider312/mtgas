@@ -1,4 +1,28 @@
+tid = 0 ;
+function start_spectactor(id, tournament_name, player_name, deckcontent) {
+	tid = id ;
+	init() ;
+	start() ;
+	poolcards = null ;
+	document.getElementById('save').addEventListener('click', function(ev) {
+		deckname = prompt('Deck name', player_name+'@'+tournament_name) ;
+		if ( name != null )
+			deck_set(deckname, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+deckname+'\n'+obj2deck(clone_deck(poolcards))) ;
+	}, false) ;
+	$.post('json/deck.php', {'deck': deckcontent}, function(obj) { // Get deck as JS object
+		obj.side = obj.side.filter(filter_lands, 'sb') ;
+		disp_side(obj.side, pool) ;
+		obj.main = obj.main.filter(filter_lands, 'md') ;
+		disp_side(obj.main, deck) ;
+		poolcards = obj ;
+		tournament_init(id) ;
+		timer(id) ;
+	}, 'json') ;
+	// Spectactor specific
+	ready.disabled = true ;
+}
 function start_tournament(id) { // Start all that is only related to current tournament
+	tid = id ;
 	init() ;
 	player_id = $.cookie(session_id) ;
 	// Events
@@ -69,21 +93,7 @@ function start_tournament(id) { // Start all that is only related to current tou
 		disp_side(obj.side, pool) ;
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
-		tournament_log = document.getElementById('log_ul') ;
-		players_ul = document.getElementById('players_ul') ;
-		document.getElementById('chat').addEventListener('submit', function(ev) {
-			$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
-				if ( data.nb != 1 )
-					alert(data.nb+' affected rows') ;
-				else
-					ev.target.msg.value = '' ;
-			}) ;
-			ev.preventDefault() ;
-		}, false)
-		document.getElementById('tournament').addEventListener('mouseover', function(ev) {
-			ev.target.classList.remove('highlight') ;
-		}, false) ;
-		loglength = 0 ;
+		tournament_init(id) ;
 		timer(id) ;
 	}) ;
 }
@@ -118,6 +128,23 @@ function start_standalone(deckname, deckcontent) {
 		poolcards = obj ;
 	}, 'json') ;
 }
+function tournament_init(id) {
+	tournament_log = document.getElementById('log_ul') ;
+	players_ul = document.getElementById('players_ul') ;
+	document.getElementById('chat').addEventListener('submit', function(ev) {
+		$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
+			if ( data.nb != 1 )
+				alert(data.nb+' affected rows') ;
+			else
+				ev.target.msg.value = '' ;
+		}) ;
+		ev.preventDefault() ;
+	}, false) ;
+	document.getElementById('tournament').addEventListener('mouseover', function(ev) {
+		ev.target.classList.remove('highlight') ;
+	}, false) ;
+	loglength = 0 ;
+}
 function init() {
 	// Initialisations
 	game = new Object() ;
@@ -132,7 +159,7 @@ function init() {
 	saved = false ;
 	tournament = null ;
 	ajax_error_management() ;
-	spectactors = [] ;
+	spectactors = new Spectactors() ;
 }
 function start() {
 	// Link between mana colors array and mana color checks
@@ -295,6 +322,7 @@ function timer(id) {
 				if ( tournament_log.children.length != 0 ) // Some messages already recieved
 					document.getElementById('tournament').classList.add('highlight') ;
 				loglength = data.log.length ;
+				tournament_spectactors(data.log, spectactors) ; // Populate from log
 				tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
 			}
 		}

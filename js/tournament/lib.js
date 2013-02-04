@@ -101,7 +101,7 @@ function tournament_status(stat) {
 	}
 	return result ;
 }
-function tournament_log_message(line, nick) {
+function tournament_log_li(line, nick, players, spectactors) {
 	var msg = 'default message' ;
 	switch ( line.type ) {
 		case 'create' :
@@ -114,7 +114,24 @@ function tournament_log_message(line, nick) {
 			msg = 'Tournament has enough players' ;
 			break ;
 		case 'spectactor' :
-			msg = nick+' joined as spectactor' ;
+			var li = create_li(nick+' joined as spectactor') ;
+			var p = player_get(players, $.cookie(session_id)) ;
+			var s = spectactors.get(line.sender) ;
+			if ( ( p != null ) && ( ! s.is_allowed($.cookie(session_id)) ) )
+				li.appendChild(create_button(create_text('Allow'), function(ev) {
+					if ( s == null )
+						return false ;
+					s.allow($.cookie(session_id)) ;
+					$.getJSON('json/allow.php', {'id': tid, 'spectactor': line.sender}, function(data) {
+						if ( data.nb != 1 )
+							alert(data.nb+' affected rows') ;
+					}) ;
+				})) ;
+			return li ;
+			break ;
+		case 'allow' :
+			var s = spectactors.get(line.value) ;
+			msg = nick+' allowed '+s.nick ;
 			break ;
 		case 'draft' :
 			msg = 'Draft started' ;
@@ -156,37 +173,76 @@ function tournament_log_message(line, nick) {
 		default :
 			msg = line.type+' : '+line.value+' (raw)' ;
 	}
-	return msg ;
+	return create_li(msg) ;
 }
 function tournament_log_ul(tournament_log, log, players, spectactors) {
 	node_empty(tournament_log) ;
 	while ( log.length > 0 ) {
 		line = log.shift() ;
 		last_id = parseInt(line.id) ;
-		pid = line.sender ;
-		if ( line.type == 'spectactor' ) {
-			var found = false
-			for ( var j = 0 ; j < spectactors.length ; j++ )
-				if ( spectactors[j].id == pid )
-					found = true ;
-			if ( ! found )
-				spectactors.push({'id': pid, 'nick': line.value}) ;
-		}
-		if ( pid == '' )
+		if ( line.sender == '' )
 			nick = 'Server' ;
 		else {
-			nick = pid ;
-			for ( var j in players )
-				if ( players[j].player_id == pid )
-					nick = players[j].nick ;
-			if ( nick == pid )
-				for ( var j = 0 ; j < spectactors.length ; j++ )
-					if ( spectactors[j].id == pid )
-						nick = spectactors[j].nick ;
+			nick = line.sender ;
+			var p = player_get(players, line.sender) ;
+			if ( p != null )
+				nick = p.nick ;
+			else {
+				var s = spectactors.get(line.sender) ;
+				if ( s != null )
+					nick = s.nick ;
+			}
 		}
-		var msg = tournament_log_message(line, nick) ;
-		var li = create_li(msg) ;
+		var li = tournament_log_li(line, nick, players, spectactors) ;
 		li.title = (new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString() ;
 		tournament_log.appendChild(li) ;
+	}
+}
+function tournament_spectactors(log, spectactors) {
+	for ( var i = 0 ; i < log.length ; i++ ) {
+		var line = log[i] ;
+		if ( line.type == 'spectactor' )
+			spectactors.add(line.sender, line.value) ; // Duplicate managed in add
+		if ( line.type == 'allow' ) {
+			var s = spectactors.get(line.value) ;
+			s.allow(line.sender) ;
+		}
+
+	}
+}
+function player_get(players, id) {
+	for ( var i in players )
+		if ( players[i].player_id == id )
+			return players[i] ;
+	return null ;
+}
+function Spectactor(id, nick) {
+	this.id = id ;
+	this.nick = nick ;
+	this.joined = false ;
+	this.allowed = [] ;
+	this.allow = function(player) {
+		if ( ! this.is_allowed(player) )
+			this.allowed.push(player) ;
+	}
+	this.is_allowed = function(player) {
+		return ( this.allowed.indexOf(player) != -1 ) ;
+	}
+}
+function Spectactors() {
+	this.spectactors = [] ;
+	this.add = function(id, nick) {
+		var s = this.get(id) ; // Don't create if already in list
+		if ( s != null )
+			return s ;
+		var s = new Spectactor(id, nick) ;
+		this.spectactors.push(s) ;
+		return s ;
+	}
+	this.get = function (id) {
+		for ( var i in this.spectactors )
+			if ( this.spectactors[i].id == id )
+				return this.spectactors[i] ;
+		return null ;
 	}
 }
