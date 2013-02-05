@@ -222,8 +222,11 @@ function Spectactor(id, nick) {
 	this.joined = false ;
 	this.allowed = [] ;
 	this.allow = function(player) {
-		if ( ! this.is_allowed(player) )
-			this.allowed.push(player) ;
+		if ( this.is_allowed(player) ) 
+			return false ;
+		this.allowed.push(player) ;
+		prev_data = '' ; // Reinit cache, in order timer to rebuild players table, adding the 'view' option
+		return true ;
 	}
 	this.is_allowed = function(player) {
 		return ( this.allowed.indexOf(player) != -1 ) ;
