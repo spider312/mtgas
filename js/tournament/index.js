@@ -100,7 +100,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 				} else
 					create_td(tr, 'Not available before first round\'s end', 6) ;
 				var s = spectactors.get(player_id) ;
-				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self or allowed spectactor
+				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self
 					var button_save = create_button('Save as ...', function(ev) {
 						var name = data.name ;
 						var player = ev.target.parentNode.parentNode.parentNode.player ;
@@ -129,7 +129,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						}, 'End your participation in this tournament') ;
 						actions.appendChild(button_drop) ;
 					}
-				} else if ( ( s != null ) && ( s.is_allowed(player.player_id) ) ) {
+				} else if ( ( s != null ) && ( s.is_allowed(player.player_id) ) ) { // Allowed spectactor
 					var button_view = create_submit('view', 'View') ;
 					button_view.title = 'View deck while player builds it' ;
 					var actions = create_form('build.php', 'get'
@@ -138,7 +138,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						, button_view
 					) ;
 					actions[0].value = tournament_id ; // ???
-				} else {
+				} else { // Unallowed spectactor
 					actions = 'No action' ;
 				}
 				create_td(tr, actions) ;

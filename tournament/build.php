@@ -94,7 +94,7 @@ if ( $id > 0 ) {
 }
 ?>
    <input id="save" type="button" value="Save" title="Save modifications to your deck">
-   <br><!--a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a-->
+   <!--br><a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a-->
   </div>
 
   <div id="stats" class="section">

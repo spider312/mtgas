@@ -8,6 +8,7 @@
 Daemon : http://php.net/manual/en/book.pcntl.php
 http://opquast.com/
 http://docs.planetteamspeak.com/ts3/php/framework/ http://addons.teamspeak.com/directory/tools/integration/TeamSpeak-3-PHP-Framework.html
+https://hacks.mozilla.org/2013/02/hello-chrome-its-firefox-calling/
 
  === Bugs ===
 !! better attrs management
@@ -16,15 +17,13 @@ Face down une carte équipée
 ! Land/ancestral qui remonte en main
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
-? Drop : le tournois ne disparait pas de la liste
 identity shower dans les pages autres que l'accueil
 http://mogg.fr/play.php?id=8485 c_5683445 Mystic Gate moving from game.creator.hand to game.creator.battlefield but should be in game.creator.library
 Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
-copy de carte qui est hidden
+~? copy de carte qui est hidden
 loyalty counter dans l'import MCI
 title d'une page avec des actions reçues hors focus qui ne se réinitialise pas
-Message de join des spectacteurs qui s'affichent à chaque fois dans la page tournois
 join/view un tournament
 
 reminder
