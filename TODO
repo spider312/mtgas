@@ -23,7 +23,6 @@ Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
 ~? copy de carte qui est hidden
 loyalty counter dans l'import MCI
-title d'une page avec des actions reçues hors focus qui ne se réinitialise pas
 join/view un tournament
 
 reminder
