@@ -11,6 +11,11 @@ $result->msg = '' ;
 if ( $result->tournament = mysql_fetch_object(query("SELECT *, 
 	TIMESTAMPDIFF(SECOND, NOW(), `due_time`) as timeleft
 	FROM `tournament` WHERE `id` = '$id' ;")) ) {
+	// Tournament's players
+	$result->players = query_as_array("SELECT `player_id`, `nick`, `avatar`, `status`, `order`, `ready`, `deck`
+		FROM `registration` WHERE `tournament_id` = '$id' ORDER BY `order` ; ") ;
+	// Log
+	$result->log = query_as_array("SELECT * FROM `tournament_log` WHERE `tournament_id` = '$id'") ;
 } else 
 	$result->msg = 'Tournament #'.$id.' not found' ;
 // Get user data (for order)

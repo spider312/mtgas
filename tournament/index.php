@@ -64,7 +64,6 @@ html_head('Tournament '.$tournament->name,
        <th><abbr title="Opponent Game Win : percentage of games won for all player's opponents (second tie breaker)">OGW</abbr></th>
        <th><abbr title="Match Win : percentage of matches won by player (third tie breaker)">MW</abbr></th>
        <th><abbr title="Game Win : percentage of games won by player (just for fun)">GW</abbr></th>
-       <!--th>Deck</th-->
        <th>Actions</th>
       </tr>
      </thead>
@@ -76,8 +75,8 @@ html_head('Tournament '.$tournament->name,
 
    <div class="column">
     <h2>Log</h2>
-    <ul id="tournament_log"></ul>
-    <form id="log_form" action="json/log.php">
+    <ul id="log_ul"></ul>
+    <form id="chat" action="json/log.php">
      <input type="text" name="msg">
      <input type="submit" value="Send">
     </form>

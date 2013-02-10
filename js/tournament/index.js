@@ -1,6 +1,4 @@
-tid = 0 ; // Ugly workaround to passing id over 5 levels of function calling
 function start(tournament_id) {
-	tid = tournament_id ;
 	var player_id = $.cookie(session_id) ;
 	// Error management
 	ajax_error_management() ; 
@@ -9,23 +7,12 @@ function start(tournament_id) {
 	players_table = document.getElementById('players_table') ;
 	past_rounds = document.getElementById('past_rounds') ;
 	current_round = document.getElementById('current_round') ;
-	tournament_log = document.getElementById('tournament_log') ;
-	document.getElementById('log_form').addEventListener('submit', function(ev) {
-		$.getJSON(ev.target.action, {'id': tournament_id, 'msg': ev.target.msg.value}, function(data) {
-			if ( data.nb != 1 )
-				alert(data.nb+' affected rows') ;
-			else
-				ev.target.msg.value = '' ;
-				//timer(tournament_id, player_id) ;
-		}) ;
-		ev.preventDefault() ;
-	}, false) ;
 	prev_data = '' ;
 	me = null ;
 	data = {} ;
 	last_id = 0 ;
 	$.ajaxSetup({ cache: false });
-	spectactors = new Spectactors() ;
+	tournament_log_init(tournament_id) ;
 	timer(tournament_id, player_id, data, last_id, true) ;
 }
 function update(g, l) { // Update global fields with local values

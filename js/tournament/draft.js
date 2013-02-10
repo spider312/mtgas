@@ -17,6 +17,8 @@ function start(id) {
 	cache_pick = '' ;
 	cache_pool = '' ;
 	img_width = 200 ;
+	spectactors = new Spectactors() ;
+	tournament_init(id) ; // Players & log
 	draft(id) ;
 }
 function Img(container, ext, name, attrs) {
@@ -128,8 +130,29 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 							alert(typeof line) ;
 					}
 				}
+				deck_stats_cc(data.side) ;
 
 			}, 'json') ;
+		}
+		// Update players
+		if ( iso(data.players)) {
+			node_empty(players_ul) ;
+			for ( var i = 0 ; i < data.players.length ; i++ ) {
+				var li = create_li(null) ;
+				var cb = create_checkbox('', data.players[i].ready != '0') ;
+				cb.disabled = true ;
+				li.appendChild(cb) ;
+				li.appendChild(document.createTextNode(data.players[i].nick)) ;
+				players_ul.appendChild(li) ;
+			}
+		}
+		// Update log
+		if ( iso(data.log) && ( data.log.length > loglength ) ) {
+			if ( tournament_log.children.length != 0 ) // Some messages already recieved
+				document.getElementById('tournament').classList.add('highlight') ;
+			loglength = data.log.length ;
+			tournament_spectactors(data.log, spectactors) ; // Populate from log
+			tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
 		}
 		window.setTimeout(draft, draft_timer, id) ;
 	}) ;

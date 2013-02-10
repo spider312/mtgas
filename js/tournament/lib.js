@@ -101,6 +101,30 @@ function tournament_status(stat) {
 	}
 	return result ;
 }
+function tournament_init(id) {
+	players_ul = document.getElementById('players_ul') ;
+	loglength = 0 ;
+	document.getElementById('tournament').addEventListener('mouseover', function(ev) {
+		ev.target.classList.remove('highlight') ;
+	}, false) ;
+	tournament_log_init(id) ;
+}
+tid = 0 ;
+function tournament_log_init(id) {
+	tid = id ;
+	tournament_log = document.getElementById('log_ul') ;
+	document.getElementById('chat').addEventListener('submit', function(ev) {
+		$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
+			if ( data.nb != 1 )
+				alert(data.nb+' affected rows') ;
+			else
+				ev.target.msg.value = '' ;
+		}) ;
+		ev.preventDefault() ;
+	}, false) ;
+	spectactors = new Spectactors() ;
+}
+
 function tournament_log_li(line, nick, players, spectactors) {
 	var msg = 'default message' ;
 	switch ( line.type ) {

@@ -1,9 +1,5 @@
-tid = 0 ;
 function start_spectactor(id, tournament_name, player_name, deckcontent) {
-	tid = id ;
 	init() ;
-	start() ;
-	poolcards = null ;
 	document.getElementById('save').addEventListener('click', function(ev) {
 		deckname = prompt('Deck name', player_name+'@'+tournament_name) ;
 		if ( name != null )
@@ -16,13 +12,12 @@ function start_spectactor(id, tournament_name, player_name, deckcontent) {
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 		tournament_init(id) ;
-		timer(id) ;
+		timer(id, true) ;
 	}, 'json') ;
 	// Spectactor specific
 	ready.disabled = true ;
 }
 function start_tournament(id) { // Start all that is only related to current tournament
-	tid = id ;
 	init() ;
 	player_id = $.cookie(session_id) ;
 	// Events
@@ -34,7 +29,6 @@ function start_tournament(id) { // Start all that is only related to current tou
 		}
 		$.getJSON('json/ready.php', {'id': id, 'ready': ev.target.checked+0}) ;
 	}, false) ;
-	start() ;
 		// Button "save"
 	document.getElementById('save').addEventListener('click', function(ev) {
 		localpool = clone_deck(poolcards) ;
@@ -85,7 +79,6 @@ function start_tournament(id) { // Start all that is only related to current tou
 		}, 'json') ;
 	}, false) ;
 	// Deck mw -> json (after creating lands because they will be filtered)
-	poolcards = null ;
 	$.getJSON('json/deck.php', {'id': id}, function(obj) { // Get deck as JS object
 		obj.side = obj.side.filter(filter_lands, 'sb') ;
 		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
@@ -94,27 +87,11 @@ function start_tournament(id) { // Start all that is only related to current tou
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 		tournament_init(id) ;
-		timer(id) ;
+		timer(id, false) ;
 	}) ;
-}
-function clone_deck(poolcards) { // Returns a copy of a deck
-	var localpool = {} ; // Local copy of the pool that will be added lands
-	// If we clone poolcards, then localpool.main is the same object instance than poolcards.main, so it's not local
-	localpool.main = clone(poolcards.main) ;
-	localpool.side = clone(poolcards.side) ;
-	for ( var i in lands ) {
-		var card = lands[i] ;
-		for ( var j = 0 ; j < land_nb('md'+card.name) ; j++ )
-			localpool.main.push(card) ;
-		for ( var j = 0 ; j < land_nb('sb'+card.name) ; j++ )
-			localpool.side.push(card) ;
-	}
-	return localpool ;
 }
 function start_standalone(deckname, deckcontent) {
 	init() ;
-	start() ;
-	poolcards = null ;
 	document.getElementById('save').addEventListener('click', function(ev) {
 		deckname = prompt('Deck name', deckname) ;
 		if ( name != null )
@@ -127,23 +104,6 @@ function start_standalone(deckname, deckcontent) {
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 	}, 'json') ;
-}
-function tournament_init(id) {
-	tournament_log = document.getElementById('log_ul') ;
-	players_ul = document.getElementById('players_ul') ;
-	document.getElementById('chat').addEventListener('submit', function(ev) {
-		$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
-			if ( data.nb != 1 )
-				alert(data.nb+' affected rows') ;
-			else
-				ev.target.msg.value = '' ;
-		}) ;
-		ev.preventDefault() ;
-	}, false) ;
-	document.getElementById('tournament').addEventListener('mouseover', function(ev) {
-		ev.target.classList.remove('highlight') ;
-	}, false) ;
-	loglength = 0 ;
 }
 function init() {
 	// Initialisations
@@ -159,9 +119,7 @@ function init() {
 	saved = false ;
 	tournament = null ;
 	ajax_error_management() ;
-	spectactors = new Spectactors() ;
-}
-function start() {
+	poolcards = null ;
 	// Link between mana colors array and mana color checks
 	manacolors = ['X', 'W', 'U', 'B', 'R', 'G'] ;
 	active_color = {} ;
@@ -281,32 +239,15 @@ function start() {
 		td.title += ', click to add, right click to remove one, middle click to remove all' ;
 	}
 }
-function alpha_sort(card1, card2) {
-	b = color_sort(card1, card2) ; // First sort by color
-	if ( b != 0 )
-		return b ;
-	// Then inside same color, sort by name
-	if ( card1.name == card2.name )
-		return 0 ;
-	if ( card1.name > card2.name )
-		return 1 ;
-	return -1 ;
-}
-function color_sort(card1, card2) {
-	if ( card1.attrs.color == card2.attrs.color )
-		return 0 ;
-	if ( card1.attrs.color > card2.attrs.color )
-		return -1 ;
-	return 1 ;
-}
-function timer(id) {
+// Timer loop
+function timer(id, spectactor) {
 	$.getJSON('json/tournament.php', {'id': id, 'firsttime': true}, function(data) { // Get time left
 		tournament = data ;
-		if ( data.status != 4 ) // If tournament isn't in "drafting" status, go back to tournament index (that will normally redirect to build)
+		if ( ( ! spectactor ) && ( data.status != 4 ) ) // If tournament isn't in "drafting" status, go back to tournament index (that will normally redirect to build)
 			window.location.replace('index.php?id='+id) ;
 		else {
+			window.setTimeout(timer, sealed_timer, id, spectactor) ; // Refresh in 30 secs
 			document.getElementById('timeleft').value = time_disp(parseInt(data.timeleft)) ;
-			window.setTimeout(timer, sealed_timer, id) ; // Refresh in 30 secs
 			if ( iso(data.players)) {
 				node_empty(players_ul) ;
 				for ( var i = 0 ; i < data.players.length ; i++ ) {
@@ -327,6 +268,39 @@ function timer(id) {
 			}
 		}
 	}) ;
+}
+// Functions
+function clone_deck(poolcards) { // Returns a copy of a deck
+	var localpool = {} ; // Local copy of the pool that will be added lands
+	// If we clone poolcards, then localpool.main is the same object instance than poolcards.main, so it's not local
+	localpool.main = clone(poolcards.main) ;
+	localpool.side = clone(poolcards.side) ;
+	for ( var i in lands ) {
+		var card = lands[i] ;
+		for ( var j = 0 ; j < land_nb('md'+card.name) ; j++ )
+			localpool.main.push(card) ;
+		for ( var j = 0 ; j < land_nb('sb'+card.name) ; j++ )
+			localpool.side.push(card) ;
+	}
+	return localpool ;
+}
+function alpha_sort(card1, card2) {
+	b = color_sort(card1, card2) ; // First sort by color
+	if ( b != 0 )
+		return b ;
+	// Then inside same color, sort by name
+	if ( card1.name == card2.name )
+		return 0 ;
+	if ( card1.name > card2.name )
+		return 1 ;
+	return -1 ;
+}
+function color_sort(card1, card2) {
+	if ( card1.attrs.color == card2.attrs.color )
+		return 0 ;
+	if ( card1.attrs.color > card2.attrs.color )
+		return -1 ;
+	return 1 ;
 }
 function dragover(ev) { // Allows drop if dragged object is a card
 	if ( ev.dataTransfer.getData('card') != '' ) // Nothing else but a card is dragged
@@ -634,25 +608,14 @@ function disp_side(originaldeck, table) {
 			nblands += parseInt(document.getElementById('md'+lands[i].name).value) ;
 		}
 	}
-	create_td(trc, (nb+nblands)+' total cards ('+nblands+' basic lands)') ;
 	// Stats
-	/*
-	var stats = document.getElementById('stats_'+table.id) ;
-	node_empty(stats) ;
-	stats.appendChild(create_h(4, 'Types')) ;
-	var ul = create_ul() ;
-	//ul.appendChild(create_li('Total : '+total) ;
-	stats.appendChild(ul) ;
-	*/
-	var line = '' ;
-	for ( var i in types ) {
-		var txt = i+' : '+types[i]
-		line += txt+', ' ;
-		//ul.appendChild(create_li(txt)) ;
-	}
 	if ( ( table == deck ) )
 		deck_stats_cc(cards) ;
 	// Text line at bottom of table resuming content
+	create_td(trc, (nb+nblands)+' total cards ('+nblands+' basic lands)') ;
+	var line = '' ;
+	for ( var i in types )
+		line += i+' : '+types[i]+', ' ;
 	line = line.substr(0, line.length-2)
 	create_td(trc, line, cc-1) ;
 }

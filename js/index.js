@@ -446,13 +446,15 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				slots.classList.add('nowrap') ;
 				var playerlist = create_label(submit.id, list_players(tournament)) ;
 				playerlist.classList.add('nowrap') ;
+				var view = create_a('View', 'tournament/?id='+tournament.id, null, 'Just view tournament page, chat with other players, without register for playing') ;
 				var tr = create_tr(pending_tournaments, 
 					form, 
 					create_label(submit.id, tournament.type),
 					create_label(submit.id, tournament.name),
 					age,
 					slots,
-					playerlist
+					playerlist,
+					view
 				) ;
 				var word = 'register'
 				for ( var j in tournament.players )
@@ -594,9 +596,6 @@ function save_tournament_boosters(boosters) { // When saving tournament boosters
 function tournament_boosters(type) {
 	var boosters = document.getElementById('tournament_boosters') ;
 	var suggestions = document.getElementById('tournament_suggestions') ;
-	//var boosters_label = document.getElementById('tournament_boosters_label') ;
-	//var suggestions_label = document.getElementById('tournament_suggestions_label') ;
-	//var booster_label = document.getElementById('booster_suggestions_label') ;
 	var limited_div = document.getElementById('limited') ;
 	switch ( type ) {
 		case 0 : // Draft
@@ -613,20 +612,9 @@ function tournament_boosters(type) {
 			break ;
 		default : // Constructed
 			limited_div.classList.add('hidden') ;
-			/*
-			boosters_label.style.display = 'none' ;
-			suggestions_label.style.display = 'none' ;
-			booster_label.style.display = 'none' ;
-			boosters.value = '' ;
-			*/
 			return null ; // Next code is only executed for limited (boosters management)
 	}
 	// Fill boosters suggestions list
-	/*
-	boosters_label.style.display = '' ;
-	booster_label.style.display = '' ;
-	suggestions_label.style.display = '' ;
-	*/
 	var set = false ;
 		// Empty
 	while ( suggestions.options.length > 0 )

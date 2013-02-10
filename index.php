@@ -184,16 +184,17 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
         <td>Age</td>
         <td>Slots</td>
         <td>Players</td>
+        <td>View</td>
        </tr>
       </thead>
       <tbody id="tournament_no" style="display: none ;">
        <tr>
-        <td colspan="6">No pending tournaments</td>
+        <td colspan="7">No pending tournaments</td>
        </tr>
       </tbody>
       <tbody id="pending_tournaments">
        <tr>
-        <td colspan="6">Waiting for list of pending tournaments</td>
+        <td colspan="7">Waiting for list of pending tournaments</td>
        </tr>
       </tbody>
      </table>
