@@ -645,9 +645,15 @@ function pool_open($boosters, $name='', &$cards=null) {
 	return $pool ;
 }
 function tournament_singleton($data) {
-	if ( array_search('CUB', $data->boosters) !== FALSE ) { // Singleton
+	$uniq_ext = '' ;
+	if ( array_search('CUB', $data->boosters) !== FALSE )
+		$uniq_ext = 'CUB' ;
+	else if ( array_search('OMC', $data->boosters) !== FALSE )
+		$uniq_ext = 'OMC' ;
+	if ( $uniq_ext != '' ) {
 		$card_connection = card_connect() ;
-		$cards = query_as_array('	SELECT
+		$cards = query_as_array('
+		SELECT
 			`card`.`name`,
 			`card`.`attrs`,
 			`card_ext`.`nbpics`,
@@ -660,23 +666,7 @@ function tournament_singleton($data) {
 		WHERE
 			`card`.`id` = `card_ext`.`card`
 			AND `extension`.`id` = `card_ext`.`ext`
-		'."AND `extension`.`se` = 'CUB' ; ", 'Get cards in Cube (modified)', $card_connection) ;
-	} else if ( array_search('OMC', $data->boosters) !== FALSE ) {
-		$card_connection = card_connect() ;
-		$cards = query_as_array('	SELECT
-			`card`.`name`,
-			`card`.`attrs`,
-			`card_ext`.`nbpics`,
-			`card_ext`.`rarity`,
-			`extension`.`se`
-		FROM
-			`card`,
-			`card_ext`,
-			`extension`
-		WHERE
-			`card`.`id` = `card_ext`.`card`
-			AND `extension`.`id` = `card_ext`.`ext`
-		'."AND `extension`.`se` = 'OMC' ; ", 'Get cards in Cube (original)', $card_connection) ;
+		'."AND `extension`.`se` = '$uniq_ext' ; ", 'Get cards in $uniq_ext', $card_connection) ;
 	} else
 		$cards = null ;
 	return $cards ;

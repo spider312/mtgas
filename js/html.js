@@ -138,7 +138,7 @@ function create_ul(id) {
 }
 function create_li(text, classname) {
 	var li = document.createElement('li') ;
-	if ( iss(text) )
+	if ( iss(text) || isn(text) )
 		li.appendChild(document.createTextNode(text)) ;
 	else
 		li.appendChild(text) ;

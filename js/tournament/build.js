@@ -32,11 +32,14 @@ function start_tournament(id) { // Start all that is only related to current tou
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 		tournament_init(id) ;
-		if ( ready.checked && ( poolcards.main.length < 40 ) ) {
-			ready.checked = false ;
-			$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
-		} else
+		// Apply at startup what is applied after each save
+		if ( poolcards.main.length > 39 )
 			ready.removeAttribute('disabled') ;
+		else
+			if ( ready.checked ) {
+				ready.checked = false ;
+				$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
+			}
 		timer(id, false) ;
 	}) ;
 }
