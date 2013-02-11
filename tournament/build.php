@@ -42,9 +42,9 @@ if ( $id > 0 ) {
 	if ( $pid == $player_id ) 
 		echo ' <body onload="start_tournament('.$id.')">'."\n" ;
 	else
-		echo ' <body onload="start_spectactor('.$id.", '".addslashes($tournament->name)."', '".addslashes($registration->nick)."', '".str_replace("\n", "\\n\\\r\n", addslashes($registration->deck))."')\">"."\n" ;
+		echo ' <body onload="start_spectactor('.$id.", '".addslashes($registration->player_id)."') ; \">\n" ;
 } else
-	echo ' <body onload="start_standalone(\''.addslashes($name)."', '".str_replace("\r\n", "\\n\\\r\n", addslashes($deck)).'\')">'."\n" ;
+	echo ' <body onload="start_standalone(\''.addslashes($name)."', '".str_replace("\r\n", "\\n\\\r\n", addslashes($deck)).'\') ; ">'."\n" ;
 ?>
   <div id="filter-color" class="section">
 <?php
@@ -88,12 +88,15 @@ if ( $id > 0 ) {
 	else
 		$checked = 'checked="checked"' ;
 ?>
-   <input id="timeleft" type="text" value="Initializing" readonly="readonly" title="Time left for building" size="8"><br>
-   <label title="Tournament starts if every player check this box before timer ends"><input id="ready" type="checkbox" <?php echo $checked ?>>I'm ready</label>
+   <input id="timeleft" type="text" value="Initializing" disabled="disabled" title="Time left for building" size="8"><br>
+   <label title="Tournament starts if every player check this box before timer ends"><input id="ready" type="checkbox" <?php echo $checked ?> disabled="disabled">I'm ready</label>
+<?php
+} else {
+?>
+   <input id="save" type="button" value="Save" title="Save modifications to your deck">
 <?php
 }
 ?>
-   <input id="save" type="button" value="Save" title="Save modifications to your deck">
    <!--br><a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a-->
   </div>
 

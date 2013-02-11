@@ -5,7 +5,11 @@ include '../../includes/card.php' ;
 include '../../includes/deck.php' ;
 include '../../tournament/lib.php' ;
 $id = param($_GET, 'id', 0) ;
-$reg = registration_get($id) ;
+$pid = param($_GET, 'player_id', '') ;
+if ( $pid == '' )
+	$reg = registration_get($id) ;
+else
+	$reg = registration_get($id, $pid) ;
 if ( $reg == null )
 	$deck = param_or_die($_POST, 'deck') ;
 else
@@ -14,7 +18,6 @@ $deck = deck2arr($deck) ;
 /* Stats for those cards */
 $card_connection = card_connect() ;
 $order_by = 'score_ratio' ;
-//$order_by = 'play_score_ratio' ;
 $cards = query_as_array("SELECT
 	`pick`.`card_id`,
 	`pick`.`sealed_open`,

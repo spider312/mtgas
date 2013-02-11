@@ -65,7 +65,7 @@ if ( $msg != '' )
 
 // All were OK, update
 query("UPDATE `registration` SET `deck` = '".mysql_real_escape_string($mwdeck)."' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;
-tournament_log($id, $player_id, 'save') ;
+//tournament_log($id, $player_id, 'save') ;
 
 // Return deck as mw file in order to save it in list if asked
 $mwdeck = str_replace("\n", '\n', $mwdeck) ;

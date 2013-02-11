@@ -123,7 +123,7 @@ function registration_get($id=0, $player_id='') {
 	if ( $row = mysql_fetch_object(query("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ")) )
 		return $row ;
 	else
-		return null ;
+		return $player_id ;
 }
 function tournament_start($tournament) {
 	sleep(2) ; // "Not saved deck" bug resolution
@@ -609,12 +609,12 @@ function rand_card(&$arr, &$removefrom=null) { // param by adrress, returned car
 	$object->ext = $card->se ;
 	return $object ;
 }
-function booster_open($tournament, $player, $booster) {
+function booster_open($tournament, $player, $booster, &$cards=null) {
 	// Delete previous booster in case it's needed
 	query("DELETE FROM `booster` WHERE `tournament` = '".$tournament->id."' AND `player` = '".$player->order."' ;") ;
 	// Generate random booster
 	query("INSERT INTO `booster` (`content`, `tournament`, `player`) VALUES
-	('".mysql_real_escape_string(json_encode(booster_as_array($booster)))."', '".$tournament->id."', '".$player->order."') ") ;
+	('".mysql_real_escape_string(json_encode(booster_as_array($booster, &$cards)))."', '".$tournament->id."', '".$player->order."') ") ;
 	// Initialize player's "deck"
 	query("UPDATE `registration`
 		SET
@@ -643,6 +643,43 @@ function pool_open($boosters, $name='', &$cards=null) {
 	}
 	$pool .= add_side_lands() ;
 	return $pool ;
+}
+function tournament_singleton($data) {
+	if ( array_search('CUB', $data->boosters) !== FALSE ) { // Singleton
+		$card_connection = card_connect() ;
+		$cards = query_as_array('	SELECT
+			`card`.`name`,
+			`card`.`attrs`,
+			`card_ext`.`nbpics`,
+			`card_ext`.`rarity`,
+			`extension`.`se`
+		FROM
+			`card`,
+			`card_ext`,
+			`extension`
+		WHERE
+			`card`.`id` = `card_ext`.`card`
+			AND `extension`.`id` = `card_ext`.`ext`
+		'."AND `extension`.`se` = 'CUB' ; ", 'Get cards in Cube (modified)', $card_connection) ;
+	} else if ( array_search('OMC', $data->boosters) !== FALSE ) {
+		$card_connection = card_connect() ;
+		$cards = query_as_array('	SELECT
+			`card`.`name`,
+			`card`.`attrs`,
+			`card_ext`.`nbpics`,
+			`card_ext`.`rarity`,
+			`extension`.`se`
+		FROM
+			`card`,
+			`card_ext`,
+			`extension`
+		WHERE
+			`card`.`id` = `card_ext`.`card`
+			AND `extension`.`id` = `card_ext`.`ext`
+		'."AND `extension`.`se` = 'OMC' ; ", 'Get cards in Cube (original)', $card_connection) ;
+	} else
+		$cards = null ;
+	return $cards ;
 }
 // Draft specific functions
 function draft_time($cards=15, $round=0) {

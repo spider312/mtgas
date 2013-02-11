@@ -14,12 +14,15 @@ if ( $result->tournament = mysql_fetch_object(query("SELECT *,
 	// Tournament's players
 	$result->players = query_as_array("SELECT `player_id`, `nick`, `avatar`, `status`, `order`, `ready`, `deck`
 		FROM `registration` WHERE `tournament_id` = '$id' ORDER BY `order` ; ") ;
+	foreach ( $result->players as $i => $player )
+		$player->deck = deck2arr($player->deck) ;
 	// Log
 	$result->log = query_as_array("SELECT * FROM `tournament_log` WHERE `tournament_id` = '$id'") ;
 } else 
 	$result->msg = 'Tournament #'.$id.' not found' ;
 // Get user data (for order)
 if ( $result->player = mysql_fetch_object(query("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ;")) ) {
+	$result->player->deck = deck2arr($result->player->deck) ;
 } else
 	$result->msg = 'Player '.$player_id.' not registered to tournament #'.$id ;
 // Get booster
@@ -50,10 +53,18 @@ if ( $result->booster = mysql_fetch_object(query("SELECT * FROM `booster` WHERE 
 		}
 	}
 	if ( $updatepick ) {
-		$query = "UPDATE `booster` SET `pick` = $pick WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;" ;
+		$main = param($_GET, 'main', null) ;
+		if ( $main != null ) {
+			if ( $main == 'true' )
+				$destination = ", `destination` = 'main' " ;
+			else
+				$destination = ", `destination` = 'side' " ;
+		} else
+			$destination = '' ;
+		$query = "UPDATE `booster` SET `pick` = $pick $destination WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;" ;
 		query($query) ;
-		if ( mysql_affected_rows() > 1 ) 
-			$result->msg = mysql_affected_rows().' boosters updated : '.$query ;
+		//if ( mysql_affected_rows() > 1 ) // Wrong behaviour
+			//$result->msg = mysql_affected_rows().' boosters updated : '.$query ;
 	}
 
 } else if ( $result->tournament->status == 3 )

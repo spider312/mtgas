@@ -1,6 +1,8 @@
 <?php
 include '../../lib.php' ;
 include '../../includes/db.php' ;
+include '../../includes/card.php' ;
+include '../../includes/deck.php' ;
 include '../lib.php' ;
 $id = intval(param_or_die($_GET, 'id')) ;
 $last_id = intval(param($_GET, 'last_id', 0)) ; // Last log id
@@ -15,6 +17,8 @@ if ( $tournament = mysql_fetch_object(query("SELECT *,
 	// Tournament's players
 	$tournament->players = query_as_array("SELECT `player_id`, `nick`, `avatar`, `status`, `order`, `ready`, `deck`
 		FROM `registration` WHERE `tournament_id` = '$id' ORDER BY `order` ; ") ;
+	foreach ( $tournament->players as $i => $player )
+		$player->deck = deck2arr($player->deck) ;
 	// Sort players by rank
 	$data = json_decode($tournament->data) ;
 	if ( isset($data->score) ) {

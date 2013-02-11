@@ -55,9 +55,15 @@ html_head('Drafting '.$tournament->name,
   </div>
 
   <div class="section group">
-   <h1>Pool</h1>
+   <h1>Deck</h1>
    <div id="drafted_cards"></div>
   </div>
+
+  <div class="section group">
+   <h1>Side</h1>
+   <div id="sided_cards"></div>
+  </div>
+
 
   <div id="stats" class="section">
    <h2>Stats</h2>

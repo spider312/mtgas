@@ -29,6 +29,8 @@ $seed = (double)microtime()*1000000  ; // PHP comments
 //log($seed) ;
 mt_srand($seed) ;
 
+$card_connection = card_connect() ;
+
 $day = 0 ;
 
 while ( sleep($daemon_delay) !== FALSE ) {
@@ -120,6 +122,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			case 'draft' :
 				$booster = array_shift($data->boosters) ;
 				$tournament->round = 1 ;
+				$cards = tournament_singleton($data) ;
 				foreach ( $players as $player )
 					booster_open($tournament, $player, $booster) ; // Must be done after updating tournament, 'cuz it takes infos in it (round)
 				query("UPDATE `tournament` SET
@@ -132,40 +135,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				tournament_log($tournament->id, '', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				if ( array_search('CUB', $data->boosters) !== FALSE ) { // Singleton
-					$card_connection = card_connect() ;
-					$cards = query_as_array('	SELECT
-						`card`.`name`,
-						`card`.`attrs`,
-						`card_ext`.`nbpics`,
-						`card_ext`.`rarity`,
-						`extension`.`se`
-					FROM
-						`card`,
-						`card_ext`,
-						`extension`
-					WHERE
-						`card`.`id` = `card_ext`.`card`
-						AND `extension`.`id` = `card_ext`.`ext`
-					'."AND `extension`.`se` = 'CUB' ; ", 'Get cards in Cube (modified)', $card_connection) ;
-				} else if ( array_search('OMC', $data->boosters) !== FALSE ) {
-					$card_connection = card_connect() ;
-					$cards = query_as_array('	SELECT
-						`card`.`name`,
-						`card`.`attrs`,
-						`card_ext`.`nbpics`,
-						`card_ext`.`rarity`,
-						`extension`.`se`
-					FROM
-						`card`,
-						`card_ext`,
-						`extension`
-					WHERE
-						`card`.`id` = `card_ext`.`card`
-						AND `extension`.`id` = `card_ext`.`ext`
-					'."AND `extension`.`se` = 'OMC' ; ", 'Get cards in Cube (original)', $card_connection) ;
-				} else
-					$cards = null ;
+				$cards = tournament_singleton($data) ;
 				if ( $data->clone_sealed ) { // Each player has the same deck
 					query("UPDATE `registration`
 						SET
@@ -237,6 +207,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			SET
 				`content` = '".mysql_real_escape_string(json_encode($content))."'
 				, `pick` = ''
+				, `destination` = 'side'
 			WHERE
 				`tournament` = '".$tournament->id."'
 				AND `player` = '".$player->order."'
@@ -246,10 +217,19 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				$line = $splice[0] ;
 				$ex = explode('/', $line) ; // Transformable
 				if ( count($ex) > 1 )
-					$line = $ex[0] ;
-				// Store only head face
-				$pick = 'SB: 1 ['.$content->ext.'] '.mysql_real_escape_string($line)."\n" ; // Converting to mwDeck format
-				query("UPDATE `registration` SET `deck` = CONCAT(`deck`, '$pick'), `ready` = 0
+					$line = $ex[0] ; // Store only head face
+				// Old way : barbarianly add text at the end, works well
+				//$pick = 'SB: 1 ['.$content->ext.'] '.mysql_real_escape_string($line)."\n" ; // Converting to mwDeck format
+				//query("UPDATE `registration` SET `deck` = CONCAT(`deck`, '$pick'), `ready` = 0
+				//	WHERE `tournament_id` = '".$tournament->id."' AND `player_id` = '".$player->player_id."' ;") ;
+				// New way : parse deck as an object, add it to destination, stringify
+				$deck = deck2arr($player->deck) ;
+				$card = card2obj($card_connection, $line, $content->ext) ;
+				if ( $player->destination == 'main')
+					array_push($deck->main, $card) ;
+				else
+					array_push($deck->side, $card) ;
+				query("UPDATE `registration` SET `deck` = '".mysql_real_escape_string(obj2deck($deck))."', `ready` = 0
 					WHERE `tournament_id` = '".$tournament->id."' AND `player_id` = '".$player->player_id."' ;") ;
 			} else
 				echo count($splice)." cards spliced\n" ;

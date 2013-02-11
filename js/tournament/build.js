@@ -1,11 +1,7 @@
-function start_spectactor(id, tournament_name, player_name, deckcontent) {
+function start_spectactor(id, pid) {
+	player_id = pid
 	init() ;
-	document.getElementById('save').addEventListener('click', function(ev) {
-		deckname = prompt('Deck name', player_name+'@'+tournament_name) ;
-		if ( name != null )
-			deck_set(deckname, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+deckname+'\n'+obj2deck(clone_deck(poolcards))) ;
-	}, false) ;
-	$.post('json/deck.php', {'deck': deckcontent}, function(obj) { // Get deck as JS object
+	$.getJSON('json/deck.php', {'id': id, 'player_id': player_id}, function(obj) { // Get deck as JS object
 		obj.side = obj.side.filter(filter_lands, 'sb') ;
 		disp_side(obj.side, pool) ;
 		obj.main = obj.main.filter(filter_lands, 'md') ;
@@ -13,70 +9,19 @@ function start_spectactor(id, tournament_name, player_name, deckcontent) {
 		poolcards = obj ;
 		tournament_init(id) ;
 		timer(id, true) ;
-	}, 'json') ;
-	// Spectactor specific
-	ready.disabled = true ;
+	}) ;
 }
 function start_tournament(id) { // Start all that is only related to current tournament
 	init() ;
 	player_id = $.cookie(session_id) ;
 	// Events
-	ready.addEventListener('change', function(ev) { // On click
-		if ( ( ev.target.checked ) && ( ! saved || modified ) ) { // If checking, verify deck hasn't been modified since last save
-			ev.target.checked = false ;
-			alert('You have to save a valid deck before beeing marked as ready') ;
-			return eventStop(ev) ;
-		}
+	ready.addEventListener('change', function(ev) {
 		$.getJSON('json/ready.php', {'id': id, 'ready': ev.target.checked+0}) ;
 	}, false) ;
-		// Button "save"
-	document.getElementById('save').addEventListener('click', function(ev) {
-		localpool = clone_deck(poolcards) ;
-		localpool.side.sort(color_sort) ; // In order side to be sorted by color in limited
-		if ( localpool.main.length < 40 ) {
-			if ( ! confirm('You have only '+localpool.main.length+' cards in your deck, you need at least 40, save anyway ?') )
-				return eventStop(ev) ;
-		}
-		ev.target.setAttribute('disabled', 'true') ; // Don't send save while previous sent saved isn't recieved
-		saved = false ;
-		$.post('json/deck_update.php', {'id': id, 'deck': JSON.stringify(localpool)}, function(res) { // Deck content is too heavy for GET
-			document.getElementById('save').removeAttribute('disabled') ; // Allow back to save
-			switch ( typeof res ) { // Dunno why, sometimes result is JSON parsed, sometimes not
-				case 'object' :
-					var data = res ;
-					break ;
-				case 'string' :
-					try {
-						var data = JSON.parse(res) ;
-					} catch (e) {
-						alert(e+' : \n'+res);
-						return null ;
-					}
-					break ;
-				default :
-					alert('Unrecognized type for result of deck update : '+typeof res) ;
-					return false ;
-			}
-			if ( data.msg ) {
-				alert(data.msg) ;
-				return false ;
-			}
-			var msg = 'unitialized' ;
-			switch ( data.nb ) {
-				case 0 : 
-					alert('Deck NOT saved for current event (maybe unmodified ?)') ;
-					saved = true ;
-					modified = false ;
-					break ;
-				case 1 : 
-					alert('Deck saved for current event') ;
-					saved = true ;
-					modified = false ;
-					break ;
-				default :
-					alert('Unmanaged modifications count : '+data.nb) ;
-			}
-		}, 'json') ;
+	var ready_label = ready.parentNode ;
+	ready_label.addEventListener('click', function(ev) {
+		if ( ready.disabled && confirm('Are you sure you are ready ? ('+poolcards.main.length+'cards in your library)') )
+			ready.disabled = false ;
 	}, false) ;
 	// Deck mw -> json (after creating lands because they will be filtered)
 	$.getJSON('json/deck.php', {'id': id}, function(obj) { // Get deck as JS object
@@ -87,6 +32,11 @@ function start_tournament(id) { // Start all that is only related to current tou
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 		tournament_init(id) ;
+		if ( ready.checked && ( poolcards.main.length < 40 ) ) {
+			ready.checked = false ;
+			$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
+		} else
+			ready.removeAttribute('disabled') ;
 		timer(id, false) ;
 	}) ;
 }
@@ -116,10 +66,10 @@ function init() {
 	zoomed = document.getElementById('zoomed') ;
 	transformed = document.getElementById('transformed') ;
 	ready = document.getElementById('ready') ;
-	saved = false ;
 	tournament = null ;
 	ajax_error_management() ;
 	poolcards = null ;
+	spectactor = true ;
 	// Link between mana colors array and mana color checks
 	manacolors = ['X', 'W', 'U', 'B', 'R', 'G'] ;
 	active_color = {} ;
@@ -200,20 +150,6 @@ function init() {
 		}
 		disp_side(poolcards.side, pool) ;
 	}, false) ;
-		// DND management for toggling cards
-	deck.addEventListener('dragover', dragover, false)
-	pool.addEventListener('dragover', dragover, false)
-	deck.addEventListener('drop', drop, false) ;
-	pool.addEventListener('drop', drop, false) ;
-		// Message when you unload page with a modified deck
-	modified = false ;
-	window.addEventListener('beforeunload', function(ev) {
-		if ( modified ) {
-			ev.returnValue = 'Your deck was modified since last save\nYou may want to save those modifications before leaving page' ;
-			alert(ev.returnValue) ;
-			return ev.returnValue ;
-		}
-	}, false) ; // Page closure
 		// Basic lands
 	lands = [] ;
 	function landbase(id, name) {
@@ -240,7 +176,8 @@ function init() {
 	}
 }
 // Timer loop
-function timer(id, spectactor) {
+function timer(id, s) {
+	spectactor = s ;
 	$.getJSON('json/tournament.php', {'id': id, 'firsttime': true}, function(data) { // Get time left
 		tournament = data ;
 		if ( ( ! spectactor ) && ( data.status != 4 ) ) // If tournament isn't in "drafting" status, go back to tournament index (that will normally redirect to build)
@@ -248,28 +185,41 @@ function timer(id, spectactor) {
 		else {
 			window.setTimeout(timer, sealed_timer, id, spectactor) ; // Refresh in 30 secs
 			document.getElementById('timeleft').value = time_disp(parseInt(data.timeleft)) ;
-			if ( iso(data.players)) {
-				node_empty(players_ul) ;
-				for ( var i = 0 ; i < data.players.length ; i++ ) {
-					var li = create_li(null) ;
-					var cb = create_checkbox('', data.players[i].ready != '0') ;
-					cb.disabled = true ;
-					li.appendChild(cb) ;
-					li.appendChild(document.createTextNode(data.players[i].nick)) ;
-					players_ul.appendChild(li) ;
-				}
-			}
-			if ( iso(data.log) && ( data.log.length > loglength ) ) {
-				if ( tournament_log.children.length != 0 ) // Some messages already recieved
-					document.getElementById('tournament').classList.add('highlight') ;
-				loglength = data.log.length ;
-				tournament_spectactors(data.log, spectactors) ; // Populate from log
-				tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
-			}
+			tournament_players_update(data) ;
+			tournament_log_update(data) ;
+			if ( spectactor )
+				for ( var i = 0 ; i < data.players.length ; i++ )
+					if ( data.players[i].player_id == player_id ) {
+						var obj = data.players[i].deck ;
+						var recieved = JSON.stringify(data.players[i].deck) ;
+						var current = JSON.stringify(poolcards) ;
+						if ( recieved != current ) {
+							obj.side = obj.side.filter(filter_lands, 'sb') ;
+							disp_side(obj.side, pool) ;
+							obj.main = obj.main.filter(filter_lands, 'md') ;
+							disp_side(obj.main, deck) ;
+							poolcards = obj ;
+						}
+					}
 		}
 	}) ;
 }
 // Functions
+function silent_save() {
+	if ( spectactor )
+		return false ;
+	localpool = clone_deck(poolcards) ;
+	if ( ready.checked && ( localpool.main.length < 40 ) ) {
+		ready.checked = false ; // Removed 40th card, uncheck ready
+		$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
+	}
+	localpool.side.sort(color_sort) ; // In order side to be sorted by color in limited
+	ready.setAttribute('disabled', 'true') ; // Don't send save while previous sent saved isn't recieved
+	$.post('json/deck_update.php', {'id': tid, 'deck': JSON.stringify(localpool)}, function(ev) { // Deck content is too heavy for GET
+		if ( localpool.main.length > 39 )
+			ready.removeAttribute('disabled') ; // Don't send save while previous sent saved isn't recieved
+	}, 'json') ;
+}
 function clone_deck(poolcards) { // Returns a copy of a deck
 	var localpool = {} ; // Local copy of the pool that will be added lands
 	// If we clone poolcards, then localpool.main is the same object instance than poolcards.main, so it's not local
@@ -301,17 +251,6 @@ function color_sort(card1, card2) {
 	if ( card1.attrs.color > card2.attrs.color )
 		return -1 ;
 	return 1 ;
-}
-function dragover(ev) { // Allows drop if dragged object is a card
-	if ( ev.dataTransfer.getData('card') != '' ) // Nothing else but a card is dragged
-		ev.preventDefault() ;
-}
-function drop(ev) { // Does drop (search card, toggle card)
-	var card = ev.dataTransfer.getData('card') ;
-	if ( card != '' ) // A card is dragged
-		card_toggle(document.getElementById(card).card) ;
-	else // Anything else than a card is dragged
-		alert('Not dragging a card') ;
 }
 function label_check(target) {
 	if ( target.checked )
@@ -373,12 +312,14 @@ function land_div(card, prefix) { // Returns visual representation of a land-car
 				alert('Button '+ev.button+' unmanaged') ;
 				return false ;
 		}
+		silent_save() ;
 		disp_side(poolcards.main, deck) ;
 	}, false) ;
 	div.addEventListener('contextmenu', function(ev) {
 		ev.preventDefault() ;
 	}, false)
 	div.addEventListener('change', function(ev) {
+		silent_save() ;
 		disp_side(poolcards.main, deck) ;
 	}, false) ;
 	// Image loading
@@ -469,18 +410,19 @@ function card_div(card) { // Returns visual representation of a card
 		zoom.classList.remove('disp') ;
 	}, false) ;
 	div.addEventListener('mouseup', function(ev) {
-		switch ( ev.button ) {
-			case 0 :
-				card_toggle(ev.target.card) ;
-				zoom.classList.remove('disp') ; // toggling card with a dblclick implies mouse is over div
-				// but the toggle won't fire mouseout, doing it by hand here
-				break ;
-			case 1 :
-				window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
-				break ;
-			case 2 :
-				break ;
-		}
+		if ( ! spectactor )
+			switch ( ev.button ) {
+				case 0 :
+					card_toggle(ev.target.card) ;
+					zoom.classList.remove('disp') ; // toggling card with a dblclick implies mouse is over div
+					// but the toggle won't fire mouseout, doing it by hand here
+					break ;
+				case 1 :
+					window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
+					break ;
+				case 2 :
+					break ;
+			}
 	}, false) ;
 	div.addEventListener('contextmenu', function(ev) {
 		window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
@@ -509,7 +451,7 @@ function card_toggle(card) { // If card is in side, move it in deck, vice versa
 		disp_side(poolcards.side, pool) ;
 	if ( ( from == poolcards.main ) | ( to == poolcards.main ) )
 		disp_side(poolcards.main, deck) ;
-	modified = true ; // Set as modified for beforeunload check
+	silent_save() ;
 }
 function disp_side(originaldeck, table) {
 	var side = clone(originaldeck) ; // Working on a clone of original array

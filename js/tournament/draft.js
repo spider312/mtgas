@@ -2,6 +2,7 @@ function start(id) {
 	ajax_error_management() ;
 	booster_cards = document.getElementById('booster_cards') ;
 	drafted_cards = document.getElementById('drafted_cards') ;
+	sided_cards = document.getElementById('sided_cards') ;
 	timeleft = document.getElementById('timeleft') ;
 	ready = document.getElementById('ready') ;
 	r_changing = false ;
@@ -74,18 +75,26 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 				// Image in div
 				var img = Img(booster_cards, card.ext, card.name, card.attrs) ;
 				img.id = i + 1 ;
-				if ( parseInt(img.id) == Math.abs(data.booster.pick) )
-					img.className = 'pick' ;
+				if ( parseInt(img.id) == Math.abs(data.booster.pick) ) {
+					if ( data.booster.destination == 'main' )
+						img.className = 'pick' ;
+					else
+						img.className = 'side' ;
+				}
 				// Event
 				img.addEventListener('click', function(ev) { // On click
-					ev.target.className = 'picking' ;
+					if ( ev.ctrlKey )
+						ev.target.className = 'siding' ;
+					else
+						ev.target.className = 'picking' ;
 					var r = ready.checked+0 ; 
 					if ( localStorage['draft_auto_ready'] == 'true' )
 						r = 1 ;
-					$.getJSON('json/draft.php', {'id': id, 'pick': ev.target.id, 'ready': r}, function(data) { // Update pick
+					$.getJSON('json/draft.php', {'id': id, 'pick': ev.target.id, 'ready': r, 'main': !ev.ctrlKey}, function(data) { // Update pick
 						if ( data.msg )
 							alert(data.msg) ;
 					}) ;
+					eventStop(ev) ;
 				}, false) ;
 				img.addEventListener('dblclick', function(ev) { // On click
 					ev.target.className = 'picking' ;
@@ -111,49 +120,33 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 			}
 		}
 		// Update pool
-		if ( data.player.deck != cache_pool ) {
-			cache_pool = data.player.deck ; // Caching deck parsing
-			$.post('json/deck.php', {'deck': cache_pool}, function(data) {
-				node_empty(drafted_cards) ;
-				for ( var i = 0 ; i < data.side.length ; i++) {
-					var line = data.side[i] ;
-					switch ( typeof line ) {
-						case 'string' : 
-							var h2 = document.createElement('h2') ;
-							h2.appendChild(document.createTextNode(line)) ;
-							drafted_cards.appendChild(h2) ;
-							break ;
-						case 'object' :
-							Img(drafted_cards, line.ext, line.name, line.attrs)
-							break ;
-						default : 
-							alert(typeof line) ;
-					}
-				}
-				deck_stats_cc(data.side) ;
-
-			}, 'json') ;
+		json_deck = JSON.stringify(data.player.deck) ;
+		if ( json_deck != cache_pool ) {
+			cache_pool = json_deck ; // Caching deck parsing
+			display(drafted_cards, data.player.deck.main) ;
+			display(sided_cards, data.player.deck.side) ;
+			deck_stats_cc(data.player.deck.main) ;
 		}
-		// Update players
-		if ( iso(data.players)) {
-			node_empty(players_ul) ;
-			for ( var i = 0 ; i < data.players.length ; i++ ) {
-				var li = create_li(null) ;
-				var cb = create_checkbox('', data.players[i].ready != '0') ;
-				cb.disabled = true ;
-				li.appendChild(cb) ;
-				li.appendChild(document.createTextNode(data.players[i].nick)) ;
-				players_ul.appendChild(li) ;
-			}
-		}
-		// Update log
-		if ( iso(data.log) && ( data.log.length > loglength ) ) {
-			if ( tournament_log.children.length != 0 ) // Some messages already recieved
-				document.getElementById('tournament').classList.add('highlight') ;
-			loglength = data.log.length ;
-			tournament_spectactors(data.log, spectactors) ; // Populate from log
-			tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
-		}
+		tournament_players_update(data) ;
+		tournament_log_update(data) ;
 		window.setTimeout(draft, draft_timer, id) ;
 	}) ;
+}
+function display(place, zone) {
+	node_empty(place) ;
+	for ( var i = 0 ; i < zone.length ; i++) {
+		var line = zone[i] ;
+		switch ( typeof line ) {
+			case 'string' : 
+				var h2 = document.createElement('h2') ;
+				h2.appendChild(document.createTextNode(line)) ;
+				place.appendChild(h2) ;
+				break ;
+			case 'object' :
+				Img(place, line.ext, line.name, line.attrs)
+				break ;
+			default : 
+				alert(typeof line) ;
+		}
+	}
 }

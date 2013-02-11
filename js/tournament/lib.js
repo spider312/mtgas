@@ -124,7 +124,28 @@ function tournament_log_init(id) {
 	}, false) ;
 	spectactors = new Spectactors() ;
 }
-
+function tournament_log_update(data) {
+	if ( iso(data.log) && ( data.log.length > loglength ) ) {
+		if ( tournament_log.children.length != 0 ) // Some messages already recieved
+			document.getElementById('tournament').classList.add('highlight') ;
+		loglength = data.log.length ;
+		tournament_spectactors(data.log, spectactors) ; // Populate from log
+		tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
+	}
+}
+function tournament_players_update(data) {
+	if ( iso(data.players)) {
+		node_empty(players_ul) ;
+		for ( var i = 0 ; i < data.players.length ; i++ ) {
+			var player = data.players[i] ;
+			var cb = create_checkbox('', player.ready != '0') ;
+			cb.disabled = true ;
+			var li = create_li(cb) ;
+			li.appendChild(document.createTextNode(player.nick+' : '+player.deck.main.length)) ;
+			players_ul.appendChild(li) ;
+		}
+	}
+}
 function tournament_log_li(line, nick, players, spectactors) {
 	var msg = 'default message' ;
 	switch ( line.type ) {
@@ -183,11 +204,11 @@ function tournament_log_li(line, nick, players, spectactors) {
 			break ;
 		case 'end' :
 			msg = 'Tournament ended' ;
-			if ( pid != '' ) // New fashion winner
-				msg += ', congratulations to '+nick ;
-			else
-				if ( line.value != '' ) // Old fashion winner
-					msg += ', congratulations to '+line.value ;
+			//if ( pid != '' ) // New fashion winner
+			//	msg += ', congratulations to '+nick ;
+			//else
+				if ( line.sender != '' ) // Old fashion winner
+					msg += ', congratulations to '+nick ;
 				else
 					msg += ', can\'t fnid a winner' ;
 			break ;

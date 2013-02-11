@@ -10,3 +10,9 @@
 #booster_cards img.pick {
 	border-color: lime ;
 }
+#booster_cards img.siding {
+	border-color: darkblue ;
+}
+#booster_cards img.side {
+	border-color: blue ;
+}

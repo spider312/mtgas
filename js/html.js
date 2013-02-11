@@ -138,8 +138,11 @@ function create_ul(id) {
 }
 function create_li(text, classname) {
 	var li = document.createElement('li') ;
-	li.appendChild(document.createTextNode(text)) ;
-	if ( classname )
+	if ( iss(text) )
+		li.appendChild(document.createTextNode(text)) ;
+	else
+		li.appendChild(text) ;
+	if ( iss(classname) )
 		li.className = classname ;
 	return li ;
 }
