@@ -6,10 +6,11 @@ function obj2deck(obj) {
 	deck += arr2deck(obj.side, 'SB:') ;
 	return deck ;
 }
-function arr2deck(arr, prefix) {
+function arr2deck(arrp, prefix) {
+	var arr = clone(arrp) ;
 	if ( ! iss (prefix) )
 		prefix = '   '
-	deck = '' ;
+	var deck = '' ;
 	while ( arr.length > 0 ) {
 		curval = arr.pop() //array_splice($arr, 0, 1) ; // Extract a card
 		nb = 1 ;
