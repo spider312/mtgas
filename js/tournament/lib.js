@@ -114,13 +114,15 @@ function tournament_log_init(id) {
 	tid = id ;
 	tournament_log = document.getElementById('log_ul') ;
 	document.getElementById('chat').addEventListener('submit', function(ev) {
+		ev.preventDefault() ;
+		if ( ev.target.msg.value == '' )
+			return false ;
 		$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
 			if ( data.nb != 1 )
 				alert(data.nb+' affected rows') ;
 			else
 				ev.target.msg.value = '' ;
 		}) ;
-		ev.preventDefault() ;
 	}, false) ;
 	spectactors = new Spectactors() ;
 }
@@ -221,6 +223,7 @@ function tournament_log_li(line, nick, players, spectactors) {
 	return create_li(msg) ;
 }
 function tournament_log_ul(tournament_log, log, players, spectactors) {
+	var scrbot = tournament_log.scrollHeight - ( tournament_log.scrollTop + tournament_log.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
 	node_empty(tournament_log) ;
 	while ( log.length > 0 ) {
 		line = log.shift() ;
@@ -242,6 +245,9 @@ function tournament_log_ul(tournament_log, log, players, spectactors) {
 		li.title = (new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString() ;
 		tournament_log.appendChild(li) ;
 	}
+	// Scroll
+	if ( scrbot == 0 )
+		tournament_log.scrollTop = tournament_log.scrollHeight
 }
 function tournament_spectactors(log, spectactors) {
 	for ( var i = 0 ; i < log.length ; i++ ) {
