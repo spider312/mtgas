@@ -8,11 +8,15 @@ $id = param_or_die($_POST, 'id') ;
 $deck = param_or_die($_POST, 'deck') ;
 //$deck = stripslashes($deck) ;
 $new_deck = json_decode($deck) ;
-if ( $new_deck == NULL ) {
+if ( $new_deck == NULL )
 	die('{"msg": "Unable to parse modified deck, try to refresh"}') ;
-}
-$mwdeck = obj2deck($new_deck) ;
+// Version check
+if ( isset($_SESSION['version']) && ( $_SESSION['version'] >= $new_deck->version ) ) // older version
+	die('{"msg": "'.$_SESSION['version'].' -> '.$new_deck->version.'"}') ; // don't save
+$_SESSION['version'] = $new_deck->version ; // current version becomes deck's version
 
+$mwdeck = obj2deck($new_deck) ;
+/* Anti cheat check not working since 2013-02-16, autosave
 // Get previous deck
 $registration = query_oneshot("SELECT `deck` FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;
 $previous_deck = deck2arr($registration->deck) ;
@@ -40,8 +44,11 @@ function removefromnew($card) {
 			return false ;
 		}
 	}
+	die($card->id.' != '.$new_card->id) ;
 	return true ;
 }
+$p = clone($previous_deck) ;
+$n = clone($new_deck) ;
 $previous_deck->main = array_filter($previous_deck->main, 'removefromnew') ;
 $previous_deck->side = array_filter($previous_deck->side, 'removefromnew') ;
 // Checking if both are empty
@@ -60,8 +67,17 @@ if ( $missing > 0 )
 	$msg .= 'Missing cards : \n'.debugdeck($previous_deck) ;
 if ( $added > 0 )
 	$msg .= 'Added cards : \n'.debugdeck($new_deck) ;
-if ( $msg != '' )
-	die('{"msg": "Some errors detected : \n'.$msg.'You may have to refresh and lose all unsaved modifications"}') ;
+if ( $msg != '' ) {
+	//$errmsg = 'Some errors detected : \n' ;
+	$errmsg = $msg.'\n' ;
+	$errmsg .= 'Sended : \n'.debugdeck($n).'\n' ;
+	//$errmsg .= 'Sended : \n'.mysql_real_escape_string($mwdeck).'\n' ;
+	$errmsg .= 'Stored : \n'.debugdeck($p).'\n' ;
+	//$errmsg .= 'Stored : \n'.mysql_real_escape_string($registration->deck).'\n' ;
+	//$errmsg .= 'You may have to refresh and lose all unsaved modifications\n' ;
+	die('{"msg": "'.$errmsg.'"}') ;
+}
+*/
 
 // All were OK, update
 query("UPDATE `registration` SET `deck` = '".mysql_real_escape_string($mwdeck)."' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;

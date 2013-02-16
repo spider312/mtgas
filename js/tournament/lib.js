@@ -143,7 +143,10 @@ function tournament_players_update(data) {
 			var cb = create_checkbox('', player.ready != '0') ;
 			cb.disabled = true ;
 			var li = create_li(cb) ;
-			li.appendChild(document.createTextNode(player.nick+' : '+player.deck.main.length)) ;
+			var txt = player.nick ;
+			if ( isn(player.deck_obj.main.length) )
+				txt += ' : '+player.deck_obj.main.length
+			li.appendChild(document.createTextNode(txt)) ;
 			players_ul.appendChild(li) ;
 		}
 	}

@@ -6,6 +6,7 @@ $id = param($_GET, 'id', 0) ;
 $pid = param($_GET, 'pid', '') ;
 $name = param($_POST, 'name', '') ;
 $deck = param($_POST, 'deck', '') ;
+unset($_SESSION['version']) ; // Used by deck_update mechanism
 if ( $id > 0 ) {
 	$tournament = query_oneshot("SELECT * FROM `tournament` WHERE `id` = '$id' ; ", 'Tournament get') ; // Used for deck saving name
 	query("UPDATE `registration` SET `status` = '3' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;

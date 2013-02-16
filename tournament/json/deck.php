@@ -10,12 +10,12 @@ if ( $pid == '' )
 	$reg = registration_get($id) ;
 else
 	$reg = registration_get($id, $pid) ;
-if ( $reg == null )
+if ( ( $reg == null ) || ! isset($reg->deck) )
 	$deck = param_or_die($_POST, 'deck') ;
 else
 	$deck = $reg->deck ;
 $deck = deck2arr($deck) ;
-/* Stats for those cards */
+/* Stats for those cards 
 $card_connection = card_connect() ;
 $order_by = 'score_ratio' ;
 $cards = query_as_array("SELECT

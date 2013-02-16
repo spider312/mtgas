@@ -3,6 +3,7 @@ function start_spectactor(id, pid) {
 	init() ;
 	$.getJSON('json/deck.php', {'id': id, 'player_id': player_id}, function(obj) { // Get deck as JS object
 		obj.side = obj.side.filter(filter_lands, 'sb') ;
+		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
 		disp_side(obj.side, pool) ;
 		obj.main = obj.main.filter(filter_lands, 'md') ;
 		disp_side(obj.main, deck) ;
@@ -156,7 +157,7 @@ function init() {
 		// Basic lands
 	lands = [] ;
 	function landbase(id, name) {
-		return {'id': id, 'name': name, 'ext': 'UNH', 'color': '', 'rarity': 'L', 'attrs': {'color': ''}} ;
+		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X'}, toString: function() { return this.name+"\n" ; } } ;
 	}
 	arr = [
 		landbase(3332, 'Forest'),
@@ -191,36 +192,58 @@ function timer(id, s) {
 			tournament_players_update(data) ;
 			tournament_log_update(data) ;
 			if ( spectactor )
-				for ( var i = 0 ; i < data.players.length ; i++ )
-					if ( data.players[i].player_id == player_id ) {
-						var obj = data.players[i].deck ;
-						var recieved = JSON.stringify(data.players[i].deck) ;
-						var current = JSON.stringify(poolcards) ;
-						if ( recieved != current ) {
-							obj.side = obj.side.filter(filter_lands, 'sb') ;
-							disp_side(obj.side, pool) ;
-							obj.main = obj.main.filter(filter_lands, 'md') ;
-							disp_side(obj.main, deck) ;
-							poolcards = obj ;
+				for ( var i = 0 ; i < data.players.length ; i++ ) {
+					var player = data.players[i] ;
+					if ( player.player_id == player_id ) { // Self
+						var rdeck = clone_deck(poolcards) ; // poolcards doesn't count land base
+						rdeck.main.sort(alpha_sort) ;
+						rdeck.side.sort(alpha_sort) ;
+						player.deck_obj.main.sort(alpha_sort) ;
+						player.deck_obj.side.sort(alpha_sort) ;
+						if ( obj2deck(player.deck_obj) != obj2deck(rdeck) ) {
+							// Reinit lands (filled by filter_lands)
+							for ( var i in lands ) {
+								document.getElementById('md'+lands[i].name).value = 0 ;
+								document.getElementById('sb'+lands[i].name).value = 0 ;
+							}
+							poolcards = player.deck_obj ;
+							poolcards.side = poolcards.side.filter(filter_lands, 'sb') ;
+							disp_side(poolcards.side, pool) ;
+							poolcards.main = poolcards.main.filter(filter_lands, 'md') ;
+							disp_side(poolcards.main, deck) ;
 						}
 					}
+				}
 		}
 	}) ;
 }
 // Functions
+sending = false ; // Goes to true between ajax sending and response
+delay = false ; // Tell the response trigger to resend new version of the deck
+version = 0 ;
 function silent_save() {
 	if ( spectactor )
 		return false ;
+	delay = sending ; // delay current save
+	if ( delay ) // already sending a deck
+		return false ;
 	localpool = clone_deck(poolcards) ;
+	localpool.version = version++ ;
 	if ( ready.checked && ( localpool.main.length < 40 ) ) {
 		ready.checked = false ; // Removed 40th card, uncheck ready
 		$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
 	}
 	localpool.side.sort(color_sort) ; // In order side to be sorted by color in limited
 	ready.setAttribute('disabled', 'true') ; // Don't send save while previous sent saved isn't recieved
-	$.post('json/deck_update.php', {'id': tid, 'deck': JSON.stringify(localpool)}, function(ev) { // Deck content is too heavy for GET
+	sending = true ;
+	$.post('json/deck_update.php', {'id': tid, 'deck': JSON.stringify(localpool)}, function(data) { // Deck content is too heavy for GET
+		sending = false ;
+		if ( iss(data.msg) && data.msg != '' )
+			alert(data.msg) ;
 		if ( localpool.main.length > 39 )
 			ready.removeAttribute('disabled') ; // Don't send save while previous sent saved isn't recieved
+		if ( delay ) // an save was delayed
+			silent_save() ; // resend ;
 	}, 'json') ;
 }
 function clone_deck(poolcards) { // Returns a copy of a deck
@@ -523,6 +546,9 @@ function disp_side(originaldeck, table) {
 					side.splice(i, 1) ;
 					i-- ; // Card n removed, we must go back one step to continue over next card
 					nb++ ; // One card displayed
+					card.toString = function() {
+						return this.name+"\n" ;
+					}
 					tdb.appendChild(card_div(card)) ;
 					for ( var j = 0 ; j < card.attrs.types.length ; j++ ) { // Count types for stats
 						var type = card.attrs.types[j] ;
@@ -548,11 +574,9 @@ function disp_side(originaldeck, table) {
 	} while ( ( side.length > 0 ) ) ;
 	var trc = create_tr(table) ;
 	var nblands = 0 ;
-	if ( table == deck ) {
-		for ( var i in lands) {
+	if ( table == deck )
+		for ( var i in lands)
 			nblands += parseInt(document.getElementById('md'+lands[i].name).value) ;
-		}
-	}
 	// Stats
 	if ( ( table == deck ) )
 		deck_stats_cc(cards) ;

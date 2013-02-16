@@ -18,7 +18,7 @@ if ( $tournament = mysql_fetch_object(query("SELECT *,
 	$tournament->players = query_as_array("SELECT `player_id`, `nick`, `avatar`, `status`, `order`, `ready`, `deck`
 		FROM `registration` WHERE `tournament_id` = '$id' ORDER BY `order` ; ") ;
 	foreach ( $tournament->players as $i => $player )
-		$player->deck = deck2arr($player->deck) ;
+		$player->deck_obj = deck2arr($player->deck) ;
 	// Sort players by rank
 	$data = json_decode($tournament->data) ;
 	if ( isset($data->score) ) {
