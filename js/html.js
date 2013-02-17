@@ -210,9 +210,9 @@ function create_input(name, value, id) {
 function create_hidden(name, value) {
 	var hidden = document.createElement('input') ;
 	hidden.type = 'hidden' ;
-	if ( typeof name == 'string' )
+	if ( iss(name) || isn(name) )
 		hidden.name = name ;
-	if ( typeof value == 'string' )
+	if ( iss(value) || isn(value))
 		hidden.value = value ;
 	return hidden ;
 }

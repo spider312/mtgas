@@ -87,16 +87,17 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 				} else
 					create_td(tr, 'Not available before first round\'s end', 6) ;
 				var s = spectactors.get(player_id) ;
-				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self
 					var button_save = create_button('Save as ...', function(ev) {
-						var name = data.name ;
-						var player = ev.target.parentNode.parentNode.parentNode.player ;
-						if ( player_id != player.player_id )
-							name += '_'+player.nick ;
-						name = prompt('Deck name', name) ;
-						if ( name != null )
-							deck_set(name, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+data.name+'\n// CREATOR : '+player.nick+'\n// FORMAT : '+data.type+'\n'+player.deck) ;
-					}, 'Save deck in decklist') ;
+					var name = data.name ;
+					var player = ev.target.parentNode.parentNode.parentNode.player ;
+					if ( player_id != player.player_id )
+						name += '_'+player.nick ;
+					name = prompt('Deck name', name) ;
+					if ( name != null )
+						deck_set(name, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+data.name+'\n// CREATOR : '+player.nick+'\n// FORMAT : '+data.type+'\n'+player.deck) ;
+				}, 'Save deck in decklist') ;
+				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self
+					var actions = create_div(button_save) ;
 					var button_edit = create_submit('edit', 'Edit') ;
 					button_edit.title = 'Enter in deck builder mode with this deck. Will ONLY be saved in your deck list' ;
 					var form_edit = create_form('build.php', 'post'
@@ -104,7 +105,6 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						, create_hidden('name', data.type+'_'+data.name+'_'+player.nick)
 						, button_edit
 					) ;
-					var actions = create_div(button_save) ;
 					actions.appendChild(form_edit) ;
 					if ( t_status < 6 ) { // Not finished (so only on 'self' line)
 						var button_drop = create_button('Drop', function(ev) {
@@ -117,14 +117,15 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 						actions.appendChild(button_drop) ;
 					}
 				} else if ( ( s != null ) && ( s.is_allowed(player.player_id) ) ) { // Allowed spectactor
+					var actions = create_div(button_save) ;
 					var button_view = create_submit('view', 'View') ;
 					button_view.title = 'View deck while player builds it' ;
-					var actions = create_form('build.php', 'get'
+					var view_form = create_form('build.php', 'get'
 						, create_hidden('id', tournament_id)
 						, create_hidden('pid', player.player_id)
 						, button_view
 					) ;
-					actions[0].value = tournament_id ; // ???
+					actions.appendChild(view_form) ;
 				} else { // Unallowed spectactor
 					actions = 'No action' ;
 				}
