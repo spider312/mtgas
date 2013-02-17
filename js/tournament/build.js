@@ -390,8 +390,9 @@ function card_div(card) { // Returns visual representation of a card
 	div.transformed_url = '' ;
 	// Image loading
 	game.image_cache.load(card_images(card_image_url(card.ext, card.name, card.attrs)), function(img, tag) {
-		tag.url = img.src ;
-		tag.style.backgroundImage = 'url('+img.src+')' ;
+		var src = img.src ;
+		tag.url = src ;
+		tag.style.backgroundImage = 'url('+src.replace('\'', '\\\'')+')' ; // Chromium & Opera don't like apostrophes
 	}, function(tag, url) {
 		tag.appendChild(document.createTextNode('['+tag.card.ext+']'+tag.card.name)) ;
 	}, div) ;
