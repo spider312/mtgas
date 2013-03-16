@@ -7,6 +7,7 @@ else
 <!DOCTYPE html>
 <html>
  <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <title>MTGAS : Avatars gallery</title>
 <script type="text/javascript">
 function select(file) {
