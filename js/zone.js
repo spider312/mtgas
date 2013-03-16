@@ -679,8 +679,14 @@ function hand(player) {
 	}
 	// Drawing
 	myhand.draw = function(context) {
+		canvas_set_alpha(zopacity/2, context) ;
+		// Background
+		if ( this.cards.length > 7 ) {
+			context.fillStyle = 'red' ;
+			context.fillRect(this.x+.5, this.y+.5, this.w, this.h) ;
+		}
 		canvas_set_alpha(zopacity, context) ;
-		// Border / background
+		// Border
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
 			context.strokeRect(this.x+.5, this.y+.5, this.w, this.h) ;
