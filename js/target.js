@@ -46,7 +46,7 @@ function Target_tmp(cards, ev) {
 	}
 	document.addEventListener('keydown', this.onKey, false) ;
 	document.addEventListener('keyup', this.onKey, false) ;
-	if ( localStorage['helpers'] == 'true' ) {
+	if ( game.options.get('helpers') ) {
 		game.target.update_helper(ev) ;
 		game.target.helper.classList.add('disp') ;
 	}
@@ -135,7 +135,7 @@ function Targets() {
 	}
 	this.update_helper = function(ev) {
 		var result = ( this.tmp != null ) ;
-		if ( result && ( localStorage['helpers'] == 'true' ) ) {
+		if ( result && game.options.get('helpers') ) {
 			var margin = 5 ;
 			var x = ev.clientX + margin ; // margin px on cursor's right
 			if ( x + this.helper.clientWidth > window.innerWidth ) // Outside inner screen

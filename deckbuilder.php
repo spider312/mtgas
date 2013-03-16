@@ -14,6 +14,7 @@ html_head(
 		'menu.js',
 		'deck.js',
 		'html.js',
+		'options.js',
 		'../variables.js.php',
 		'deckbuilder.js',
 		'stats.js',
@@ -22,7 +23,7 @@ html_head(
 ) ;
 ?>
 
- <body onload="load(this, '<?php echo $_GET['deck'] ; ?>' );">
+ <body onload="load(this, '<?php echo mysql_real_escape_string($_GET['deck']) ; ?>' );">
 
 <?php
 html_menu() ;

@@ -27,17 +27,18 @@ html_head('Drafting '.$tournament->name,
 		'draft.css'
 	),
 	array(
-		'lib/jquery.js',
-		'lib/jquery.cookie.js',
-		'../variables.js.php',
-		'html.js',
-		'math.js',
-		'image.js',
-		'deck.js',
-		'tournament/draft.js', 
-		'stats.js',
-		'lib/Flotr2/flotr2.min.js',
-		'tournament/lib.js'
+		'lib/jquery.js'
+		, 'lib/jquery.cookie.js'
+		, 'lib/Flotr2/flotr2.min.js'
+		, 'html.js'
+		, 'math.js'
+		, 'image.js'
+		, 'deck.js'
+		, 'options.js'
+		, 'stats.js'
+		, 'tournament/draft.js'
+		, 'tournament/lib.js'
+		, '../variables.js.php'
 	)
 ) ;
 ?>

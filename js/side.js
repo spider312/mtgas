@@ -156,7 +156,7 @@ function ask_for_start(winner) { // If player did lose, ask him if he wants to s
 			var player = winner.opponent ;
 		else
 			var player = winner ;
-		if ( localStorage['auto_draw'] == 'true' )
+		if ( game.options.get('auto_draw') )
 			game.opponent.hand.mulligan() ; // First draw
 	} else {
 		if ( game.player != winner ) { // Loser chooses
@@ -168,7 +168,7 @@ function ask_for_start(winner) { // If player did lose, ask him if he wants to s
 				var player = game.opponent ;
 			}
 		} else { // Winner gets info from loser
-			if ( localStorage['auto_draw'] == 'true' )
+			if ( game.options.get('auto_draw') )
 				game.player.hand.mulligan() ; // First draw
 			return false ; // Don't reinit game data, winner will do
 		}
@@ -176,7 +176,7 @@ function ask_for_start(winner) { // If player did lose, ask him if he wants to s
 	action_send('choose', {'player': player.toString()}) ;
 	game.turn.setturn(0, player) ; // First turn
 	game.turn.setstep(3) ; // Main phase
-	if ( localStorage['auto_draw'] == 'true' )
+	if ( game.options.get('auto_draw') )
 		game.player.hand.mulligan() ; // First draw
 	return true ;
 }

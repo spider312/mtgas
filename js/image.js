@@ -43,6 +43,11 @@ function card_images(url) {
 function theme_image(name) {
 	return [ '/themes/'+theme+'/'+name ] ;
 }
+function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
+	if ( ( url.indexOf('://') < 0 ) && ( url.indexOf('/') > 0 ) )
+		url = '/'+url ;
+	return url ;
+}
 // Classes
 function image_cache() {
 /* This class tries to load a list of images and keep track of any success or fail of this result

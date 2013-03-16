@@ -6,6 +6,7 @@ html_head(
 	'Player data',
 	array(
 		'style.css',
+		'options.css',
 		'player.css'
 	),
 	array(
@@ -14,7 +15,9 @@ html_head(
 		'../variables.js.php',
 		'html.js',
 		'math.js',
+		'image.js',
 		'tournament/lib.js',
+		'options.js',
 		'player_data.js'
 	)
 ) ;

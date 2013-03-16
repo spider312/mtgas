@@ -12,6 +12,7 @@ function start(tournament_id) {
 	data = {} ;
 	last_id = 0 ;
 	$.ajaxSetup({ cache: false });
+	options = new Options(true) ;
 	tournament_log_init(tournament_id) ;
 	timer(tournament_id, player_id, data, last_id, true) ;
 }
@@ -40,7 +41,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 		// Spectactor
 		tournament_spectactors(rdata.log, spectactors) ; // Populate from log
 		if ( ( ! firsttime ) && ( player_get(data.players, player_id) == null ) && ( spectactors.get(player_id) == null ) )
-			$.getJSON('json/spectactor.php', {'id': tournament_id, 'nick': localStorage['profile_nick']}, function(data) {
+			$.getJSON('json/spectactor.php', {'id': tournament_id, 'nick': options.get('profile_nick')}, function(data) {
 				if ( data.nb != 1 )
 					alert(data.nb+' affected rows') ;
 			}) ;
@@ -139,12 +140,11 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 					// Normal form for clients not trigering events
 					var form = create_form('json/join.php', 'post', 
 						create_hidden('id', tournament_id),
-						create_hidden('nick', localStorage.profile_nick),
-						create_hidden('avatar', localStorage.profile_avatar),
-						create_hidden('deck', deck_get(localStorage['deck'])),
+						create_hidden('nick', options.get('profile_nick')),
+						create_hidden('avatar', options.get('profile_avatar')),
+						create_hidden('deck', deck_get(options.get('deck'))),
 						create_submit('submit', 'Register')
 					) ;
-					form[0].value = tournament_id ; // Dunno why it's erased, overwrite ...
 					td.appendChild(form) ;
 					// Submit override for the form, replacing its sumbission by an AJAJ query
 					form.addEventListener('submit', function(ev) {

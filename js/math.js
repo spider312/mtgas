@@ -178,7 +178,7 @@ function time_disp(duration) { // In seconds
 	return prefix + disp ;
 }
 
-// Types
+// Types ( https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/typeof )
 function isset(val) {
 	return ( typeof val != 'undefined' ) ;
 }
@@ -199,6 +199,9 @@ function iso(val, notnull) {
 	if ( isb(notnull) && notnull )
 		return ( res && ( val != null ) )
 	return res ;
+}
+function issn(val) { // Within JSON, sometimes, values are typed as integers
+	return iss(val) || isn(val) ;
 }
 function disp_int(n) {
 	if ( n >= 0 )

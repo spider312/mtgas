@@ -264,7 +264,7 @@ function message(text, meaning, dom) {
 	if ( scrbot == 0 )
 		chatbox.scrollTop = chatbox.scrollHeight ;
 }
-function init_chat() {
+function init_chat(options) {
 	logtext = new Array() ;
 	// Chat, must be declared before using of "log"
 		// Filtering
@@ -284,7 +284,7 @@ function init_chat() {
 		pow_thou: true,
 		side: true,
 		target: true,
-		bug: ( localStorage['debug'] == 'true' )
+		bug: options.get('debug')
 	}
 	message_filter_name = {
 		join: 'Joins / parts',
@@ -336,16 +336,14 @@ function chat_start() {
 }
 // Autotext (buttons under chatbox with automatic replies)
 function autotext_buttons() {
-	if ( ! iss(localStorage.autotext) || ( localStorage.autotext == '' ) )
-		store('autotext', 'Ok\nOk?\nWait!\nThinking\nEnd my turn\nEOT') ; // Default values for autotext
-	var autotexts = localStorage.autotext.split('\n') ;
+	var autotexts = game.options.get('autotext').split('\n') ;
 	autotexts = autotexts.filter(function(param) { return ( param != '' ) ; })
 	var autotext_div = $('#autotext')[0] ;
 	node_empty(autotext_div) ;
 	for ( i in autotexts )
 		autotext_div.appendChild(create_button(autotexts[i], function(ev){ txt_send(this.firstChild.nodeValue) ; })) ;
 	var but = create_button('...', function(ev) {
-		document.getElementById('autotext_area').value = localStorage.autotext ;
+		document.getElementById('autotext_area').value = game.options.get('autotext') ;
 		document.getElementById('autotext_window').classList.toggle('disp') ;
 	},'Edit buttons') ;
 	autotext_div.appendChild(but) ;
@@ -353,7 +351,7 @@ function autotext_buttons() {
 function autotext_init() {
 	var b_ok = document.getElementById('autotext_ok') ;
 	b_ok.addEventListener('click', function(ev) {
-		store('autotext', document.getElementById('autotext_area').value) ;
+		game.options.set('autotext', document.getElementById('autotext_area').value)
 		document.getElementById('autotext_window').classList.remove('disp') ;
 		autotext_buttons() ; // Refresh buttons with new value
 		resize_window() ; // Recompute dimensions, as autotext buttons may 

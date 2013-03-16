@@ -1,11 +1,14 @@
 .cardlist {
 	z-index: 2 ;
 	position: absolute ;
-	top: 1% ;
+	top: 2% ;
 	width: 256px ;
-	height: 97% ;
-	border: 3px outset black ;
-	background-color: white ;
+	height: 96% ;
+	/*border: 3px outset black ;*/
+	/*background-color: white ;*/
+	background-color: rgba(255, 255, 255, 0.70) ;
+	border: 1px solid white ;	/* 3px outset black ;*/
+	box-shadow: 0 0 5px 3px #000000;
 }
 .listtool {
 	font-size: small ;

@@ -26,17 +26,18 @@ html_head($title,
 		'build.css'
 	), 
 	array(
-		'lib/jquery.js',
-		'lib/jquery.cookie.js',
-		'../variables.js.php',
-		'html.js',
-		'math.js',
-		'image.js',
-		'deck.js',
-		'tournament/build.js',
-		'stats.js',
-		'lib/Flotr2/flotr2.min.js',
-		'tournament/lib.js'
+		'lib/jquery.js'
+		, 'lib/jquery.cookie.js'
+		, 'lib/Flotr2/flotr2.min.js'
+		, 'html.js'
+		, 'math.js'
+		, 'image.js'
+		, 'deck.js'
+		, 'stats.js'
+		, 'options.js'
+		, 'tournament/build.js'
+		, 'tournament/lib.js'
+		, '../variables.js.php'
 	)
 ) ;
 if ( $id > 0 ) {

@@ -9,6 +9,13 @@ theme = '<?php echo $theme ; ?>' ;
 cardimages = localStorage['cardimages'] ;
 cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 
+// Options
+cardimages_choice = {} ;
+<?php
+foreach ( $cardimages_choice as $choice_name => $choice_url ) 
+	echo "cardimages_choice['$choice_url'] = '$choice_name' ; \n" ;
+?>
+
 // Index
 draft_formats = <?php echo JSON_encode($suggest_draft) ; ?> ;
 sealed_formats = <?php echo JSON_encode($suggest_sealed) ; ?> ;

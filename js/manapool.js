@@ -152,7 +152,7 @@ function Manapool(game, player) {
 			this[game.manacolors[i]].draw(context) ;
 	}
 	this.coords_compute = function() {
-		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) ) {
+		if ( this.player.is_top && game.options.get('invert_bf') ) {
 			var y = this.y + this.h - 1 ; // "margin" under white
 			for ( var i in game.manacolors ) {
 				y -= this.w - 1 ;

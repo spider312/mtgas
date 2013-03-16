@@ -52,10 +52,6 @@ label	{
 	cursor: pointer ;
 	margin-left: 5px ;
 }
-/*button, input[type=submit], input[type=button] {
-	background-color: #907c6c ;
-	border-color: #1f1a14 ;
-}*/
 p > input, p > button {
 	margin-left: 5px ;
 }
@@ -145,4 +141,3 @@ a:hover {
 .duno, .duno * {
 	background-color: lightgray !important ;
 }
-

@@ -23,36 +23,6 @@ function start() { // When page is loaded : initialize everything
 	// caching getElementById
 	zoom = document.getElementById('zoom') ;
 	timeleft = document.getElementById('timeleft') ;
-	// Options
-	document.getElementById('options_close').addEventListener('click', function(ev) {
-		document.getElementById('options').classList.remove('disp') ;
-	}, false) ;
-	/* Not exactly the same as a F11 fullscreen : asks user, unsets on focus change, doesn't trigger resize, background becomes black
-	document.getElementById('fullscreen').addEventListener('click', function(ev) { // https://developer.mozilla.org/en-US/docs/DOM/Using_full-screen_mode
-		var elem = document.body ;
-		if (elem.requestFullScreen) {
-			elem.requestFullScreen();
-		} else if (elem.mozRequestFullScreen) {
-			elem.mozRequestFullScreen();
-		} else if (elem.webkitRequestFullScreen) {
-			elem.webkitRequestFullScreen();
-		}
-	}, false) ;
-	*/
-	document.getElementById('invert_bf').addEventListener('change', function(ev) {
-		resize_window() ;
-	}, false) ;
-	document.getElementById('display_card_names').addEventListener('change', function(ev) {
-		refresh_cards_in_selzone() ;
-		draw() ;
-	}, false) ;
-	document.getElementById('transparency').addEventListener('change', function(ev) {
-		refresh_cards_in_selzone() ;
-		for ( var i in game.turn.steps )
-			game.turn.steps[i].refresh() ;
-		resize_window() ;
-	}, false) ;
-	save_restore_options() ;
 	// AJAX Communication
 	$.ajaxSetup({'cache': false, 'error': function(XMLHttpRequest, textStatus, errorThrown) {
 		//if ( ( errorThrown != undefined ) && ( errorThrown != '' ) && ( XMLHttpRequest.responseText != '' ) )
@@ -143,9 +113,9 @@ function start() { // When page is loaded : initialize everything
 		network_loop() ; // Recieve previous actions before sending spectactor / join
 		chat_start() ;
 		if ( spectactor ) {
-			new Spectactor($.cookie(session_id), localStorage['profile_nick']) ; // Declare itself as a spectactor
-			action_send('spectactor', {'name': localStorage['profile_nick']}, function(data){log('Connection successfull')}) ; // And send to other players
-			//game.socket_registration = {'type': 'register', 'game': game.id, 'nick': localStorage['profile_nick'], 'player_id': $.cookie(session_id)} ;
+			new Spectactor($.cookie(session_id), game.options.get('profile_nick')) ; // Declare itself as a spectactor
+			action_send('spectactor', {'name': game.options.get('profile_nick')}, function(data){log('Connection successfull')}) ; // And send to other players
+			//game.socket_registration = {'type': 'register', 'game': game.id, 'nick': game.options.get('profile_nick'), 'player_id': $.cookie(session_id)} ;
 		} else {
 			autotext_init() ;
 			window.addEventListener('keypress',	onKeyPress,	false) ; // Key press
@@ -606,7 +576,7 @@ function onKeyPress(ev) {
 					break ;
 				case KeyEvent.DOM_VK_UP :
 					var cards = game.selected.get_cards() ;
-					if ( ( game.selected.zone.player != game.player ) && ( localStorage['invert_bf'] == 'true' ) ) // Inverted opponent BF
+					if ( ( game.selected.zone.player != game.player ) && game.options.get('invert_bf') ) // Inverted opponent BF
 						var step = 1 ;
 					else
 						var step = -1 ;
@@ -620,7 +590,7 @@ function onKeyPress(ev) {
 					break ;
 				case KeyEvent.DOM_VK_DOWN :
 					var cards = game.selected.get_cards() ;
-					if ( ( game.selected.zone.player != game.player ) && ( localStorage['invert_bf'] == 'true' ) ) // Inverted opponent BF
+					if ( ( game.selected.zone.player != game.player ) && game.options.get('invert_bf') ) // Inverted opponent BF
 						var step = -1 ;
 					else
 						var step = 1 ;
@@ -786,8 +756,7 @@ function log() {
 			default:
 				text.push('[' + functionname(log.caller) + '] Type unrecognized by loging engine :  '+typeof arg) ;
 		}
-		//if ( localStorage['debug'] == 'true' ) // Messages are not displayed by default if debug isn't activated
-			message(text.join("\n"), 'bug') ;
+		message(text.join("\n"), 'bug') ;
 		logtext = logtext.concat(text) ;
 	}
 }

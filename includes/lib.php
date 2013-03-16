@@ -211,56 +211,7 @@ function html_options() { // Displays options window
      global $cardimages_choice, $cardimages_default ;
      foreach ( $cardimages_choice as $choice_name => $choice_url ) 
 	echo '       <option value="'.$choice_url.'" selected="selected">'.$choice_name.'</option>'."\n" ;
-     echo '</select></label>
-     <input id="cardimages" type="hidden" name="cardimages" value="'.$cardimages_default.'" accesskey="i" title="Fill in with an URL or a path on your own computer">
-     <span id="cardimages_link">(<a href="http://forum.mogg.fr/viewtopic.php?pid=25#p25" target="_blank">Read that !</a>)</span>
-     <label title="Display card upside-down when in an opponent\'s zone, looking more like real MTG playing"><input id="invert_bf" type="checkbox">Invert opponent\'s cards</label>
-     <label title="Display card names on top of picture for cards on battlefield, and their costs for cards in hand"><input id="display_card_names" type="checkbox" checked="checked">Card names / mana costs</label>
-     <label title="Activate transparency, nicer but slower"><input id="transparency" type="checkbox" checked="checked">Transparency</label>
-     <label title="Display right click\'s drag\'n\'drop helper"><input id="helpers" type="checkbox" checked="checked">Helpers</label>
-    </fieldset>
 
-    <fieldset><legend>Behaviour</legend>
-     <label title="Choose what happend when you doubleclick on library">Library double-click action : 
-      <select id="library_doubleclick_action">
-       <option value="look_top_n" title="Ask how many cards to look, then look that many cards from top of library. Default behaviour">Look top N cards</option>
-       <option value="edit" title="Look in whole library, without asking anything">Search in library</option>
-       <option value="draw" title="Draw a card, without asking anything">Draw a card</option>
-      </select>
-     </label>
-     <label title="Draw your starting hand after toss and sides"><input id="auto_draw" type="checkbox" checked="checked">Auto draw</label>
-     <label title="Play sounds on events"><input id="sounds" type="checkbox" checked="checked">Sound</label>
-     <label title="Display a message when a triggered ability may be triggered. Beware, not every trigger is managed, and most of them just display a message"><input id="remind_triggers" type="checkbox" checked="checked">Remind triggers</label>
-     <label title="Where to place creature cards by default (when double clicked) on battlefield">Place creature : 
-      <select id="place_creatures">
-       <option value="top">Top</option>
-       <option value="middle" selected="selected">Middle</option>
-       <option value="bottom">Bottom</option>
-      </select>
-     </label>
-     <label title="Where to place non-creature cards by default (when double clicked) on battlefield">Place non-creature : 
-      <select id="place_noncreatures">
-       <option value="top" selected="selected">Top</option>
-       <option value="middle">Middle</option>
-       <option value="bottom">Bottom</option>
-      </select>
-     </label>
-     <label title="Where to place land cards by default (when double clicked) on battlefield">Place land : 
-      <select id="place_lands">
-       <option value="top">Top</option>
-       <option value="middle">Middle</option>
-       <option value="bottom" selected="selected">Bottom</option>
-      </select>
-     </label>
-     <label title="If checked, you will automatically be marked as ready after picking your card in drafts"><input id="draft_auto_ready" type="checkbox" checked="checked">Auto-mark as ready after picking</label>
-     <label title="If checked, every card image will be preloaded at the begining of the game instead of waiting its first display"><input id="check_preload_image" type="checkbox" checked="checked">Preload images</label>
-    </fieldset>
-
-    <fieldset><legend>Debug</legend>
-     <label title="If checked, logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus"><input id="debug" type="checkbox">Debug mode</label>
-    </fieldset>
-
-' ;
 }
 // JSON
 function json_verbose_error($i) {

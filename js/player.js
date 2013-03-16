@@ -18,8 +18,9 @@ game.player is myself, game.opponent is my opponent, they are relative, and only
 game.creator is the player who created, game.joiner is the one who joined, they are absolute, and are used over network to identify a player server-side (for ajax)
 */
 // Classes
-function Game(id, player_id, player_nick, player_avatar, player_score, opponent_id, opponent_nick, opponent_avatar, opponent_score) {
+function Game(id, options, player_id, player_nick, player_avatar, player_score, opponent_id, opponent_nick, opponent_avatar, opponent_score) {
 	this.id = id ;
+	this.options = options ;
 	this.match_num = function() {
 		return this.player.attrs.score + this.opponent.attrs.score ;
 	}
@@ -85,6 +86,16 @@ function Game(id, player_id, player_nick, player_avatar, player_score, opponent_
 	}
 	this.movedate = new Date() ;
 	this.infobulle = new InfoBulle() ;
+	// Options custom behaviour
+	this.options.add_trigger('sounds', function(ev) { if ( ev.target.checked ) game.sound.loadall() ; }) ;
+	this.options.add_trigger('invert_bf', function(ev) { resize_window() ; }) ;
+	this.options.add_trigger('display_card_names', function(ev) { refresh_cards_in_selzone() ; draw() ; }) ;
+	this.options.add_trigger('transparency', function(ev) {
+		refresh_cards_in_selzone() ;
+		for ( var i in game.turn.steps )
+			game.turn.steps[i].refresh() ;
+		resize_window() ;
+	}) ;
 }
 function Player(game, is_top, id, name, avatar, score) { // game as a param as it's not already a global
 	// Methods
@@ -367,7 +378,7 @@ function Sound() {
 		}
 	}
 	this.play = function(target) {
-		if ( localStorage['sounds'] == 'true' ) {
+		if ( game.options.get('sounds') ) {
 			if ( this.sounds[target] )
 				this.sounds[target].play() ;
 			else
@@ -382,7 +393,7 @@ function Sound() {
 		this.load('shuffle', url+'/themes/'+theme+'/Sounds/shuffle.wav') ;
 		this.load('tap', url+'/themes/'+theme+'/Sounds/tap.wav') ;
 	}
-	if ( localStorage['sounds'] == 'true' )
+	if ( game.options.get('sounds') )
 		this.loadall() ;
 }
 // Lib

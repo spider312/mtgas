@@ -1,39 +1,10 @@
 // index.js : Management of MTGAS index (games list, preloaded decks ...)
 $(function() { // On page load
-	document.getElementById('game_name').focus() ; // Give focus on page load
+	document.getElementById('game_name').select() ; // Give focus on page load
 	ajax_error_management() ;
-	// Synchronize PHPSESSID cookie with stored player ID (in case player ID comes from profile importing)
 	player_id = $.cookie(session_id) ;
-	if ( ( localStorage['player_id'] == null ) || ( localStorage['player_id'] == '' ) ) // No player ID
-		store('player_id', player_id) ; // Store actual PHPSESSID
-	else if ( player_id != localStorage['player_id'] ) { // Player ID different from PHPSESSID
-		$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
-		window.location = window.location ; // Curent web page isn't informed ID changed, reload
-	}
-	// Identity and auto-open on first visit
-	fv = document.getElementById('firstvisit') ;
-	cn = document.getElementById('choose_nick') ;
-	is = document.getElementById('identity_shower') ;
-	if ( ( localStorage['profile_nick'] == null ) || ( localStorage['profile_nick'] == '' ) || ( localStorage['profile_nick'] == 'Nickname' ) ) {
-		fv.classList.add('disp') ;
-		cn.nick.focus() ;
-	} else
-	       	update_identity_shower() ;
-	// Fields that will be saved on change/blur, and restored on load
-		// Profile
-	save_restore('profile_nick') ; // Player's nickname
-	last_working_avatar = document.getElementById('avatar_demo').src ; // Backup default avatar, for future errors (before save/restore !)
-	var avatar_apply = function(field) { document.getElementById('avatar_demo').src = field.value ; } ;
-	save_restore('profile_avatar', avatar_apply, avatar_apply) ; // Player's avatar
-	save_restore('theme', function(el) {
-		var oldtheme = $.cookie('theme') ;
-		$.cookie('theme', el.value) ;
-		if ( ( oldtheme != null ) && ( oldtheme != '' ) && confirm('Theme changed, need reload to apply') )
-			window.location = window.location ;
-	}) ; // Player's avatar
-		// Options
-	save_restore_options() ;
-		// Creation
+	options = new Options(true) ;
+	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
 	save_restore('tournament_players') ;
@@ -86,8 +57,8 @@ $(function() { // On page load
 		else
 			$.post(ev.target.action, {
 				'name': ev.target.name.value,
-				'nick': document.getElementById('profile_nick').value,
-				'avatar': document.getElementById('profile_avatar').value,
+				'nick': options.get('profile_nick'),
+				'avatar': options.get('profile_avatar'),
 				'deck': deck_get(deckname)
 			}, function(data) {
 				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
@@ -107,8 +78,8 @@ $(function() { // On page load
 				'name' : ev.target.name.value,
 				'players' : ev.target.players.value,
 				'boosters' : ev.target.boosters.value,
-				'nick' : document.getElementById('profile_nick').value, 
-				'avatar' : document.getElementById('profile_avatar').value, 
+				'nick' : options.get('profile_nick'), 
+				'avatar' : options.get('profile_avatar'), 
 				'deck' : deck_get(deckname), 
 				'rounds_number' : ev.target.rounds_number.value,
 				'rounds_duration' : ev.target.rounds_duration.value,
@@ -119,67 +90,6 @@ $(function() { // On page load
 			}, 'json') ;
 		return eventStop(ev) ;
 	}, false) ;
-	// Profile
-		// Update avatar demo on URL change, with error management
-	document.getElementById('profile_avatar').addEventListener('change', function (ev) {
-		document.getElementById('avatar_demo').src = ev.target.value ;
-	}, false) ;
-	document.getElementById('avatar_demo').addEventListener('load', function (ev) {
-		last_working_avatar = ev.target.src ; // Backup as last working avatar, for future errors
-		if ( ev.target.errored ) {
-			ev.target.errored = false ;
-			ev.target.classList.add('errored') ;
-		} else 
-			ev.target.classList.remove('errored') ;
-	}, false) ;
-	document.getElementById('avatar_demo').addEventListener('error', function (ev) {
-		if ( ev.target.src == last_working_avatar )
-			alert('Can\'t load default avatar') ;
-		else {
-			alert('Can\'t load '+ev.target.src+', rolling back to '+last_working_avatar) ;
-			ev.target.errored = true ; // Will be set as errored on load
-			ev.target.src = last_working_avatar ; // Restore last working avatar
-		}
-	}, false) ;
-	// Server-side profile
-	var l = document.getElementById('login') ;
-	if ( l != null ) // Login form isn't on page (logged in)
-		l.addEventListener('submit', function(ev) {
-			$.getJSON(ev.target.action, {
-				'email': ev.target.email.value,
-				'password': ev.target.password.value,
-			}, function(data) {
-				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-					alert(data.msg) ;
-				else {
-					// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
-					if ( ( data.send ) || ev.target.overwrite.checked ) {
-						$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
-							document.location = document.location ; // Refresh login form
-						}, 'json') ;
-					// If server sent data, store them
-					} else if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
-						var profile = JSON.parse(data.recieve) ;
-						localStorage.clear() ;
-						for ( var i in profile )
-							localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
-						document.location = document.location ; // Refresh all data
-					} else
-						alert('Nothing happend') ;
-				}
-			}) ;
-			return eventStop(ev) ;
-		}, false) ;
-	var l = document.getElementById('logout') ;
-	if ( l != null ) // Login form isn't on page (logged in)
-		l.addEventListener('submit', function(ev) {
-			$.getJSON(ev.target.action, {}, function(data) {
-				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-					alert(data.msg) ;
-				document.location = document.location ;
-			}) ;
-			return eventStop(ev) ;
-		}, false) ;
 	// Decks list
 	document.getElementById('deck_create').addEventListener('submit', function(ev) {
 		if ( ev.target.deck.value == '' ) {
@@ -221,78 +131,6 @@ $(function() { // On page load
 		deck_file_load(ev.target.deckfile.files) ;
 		ev.target.deckfile.value = '' ;
 	}, false) ;
-	// Profile management
-	document.getElementById('backup').addEventListener('submit', function(ev) {
-		var clone = {} ;
-		for ( var i = 0 ; i < localStorage.length ; i++ ) {
-			var key = localStorage.key(i) ;
-			clone[key] = localStorage[key] ; 
-		}
-		var d = new Date() ;
-		ev.target.name.value = 'mtgas_profile_'+clone.profile_nick+'_'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.mtgas' ;
-		ev.target.content.value = JSON.stringify(clone)
-	}, false) ;
-	document.getElementById('profile_file').addEventListener('change', function(ev) {
-		if ( ev.target.files.length > 0 )
-			document.getElementById('restore_submit').disabled = false ;
-	}, false) ;
-	document.getElementById('restore').addEventListener('submit', function(ev) {
-		ev.preventDefault() ;
-		if ( ev.target.profile_file.files.length == 0 )
-			alert('Please browse to the saved profile file you want to restore') ;
-		else {
-			var form = ev.target ; // Used in reader.onload, where ev is another event
-			var reader = new FileReader() ; // https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
-			reader.onload = function(ev) {
-				var text = ev.target.result ;
-				try {
-					var profile = JSON.parse(text) ;
-				} catch (e) {
-					alert('The file '+file.fileName+' ('+file.type+') doesn\'t appears to be a valid MTGAS profile file (json)') ;
-					return null ;
-				}
-				if ( confirm('Are you sure you want to overwrite all your personnal data (nick, avatar, decks, options) with ones stored in profile file with nick '+profile.profile_nick) ) {
-					form.profile_file.value = '' ;
-					localStorage.clear() ;
-					for ( var i in profile )
-						store(i, profile[i]) ;
-					alert('All data were overwritten, reloading page') ;
-					document.location = document.location ;
-				}
-
-			} ;
-			reader.readAsText(form.profile_file.files.item(0)) ;
-		}
-	}, false) ;
-	document.getElementById('clear').addEventListener('click', function(ev) {
-		if ( confirm('Are you sure you want to clear all your personnal data on this website ? (nick, avatar, decks, tokens, games, tournaments)') ) {
-			localStorage.clear() ;
-			$.cookie(session_id, null);
-			alert('All data were cleared, reloading page') ;
-			document.location = document.location ;
-		}
-	}, false) ;
-	// Profile
-	cn.addEventListener('submit', function(ev) {
-		var nick = ev.target.nick.value ;
-		if ( ( nick != null ) && ( nick != '' ) && ( nick != 'Nickname' ) ) {
-			save_restore('profile_nick') ; // Player's nickname
-			last_working_avatar = document.getElementById('avatar_demo').src ; // Backup default avatar, for future errors (before save/restore !)
-			var avatar_apply = function(field) { document.getElementById('avatar_demo').src = field.value ; } ;
-			save_restore('profile_avatar', avatar_apply, avatar_apply) ; // Player's avatar
-			fv.classList.remove('disp') ;
-			update_identity_shower() ;
-		} else {
-			ev.target.nick.focus() ;
-			ev.target.nick.select() ;
-		}
-		ev.preventDefault() ;
-	}, false) ;
-	is.addEventListener('click', function(ev) {
-		fv.classList.add('disp') ;
-		cn.nick.focus() ;
-		cn.nick.select() ;
-	}, false) ;
 	// Display decks list
 	decks_list() ;
 	get_extensions() ;
@@ -302,13 +140,6 @@ $(function() { // On page load
 	tournaments_timer(document.getElementById('pending_tournaments'), document.getElementById('tournament_no')
 		, document.getElementById('running_tournaments'), document.getElementById('running_tournament_no')) ;
 }) ;
-function update_identity_shower() {
-	node_empty(is) ;
-	var img = create_img(localStorage['profile_avatar'])
-	//img.height = 30 ;
-	is.appendChild(img) ;
-	is.appendChild(create_text(localStorage['profile_nick'])) ;
-}
 // === [ TIMERS ] ==============================================================
 function games_timer(pending_games, cell_no, running_games, running_games_no) {
 // Requests from server a list of pending games, and display them in prepared tables
@@ -328,8 +159,8 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 				var submit = create_submit('id', round.id, 'game_' + round.id) ;
 				// Normal form for clients not trigering events
 				var form = create_form('join.php', 'post', 
-					create_hidden('nick', document.getElementById('profile_nick').value), 
-					create_hidden('avatar', document.getElementById('profile_avatar').value), 
+					create_hidden('nick', options.get('profile_nick')), 
+					create_hidden('avatar', options.get('profile_avatar')), 
 					create_hidden('deck', deck_get(deck_checked())),
 					submit
 				) ;
@@ -417,8 +248,8 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				var submit = create_submit('id', tournament.id, 'tournament_' + tournament.id) ;
 				// Normal form for clients not trigering events
 				var form = create_form('tournament/json/join.php', 'post', 
-					create_hidden('nick', document.getElementById('profile_nick').value), 
-					create_hidden('avatar', document.getElementById('profile_avatar').value), 
+					create_hidden('nick', options.get('profile_nick')), 
+					create_hidden('avatar', options.get('profile_avatar')), 
 					create_hidden('deck', deck_get(deck_checked())),
 					submit
 				) ;
@@ -430,8 +261,8 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 					else
 						$.post(ev.target.action, {
 							'id' : ev.target.id.value, 
-							'nick' : document.getElementById('profile_nick').value, 
-							'avatar' : document.getElementById('profile_avatar').value, 
+							'nick' : options.get('profile_nick'), 
+							'avatar' : options.get('profile_avatar'), 
 							'deck' : deck_get(deckname)
 						 }, function(data) {
 							if ( data.msg != '' )
@@ -504,12 +335,12 @@ function list_players(tournament) {
 		ul.appendChild(create_li(tournament.players[j].nick)) ;
 	return ul ;
 }
-function load_profile(target, ev) {
+function load_profile(target) {
 	// Fill some hidden values
 	var deck = deck_checked() ;
 	if ( deck != null ) {
-		document.getElementById(target+'_nick').value = document.getElementById('profile_nick').value ;
-		document.getElementById(target+'_avatar').value = document.getElementById('profile_avatar').value
+		document.getElementById(target+'_nick').value = options.get('profile_nick') ;
+		document.getElementById(target+'_avatar').value = options.get('profile_avatar') ;
 		document.getElementById(target+'_deck').value = deck_get(deck) ;
 		return true ;
 	} else
@@ -575,9 +406,6 @@ function get_extensions() {
 	}) ;
 }
 // === [ FORMS ] ===============================================================
-function gallery() {
-	window.open('avatars.php') ;
-}
 function save_tournament_boosters(boosters) { // When saving tournament boosters, also save it as draft/sealed boosters
 	switch ( document.getElementById('tournament_type').selectedIndex ) {
 		case 0 : // Draft
@@ -600,13 +428,13 @@ function tournament_boosters(type) {
 	switch ( type ) {
 		case 0 : // Draft
 			limited_div.classList.remove('hidden') ;
-			boosters.value = localStorage.draft_boosters ;
+			boosters.value = options.get('draft_boosters') ;
 			boosters.size = 25 ;
 			content = draft_formats ;
 			break ;
 		case 1 : // Sealed
 			limited_div.classList.remove('hidden') ;
-			boosters.value = localStorage.sealed_boosters ;
+			boosters.value = options.get('sealed_boosters') ;
 			boosters.size = 50 ;
 			content = sealed_formats
 			break ;
@@ -647,6 +475,8 @@ function deck_checked() { // Returns selected deck's name
 }
 function decks_list() {
 	var table = document.getElementById('decks_list') ;
+	if ( table == null )
+		return false ;
 	while ( table.hasChildNodes() )
 		table.removeChild(table.firstChild) ;
 	if ( localStorage.decks ) {
@@ -655,18 +485,20 @@ function decks_list() {
 			var deck_name = decks[i] ;
 			var deck_content = deck_get(deck_name) ;
 			var row = table.insertRow(-1) ; 
+
 			if ( deck_content == '' )
 				row.title = 'Deck list is empty' ;
 			else
 				row.title = deck_content ;
 			row.id = deck_name ;
-			var radio = create_radio('deck', deck_name, (deck_name == localStorage['deck']), ' ', 'fullwidth') ;
+			var radio = create_radio('deck', deck_name, (deck_name == options.get('deck')), ' ', 'fullwidth') ;
 			radio.firstChild.id = 'radio_'+deck_name ;
 			deck_name_s = deck_name ;
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
 			var cell = row.insertCell(-1) ;
-			cell.appendChild(create_label('radio_'+deck_name, deck_name_s)) ;
+			var label = create_label('radio_'+deck_name, deck_name_s) ;
+			cell.appendChild(label) ;
 			cell.colSpan = 2 ;
 			var cell = row.insertCell(-1) ;
 			cell.appendChild(radio).addEventListener('change', function(ev) {
@@ -675,7 +507,7 @@ function decks_list() {
 			cell.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament' ;
 			row.insertCell(-1).appendChild(create_button('Goldfish', function(ev) {
 				var row = node_parent_search(ev.target, 'TR') ;
-				if ( load_profile('self', ev) ) { // Load data from profil to goldfish self
+				if ( load_profile('self') ) { // Load data from profil to goldfish self
 					document.getElementById('goldfish_nick').value = row.id ; // Defining deck name as opponent name in goldfish
 					document.getElementById('goldfish_deck').value = deck_get(row.id) ;
 					document.getElementById('goldfish').submit() ;

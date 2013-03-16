@@ -155,63 +155,26 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	display: block !important ;
 	z-index: 50 ;
 }
-#options {
-	display: none ; /* Displayed by javascript via class .disp */
-	/* Positionning : centered */
-	position:absolute;
-	top:50%;
-	left:50%;
-	width:450px;
-	margin-left: -225px ; /* half width */
-	height: 560px ;
-	margin-top: -280px ;/* half height */
-	/* Displaying */
-	background-color: white ;
-	border: 3px outset black ;
-}
-#options.disp {
-	display: block !important ;
-	z-index: 50 ;
-}
-#options h2 {
-	margin: 0 ;
-	padding: 1px ;
-	background-color: black ;
-	color: white ;
-}
-#options fieldset {
-	margin: 5px 10px 0 10px ;
-}
-#options_close {
-	position: absolute ;
-	right: 10px ;
-	bottom: 10px ;
-}
-#fullscreen {
-	position: absolute ;
-	right: 70px ;
-	bottom: 10px ;
-}
-#fullscreen img, #options_close img {
-	width: 32px ;
-	height: 32px ;
-}
-/* Choice window (triggers, dredge ...)*/
+/* Choice window (options, triggers, dredge ...)*/
 #choicewin {
 	z-index: 2 ;
 	position: absolute ;
-	border: 3px outset black ;
-	background-color: white ;
 	width: 256px ;
+	background-color: white ;
+	border: 1px solid white ;	/* 3px outset black ;*/
+	box-shadow: 0 0 5px 3px #000000;
 }
-#choicewin .title	{
-	/*cursor: pointer ;*/
+#choicewin .title {
+	font-size: 18px ;
+	height: 22px ;
+}
+#choicewin .title, #choicewin h1, #choicewin h2, #choicewin h3, #choicewin h4	{
 	color: white ;
 	background-color: black ;
 	font-weight: bold ;
-	font-size: 18px ;
 	padding: 1px ;
-	height: 22px ;
+	margin: 0 ;
+	padding: 1px ;
 }
 #choicewin ul {
 	margin: 0px ;

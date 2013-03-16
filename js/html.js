@@ -27,15 +27,13 @@ function form2param(form) { // Returns an object of 'name -> value' for all elem
 		var el = form.elements[i] ;
 		if ( el.type == 'submit' )
 		       continue ;
-/*		if ( el.value == el.defaultValue )
-			continue ;*/
 		result[el.name] = el.value ;
 	}
 	return result ;
 }
 // Basic document management
 function document_add_css(doc, url) {
-	if ( typeof doc.createElement != 'function' ) {
+	if ( ! isf(doc.createElement) ) {
 		alert(doc) ;
 		return null ;
 	}
@@ -108,25 +106,25 @@ function create_span() {
 }
 function create_img(src, alt, title) {
 	var img = document.createElement('img') ;
-	if ( typeof src == 'string' )
+	if ( issn(src) )
 		img.src = src
-	if ( typeof alt == 'string' )
+	if ( issn(alt) )
 		img.alt = alt ;
-	if ( typeof title == 'string' )
+	if ( issn(title) )
 		img.title = title ;
 	return img ;
 }
 function create_a(text, href, onclick, title) {
 	var a = document.createElement('a') ;
-	if ( typeof text == 'object' )
-		a.appendChild(text) ;
-	else
+	if ( issn(text) )
 		a.appendChild(document.createTextNode(text)) ;
-	if ( typeof href == 'string' )
+	else
+		a.appendChild(text) ;
+	if ( issn(href) )
 		a.href = href ;
-	if ( typeof onclick == 'function' )
+	if ( isf(onclick) )
 		a.addEventListener('click', onclick, false) ;
-	if ( typeof title == 'string' )
+	if ( issn(title) )
 		a.title = title ;
 	return a ;
 }
@@ -138,7 +136,7 @@ function create_ul(id) {
 }
 function create_li(text, classname) {
 	var li = document.createElement('li') ;
-	if ( iss(text) || isn(text) )
+	if ( issn(text) )
 		li.appendChild(document.createTextNode(text)) ;
 	else
 		li.appendChild(text) ;
@@ -160,7 +158,8 @@ function create_canvas(width, height) {
 	// Strictly form
 function create_form(action, method) {
 	var form = document.createElement('form') ;
-	form.action = action ;
+	if ( iss(action) )
+		form.action = action ;
 	if ( ( method == 'get' ) || ( method == 'post' ) )
 		form.method = method ;
 	else
@@ -172,27 +171,27 @@ function create_form(action, method) {
 function create_submit(name, value, id, classname) {
 	var submit = document.createElement('input') ;
 	submit.type = 'submit' ;
-	if ( typeof id == 'string' )
+	if ( issn(id) )
 		submit.id = id ;
-	if ( typeof name == 'string' )
+	if ( issn(name) )
 		submit.name = name ;
-	if ( typeof value == 'string' )
+	if ( issn(value) )
 		submit.value = value ;
-	if ( typeof classname == 'string' )
+	if ( issn(classname) )
 		submit.className = classname ;
 	return submit ;
 }
 function create_checkbox(name, checked, id, value) {
 	var checkbox = document.createElement('input') ;
 	checkbox.type = 'checkbox' ;
-	if ( typeof name == 'string' )
+	if ( issn(name) )
 		checkbox.name = name ;
 	checkbox.checked = checked ;
-	if ( typeof id == 'string' )
+	if ( issn(id) )
 		checkbox.id = id ;
-	if ( typeof value == 'string' )
+	if ( issn(value) )
 		checkbox.value = value ;
-	if ( typeof id == 'string' )
+	if ( issn(id) )
 		checkbox.id = id ;
 	return checkbox ;
 
@@ -200,19 +199,29 @@ function create_checkbox(name, checked, id, value) {
 function create_input(name, value, id) {
 	var text = document.createElement('input') ;
 	text.type = 'text' ;
-	if ( typeof name == 'string' )
+	if ( issn(name) )
 		text.name = name ;
 	text.value = ''+value ;
-	if ( typeof id == 'string' )
+	if ( issn(id) )
+		text.id = id ;
+	return text ;
+}
+function create_password(name, value, id) {
+	var text = document.createElement('input') ;
+	text.type = 'password' ;
+	if ( issn(name) )
+		text.name = name ;
+	text.value = ''+value ;
+	if ( issn(id) )
 		text.id = id ;
 	return text ;
 }
 function create_hidden(name, value) {
 	var hidden = document.createElement('input') ;
 	hidden.type = 'hidden' ;
-	if ( iss(name) || isn(name) )
+	if ( issn(name) )
 		hidden.name = name ;
-	if ( iss(value) || isn(value))
+	if ( issn(value) )
 		hidden.value = value ;
 	return hidden ;
 }
@@ -222,19 +231,48 @@ function create_radio(name, value, checked, text, classname) {
 	radio.name = name ;
 	radio.value = value
 	radio.checked = checked ;
-	if ( typeof text == 'string' ) {
+	if ( issn(text) ) {
 		var label = document.createElement('label') ;
 		label.appendChild(radio) ;
 		label.appendChild(document.createTextNode(text)) ;
-		if ( typeof classname == 'string' )
+		if ( issn(classname) )
 			label.className = classname ;
 		return label ;
 	}
-	if ( typeof classname == 'string' )
+	if ( issn(classname) )
 		radio.className = classname ;
 	return radio ;
 }
+function create_file(name, title) {
+	var file = document.createElement('input') ;
+	file.type = 'file' ;
+	if ( issn(name) )
+		file.name = name ;
+	if ( issn(title) )
+		file.title = title ;
+	return file ;
+}
 	// Form
+function create_fieldset(legend) {
+	var fieldset = document.createElement('fieldset') ;	
+	fieldset.appendChild(create_element('legend', legend)) ;
+	for ( var i = 1 ; i < arguments.length ; i++) {
+		switch ( typeof arguments[i] ) {
+			case 'undefined':
+				break ;
+			case 'number' :
+			case 'string' :
+				fieldset.appendChild(document.createTextNode(arguments[i])) ;
+				break ;
+			case 'object' :
+				fieldset.appendChild(arguments[i]) ;
+				break ;
+			default :
+				alert('Error in param #'+i+'type for "create_element" : '+typeof arguments[i]) ;
+		}
+	}
+	return fieldset ;
+}
 function create_label(target) {
 	var mylabel = document.createElement('label') ;
 	for ( var i = 1 ; i < arguments.length ; i++) {
@@ -250,22 +288,37 @@ function create_label(target) {
 		}
 		mylabel.appendChild(el) ;
 	}
-	mylabel.htmlFor = target ;
+	if ( !iss(target) ) { // htmlFor should be a string
+		if ( issn(target.id) )
+			target = target.id ;
+		else
+			target = null ;
+	}
+	if ( target != null )
+		mylabel.htmlFor = target ;
 	return mylabel ;
 }
 function create_button(content, onclick, title, classname) {
 	var button = document.createElement('button') ;
-	if ( iss(content) || isn(content) )
+	if ( issn(content) )
 		button.appendChild(document.createTextNode(content)) ;
 	else
 		button.appendChild(content) ;
-	if ( typeof onclick == 'function' )
+	if ( isf(onclick) )
 		button.addEventListener('click', onclick, false) ;
-	if ( typeof title == 'string' )
+	if ( issn(title) )
 		button.title = title ;
-	if ( typeof classname == 'string' )
+	if ( issn(classname) )
 		button.className = classname ;
 	return button ;
+}
+function create_select(name, id) {
+	var select = document.createElement('select') ;
+	if ( issn(name) )
+		select.name = name ;
+	if ( issn(id) )
+		select.id = id ;
+	return select ;
 }
 function create_option(text, value) {
 	var option = document.createElement('option') ;
@@ -318,126 +371,6 @@ function create_td(row, text, colspan) {
 	if ( colspan )
 		cell.colSpan = colspan ;
 	return cell ;
-}
-// User vars
-function store(key, value) {
-	if ( typeof value == 'undefined' )
-		value = null ;
-	if ( value == null )
-		localStorage.removeItem(key) ;
-	else
-		localStorage[key] = value ;
-	if ( $.cookie && ( $.cookie('login') != null ) )  { // Logged-in : send new value
-		var e = document.getElementById(key) ;
-		if ( e != null )
-			e.parentNode.classList.add('updating') ;
-		var json = {} ;
-		json[key] = value ;
-		$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(data) {
-			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-				alert(data.msg) ;
-			else if ( ( data.affected != 0 ) && ( data.affected != 1 ) ) {
-				alert('Something went wrong : '+data.affected) ;
-				$.cookie('login', null) ;
-			} else if ( e != null )
-				e.parentNode.classList.remove('updating') ;
-		}, 'json') ;
-	}
-}
-function save(myfield) {
-	var field = myfield.id ;
-	if ( myfield.type == 'checkbox' )
-		var value = myfield.checked ;
-	else
-		var value = myfield.value ;
-	if ( value != localStorage[field] ) {
-		store(field, value) ;
-		if ( typeof myfield.onsave == 'function' )
-			myfield.onsave(myfield) ;
-		return true ;
-	}
-	return false ;
-}
-function save_restore(field, onsave, onrestore) {
-	var myfield = document.getElementById(field) ;
-	if ( myfield != null ) {
-		// Prepare save trigger
-		switch ( myfield.type ) { // Depending on type
-			case 'hidden': // Hidden
-				break ; // No save trigger, must be triggered by code
-			case 'select-one' : // Selects
-			case 'text' : // Texts
-				myfield.addEventListener('change', function (ev) {
-					save(ev.target) ;
-				}, false) ;
-				break ;
-			case 'checkbox' : // Checkboxes
-				myfield.addEventListener('click', function (ev) {
-					save(ev.target) ;
-				}, false) ;
-				break ;
-			default :
-				alert("Can't save/restore an input of type "+myfield.type) ;
-		}
-		// Restore
-		if ( localStorage[field] == null ) // Var has never been set
-			save(myfield) ;
-		else { // Var has been set
-			if ( ( myfield.value != localStorage[field] ) ) // And have change since then
-				if ( myfield.type == 'checkbox' )
-					myfield.checked = ( localStorage[field] == 'true' ) ;
-				else
-					myfield.value = localStorage[field] ;
-		}
-		if ( typeof onrestore == 'function' )
-			onrestore(myfield) ;
-		// In order it only triggers on user action save, not with call in this method
-		if ( typeof onsave == 'function' )
-			myfield.onsave = onsave ;
-	}
-}
-function cardimages_apply(cardimages, cardimages_choice) {
-	for ( var i = 0 ; i < cardimages_choice.options.length ; i++ )
-		if ( localStorage['cardimages'] == cardimages_choice.options[i].value )
-			cardimages_choice.selectedIndex = i ;
-	var cardimages_link = document.getElementById('cardimages_link') ;
-	if ( cardimages_choice.value == '' ) {
-		cardimages.type = 'text' ;
-		cardimages_link.style.display = '' ;
-	} else {
-		cardimages.type = 'hidden' ;
-		cardimages_link.style.display = 'none' ;
-	}
-}
-function save_restore_options() {
-	save_restore('sounds', function(input) {
-		if ( ( input.checked ) && ( typeof game != 'undefined' ) ) // Enabling sound
-			game.sound.loadall() ; // Load them in case they're not
-	}) ;
-	save_restore('remind_triggers') ;
-	save_restore('place_creatures') ;
-	save_restore('place_noncreatures') ;
-	save_restore('place_lands') ;
-	save_restore('cardimages', function(field) {$.cookie('cardimages', field.value) ; }) ; // Write value in cookies in order PHP to get it
-	var cardimages = document.getElementById('cardimages') ;
-	var cardimages_choice = document.getElementById('cardimages_choice') ;
-	cardimages_apply(cardimages, cardimages_choice) ;
-	cardimages_choice.addEventListener('change', function(ev) {
-		cardimages.value = ev.target.value ;
-		save(cardimages) ;
-		//localStorage['cardimages'] = ev.target.value ;
-		$.cookie('cardimages', ev.target.value) ;
-		cardimages_apply(cardimages, cardimages_choice) ;
-	}, false) ;
-	save_restore('check_preload_image') ;
-	save_restore('library_doubleclick_action') ;
-	save_restore('auto_draw') ;
-	save_restore('draft_auto_ready') ;
-	save_restore('invert_bf') ;
-	save_restore('helpers') ;
-	save_restore('debug') ;
-	save_restore('transparency') ;
-	save_restore('display_card_names') ;
 }
 // Popup
 function popup(title, ok_func, ok_title, cancel_func, cancel_title) {

@@ -301,7 +301,7 @@ function draw() {
 			var h = ye - yb ;
 			game.context.strokeStyle = 'white' ;
 			game.context.strokeRect(xb+.5, yb+.5, w, h) ;
-			if ( localStorage['transparency'] == 'true' ) {
+			if ( game.options.get('transparency') ) {
 				canvas_set_alpha(.1) ; // .5
 				game.context.fillStyle = 'white' ;
 				game.context.fillRect(xb+.5, yb+.5, w, h) ;
@@ -414,7 +414,7 @@ function draw() {
 			}
 		}
 		// Additionnal information
-		if ( localStorage['debug'] == 'true' ) {
+		if ( game.options.get('debug') ) {
 			var end = new Date()
 			var end = end.getMilliseconds() + end.getSeconds()*1000 ;
 			var time = end - begin ;
@@ -595,14 +595,13 @@ function canvas_set_alpha(alpha, context) {
 		context = game.context ;
 	if ( ! isn(alpha) )
 		alpha = bgopacity ;
-	if ( context && ( localStorage['transparency'] == 'true' ) ) 
+	if ( context && game.options.get('transparency') ) 
 		context.globalAlpha = alpha ;
 }
 function canvas_reset_alpha(context) {
 	if ( ! iso(context) )
 		context = game.context ;
-	//if ( localStorage['transparency'] == 'true' ) 
-		context.globalAlpha = 1 ;
+	context.globalAlpha = 1 ;
 }
 // === [ Image ] ===
 function canvas_stretch_img(context, img, x, y, w, h, margin) { // Stretch an image at specified coords

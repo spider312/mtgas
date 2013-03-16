@@ -26,17 +26,20 @@ $key = 'cache_tournament_'.$id ;
 html_head('Tournament '.$tournament->name, 
 	array(
 		'style.css', 
-		'tournament.css'
+		'tournament.css', 
+		'options.css'
 	), 
 	array(
-		'lib/jquery.js',
-		'lib/jquery.cookie.js',
-		'math.js',
-		'html.js',
-		'deck.js',
-		'tournament/lib.js',
-		'tournament/index.js',
-		'../variables.js.php'
+		'lib/jquery.js'
+		, 'lib/jquery.cookie.js'
+		, 'math.js'
+		, 'html.js'
+		, 'deck.js'
+		, 'image.js'
+		, 'options.js'
+		, 'tournament/lib.js'
+		, 'tournament/index.js'
+		, '../variables.js.php'
 	)
 ) ;
 ?>

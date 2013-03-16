@@ -94,13 +94,14 @@ add_css(array(
 	'play.css',
 	'list.css',
 	'side.css',
-	'menu.css'
+	'menu.css', 
+	'options.css'
 	)
 ) ;
 ?>
   <script type="text/javascript" src="js/lib/jquery.js"></script>
   <script type="text/javascript" src="js/lib/jquery.cookie.js"></script>
-  <script type="text/javascript" src="js/lib/raphael-min.js"></script>
+  <!--script type="text/javascript" src="js/lib/raphael-min.js"></script-->
   <script type="text/javascript" src="js/play.js"></script>
   <script type="text/javascript" src="js/dnd.js"></script>
   <script type="text/javascript" src="js/player.js"></script>
@@ -121,6 +122,7 @@ add_css(array(
   <script type="text/javascript" src="js/side.js"></script>
   <script type="text/javascript" src="js/html.js"></script>
   <script type="text/javascript" src="js/selection.js"></script>
+  <script type="text/javascript" src="js/options.js"></script>
   <script type="text/javascript" src="variables.js.php"></script>
   <script type="text/javascript">
 $(function() { // When page is loaded : initialize everything
@@ -137,10 +139,12 @@ $(function() { // When page is loaded : initialize everything
 	tournament = <?php echo $row->tournament ; ?> ;
 	round = <?php echo $row->round ; ?> ;
 	// Init all that must be inited before "game" (+canvas) creation (for now, log messages, depending on chat)
-	init_chat() ;
+	var options = new Options() ;
+	init_chat(options) ;
 	game = new Game(
 		// Game
 			<?php echo $id."\n" ; ?>
+			, options
 		// Player
 			, '<?php echo $player_id ; ?>'
 			, '<?php echo addslashes($player_nick) ; ?>'
@@ -167,7 +171,6 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
 
  <body>
   <canvas id="paper"></canvas>
-  <!--button id="nextstep" title="Click : Trigger step and go next step. Ctrl+click : End turn. Right click : Go previous step">uninitialized</button-->
   <div id="rightframe">
    <img id="zoom" draggable="false" src="<?php echo $cardimages_default ; ?>/back.jpg" oncontextmenu="event.preventDefault() ; ">
    <div id="timeleft">Timeleft</div>
@@ -193,13 +196,6 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
    <li style="color: lime">Ctrl : Turn</li>
    <li style="color: RoyalBlue">Alt : Definitive</li>
   </ul>
-  <div id="options">
-   <!--button id="fullscreen" title="Sets the window fullscreen"><img src="/themes/<?php echo $theme ; ?>/fullscreen.png" alt="fullscreen"></button-->
-<?php
-html_options() ;
-?>
-   <button id="options_close" title="Close options window. Each option is applied when changing it, there is no 'apply' nor 'cancel'"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/button_ok.png" alt="close"></button>
-  </div>
   <div id="log_window">
    <textarea id="log_area" readonly="readonly"></textarea>
    <button id="log_close">Close</button>

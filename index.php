@@ -5,6 +5,7 @@ html_head(
 	array(
 		'style.css'
 		, 'index.css'
+		, 'options.css'
 	),
 	array(
 		'lib/jquery.js'
@@ -15,6 +16,8 @@ html_head(
 		, 'index.js'
 		, 'math.js'
 		, 'tournament/lib.js'
+		, 'options.js'
+		, 'image.js'
 	), 
 	array(
 		'Canceled tournaments' => 'rss/tournaments.php?status=0', 
@@ -26,20 +29,6 @@ html_head(
 ?>
 
  <body>
-  <div id="firstvisit">
-   <div class="section">
-    <form id="choose_nick">
-     <h1>Identity</h1>
-     <label title="Will appear near your life counter/avatar and in all messages displayed in chatbox.">Nick : <input id="profile_nick" type="text" name="nick" value="Nickname" accesskey="n" maxlength="16" size="16"></label>
-     <label title="Image displayed near your life counter. Can be any image hosted anywhere on the web (if you don't know any, you can give a try to picdo.net), or simply chosen in a local gallery">
-      Avatar : <input id="profile_avatar" type="text" name="avatar" value="img/avatar/kuser.png" accesskey="a">
-      <img id="avatar_demo" style="max-width: 100px ; max-height: 100px ; " src="img/avatar/kuser.png" alt="Your avatar">
-      <a href="javascript:gallery()">Gallery</a>
-     </label>
-     <button id="identity_close" title="Close identity window"><img src="/themes/jay_kay/deckbuilder/button_ok.png"></button>
-    </form>
-   </div>
-  </div>
 <?php
 html_menu() ;
 include 'includes/Browser.php' ;
@@ -226,8 +215,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
   </div><!-- id="left_col" -->
 
   <div id="right_col">
-   <div id="profile" class="section">
-   <!--div id="decks" class="section" -->
+   <div id="decks" class="section">
     <h1>Decks</h1>
     <!-- preloaded deck list -->
     <table id="decks_table">
@@ -275,74 +263,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
      </tbody>
     </table>
     <div>You may want to download some <a href="decks/preconstructed/" target="_blank">preconstructed decks</a> (right click on one, "copy link", paste in "download" form)</div>
-   <!--/div--><!-- id="decks" -->
-
-    <h1>Profile</h1>
-<?php
-html_options() ;
-?>
-    <label>Theme : 
-     <select id="theme">
-<?php
-$dir = "themes";
-if (is_dir($dir)) {
-	if ($dh = opendir($dir)) {
-		while (($file = readdir($dh)) !== false)
-			if ( ( $file != '.' ) && ( $file != '..' ) ) {
-				if ( $file == $default_theme )
-					echo "      <option value=\"$file\" selected>$file (default)</option>\n" ;
-				else
-					echo "      <option value=\"$file\">$file</option>\n" ;
-			}
-		closedir($dh);
-	}
-}
-?>
-     </select>
-    </label>
-
-    <h2>Server-side profile</h2>
-<?php
-if ( array_key_exists('login', $_SESSION) && array_key_exists('password', $_SESSION) ) {
-	$email = $_SESSION['login'] ;
-	$password = $_SESSION['password'] ;
-	include 'includes/db.php' ;
-	$q = query("SELECT `content` FROM `profile` WHERE `email` = '$email' AND `password` = '$password' ;") ;
-	$nb = mysql_num_rows($q) ;
-} else 
-	$nb = 0 ;
-if ( $nb == 1 ) {
-	echo 'You are logged as '.$email ;
-?>
-     <form id="logout" action="json/logout.php">
-     <input type="submit" value="Logout">
-    </form>
-<?php
-} else {
-?>
-    <div>Please be sure <a href="http://forum.mogg.fr/viewtopic.php?pid=65#p65">you really need it</a> before create a server side profile (and you probably don't if you always connect here from the same computer)</div>
-    <form id="login" action="json/login.php">
-     <label>Email : <input type="text" name="email"></label>
-     <label>Password : <input type="password" name="password"></label>
-     <label title="If checked, your current data will be sent to server, otherwise, data will be downloaded from server and will overwrite your current data">Overwrite with current data<input type="checkbox" name="overwrite"></label>
-     <input type="submit" value="Login / Register">
-    </form>
-<?php
-}
-?>
-
-    <h2>Local profile</h2>
-    <form id="backup" action="download_file.php" method="post" title="Downloads a profile file, that can be restored on another mtgas (nick, avatars, decks, tokens ...)">
-     <input type="hidden" id="profile_filename" name="name" value="">
-     <input type="hidden" id="profile_content" name="content" value="">
-     <input type="submit" value="Backup profile">
-    </form>
-    <form id="restore" title="Restore a profile file previously saved or from another mtgas">
-     <input type="file" id="profile_file" name="profile_file" title="Path of the profile file (in .mtgas (json) file format)">
-     <input type="submit" id="restore_submit" value="Restore profile" disabled="true">
-    </form>
-    <button id="clear" title="Erase all mtgas-related informations from your browser">Clear profile</button>
-   </div><!-- id="profile" -->
+   </div><!-- id="decks" -->
   </div><!-- id="right_col" -->
 
   <!-- Goldfish hidden form -->

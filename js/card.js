@@ -7,7 +7,7 @@ function Card(id, extension, name, zone, attributes) {
 	this.bordercolor = 'black' ;
 	this.setzone(zone) ; // Initial zone initialisation
 	game.cards.push(this) ; // Auto referencing as a card
-	if ( ( zone.type == 'library' ) && ( localStorage['check_preload_image'] == 'true' ) ) { // If option checked and not sideboard card
+	if ( ( zone.type == 'library' ) && game.options.get('check_preload_image') ) { // If option checked and not sideboard card
 		this.attrs.visible = true ;
 		this.load_image() ;
 		if ( this.transformed_attrs && iss(this.transformed_attrs.name) ) { // And transformed one if needed
@@ -289,7 +289,7 @@ function card_prototype() {
 		var is_top = this.zone.player.is_top ;
 		if ( indnd && ( game.drag != null ) && game.selected.isin(this) && ( game.widget_under_mouse != null ) && ( game.widget_under_mouse.type == 'battlefield' ) ) // Draging current card on top BF
 			is_top = game.widget_under_mouse.player.is_top ;
-		if ( is_top && ( localStorage['invert_bf'] == 'true' ) )
+		if ( is_top && game.options.get('invert_bf') )
 			angle += 180 ;
 		if ( angle > 0 )
 			context.rotate(angle* Math.PI / 180) ;
@@ -358,7 +358,7 @@ function card_prototype() {
 			var bottom = this.w-2*lw+1 ;
 			var left = lw ;
 			var right = this.h-2*lw+1 ;
-			if ( this.is_visible() && ( localStorage['display_card_names'] == 'true' ) ) {
+			if ( this.is_visible() && game.options.get('display_card_names') ) {
 				// Name
 				var name = this.get_name() ;
 				if ( name.length > 10 )
@@ -393,7 +393,7 @@ function card_prototype() {
 			if ( iss(this.pow_thou) && ( this.pow_thou != '' ) )
 				canvas_framed_text_br(context, this.pow_thou, bottom, right, this.pow_thou_color, cardwidth, this.bordercolor) ;
 		}
-		if ( ( this.zone.type == 'hand' ) && ( localStorage['display_card_names'] == 'true' ) && this.hasOwnProperty('manas') && this.is_visible() ) {
+		if ( ( this.zone.type == 'hand' ) && game.options.get('display_card_names') && this.hasOwnProperty('manas') && this.is_visible() ) {
 			// Display mana cost
 				// Compute begining of cost displaying zone
 			var size = 16 ;
@@ -967,7 +967,7 @@ function card_prototype() {
 		menu.addline() ;
 		if ( card.is_visible() ) {
 			menu.addline('Informations (MCI)', card.info) ;
-			if ( localStorage['debug'] == 'true' )
+			if ( game.options.get('debug') )
 				menu.addline('Debug internals', function(card) {
 					log2(this) ;
 					log2(this.attrs) ;
@@ -1136,7 +1136,7 @@ function card_prototype() {
 			else
 				optype = 'place_noncreatures' ;
 		var yzone = 0 ;
-		switch ( localStorage[optype] ) {
+		switch ( game.options.get(optype) ) {
 			case 'top' :
 				yzone = 0 ;
 				break ;

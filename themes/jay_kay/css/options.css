@@ -1,0 +1,54 @@
+/* Hider */
+.hider {
+	position: fixed ;
+	left: 0 ;
+	top: 0 ;
+	width: 100% ;
+	height: 100% ;
+	background-color: black ;
+	background-color: rgba(0, 0, 0, 0.65) ;
+	z-index: 10 ;
+}
+.hider > * {
+	position:absolute ;
+	left: 50% ;
+	top: 50% ;
+}
+/* AJAJ */
+.updating {
+	background-color: rgba(255, 127, 127, 0.5) !important ;
+	border-color: rgba(255, 127, 127, 0.75) ;
+}
+/* Options */
+#options fieldset {
+	margin: 5px 10px 0 10px ;
+	padding: 0 ;
+	padding-right: 5px ;
+	padding-bottom: 2px ;
+}
+#options label {
+	padding: 0 ;
+	padding-left: 5px ;
+	margin-left: 5px ; /* Like style.css's one, for play.php */
+	border: 1px solid transparent ;
+}
+#options label:hover {
+	background-color: rgba(0, 0, 0, 0.2) ;
+	border-color: rgba(0, 0, 0, 0.1) ;
+	border-radius: 2px;
+}
+#options_close {
+	position: absolute ;
+	right: 10px ;
+	bottom: 10px ;
+}
+#buttons {
+	position: absolute ;
+	left: 10px ;
+	bottom: 10px ;
+}
+/* Identity */
+#avatar_demo {
+	max-width: 100px ;
+	max-height: 100px ;
+}
