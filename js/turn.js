@@ -118,12 +118,12 @@ function Step(name, icon, func, menu) { // Steps, essentially evenmential behavi
 		if ( drawborder )
 			context.strokeRect(.5, .5, this.w-1, this.h-1) ;
 		if ( alpha > 0 ) {
-			if ( localStorage['transparency'] == 'true' )
+			if ( game.options.get('transparency') )
 				canvas_set_alpha(alpha, context) ;
 			context.globalCompositeOperation = 'source-atop' ; // Only cover image where it's been drawn
 			context.fillRect(.5, .5, this.w, this.h) ;
 			context.globalCompositeOperation = 'source-over' ;
-			if ( localStorage['transparency'] == 'true' )
+			if ( game.options.get('transparency') )
 				canvas_reset_alpha(context) ;
 		}
 	}
@@ -230,6 +230,7 @@ function Turn(game) {
 					menu.addline('Main menu') ;
 					menu.addline() ;
 					menu.addline('Options', function(turn) {
+						game.options.show() ;
 						document.getElementById('options').classList.add('disp') ;
 					}) ;
 					menu.addline() ;
@@ -242,7 +243,7 @@ function Turn(game) {
 						menu.addline('Tournament', function() { window.open('tournament/?id='+tournament) ; }) ;
 					menu.addline('Main page (new tab)', function() { window.open('./') ; }) ;
 					menu.addline('Quit', function() { onUnload() ; window.location.replace('./') ; }) ; // onUnload because menu has focus at this moment, window don't trigger unload event
-					if ( localStorage['debug'] == 'true' ) {
+					if ( game.options.get('debug') ) {
 						menu.addline() ;
 						if ( iso(logtext) && ( logtext.length > 0 ) )
 							menu.addline('Watch logs', 	log_clear) ;
@@ -275,10 +276,10 @@ function Turn(game) {
 		var phase_y = 5 ;
 		var phase_w = 40 ;
 		var phase_h = 40 ;
-		var buttons_x = 10 ;
-		var buttons_y = 10 ;
 		var buttons_w = 30 ;
 		var buttons_h = 30 ;
+		var buttons_x = 10 ;
+		var buttons_y = Math.round((turnsheight-buttons_h)/2) ;
 		for ( var i = 0 ; i < this.phases.length ; i++ ) {
 			var phase = this.phases[i] ;
 			for ( var j = 0 ; j < phase.steps.length ; j++ ) {
@@ -585,7 +586,7 @@ function steps_init(turn) {
 		// Upkeep : various triggers
 		//	no menu
 		new Step('upkeep', 'Upkeep.png', function(turn) {
-			if ( turn.mine() && ( localStorage['remind_triggers'] == 'true' ) ) {
+			if ( turn.mine() && game.options.get('remind_triggers') ) {
 				var trigger_list = create_ul() ;
 				var player = turn.current_player ;
 				var cards = player.battlefield.cards ;
@@ -710,7 +711,7 @@ function steps_init(turn) {
 				var player = turn.current_player ;
 				// List
 				dredge_list = create_ul() ;
-				if ( localStorage['remind_triggers'] == 'true' ) {
+				if ( game.options.get('remind_triggers') ) {
 					for ( var i in player.graveyard.cards ) { // Search for dredge cards
 						var card = player.graveyard.cards[i] ;
 						if ( isn(card.attrs.dredge) ) { // Card has dredge, create a li
