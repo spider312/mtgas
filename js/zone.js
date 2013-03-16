@@ -246,6 +246,7 @@ function unselzone(result) { // Common
 		var context = this.context ;
 		context.clearRect(0, 0, this.w, this.h) ;
 		// Border / background
+		canvas_set_alpha(zopacity, context) ;
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
 			context.strokeRect(.5, .5, this.w, this.h) ;
@@ -262,11 +263,10 @@ function unselzone(result) { // Common
 				context.stroke() ;
 			}
 		if ( ( game.target.tmp != null ) && ( game.target.tmp.targeted == this ) ) {
-			canvas_set_alpha(zopacity, context) ;
 			context.fillStyle = 'yellow' ;
 			context.fillRect(.5, .5, this.w, this.h) ;
-			canvas_reset_alpha(context) ;
 		}
+		canvas_reset_alpha(context) ;
 		// Data : card number
 		var margin = 5 ;
 		context.font = "10pt Arial";
@@ -358,7 +358,7 @@ function library(player) {
 	// Events
 	mylib.dblclick = function(ev) {
 		if ( this.player.access() )
-			switch ( localStorage['library_doubleclick_action'] ) {
+			switch ( game.options.get('library_doubleclick_action') ) {
 				case 'draw': 
 					this.player.hand.draw_card() ;
 					break ;
@@ -397,7 +397,7 @@ function library(player) {
 			}
 		} else
 			menu.addline('Library') ;
-		if ( localStorage['debug'] == 'true' )
+		if ( game.options.get('debug') )
 			menu.addline() ;
 			menu.addline('Debug internals', function(zone) {
 				log2(this) ;
@@ -679,6 +679,7 @@ function hand(player) {
 	}
 	// Drawing
 	myhand.draw = function(context) {
+		canvas_set_alpha(zopacity, context) ;
 		// Border / background
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
@@ -694,6 +695,7 @@ function hand(player) {
 			context.lineTo(this.x+.5+this.w - largezonemargin, y+.5) ;
 			context.stroke() ;
 		}
+		canvas_reset_alpha(context) ;
 		// Icon
 		if ( this.img != null )
 			context.drawImage(this.img, this.x + (this.w-this.img.width)/2 , this.y +(this.h-this.img.height)/2) ;
@@ -863,6 +865,7 @@ function battlefield(player) {
 			else
 				h = bfheight + turnsheight;
 		}
+		canvas_set_alpha(zopacity, context) ;
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
 			context.strokeRect(this.x+.5, y+.5, this.w, h) ;
@@ -874,6 +877,7 @@ function battlefield(player) {
 				context.lineTo(this.x+.5+this.w - largezonemargin, y+.5) ;
 				context.stroke() ;
 			}
+		canvas_reset_alpha(context) ;
 		// Data : card number
 		var margin = 5 ;
 		context.font = "10pt Arial";
@@ -888,21 +892,9 @@ function battlefield(player) {
 					to = this.grid_coords(i+1, j+1) ;
 					var w = to.x - from.x ;
 					var h = to.y - from.y ;
-					if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
+					if ( this.player.is_top && game.options.get('invert_bf') )
 						from.y += cardheight ;
 					context.strokeRect(from.x-.5, from.y-.5, w, h) ;
-					/* Focus on hovered grid cell
-					if (
-						( game.mouseX > from.x ) && ( game.mouseX < from.x + w ) &&
-						( game.mouseY > from.y ) && ( game.mouseY < from.y + h )
-					   ) {
-						//log(i+', '+j) ;
-						canvas_set_alpha(.5, context) ;
-						context.fillStyle = 'red' ;
-						context.fillRect(from.x-.5, from.y-.5, w, h) ;
-						canvas_set_alpha(.1, context) ;
-					}
-					*/
 				}
 			}
 			canvas_reset_alpha(context) ;
@@ -922,7 +914,7 @@ function battlefield(player) {
 	}
 	mybf.refresh_card = function(card) { // Refresh one cards in zone
 		if ( card.get_attachedto() == null ) { // Refresh all cards attached to nothing
-			if ( card.zone.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
+			if ( card.zone.player.is_top && game.options.get('invert_bf') )
 				var equip_offset = -10 ; // Invert equip offset
 			else
 				var equip_offset = 10 ;
@@ -984,7 +976,7 @@ function battlefield(player) {
 			var ly = 0 ;
 		else
 			var ly = gy ;
-		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) ) // Invert cards' ordinate on top BF
+		if ( this.player.is_top && game.options.get('invert_bf') ) // Invert cards' ordinate on top BF
 			gy = bfrows - gy - 1 ;
 		x = this.x + gridsmarginh + ( gridswidth * gx ) + cardxoffset ;
 		y = this.y + gridsmarginv + ( gridsheight * gy ) + cardyoffset ;
@@ -1001,7 +993,7 @@ function battlefield(player) {
 		cy = max(cy, 0) ;
 		cy = min(cy, bfrows-1) ;
 		// Invert
-		if ( this.player.is_top && ( localStorage['invert_bf'] == 'true' ) )
+		if ( this.player.is_top && game.options.get('invert_bf') )
 			cy = bfrows - cy - 1 ;
 		return {'x': cx, 'y': cy} ;
 	}
@@ -1091,7 +1083,6 @@ function Life(player) {
 		} else
 			context.fillStyle = 'black' ;
 		context.fillRect(0, 0, this.w, this.h) ;
-		canvas_reset_alpha(context) ;
 		if ( drawborder ) {
 			context.strokeStyle = bordercolor ;
 			context.strokeRect(.5, .5, this.w, this.h) ;
@@ -1106,6 +1097,7 @@ function Life(player) {
 			context.lineTo(.5+this.w - smallzonemargin, y+.5) ;
 			context.stroke() ;
 		}
+		canvas_reset_alpha(context) ;
 		// Avatar
 		if ( this.img != null )
 			canvas_stretch_img(context, this.img, 0, 0, this.w, this.h, 10)
