@@ -12,19 +12,16 @@ https://hacks.mozilla.org/2013/02/hello-chrome-its-firefox-calling/
 
  === Bugs ===
 !! better attrs management
-attacking sur les face down
-Face down une carte équipée
-! Land/ancestral qui remonte en main
+	attacking sur les face down
+	Face down une carte équipée
+	! Land/ancestral qui remonte en main
+	Suspend, move, trigger plusieurs fois
 le dernier joueur dans le tournois ne voit pas son status réinitialisé
 inactivité des joueurs sur la page tournois, joueur inactif => défaite
-identity shower dans les pages autres que l'accueil
-http://mogg.fr/play.php?id=8485 c_5683445 Mystic Gate moving from game.creator.hand to game.creator.battlefield but should be in game.creator.library
-Suspend, move, trigger plusieurs fois
 time_nanosleep dans le daemon
 ~? copy de carte qui est hidden
 loyalty counter dans l'import MCI
-* join/view un tournament
-! save uniquement de la dernière version du deck
+? register d'un tournament -> auto view
 
 reminder
 ? Lands en side
