@@ -41,8 +41,13 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		$day = date('j') ;
 	}
 // === [ SINGLE GAMES ] ===
-	// Remove not-pending-anymore games
+	// Creator hasn't been on index for $timeout seconds, cancel
 	query("UPDATE `round` SET `status` = '0' WHERE `status` = '1' AND `last_update_date` < NOW() - $timeout ; ") ;
+	if ( $log && ( mysql_affected_rows() > 0 ) )
+		echo mysql_affected_rows().' pending games canceled for timeout ('.$timeout."s)\n" ;
+
+	// No joiner after 10 minutes
+	query("UPDATE `round` SET `status` = '0' WHERE `status` = '1' AND TIMESTAMPDIFF(MINUTE, `creation_date`, NOW()) > 10 ; ") ;
 	if ( $log && ( mysql_affected_rows() > 0 ) )
 		echo mysql_affected_rows().' pending games canceled for timeout ('.$timeout."s)\n" ;
 
