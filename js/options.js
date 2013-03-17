@@ -245,7 +245,7 @@ function Options(check_id) {
 		//
 		container.appendChild(fieldset) ;
 		nick.select() ;
-		//this.resize(container) ; // Done on image error/load
+		this.resize(container) ; // Done on image error/load
 		var buttons = create_div() ;
 		buttons.id = 'buttons' ;
 		buttons.appendChild(this.button_options) ;
@@ -425,7 +425,7 @@ function Options(check_id) {
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', 'img/avatar/kuser.png') ;
 		// Hidden (Only retrieved, or set by other means)
 		//player_id
-	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nThinking\nEnd my turn\nEOT') ;
+	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
 	this.add('Hidden', 'deck', '', '', '') ;
 		// Tournament hidden
 	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;

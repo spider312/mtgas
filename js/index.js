@@ -42,7 +42,7 @@ $(function() { // On page load
 	}, false) ;
 	document.getElementById('tournament_options_toggle').addEventListener('click', function(ev) {
 		var fs = ev.target.parentNode.parentNode ;
-		if ( fs.classList.toggle('hidden') )
+		if ( fs.classList.toggle('shrinked') )
 			ev.target.textContent = '+' ;
 		else
 			ev.target.textContent = '-' ;
@@ -54,9 +54,12 @@ $(function() { // On page load
 		var deckname = deck_checked() ;
 		if ( deckname == null )
 			alert('You must select a deck in order to create a duel') ;
-		else
+		else {
+			var name = ev.target.name.value ;
+			if ( name == '' )
+				name = "I'm a noob ! " ;
 			$.post(ev.target.action, {
-				'name': ev.target.name.value,
+				'name': name,
 				'nick': options.get('profile_nick'),
 				'avatar': options.get('profile_avatar'),
 				'deck': deck_get(deckname)
@@ -64,6 +67,7 @@ $(function() { // On page load
 				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
 					alert(data.msg) ;
 			}, 'json') ;
+		}
 		return eventStop(ev) ;
 	}, false) ;
 		// Tournament creation
@@ -153,6 +157,7 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 		var rounds = data.games ; // Get games list
 		node_empty(pending_games) ; // Remove old lines
 		if ( rounds.length > 0 ) { // Some pending games returned
+			document.getElementById('duel_join').classList.remove('hidden') ;
 			cell_no.style.display = 'none' ; // Hide table line "no pending games"
 			for ( var i = 0 ; i < rounds.length ; i++ ) { // Add new lines
 				var round = rounds[i] ;
@@ -189,11 +194,13 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 					tr.classList.add('registered') ;
 			}
 		} else // No pending games returned
-			cell_no.style.display = '' ; // Show table line "no pending games"
+			//cell_no.style.display = '' ; // Show table line "no pending games"
+			document.getElementById('duel_join').classList.add('hidden') ;
 		// Display a list of runing games
 		var rounds = data.runing_games ; // Get games list
 		node_empty(running_games) ; // Remove old lines
 		if ( rounds.length > 0 ) { // Some pending games returned
+			document.getElementById('duel_view').classList.remove('hidden') ;
 			running_games_no.style.display = 'none' ; // Hide table line "no pending games"
 			for ( var i = 0 ; i < rounds.length ; i++ ) { // Add new lines
 				var round = rounds[i] ;
@@ -225,7 +232,8 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 					tr.classList.add('registered') ;
 			}
 		} else // No pending games returned
-			running_games_no.style.display = '' ; // Show table line "no pending games"
+			//running_games_no.style.display = '' ; // Show table line "no pending games"
+			document.getElementById('duel_view').classList.add('hidden') ;
 	}) ;
 	// Loop's next iteration
 	window.setTimeout(games_timer, game_list_timer // Call same function in 'game_list_timer' seconds
@@ -242,6 +250,7 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 		var tournaments = data.tournaments ;
 		node_empty(pending_tournaments) ; // Remove old lines
 		if ( tournaments.length > 0 ) { // Some pending games returned
+			document.getElementById('tournament_join').classList.remove('hidden') ;
 			tournament_no.style.display = 'none' ; // Hide table line "no pending tournaments"
 			for ( var i = 0 ; i < tournaments.length ; i++ ) { // Add new lines
 				var tournament = tournaments[i] ;
@@ -296,10 +305,12 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				tr.title = 'Click to '+word+' to tournament '+tournament.type+' : '+tournament.name ;
 			}
 		} else // No pending tournaments returned
-			tournament_no.style.display = '' ; // Show table line "no pending tournament"
+			//tournament_no.style.display = '' ; // Show table line "no pending tournament"
+			document.getElementById('tournament_join').classList.add('hidden') ;
 		// Running
 		node_empty(running_tournaments) ; // Remove old lines
 		if ( data.tournaments_running.length > 0 ) {
+			document.getElementById('tournament_view').classList.remove('hidden') ;
 			running_tournament_no.style.display = 'none' ; // Hide table line "no pending tournaments"
 			for ( var i = 0 ; i < data.tournaments_running.length ; i++ ) {
 				var t = data.tournaments_running[i] ;
@@ -322,7 +333,8 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 						tr.classList.add('registered') ;
 			}
 		} else
-			running_tournament_no.style.display = '' ;
+			//running_tournament_no.style.display = '' ;
+			document.getElementById('tournament_view').classList.add('hidden') ;
 	}) ;
 	// Loop's next iteration
 	window.setTimeout(tournaments_timer, game_list_timer // Call same function in 'game_list_timer' seconds

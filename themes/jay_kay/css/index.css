@@ -28,6 +28,7 @@ td.nowrap {
 #stats, #profile, #games, #tournaments, #decks {
 	width: 100% ;
 	margin-top: 25px ;
+	padding-bottom: 10px ;
 }
 #footer, #browser {
 	margin: 2% ;
@@ -43,6 +44,12 @@ td.nowrap {
 	background-repeat: no-repeat ;
 	padding-left: 110px ;
 	height: 100px ;
+}
+#game_create, #tournament_create {
+	margin-left: 15px ;
+}
+#tournament_create .create {
+	margin-top: 15px ;
 }
 /* Table lines enhancement */
 td a {
@@ -79,10 +86,10 @@ td a {
 #tournament_options #tournament_options_toggle {
 	display: inline ;
 }
-#tournament_options.hidden legend {
+#tournament_options.shrinked legend {
 	display: block ;
 }
-#tournament_options.hidden * {
+#tournament_options.shrinked * {
 	display: none ;
 }
 .score {
