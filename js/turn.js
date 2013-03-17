@@ -317,6 +317,38 @@ function Turn(game) {
 		// Button
 		if ( this.button != null )
 			this.button.draw(context) ;
+		// Arrow
+		var rect = this.button.rect() ;
+		var x = this.x + rect.x + rect.w + 10 ;
+		var x = 0 ;
+		var t = Math.ceil(turnsheight / 2) ;
+		canvas_set_alpha(zopacity, context) ;
+		context.fillStyle = bordercolor ;
+		var tblx = x ;
+		var tbrx = x + 2 * t ;
+		var ttx = x + t ;
+		if ( this.current_player == game.player ) {
+			var rt = this.y - 1 ; // Rectangle top
+			var tbly = this.y + t - 1 ; // Triangle bottom left
+			var tbry = this.y + t - 1 ; // Triangle bottom right
+			var tty = this.y + 2 * t - 1 ; // Triangle top
+		} else {
+			var rt = this.y + t - 1 ;
+			var tbly = this.y + t - 1 ;
+			var tbry = this.y + t - 1 ;
+			var tty = this.y + 1 ;
+		}
+		// Rectangle
+		context.fillRect(x + Math.ceil(t/2), rt, t, t) ;
+		// Triangle
+		context.beginPath() ;
+		context.moveTo(tblx, tbly) ;
+		context.lineTo(tbrx, tbry) ;
+		context.lineTo(ttx, tty) ;
+		context.lineTo(tblx, tbly) ;
+		context.fill() ;
+		context.closePath() ;
+		canvas_reset_alpha(context) ;
 	}
 	// Accessors
 	this.toString = function() {
