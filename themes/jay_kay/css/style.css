@@ -14,7 +14,6 @@ body {
 /* Colapsed tables, with emphased table-headers */
 table {
 	border-collapse: collapse ;/* Bugs in FF with colspan */
-	/*border-spacing: 0 ;*/
 }
 thead, th {
 	background-color: #8e7560 ;

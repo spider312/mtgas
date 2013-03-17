@@ -114,50 +114,49 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
    <div id="decks" class="section">
     <h1>Decks</h1>
-    <!-- preloaded deck list -->
+    <!-- Deck list header -->
     <table id="decks_table">
      <thead>
       <tr>
-       <th>Name</th>
-       <th id="decks_spacer"></th>
-       <th>Select</th>
-       <th colspan="4">Actions</th>
+       <th class="first_col leftalign">Name</th>
+       <th colspan="2" class="rightalign nowrap">Actions : <button id="deck_edit" title="View and change selected deck's list">Edit</button><button id="deck_delete" title="Remove selected deck from list">Delete</button><button id="deck_export" title="Save selected deck as a .mwdeck file">Export</button>
+       </th>
       </tr>
      </thead>
+     <!-- Deck list -->
+     <tbody id="decks_list">
+      <tr><td colspan="6">Waiting for preloaded decks to load</td></tr>
+     </tbody>
      <tfoot>
-      <!-- Create form -->
+      <!-- Create -->
       <tr title="A deck from scratch">
        <form id="deck_create" method="get" action="deckbuilder.php">
-        <th>New deck</th>
-        <td colspan="5"><input type="text" name="deck" placeholder="Deck name" title="Name of the deck"></td>
-        <th><input type="submit" value="Create" class="fullwidth"></th>
+        <th class="nowrap">From scratch</th>
+        <td><input type="text" name="deck" placeholder="Deck name" title="Name of the deck"></td>
+        <th class="last_col"><input type="submit" value="Create" class="fullwidth"></th>
        </tr>
       </form>
-      <!-- Load form -->
+      <!-- Load -->
       <tr title="Deck files on your computer">
-       <th>Import</th>
-       <td colspan="5">
+       <th class="nowrap">From your computer</th>
+       <td>
         <form id="upload">
          <input type="file" multiple id="deckfile" name="deckfile" class="fullwidth" accesskey="u" title="Deck files (in MWS (.mwDeck) or Aprentice (.dec) file format). You can select multiple with Ctrl, Shift or mouse selection">
       </form>
        </td>
        <th><input type="submit" value="Import" class="fullwidth"></th>
       </tr>
-      <!-- Download form -->
+      <!-- Download -->
       <form id="download" action="" method="get">
        <tr title="A deck file hosted by a web-server, paste the 'export MWS' link on a deck on mtgtop8.com for example">
-        <th>Download</th>
-        <td colspan="5">
+        <th class="nowrap">From a website</th>
+        <td>
           <input id="deck_url" type="text" name="deck_url" placeholder="Deck URL" title="URL of the deck file (in MWS (.mwDeck) or Aprentice (.dec) file format)">
         </td>
         <th><input type="submit" value="Download" class="fullwidth"></th>
        </tr>
       </form>
      </tfoot>
-     <!-- Table filled with decks -->
-     <tbody id="decks_list">
-      <tr><td colspan="6">Waiting for preloaded decks to load</td></tr>
-     </tbody>
     </table>
    </div><!-- id="decks" -->
   </div><!-- id="left_col" -->
@@ -276,17 +275,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
   </div><!-- id="right_col" -->
 
-  <!-- Goldfish hidden form -->
-  <form id="goldfish" action="goldfish.php" method="post">
-   <input id="self_nick" type="hidden" name="nick" value="" maxlength="16">
-   <input id="self_avatar" type="hidden" name="avatar" value="">
-   <input id="self_deck" type="hidden" name="deck" value="">
-   <input id="goldfish_nick" type="hidden" name="goldfish_nick" value="" maxlength="16">
-   <input id="goldfish_avatar" type="hidden" name="goldfish_avatar" value="themes/<?php echo $theme ; ?>/goldfish.png">
-   <input id="goldfish_deck" type="hidden" name="goldfish_deck" value="">
-  </form>
-  
-  <div id="footer" class="section">Website running MTGAS developpement version, hosted by <a href="mailto:mtg@spiderou.net">SpideR</a></div>
+  <div id="footer" class="section"><a href="https://github.com/spider312/mtgas">MTGAS developpement version</a>, hosted by <a href="mailto:mtg@spiderou.net">SpideR</a></div>
 <?php
 if ( is_file('footer.php') )
 	include 'footer.php' ;

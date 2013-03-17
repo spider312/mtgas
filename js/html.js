@@ -289,7 +289,7 @@ function create_label(target) {
 		mylabel.appendChild(el) ;
 	}
 	if ( !iss(target) ) { // htmlFor should be a string
-		if ( issn(target.id) )
+		if ( ( target != null ) && issn(target.id) )
 			target = target.id ;
 		else
 			target = null ;

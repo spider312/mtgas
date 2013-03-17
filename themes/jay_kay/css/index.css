@@ -1,7 +1,7 @@
 table {
-	width: 96% ;
-	margin: 2% ;
-	margin-top: 0 ;
+	width: 90% ;
+	margin: 0 ;
+	margin-left: 5% ;
 }
 ol {
 	padding-left: 25px ;
@@ -57,23 +57,22 @@ td a {
 	text-decoration: none ;
 	color: black ;
 }
-/* Invisible column in decks table header, maximised in order "deck name" column to be maximized without first footer columns (new deck, ...) being maximized */
-#decks_spacer {
-	width: 100% ;
-	border-left-width: 0px ;
-}
-#decks_table thead th:first-child {
-	border-right-width: 0px ;
-}
-#decks_table tbody button, #decks_table tbody input[type=submit] {/* Forced buttons width or they get squished */
-	width: 80px ;
-}
 /* Other deck table styling */
 #decks_table tbody tr:hover, #past_tournaments tr:hover {
 	background-color: #F4ECD2 ;
 }
 #decks_table input[type=text] {
 	width: 99% ;
+}
+#decks_table .first_col {
+	width: 0 ;
+	border-right-color: transparent ;
+}
+#decks_table .last_col {
+	width: 70px ;
+}
+table button {
+	padding: 0 ;
 }
 /* Tournaments */
 .registered {
@@ -94,4 +93,14 @@ td a {
 }
 .score {
 	text-align: center ;
+}
+/* Deck list */
+.deck td {
+	border-width: 0 0 1px 0 ;
+}
+.leftalign {
+	text-align: left ;
+}
+.rightalign {
+	text-align: right ;
 }

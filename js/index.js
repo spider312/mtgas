@@ -95,6 +95,41 @@ $(function() { // On page load
 		return eventStop(ev) ;
 	}, false) ;
 	// Decks list
+	document.getElementById('deck_edit').addEventListener('click', function(ev) {
+		var deck = deck_checked() ;
+		if ( deck == null ) {
+			alert('Please select a deck') ;
+			return false ;
+		}
+		var form = create_form('deckbuilder.php', 'get', create_hidden('deck', deck)) ;
+		document.body.appendChild(form) ;
+		form.submit() ;
+		document.body.removeChild(form) ;
+	}, false) ;
+	document.getElementById('deck_delete').addEventListener('click', function(ev) {
+		var deck = deck_checked() ;
+		if ( deck == null ) {
+			alert('Please select a deck') ;
+			return false ;
+		}
+		deck_del(deck) ;
+		decks_list() ; // Refresh list
+	}, false) ;
+	document.getElementById('deck_export').addEventListener('click', function(ev) {
+		var deck = deck_checked() ;
+		if ( deck == null ) {
+			alert('Please select a deck') ;
+			return false ;
+		}
+		var form = create_form('download_file.php', 'post',
+			create_hidden('name', deck+'.mwDeck'),
+			create_hidden('content', deck_get(deck))
+		)
+		document.body.appendChild(form) ;
+		form.submit() ;
+		document.body.removeChild(form) ;
+	}, false) ;
+	// Deck footer
 	document.getElementById('deck_create').addEventListener('submit', function(ev) {
 		if ( ev.target.deck.value == '' ) {
 			alert('Please enter a name for your deck') ;
@@ -347,17 +382,6 @@ function list_players(tournament) {
 		ul.appendChild(create_li(tournament.players[j].nick)) ;
 	return ul ;
 }
-function load_profile(target) {
-	// Fill some hidden values
-	var deck = deck_checked() ;
-	if ( deck != null ) {
-		document.getElementById(target+'_nick').value = options.get('profile_nick') ;
-		document.getElementById(target+'_avatar').value = options.get('profile_avatar') ;
-		document.getElementById(target+'_deck').value = deck_get(deck) ;
-		return true ;
-	} else
-		return false ;
-}
 // === [ FIXED LISTS ] =========================================================
 function get_extensions() {
 	$.getJSON('json/extensions.php', null, function(data) {
@@ -496,59 +520,88 @@ function decks_list() {
 		for ( var i in decks ) {
 			var deck_name = decks[i] ;
 			var deck_content = deck_get(deck_name) ;
-			var row = table.insertRow(-1) ; 
-
-			if ( deck_content == '' )
-				row.title = 'Deck list is empty' ;
-			else
-				row.title = deck_content ;
-			row.id = deck_name ;
-			var radio = create_radio('deck', deck_name, (deck_name == options.get('deck')), ' ', 'fullwidth') ;
-			radio.firstChild.id = 'radio_'+deck_name ;
+			var row = table.insertRow(-1) ;
+			//row.id = deck_name ;
+			row.title = deck_name ;
+			row.classList.add('deck') ;
+			/*
+			row.toString = function() {
+				return 'Row Card '+this.id ;
+			}
+			row.draggable = true ;
+			row.addEventListener('dragstart', function(ev) {
+				ev.dataTransfer.setData('text/plain', ev.target.id) ;
+			}, false) ;
+			row.addEventListener('dragenter', function(ev) {
+				//alert(ev.originalTarget.parentNode.parentNode.parentNode.tagName) ;
+				//alert(node_parent_search(ev.originalTarget, 'TR')) ;
+				var from = ev.currentTarget ;
+				var to = node_parent_search(ev.target, 'TR') ;
+				alert(from.id + ' -> ' +to.id) ;
+				log2(ev) ;
+				return eventStop(ev) ;
+			}, false) ;*/
+			// Main cell : radio + name
+			var cell = row.insertCell(-1) ;
+			cell.colSpan = 2 ;
+			// Radio
+			var radio = create_radio('deck', deck_name, (deck_name == options.get('deck'))) ;
+			radio.addEventListener('change', function(ev) {
+				store(ev.target.name, ev.target.value) ;
+			}, false) ;
+			// Deck name
 			deck_name_s = deck_name ;
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
-			var cell = row.insertCell(-1) ;
-			var label = create_label('radio_'+deck_name, deck_name_s) ;
+			var label = create_label(null, radio, deck_name_s) ;
+			label.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament' ;
 			cell.appendChild(label) ;
-			cell.colSpan = 2 ;
+			// View
 			var cell = row.insertCell(-1) ;
-			cell.appendChild(radio).addEventListener('change', function(ev) {
-				store(ev.target.name, ev.target.value) ;
+			cell.classList.add('rightalign') ;
+			var img = create_img(theme_image('deckbuilder/layer_visible.png')[0]) ;
+			if ( deck_content == '' )
+				img.title += 'Deck list is empty' ;
+			else
+				img.title += deck_content ; 
+			img.deck_name = deck_name
+			img.addEventListener('click', function(ev) {
+				alert(deck_get(ev.target.deck_name)) ;
 			}, false) ;
-			cell.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament' ;
-			row.insertCell(-1).appendChild(create_button('Goldfish', function(ev) {
-				var row = node_parent_search(ev.target, 'TR') ;
-				if ( load_profile('self') ) { // Load data from profil to goldfish self
-					document.getElementById('goldfish_nick').value = row.id ; // Defining deck name as opponent name in goldfish
-					document.getElementById('goldfish_deck').value = deck_get(row.id) ;
-					document.getElementById('goldfish').submit() ;
-				} else
-					alert('You have to select a deck in order to goldfish it') ;
-			}, 'Play alone with your selected deck against '+deck_name, 'fullwidth')) ;
-			row.insertCell(-1).appendChild(create_button('Delete', function(ev) {
-				deck_del(ev.target.parentNode.parentNode.id) ;
-				decks_list() ; // Refresh list
-			}, 'Remove '+deck_name+' from list', 'fullwidth')) ;
-			var tmp = row.insertCell(-1).appendChild(
-				create_form('deckbuilder.php', 'get', 
-					create_hidden('deck', deck_name), 
-					create_submit(null, 'Edit', null, 'fullwidth')
-				)
-			) ;
-			tmp.title = 'Edit '+deck_name ;
-			tmp = row.insertCell(-1).appendChild(
-				create_form('download_file.php', 'post',
-					create_hidden('name', row.id+'.mwDeck'),
-					create_hidden('content', deck_get(row.id)),
-					create_submit(null, 'Export', null, 'fullwidth')
-				)
-			) ;
-			tmp.title = 'Export '+deck_name+' as a .mwdeck file' ;
-			row.addEventListener('mousedown', function(ev) {
-				if ( ev.button == 1 )
-					alert(ev.currentTarget.title) ;
+			img.addEventListener('mouseover', function(ev) {
+				ev.target.src = theme_image('deckbuilder/layer_novisible.png')[0] ;
+				
 			}, false) ;
+			img.addEventListener('mouseout', function(ev) {
+				ev.target.src = theme_image('deckbuilder/layer_visible.png')[0] ;
+			}, false) ;
+			cell.appendChild(img) ;
+			var img = create_img('themes/'+theme+'/goldfish.png') ;
+			img.height = 18 ;
+			img.style.cursor = 'pointer' ;
+			cell.appendChild(img) ;
+			// Goldfish
+			img.addEventListener('click', function(ev) {
+				var deck = deck_checked() ;
+				if ( deck == null ) {
+					alert('Please select a deck') ;
+					return false ;
+				}
+				var form = create_form('goldfish.php', 'post',
+					create_hidden('nick', options.get('profile_nick')),
+					create_hidden('avatar', options.get('profile_avatar')),
+					create_hidden('deck', deck_get(deck)), 
+					create_hidden('goldfish_nick', ev.target.deck_name),
+					create_hidden('goldfish_avatar', 'themes/'+theme+'/goldfish.png'),
+					create_hidden('goldfish_deck', deck_get(ev.target.deck_name))
+				) ;
+				document.body.appendChild(form) ;
+				form.submit() ;
+				document.body.removeChild(form) ;
+			}, false) ;
+			img.title = 'Play with your selected deck against '+deck_name ;
+			img.deck_name = deck_name
+			cell.appendChild(img) ;
 		}
 	} else
 		$.getJSON('json/default_decks.php', { }, function(data) {

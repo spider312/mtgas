@@ -142,7 +142,7 @@ function Options(check_id) {
 		container.id = 'choicewin' ;
 		container.classList.add('section') ;
 		container.appendChild(create_h(1, title)) ;
-		var button = create_button(create_img(theme_image('deckbuilder/button_ok.png')[0]), null, 'Close') ;
+		var button = create_button(create_img(theme_image('deckbuilder/button_ok.png')[0]), 'Close', 'Close') ;
 		button.id = 'options_close' ;
 		container.appendChild(button) ;
 		var result = create_div(container) ;

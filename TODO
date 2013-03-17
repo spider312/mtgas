@@ -22,13 +22,13 @@ time_nanosleep dans le daemon
 ~? copy de carte qui est hidden
 loyalty counter dans l'import MCI
 ? register d'un tournament -> auto view
+import multiple deck : tous sont save sous le même nom
 
 reminder
 ? Lands en side
 Option "shuffle & put on top" sur les cartes de la bibli
 ? target from card in unselzone
 ? trigger sur les cartes qu'on contrôle dans le BF adverse
-import multiple deck : tous sont save sous le même nom
 ? use move when change zone from bf to bf
 Modularize unicity in boosters (CUB, OMC*) + daemon
 deckbuilder double face, split
