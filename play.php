@@ -101,7 +101,6 @@ add_css(array(
 ?>
   <script type="text/javascript" src="js/lib/jquery.js"></script>
   <script type="text/javascript" src="js/lib/jquery.cookie.js"></script>
-  <!--script type="text/javascript" src="js/lib/raphael-min.js"></script-->
   <script type="text/javascript" src="js/play.js"></script>
   <script type="text/javascript" src="js/dnd.js"></script>
   <script type="text/javascript" src="js/player.js"></script>
