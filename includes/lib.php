@@ -134,10 +134,8 @@ function add_rss($args) {
 }
 function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
 	global $appname, $theme ;
-	//if ( ! in_array('style.css', $css) )
-	//	array_unshift($css, 'style.css') ;
 	echo '<!DOCTYPE html>
-<html>
+<html lang="en">
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <title>'.$appname.' : '.$title.'</title>
