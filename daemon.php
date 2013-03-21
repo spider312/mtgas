@@ -5,6 +5,8 @@ include 'tournament/lib.php' ;
 include $dir.'/includes/deck.php' ;
 include $dir.'/includes/card.php' ;
 include 'includes/ranking.php' ;
+include 'includes/ts3.php' ;
+
 /*
 include 'includes/varspool-php-websocket/server/lib/SplClassLoader.php' ;
 
@@ -122,6 +124,11 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				continue 2 ;
 		$data = json_decode($tournament->data) ;
 		$players = $data->players ;
+		// TS3
+		ts3_co() ;
+		$cid = ts3_chan('Tournament '.$tournament->id, $tournament->name) ; // Create chan
+		ts3_invite($players, $cid) ; // Move each tournament's player to chan
+		ts3_disco() ;
 		// Start first stage for tournament depending on type
 		switch ( $tournament->type ) {
 			case 'draft' :

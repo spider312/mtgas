@@ -126,8 +126,8 @@ function registration_get($id=0, $player_id='') {
 		return $player_id ;
 }
 function tournament_start($tournament) {
-	sleep(2) ; // "Not saved deck" bug resolution
 	$players = tournament_playing_players($tournament) ;
+	sleep(2) ; // "Not saved deck" bug resolution
 	$data = json_decode($tournament->data) ;
 	$duration = $data->rounds_duration ;
 	if ( ! is_numeric($data->rounds_number) )
@@ -278,6 +278,10 @@ function round_create_matches($tournament, &$players) { // Modifies players list
 }
 function round_start_games($tournament, $players) {
 	$table = 0 ;
+	// TS3
+	ts3_co() ;
+	$cid = ts3_chan('Tournament '.$tournament->id, $tournament->name) ; // Get tournament channel
+	$crid = 0 ; // By default, don't create round channel (in case there are no players)
 	while ( count($players) > 1 ) {
 		$creator = array_shift($players) ;
 		$joiner = array_shift($players) ;
@@ -285,6 +289,11 @@ function round_start_games($tournament, $players) {
 			, $creator->nick, $creator->player_id, $creator->avatar, addslashes($creator->deck)
 			, $joiner->nick, $joiner->player_id, $joiner->avatar, addslashes($joiner->deck)
 			, $tournament->id, $tournament->round) ;
+		// TS3
+		if ( $crid == 0 ) // Create round channel
+			$crid = ts3_chan('Round '.$tournament->round, $tournament->name, $cid) ;
+		$ctid = ts3_chan('Table '.$table, $tournament->name, $crid) ; // Create table subchannel
+		ts3_invite(array($creator, $joiner), $ctid, true) ;
 	}
 	// Bye if needed
 	if ( count($players) == 1 ) {
@@ -300,7 +309,9 @@ function round_start_games($tournament, $players) {
 		WHERE
 			`tournament_id` = '".$tournament->id."'
 			AND `player_id` = '".$bye->player_id."' ") ; // Player BYing
+		ts3_invite(array($bye), $ctid) ;
 	}
+	ts3_disco() ;
 }
 function tournament_playing_players($tournament) {
 	$players = array() ;
