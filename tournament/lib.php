@@ -309,7 +309,7 @@ function round_start_games($tournament, $players) {
 		WHERE
 			`tournament_id` = '".$tournament->id."'
 			AND `player_id` = '".$bye->player_id."' ") ; // Player BYing
-		ts3_invite(array($bye), $ctid) ;
+		ts3_invite(array($bye), $cid) ;
 	}
 	ts3_disco() ;
 }

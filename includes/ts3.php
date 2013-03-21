@@ -16,22 +16,16 @@ function ts3_disco() {
 	if ( ! $ts3_selected )
 		return false ;
 	$ts3_host->getAdapter()->getTransport()->disconnect() ;
+	$ts3_selected = false ;
+	return true ;
 }
 function ts3_client($name) {
 	global $ts3_selected ;
 	if ( ! $ts3_selected )
 		return false ;
 	try {
-		$matched = $ts3_selected->clientFind($name) ;
-		if ( count($matched) == 1 ) {
-			$client = array_shift($matched) ;
-			return $client['clid'] ;
-		} else {
-			echo count($matched).' clients matching '.$name."\n" ;
-			return false ;
-		}
+		return $ts3_selected->clientGetByName($name) ;
 	} catch (Exception $e) {
-		//echo 'Func exception: '.$e->getMessage().' : '.$name."\n" ;
 		return false ;
 	}
 }
@@ -52,7 +46,6 @@ function ts3_chan($name='Unnamed', $topic=null, $parent=null) {
 		if ( $parent != null )
 			$param['cpid'] = $parent ;
 		$cid = $ts3_selected->channelCreate($param) ;
-		//echo 'Func exception in channel creating ('.$name.') : '.$e->getMessage()."\n" ;
 	}
 	return $cid ;
 }

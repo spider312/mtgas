@@ -28,7 +28,6 @@ $server->run() ;
 
 //$seed = hexdec(substr( md5( microtime() ), -8 ) ) & 0x7fffffff ; // Hexmaster
 $seed = (double)microtime()*1000000  ; // PHP comments
-//log($seed) ;
 mt_srand($seed) ;
 
 $card_connection = card_connect() ;
