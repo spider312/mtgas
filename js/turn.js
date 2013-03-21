@@ -318,8 +318,8 @@ function Turn(game) {
 		if ( this.button != null )
 			this.button.draw(context) ;
 		// Arrow
-		var rect = this.button.rect() ;
-		var x = this.x + rect.x + rect.w + 10 ;
+		//var rect = this.button.rect() ;
+		//var x = this.x + rect.x + rect.w + 10 ;
 		var x = 0 ;
 		var t = Math.ceil(turnsheight / 2) ;
 		canvas_set_alpha(zopacity, context) ;
