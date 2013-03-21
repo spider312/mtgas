@@ -43,21 +43,16 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 }
 ?>
 
-  <div id="left_col"><!-- ---------- LEFT COLUMN ---------- -->
-
-<?php include 'index_tournaments.php' ; ?>
-
-  </div><!-- id="left_col" --><!-- ---------- / LEFT COLUMN ---------- -->
-
-  <div id="right_col"><!-- ---------- RIGHT COLUMN ---------- -->
-
-
+  <div id="left_col">
 <?php
-include 'index_decks.php' ;
 include 'index_duels.php' ;
+include 'index_decks.php' ;
 ?>
+  </div><!-- id="left_col" -->
 
-  </div><!-- id="right_col" --><!-- ---------- / RIGHT COLUMN ---------- -->
+  <div id="right_col">
+<?php include 'index_tournaments.php' ; ?>
+  </div><!-- id="right_col" -->
 
   <div id="footer" class="section"><a href="https://github.com/spider312/mtgas">MTGAS developpement version</a>, hosted by <a href="mailto:mtg@spiderou.net">SpideR</a></div>
 <?php

@@ -25,7 +25,7 @@ td.nowrap {
 	margin-bottom: 2% ;
 }
 /* Each divided in sections */
-#stats, #profile, #games, #tournaments, #decks {
+#stats, #profile, #duels, #tournaments, #decks {
 	width: 100% ;
 	margin-top: 25px ;
 	padding-bottom: 10px ;
