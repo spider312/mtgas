@@ -124,9 +124,9 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 		json_deck = JSON.stringify(data.player.deck) ;
 		if ( json_deck != cache_pool ) {
 			cache_pool = json_deck ; // Caching deck parsing
-			display(drafted_cards, data.player.deck.main) ;
-			display(sided_cards, data.player.deck.side) ;
-			deck_stats_cc(data.player.deck.main) ;
+			display(drafted_cards, data.player.deck_obj.main) ;
+			display(sided_cards, data.player.deck_obj.side) ;
+			deck_stats_cc(data.player.deck_obj.main) ;
 		}
 		tournament_players_update(data) ;
 		tournament_log_update(data) ;

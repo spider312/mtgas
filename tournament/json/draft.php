@@ -15,14 +15,14 @@ if ( $result->tournament = mysql_fetch_object(query("SELECT *,
 	$result->players = query_as_array("SELECT `player_id`, `nick`, `avatar`, `status`, `order`, `ready`, `deck`
 		FROM `registration` WHERE `tournament_id` = '$id' ORDER BY `order` ; ") ;
 	foreach ( $result->players as $i => $player )
-		$player->deck = deck2arr($player->deck) ;
+		$player->deck_obj = deck2arr($player->deck) ;
 	// Log
 	$result->log = query_as_array("SELECT * FROM `tournament_log` WHERE `tournament_id` = '$id'") ;
 } else 
 	$result->msg = 'Tournament #'.$id.' not found' ;
 // Get user data (for order)
 if ( $result->player = mysql_fetch_object(query("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ;")) ) {
-	$result->player->deck = deck2arr($result->player->deck) ;
+	$result->player->deck_obj = deck2arr($result->player->deck) ;
 } else
 	$result->msg = 'Player '.$player_id.' not registered to tournament #'.$id ;
 // Get booster
