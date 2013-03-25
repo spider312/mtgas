@@ -494,10 +494,11 @@ function Selection() {
 			switch ( this.type ) {
 				case 'mulligan':
 					sound = 'draw' ;
+					var type = 'win'
 					if ( this.cards.length == 7 )
-						message(active_player.name+' draws its first hand', 'zone') ;
+						message(active_player.name+' draws its first hand', type) ;
 					else
-						message(active_player.name+' mulligans @ '+this.cards.length, 'zone') ;
+						message(active_player.name+' mulligans @ '+this.cards.length, type) ;
 					break ;
 				case 'dredge' :
 					sound = 'draw' ;
