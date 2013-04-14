@@ -9,6 +9,68 @@ include_once 'lib.php' ;
 $ext = param_or_die($_GET, 'ext') ;
 $apply = param($_GET, 'apply', false) ;
 
+$langs = array(
+	'en' => 'EN', 
+	'de' => 'DE',
+	'fr' => 'FR', 
+	'it' => 'IT', 
+	'es' => 'ES', 
+	'pt' => 'PT', 
+	'jp' => 'JP', 
+	'cn' => 'CN', 
+	'ru' => 'RU', 
+	'tw' => 'TW', 
+	'ko' => 'KO', 
+) ;
+
+function dl_image($folder, $lang) {
+	echo $lang.' : ' ;
+	global $ext, $nbpics, $matches, $match, $i, $apply, $image_name ;
+	$image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/'.$folder.'/'.$ext.'/' ;
+	if ( $apply && ! is_dir($image_dir) ) {
+		$oldumask = umask(0);
+		if ( mkdir($image_dir, 0750, true) ) 
+			echo 'Dir created : '.$image_dir.'<br>' ;
+		else {
+			echo 'Dir NOT created : '.$image_dir.'<br>' ;
+			umask($oldumask); 
+			return false ;
+		}
+		umask($oldumask); 
+	}
+	$image_name_l = $image_name ;
+	if ( ( $nbpics > 1 ) || ( ( $i < count($matches) - 1 ) && ( $match['name'] == $matches[$i+1]['name'] ) ) ) // Next card has same name as current
+		$image_name_l .= $nbpics ; // Append its number to its name
+	$image_name_l = card_img_by_name($image_name_l) ;
+	$image_path = $image_dir.$image_name_l ;
+	if ( is_file($image_path) )
+		echo "Existing" ;
+	else {
+		if ( $apply) {
+			$url = 'http://magiccards.info/scans/'.$lang.'/'.strtolower($ext).'/'.$match['id'].'.jpg' ;
+			$content = @file_get_contents($url) ;
+			if ( $content === FALSE )
+				echo 'Not DLable : '.$url ;
+			else {
+				$size = @file_put_contents($image_path, $content) ;
+				if ( $size === FALSE )
+					echo 'NOT updated' ;
+				else {
+					chmod($image_path, 0640) ;
+					echo 'updated ('.human_filesize($size).')' ;
+				}
+			}
+
+
+
+		} else
+			echo "Not present" ;
+	}
+	echo '<br>'."\n" ;
+	return true ;
+}
+
+
 html_head(
 	'Admin > Cards > MCI Parser',
 	array(
@@ -77,7 +139,6 @@ if ( $res = mysql_fetch_object($query) ) {
     <th>Image</th>
    </tr>
 <?php
-$thumb = false ; // If i download images, i want them to be thumbed at the end
 foreach ( $matches as $i => $match ) {
 	$log = '' ;
 	$name = str_replace('á', 'a', $match['name']) ;
@@ -140,7 +201,6 @@ foreach ( $matches as $i => $match ) {
 		$cost = '' ; // 'cost' is empty
 	}
 	$types = str_replace('—', '-', $types) ; 
-	//$types = mysql_real_escape_string($types) ;
 	// Cost
 	if ( preg_match('/(?<cost>.*) \((?<cc>\d*)\)/', $cost, $cost_matches) )
 		$cost = $cost_matches['cost'] ;
@@ -151,7 +211,7 @@ foreach ( $matches as $i => $match ) {
 		$text = $types_matches['pow'].'/'.$types_matches['tou']."\n".$text ;
 	}
 		// Planeswalker
-	if ( preg_match('/(?<types>.*) \(Loyalty: (?<loyalty>)\d\)/', $types, $types_matches) ) {
+	if ( preg_match('/(?<types>.*) \(Loyalty: (?<loyalty>\d)\)/', $types, $types_matches) ) {
 		$types = $types_matches['types'] ;
 		$text = $types_matches['loyalty']."\n".$text ;
 	}
@@ -188,9 +248,8 @@ foreach ( $matches as $i => $match ) {
 				$log = 'up to date' ;
 			else {
 				$log = 'Updates : <ul>'.$log.'</ul>' ;
-				if ( $apply) {
-					$q = query("UPDATE card SET ".implode(', ', $updates)." WHERE `id` = $card_id ;") ; //`rarity` = '$rarity', `nbpics` = '$nbpics' WHERE `card` = $card_id AND `ext` = $ext_id ;"
-				}
+				if ( $apply)
+					$q = query("UPDATE card SET ".implode(', ', $updates).", `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
 			}
 			echo $log.'</td>' ;
 			// Link with extension
@@ -232,52 +291,12 @@ foreach ( $matches as $i => $match ) {
 	}
 	// Image
 	echo "    <td>" ;
-	$image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/HIRES/'.$ext.'/' ;
-	if ( $apply && ! is_dir($image_dir) ) {
-		mkdir($image_dir) ;
-		chmod($image_dir, 0750) ;
-		echo 'Dir created : '.$image_dir.'<br>' ;
-	}
-	if ( ( $nbpics > 1 ) || ( ( $i < count($matches) - 1 ) && ( $match['name'] == $matches[$i+1]['name'] ) ) ) // Next card has same name as current
-		$image_name .= $nbpics ; // Append its number to its name
-	$image_name = card_img_by_name($image_name) ;
-	$image_path = $image_dir.$image_name ;
-	if ( is_file($image_path) )
-		echo "Existing" ;
-	else {
-		if ( $apply) {
-			$url = 'http://magiccards.info/scans/en/'.strtolower($ext).'/'.$match['id'].'.jpg' ;
-			$content = @file_get_contents($url) ;
-			if ( $content === FALSE )
-				echo 'Not DLable : '.$url ;
-			else {
-				$size = @file_put_contents($image_path, $content) ;
-				if ( $size === FALSE )
-					echo 'NOT updated' ;
-				else {
-					chmod($image_path, 0640) ;
-					echo 'updated ('.human_filesize($size).')' ;
-					$thumb = true ;
-				}
-			}
-
-
-
-		} else
-			echo "Not present" ;
-	}
-	echo "</td>" ;
+	foreach ( $langs as $lang => $folder )
+		dl_image($folder, $lang) ;
+	echo "    </td>" ;
 	echo "   </tr>\n" ;
 }
 ?>
   </table>
-<?php
-/*
-if ( $thumb )
-	echo `bash -c "~/bin/thumb $ext"` ;
-else
-	echo 'No thumbnailing required' ;
-*/
-?>
  </body>
 </html>
