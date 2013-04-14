@@ -330,19 +330,19 @@ function Spectactor(id, name) {
 				zone.default_visibility = true ;
 				for ( var i = 0 ; i < zone.cards.length ; i++ )
 					zone.cards[i].load_image() ;
-				message(player.get_name()+' allowed you') ;
+				message(player.get_name()+' allowed you', this.msgtype) ;
 			} else
-				message(player.get_name()+' allowed '+this.name) ;
+				message(player.get_name()+' allowed '+this.name, this.msgtype) ;
 		} else
-			message(player.get_name()+' already allowed '+this.name) ;
+			message(player.get_name()+' already allowed '+this.name, this.msgtype) ;
 	}
 	this.id = id ;
 	this.name = name ;
+	this.msgtype = 'join' ;
 	if ( ! game.spectactors[id] )
 		game.spectactors[id] = this ;
 	else {
-		//log(game.spectactors[id].name+' already has ID '+id) ;
-		message(game.spectactors[id].name+' has re-join as spectactor', 'join') ;
+		message(game.spectactors[id].name+' has re-join as spectactor', this.msgtype) ;
 		return game.spectactors[id] ;
 	}
 	msg = name+' has join as spectactor'
