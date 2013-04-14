@@ -14,6 +14,7 @@ html_head(
 ) ;
 $url = param($_GET, 'url', '/home/hosted/mogg/img/HIRES/') ;
 $repair = param($_GET, 'repair', '') ;
+$base = intval(param($_GET, 'base', '0')) ;
 function scan($dir) {
 	if ( is_dir($dir) ) {
 		$result = array() ;
@@ -25,8 +26,10 @@ function scan($dir) {
 	return $result ;
 }
 $exts = scan($url) ;
-unset($exts['TK']) ; // Don't compre Tokens
-unset($exts['back.jpg']) ;
+if ( isset($exts['TK']) )
+	unset($exts['TK']) ; // Don't compre Tokens
+if ( isset($exts['back.jpg']) )
+	unset($exts['back.jpg']) ;
 ?>
  <body>
 <?php
@@ -37,6 +40,10 @@ html_menu() ;
    <a href="../">Return to admin</a>
    <form>
     <input type="text" name="url" value="<?php echo $url ; ?>">
+    <label>
+     <input type="checkbox" name="base" value="1" <?php if ( $base ) echo ' checked' ; ?>>
+     Keep only base editions and extensions
+    </label>
    </form>
    <h2>Comparing DB and cards in <?php echo $url ; ?></h2>
    <table>
@@ -51,6 +58,10 @@ html_menu() ;
 <?
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
 while ( $arr = mysql_fetch_array($query) ) {
+	if ( $base && intval($arr['bloc']) < 0 ) {
+		unset($exts[$arr['se']]) ;
+		continue ;
+	}
 	$query_b = query('SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '.$arr['id'].' AND `card`.`id` = `card_ext`.`card` ORDER BY `card`.`name`') ;
 	$nbcards = 0 ;
 	$cards = array() ;
@@ -133,7 +144,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 		}
 		echo '      </ul>'."\n" ;
 	} else
-		if ( $nbimages == 0 )
+		if ( ( $nbcards != 0 ) && ( $nbimages == 0 ) )
 			echo '       <strong>All</strong>'."\n" ;
 		else
 			echo '       <i>None</i>'."\n" ;
@@ -143,9 +154,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		echo '      <td>'.human_filesize(round($foldersize/$nbimages)).'</td>'."\n" ;
 	echo '     </tr>'."\n" ;
-	//unset($exts->$arr['se']) ;
 	unset($exts[$arr['se']]) ;
-	//echo count($exts) ;
 }
 ?>
    </table>
