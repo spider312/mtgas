@@ -144,6 +144,7 @@ if ( $res = mysql_fetch_object($query) ) {
    </tr>
 <?php
 $images = array() ;
+$text = '' ;
 foreach ( $matches as $i => $match ) {
 	$log = '' ;
 	$name = str_replace('á', 'a', $match['name']) ;
@@ -229,7 +230,7 @@ foreach ( $matches as $i => $match ) {
 					$ci .= $c ;
 			}
 			$add = "\n-----\n$name\n%$ci $types\n$text" ;
-			echo '    <td colspan="3"><pre>'.$add.'</pre>' ;
+			echo '    <td colspan="3" title="'.$add.'">Update : text' ;
 			if ( $apply) {
 				$arr['text'] = $prevtext.$add ;
 				$q = query("UPDATE `card` SET
