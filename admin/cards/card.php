@@ -36,7 +36,7 @@ html_head(
 ) ;
 ?>
   <script type="text/javascript">
-function setimage(src) {
+function setimage(src, backsrc) {
 	var img = new Image() ;
 	img.addEventListener('load', function(ev) {
 		var ci = document.getElementById('cardimage') ;
@@ -45,6 +45,16 @@ function setimage(src) {
 		ci.style.backgroundImage = 'url("'+src+'")' ;
 	}, false) ;
 	img.src = src ;
+	if ( backsrc ) {
+		var img = new Image() ;
+		img.addEventListener('load', function(ev) {
+			var ci = document.getElementById('cardimageback') ;
+			ci.style.width = this.width+'px' ;
+			ci.style.height = this.height+'px' ;
+			ci.style.backgroundImage = 'url("'+backsrc+'")' ;
+		}, false) ;
+		img.src = backsrc ;
+	}
 }
 function start() {
 	ajax_error_management() ;
@@ -140,11 +150,15 @@ while ( $arr_ext = mysql_fetch_array($query) ) {
     <td>
      <ul>
 <?php
+$json = JSON_decode($card_bdd['attrs']) ;
 foreach ( $ext as $i => $value ) {
 	if ( $ext[$i]['nbpics'] == 0 )
 		echo '      <li>'.$ext[$i]['name'].' ('.$ext[$i]['rarity'].')</li>' ;
 	else if ( $ext[$i]['nbpics'] == 1 ) {
 		$imgurl = $cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($card_bdd['name'])) ;
+		if ( isset($json->transformed_attrs->name) ) {
+			$imgurl .= "', '".$cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($json->transformed_attrs->name)) ;
+		}
 		echo '      <li><a href="extension.php?ext='.$ext[$i]['se'].'" onmouseover="javascript:setimage(\''.$imgurl.'\')">'.$ext[$i]['name'].'</a> ('.$ext[$i]['rarity'].')'."\n" ;
 		echo '      </li>' ;
 		if ( ! isset($firstimgurl) )
@@ -177,6 +191,13 @@ foreach ( $ext as $i => $value ) {
      </form>
     </td>
     <td id="cardimage" rowspan="8" style="background-position: left top ; background-repeat: repeat-y">
+<?php
+if ( isset($json->transformed_attrs) ) {
+?>
+    <td id="cardimageback" rowspan="8" style="background-position: left top ; background-repeat: repeat-y">
+<?php
+}
+?>
     </td>
    </tr>
    <form id="update_card" action="json/card.php">
@@ -206,7 +227,7 @@ foreach ( $ext as $i => $value ) {
     </tr>
     <tr>
      <th>Stored</th>
-     <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><?php debug(JSON_decode($card_bdd['attrs'])) ; ?></td>
+     <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><?php debug($json) ; ?></td>
     </tr>
     <tr>
      <th>Compiled</th>
