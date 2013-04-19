@@ -6,7 +6,7 @@ include_once '../../includes/db.php' ;
 include_once 'lib.php' ;
 // Get all extensions
 $ext = array() ;
-$query = query('SELECT id, se FROM extension ORDER BY id ASC ;') ;
+$query = query('SELECT id, se FROM extension WHERE se != "ALL" ORDER BY id ASC ;') ;
 echo '<ul>' ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$ext[$arr['id']] = $arr['se'] ;
@@ -38,3 +38,4 @@ while ( $arr = mysql_fetch_array($query) ) {
 }
 echo '</ul>' ;
 ?>
+finished
