@@ -142,7 +142,15 @@ function Options(check_id) {
 		container.id = 'choicewin' ;
 		container.classList.add('section') ;
 		container.appendChild(create_h(1, title)) ;
-		var button = create_button(create_img(theme_image('deckbuilder/button_ok.png')[0]), 'Close', 'Close') ;
+		var btnimg = create_img(theme_image('deckbuilder/button_ok.png')[0]) ;
+		myoptions = this ;
+		btnimg.addEventListener('load', function (ev) {
+			myoptions.resize(container) ;
+		}, false) ;
+		var button = create_button(btnimg, 'Close', 'Close') ;
+		/*button.addEventListener('mouseover', function(ev) {
+			alert('pwet') ;
+		}, false) ;*/
 		button.id = 'options_close' ;
 		container.appendChild(button) ;
 		var result = create_div(container) ;
@@ -157,16 +165,20 @@ function Options(check_id) {
 		style.width = width+'px' ;
 		style.marginLeft = '-'+Math.ceil(width/2)+'px' ;
 		var height = 10 ; // Margin around H (not sure)
+		var txt = '' ;
 		for ( var i = 0 ; i < container.childNodes.length ; i++ ) {
 			var el = container.childNodes[i] ;
 			if ( el.id == 'buttons' )
 				continue ;
 			var bcr = el.getBoundingClientRect() ;
 			var cs = window.getComputedStyle(el)
-			height += bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
+			var add =bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
+			height += add ;
+			txt = txt + el + ' ('+add+') ' ;
 		}
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
+		//alert(txt) ;
 	}
 	this.hide = function(win) {
 		if ( !iso(win) )
@@ -184,12 +196,12 @@ function Options(check_id) {
 				fieldset.appendChild(group[j].render()) ;
 			container.appendChild(fieldset) ;
 		}
-		this.resize(container) ;
 		var buttons = create_div() ;
 		buttons.id = 'buttons' ;
 		buttons.appendChild(this.button_identity) ;
 		buttons.appendChild(this.button_profile) ;
 		container.appendChild(buttons) ;
+		this.resize(container) ;
 	}
 			// Identity
 	this.identity_show = function() {
@@ -207,7 +219,7 @@ function Options(check_id) {
 				nickfield.select() ;
 				return false ;
 			}
-		}) ;
+		}, this) ;
 		var fieldset = create_div() ;
 		// Nick
 		var nick = this.options['profile_nick'].render() ;
@@ -242,15 +254,15 @@ function Options(check_id) {
 				ev.target.src = last_working_avatar ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
-		//
 		container.appendChild(fieldset) ;
-		nick.select() ;
-		this.resize(container) ; // Done on image error/load
+		// Buttons
 		var buttons = create_div() ;
 		buttons.id = 'buttons' ;
 		buttons.appendChild(this.button_options) ;
 		buttons.appendChild(this.button_profile) ;
 		container.appendChild(buttons) ;
+		this.resize(container) ; // Done on image error/load
+		nick.select() ;
 	}
 	this.identity_apply = function() {
 		// Find hook
