@@ -13,16 +13,21 @@ if ( isset($argv) && ( count($argv) > 1 ) ) { // CLI
 	else
 		die($argv[0].' [extension code]') ;
 	if ( count($argv) > 2 )
-		$apply = $argv[2] ;
+		$ext_mci = $argv[2] ;
+	else
+		$ext_mci = $ext ;
+	if ( ( count($argv) > 3 ) && $argv[3] )
+		$apply = $argv[3] ;
 	else
 		$apply = false ;
 } else { // Web
 	$ext = param_or_die($_GET, 'ext') ;
+	$ext_mci = param($_GET, 'ext_mci', $ext) ;
 	$apply = param($_GET, 'apply', false) ;
 }
 // Funcs
 function image_downable($code) {
-	global $base_image_dir, $ext, $image_name, $nbpics, $match, $matches, $i, $apply ;
+	global $base_image_dir, $ext_mci, $image_name, $ext, $nbpics, $match, $matches, $i, $apply ;
 	echo $code.' : ' ;
 	$image_name_l = $image_name ; // Local copy
 	if ( ( $nbpics > 1 ) || ( ( $i < count($matches) - 1 ) && ( $match['name'] == $matches[$i+1]['name'] ) ) ) {// Next card has same name as current
@@ -36,7 +41,7 @@ function image_downable($code) {
 		return false ;
 	} else {
 		echo 'Absent' ;
-		$url = 'http://magiccards.info/scans/'.strtolower($code).'/'.strtolower($ext).'/'.$match['id'].'.jpg' ;
+		$url = 'http://magiccards.info/scans/'.strtolower($code).'/'.strtolower($ext_mci).'/'.$match['id'].'.jpg' ;
 		return array($url, $image_path) ;
 	}
 }
@@ -47,7 +52,7 @@ function image_download($arr) {
 	// Try to download image before anything else, don't create folder if image isn't downloadable (for cards not existing in this lang/ext)
 	$content = @file_get_contents($url) ;
 	if ( $content === FALSE ) {
-		echo 'Not DLable'."\n" ;
+		echo "Not DLable\n" ;
 		return false ;
 	}
 	// Verify/create folder
@@ -69,8 +74,9 @@ function image_download($arr) {
 		echo 'NOT updated' ;
 	else {
 		chmod($image_path, 0640) ;
-		echo 'Updated ('.human_filesize($size).')' ;
+		echo 'Downloaded ('.human_filesize($size).')' ;
 	}
+	echo "\n" ;
 	return true ;
 }
 
@@ -90,14 +96,17 @@ html_menu() ;
    <h1>Get extension info from MCI</h1>
    <a href="../">Return to admin</a>
 <?php
-if ( ! $apply )
-	echo '  <p>Changes will NOT be applied <a href="?ext='.$ext.'&apply=1">apply</a></p>'."\n" ;
+if ( $apply )
+	echo '  <p>Changes <strong>applied</strong></p>' ;
+else
+	echo '  <p>Changes will NOT be applied <a href="?ext='.$ext.'&ext_mci='.$ext_mci.'&apply=1">apply</a></p>'."\n" ;
 // Init
 $base_image_dir = substr(`bash -c "echo ~"`, 0, -1) ;
 // Get page content, and parse
 $ext = strtolower($ext) ;
+$ext_mci = strtolower($ext_mci) ;
 $cache_file = 'cache/'.$ext ;
-$url = 'http://magiccards.info/'.$ext.'/en.html' ;
+$url = 'http://magiccards.info/'.$ext_mci.'/en.html' ;
 if ( file_exists($cache_file) )
 	$html = file_get_contents($cache_file) ;
 else {
@@ -106,7 +115,7 @@ else {
 }
 $nb = preg_match_all('#  <tr class="(even|odd)">
     <td align="right">(?<id>\d*[ab]?)</td>
-    <td><a href="(?<url>/'.$ext.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
+    <td><a href="(?<url>/'.$ext_mci.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
     <td>(?<type>.*)</td>
     <td>(?<cost>.*)</td>
     <td>(?<rarity>.*)</td>
@@ -323,7 +332,7 @@ foreach ( $matches as $i => $match ) {
               width="16" height="11" class="flag2"> 
               <a href="(?<url>.{1,200})">(?<name>.{1,100})</a><br>#', $html, $matches_lang, PREG_SET_ORDER) ;
 	if ( $nb < 1 )
-		echo 'URL '.$url.' does not seem to be a valid MCI card list : '.count($matches) ;
+		echo 'does not seem to be a valid MCI lang list : '.count($matches_lang) ;
 	foreach ( $matches_lang as $j => $lang ) {
 		$code = $lang['code'] ;
 		$localname = $lang['name'] ;
@@ -371,8 +380,6 @@ foreach ( $matches as $i => $match ) {
 if ( $apply )
 	foreach ( $images as $image )
 		image_download($image) ;
-else
-	print_r($images) ;
 ?>
   </pre>
  </body>
