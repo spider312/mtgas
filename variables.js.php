@@ -7,9 +7,46 @@ session_id = '<?php echo $session_id ; ?>' ;
 url = '<?php echo $url ; ?>' ;
 theme = '<?php echo $theme ; ?>' ;
 cardimages = localStorage['cardimages'] ;
-cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 
 // Options
+	// Lang
+<?php
+/* Server-side way
+function get_client_language($availableLanguages, $default='en'){
+	if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+		$langs = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']) ;
+		foreach ( $langs as $value ) {
+			$choice = substr($value, 0, 2) ;
+			if( in_array($choice, $availableLanguages) )
+				return $choice ;
+		}
+	}
+	return $default ;
+}
+*/
+// C : fr,fr-FR;q=0.8,en-US;q=0.6,en;q=0.4
+// F : fr-fr,fr;q=0.8,en;q=0.5,en-us;q=0.3
+//echo 'alert("'.$_SERVER["HTTP_ACCEPT_LANGUAGE"].'") ;' ;
+?>
+var a_lang = window.navigator.language.split('-') ;
+lang = a_lang[0].toLowerCase() ;
+/*var variant = lang
+if ( a_lang.length == 2 ) // fr-FR
+	var variant = a_lang[1].toLowerCase() ;*/
+	// Langs
+langs = {} ;
+<?php
+foreach ( $langs as $code => $lang ) 
+	echo "langs['$code'] = '$lang' ; \n" ;
+?>
+	// Images default
+if ( ( lang != 'en' ) && ( langs[lang] ) ) // Browser's language exists in languages
+	cardimages_default = 'http://img.mogg.fr/'+lang.toUpperCase()+'/'
+else
+	cardimages_default = '<?php echo $cardimages_default ; ?>' ;
+
+
+	// Card images
 cardimages_choice = {} ;
 <?php
 foreach ( $cardimages_choice as $choice_name => $choice_url ) 

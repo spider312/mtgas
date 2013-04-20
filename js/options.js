@@ -131,6 +131,7 @@ function Options(check_id) {
 		// Rendering
 			// Lib
 	this.container = function(title, onsubmit) {
+		this.onsubmit = onsubmit ;
 		var myoptions = this ; // Local name
 		var container = create_form() ;
 		container.addEventListener('submit', function(ev) {
@@ -148,9 +149,6 @@ function Options(check_id) {
 			myoptions.resize(container) ;
 		}, false) ;
 		var button = create_button(btnimg, 'Close', 'Close') ;
-		/*button.addEventListener('mouseover', function(ev) {
-			alert('pwet') ;
-		}, false) ;*/
 		button.id = 'options_close' ;
 		container.appendChild(button) ;
 		var result = create_div(container) ;
@@ -165,7 +163,6 @@ function Options(check_id) {
 		style.width = width+'px' ;
 		style.marginLeft = '-'+Math.ceil(width/2)+'px' ;
 		var height = 10 ; // Margin around H (not sure)
-		var txt = '' ;
 		for ( var i = 0 ; i < container.childNodes.length ; i++ ) {
 			var el = container.childNodes[i] ;
 			if ( el.id == 'buttons' )
@@ -174,11 +171,9 @@ function Options(check_id) {
 			var cs = window.getComputedStyle(el)
 			var add =bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
 			height += add ;
-			txt = txt + el + ' ('+add+') ' ;
 		}
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
-		//alert(txt) ;
 	}
 	this.hide = function(win) {
 		if ( !iso(win) )
@@ -429,7 +424,11 @@ function Options(check_id) {
 	// Buttons
 	var myoptions = this ;
 	this.button_identity = create_button('Identity', function(ev) { myoptions.identity_show()  }, 'Manage your nickname and avatar') ;
-	this.button_options = create_button('Options', function(ev) { myoptions.show() ; }, 'Change various options')
+	this.button_options = create_button('Options', function(ev) {
+		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) ) // Trigger
+			return false ; // No hide if trigger returns false
+		myoptions.show() ;
+	}, 'Change various options')
 	this.button_profile = create_button('Profile', function(ev) { myoptions.profile_show() ; }, 'Manage local and server-side profiles')
 	// Data
 		// Identity
@@ -444,7 +443,6 @@ function Options(check_id) {
 	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
 		// Options
 			// Appearence
-	this.add('Appearence', 'cardimages', 'Card images', 'A theme of card images', 'Medium quality', cardimages_choice) ;
 //function save_restore_options() { // Previous options management had a way for user to define card images URL (not choosing in a list) :
 //	save_restore('cardimages', function(field) {$.cookie('cardimages', field.value) ; }) ; // Write value in cookies in order PHP to get it
 //	var cardimages = document.getElementById('cardimages') ;
@@ -455,10 +453,11 @@ function Options(check_id) {
 //		$.cookie('cardimages', ev.target.value) ;
 //	}, false) ;
 //}
-	this.add('Appearence', 'invert_bf', 'Invert opponent\'s cards', 'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing', false) ;
-	this.add('Appearence', 'display_card_names', 'Card names / mana costs', 'Display card names on top of picture for cards on battlefield, and their costs for cards in hand', true) ;
-	this.add('Appearence', 'transparency', 'Transparency', 'Activate transparency, nicer but slower', true) ;
-	this.add('Appearence', 'helpers', 'Helpers', 'Display right click\'s drag\'n\'drop helper', true) ;
+	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default, cardimages_choice) ;
+	this.add('Appearence', 'invert_bf',		'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing',		false) ;
+	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
+	this.add('Appearence', 'transparency',		'Transparency',			'Activate transparency, nicer but slower',								true) ;
+	this.add('Appearence', 'helpers',		'Helpers',			'Display right click\'s drag\'n\'drop helper',								true) ;
 			// Behaviour
 	var positions = {'top':'Top', 'middle':'Middle', 'bottom':'Bottom'} // Positions for placing
 	this.add('Behaviour', 'library_doubleclick_action', 'Library double-click action', 'Choose what happend when you doubleclick on library', 'look_top_n', {'look_top_n': 'Look top N cards', 'edit': 'Search in library', 'draw': 'Draw a card'}) ;
