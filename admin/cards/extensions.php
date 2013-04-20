@@ -45,7 +45,7 @@ if ( $ext != 0 ) {
     <tr>
      <th>Abv.</th>
      <th>Full name</th>
-     <th>Cards in DB</th>
+     <th>Cards / Images in DB</th>
      <th>Release date</th>
      <th title="For images, higher priority is selected">Priority</th>
      <th>Actions</th>
@@ -54,9 +54,14 @@ if ( $ext != 0 ) {
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.' '.$order) ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$nbcards = 0 ;
+	$nbimgs = 0 ;
 	$query_b = query('SELECT * FROM card_ext WHERE `ext` = '.$arr['id']) ;
-	while ( $card = mysql_fetch_object($query_b) )
-		$nbcards += intval($card->nbpics) ;
+	while ( $card = mysql_fetch_object($query_b) ) {
+		$nbcards++ ;
+		$nbimgs += intval($card->nbpics) ;
+	}
+	if ( $nbcards != $nbimgs )
+		$nbcards .= ' / '.$nbimgs ;
 	echo '    <tr>'."\n" ;
 	echo '     <td><a href="extension.php?ext='.$arr['se'].'">'.$arr['se'].'</a></td>'."\n" ;
 	echo '     <td>'.$arr['name'].'</td>'."\n" ;
