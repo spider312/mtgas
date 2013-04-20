@@ -159,6 +159,7 @@ foreach ( $matches as $i => $match ) {
 	$name = str_replace('á', 'a', $match['name']) ;
 	$name = str_replace('é', 'e', $name) ;
 	$name = str_replace('í', 'i', $name) ;
+	$name = str_replace('ö', 'o', $name) ;
 	$name = str_replace('ú', 'u', $name) ;
 	$name = str_replace('û', 'u', $name) ;
 	$name = str_replace('Æ', 'AE', $name) ;
