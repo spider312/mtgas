@@ -333,13 +333,13 @@ foreach ( $matches as $i => $match ) {
               width="16" height="11" class="flag2"> 
               <a href="(?<url>.{1,200})">(?<name>.{1,100})</a><br>#', $html, $matches_lang, PREG_SET_ORDER) ;
 	if ( $nb < 1 )
-		echo 'does not seem to be a valid MCI lang list : '.count($matches_lang) ;
+		echo 'does not seem to be a valid MCI lang list<br>' ;
+	if ( $dl = image_downable('en') ) // Force DL of EN, it's not referenced as a lang as current page is in english
+		array_push($images, $dl) ;
 	foreach ( $matches_lang as $j => $lang ) {
 		$code = $lang['code'] ;
 		$localname = $lang['name'] ;
 		// Images
-		if ( ( $j == 0 ) && ( $dl = image_downable('en') ) ) // Force DL of EN, it's not referenced as a lang as current page is in english
-			array_push($images, $dl) ;
 		echo "     <br>" ;
 		if ( $dl = image_downable($code) )
 			array_push($images, $dl) ;
