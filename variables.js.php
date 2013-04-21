@@ -1,3 +1,4 @@
+// This file is used to get data from PHP in Javascript
 <?php include 'lib.php' ; ?>
 
 // Internal
@@ -12,35 +13,50 @@ cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 // Options
 	// Lang
 <?php
-/* Server-side way
-function get_client_language($availableLanguages, $default='en'){
+function get_client_language(/*$availableLanguages, */$default='en'){
 	if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+		// C : fr,fr-FR;q=0.8,en-US;q=0.6,en;q=0.4
+		// F : fr-fr,fr;q=0.8,en;q=0.5,en-us;q=0.3
 		$langs = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']) ;
 		foreach ( $langs as $value ) {
 			$choice = substr($value, 0, 2) ;
-			if( in_array($choice, $availableLanguages) )
+			//if( in_array($choice, $availableLanguages) )
 				return $choice ;
 		}
 	}
 	return $default ;
 }
-*/
-// C : fr,fr-FR;q=0.8,en-US;q=0.6,en;q=0.4
-// F : fr-fr,fr;q=0.8,en;q=0.5,en-us;q=0.3
-//echo 'alert("'.$_SERVER["HTTP_ACCEPT_LANGUAGE"].'") ;' ;
-?>
+//$_COOKIE[$session_id]
+echo "lang = '".get_client_language()."'\n" ;
+
+/* Client side way
 var a_lang = window.navigator.language.split('-') ;
 lang = a_lang[0].toLowerCase() ;
-/*var variant = lang
+var variant = lang
 if ( a_lang.length == 2 ) // fr-FR
 	var variant = a_lang[1].toLowerCase() ;*/
-	// Langs
+?>
+
+// Application languages
+applangs = {} ;
+<?php
+foreach ( scandir($localedir) as $dir )
+	if ( ( $dir != '.' ) && ( $dir != '..' ) )
+		echo "applangs['$dir'] = '$dir' ; \n" ;
+?>
+if ( applangs[lang] )
+	applang = lang ;
+else
+	applang = 'en' ;
+
+// Images languages
 langs = {} ;
 <?php
 foreach ( $langs as $code => $lang ) 
 	echo "langs['$code'] = '$lang' ; \n" ;
 ?>
-	// Images default
+
+// Images default
 if ( ( lang != 'en' ) && ( langs[lang] ) ) // Browser's language exists in languages
 	cardimages_default_lang = 'http://img.mogg.fr/'+lang.toUpperCase()+'/'
 else

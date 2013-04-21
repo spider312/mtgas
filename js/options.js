@@ -42,20 +42,21 @@ function Option(name, desc, longdesc, def, choices) {
 	}
 		// Rendering
 	this.render = function() {
+		var myoption = this ; // for triggers
 		if ( this.choices == null ) {
 			if ( isb(this.def) ) {
 				this.input = create_checkbox(name, this.get(), name) ;
 				this.input.addEventListener('click', function (ev) {
 					ev.target.option.set(ev.target.checked) ;
 					if ( isf(ev.target.option.onChange) )
-						ev.target.option.onChange(ev) ;
+						ev.target.option.onChange(myoption) ;
 				}, false) ;
 			} else {
 				this.input = create_input(name, this.get(), name) ;
 				this.input.addEventListener('change', function (ev) {
 					ev.target.option.set(ev.target.value) ;
 					if ( isf(ev.target.option.onChange) )
-						ev.target.option.onChange(ev) ;
+						ev.target.option.onChange(myoption) ;
 				}, false) ;
 			}
 		} else {
@@ -70,7 +71,7 @@ function Option(name, desc, longdesc, def, choices) {
 			this.input.addEventListener('change', function (ev) {
 				ev.target.option.set(ev.target.value) ;
 				if ( isf(ev.target.option.onChange) )
-					ev.target.option.onChange(ev) ;
+					ev.target.option.onChange(myoption) ;
 			}, false) ;
 		}
 		this.input.id = this.name ;
@@ -109,6 +110,7 @@ function Options(check_id) {
 			this.groups[group] = {} ;
 		this.groups[group][name] = option ;
 		this.options[name] = option ;
+		return option ;
 	}
 	this.get = function(name) {
 		if ( this.options.hasOwnProperty(name) )
@@ -424,12 +426,16 @@ function Options(check_id) {
 	// Buttons
 	var myoptions = this ;
 	this.button_identity = create_button('Identity', function(ev) { myoptions.identity_show()  }, 'Manage your nickname and avatar') ;
-	this.button_options = create_button('Options', function(ev) {
-		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) ) // Trigger
+	this.button_options = create_button('Options', function(ev) { // Verify nickname before leaving 'identity' window
+		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) )
 			return false ; // No hide if trigger returns false
 		myoptions.show() ;
 	}, 'Change various options')
-	this.button_profile = create_button('Profile', function(ev) { myoptions.profile_show() ; }, 'Manage local and server-side profiles')
+	this.button_profile = create_button('Profile', function(ev) { // Verify nickname before leaving 'identity' window
+		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) )
+			return false ; // No hide if trigger returns false
+		myoptions.profile_show() ;
+	}, 'Manage local and server-side profiles')
 	// Data
 		// Identity
 	this.add('Identity', 'profile_nick', 'Nickname', 'Will appear near your life counter/avatar and in all messages displayed in chatbox', 'Nickname') ; 
@@ -453,6 +459,10 @@ function Options(check_id) {
 //		$.cookie('cardimages', ev.target.value) ;
 //	}, false) ;
 //}
+	this.add('Appearence', 'lang',			'Language',			'Language used for every message printed on this site, does not include card images',			applang, applangs) ;
+	this.add_trigger('lang', function(option) {
+		$.cookie(option.name, option.get()) ;
+	}) ;
 	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default_lang, cardimages_choice) ;
 	this.add('Appearence', 'invert_bf',		'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing',		false) ;
 	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
