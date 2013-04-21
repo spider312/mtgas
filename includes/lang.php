@@ -1,4 +1,5 @@
 <?php
+// test
 $locale = 'en_US.UTF8' ;
 if ( isset($_COOKIE['lang']) ) {
 	switch ($_COOKIE['lang']) {
