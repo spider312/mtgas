@@ -7,6 +7,7 @@ session_id = '<?php echo $session_id ; ?>' ;
 url = '<?php echo $url ; ?>' ;
 theme = '<?php echo $theme ; ?>' ;
 cardimages = localStorage['cardimages'] ;
+cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 
 // Options
 	// Lang
@@ -41,9 +42,9 @@ foreach ( $langs as $code => $lang )
 ?>
 	// Images default
 if ( ( lang != 'en' ) && ( langs[lang] ) ) // Browser's language exists in languages
-	cardimages_default = 'http://img.mogg.fr/'+lang.toUpperCase()+'/'
+	cardimages_default_lang = 'http://img.mogg.fr/'+lang.toUpperCase()+'/'
 else
-	cardimages_default = '<?php echo $cardimages_default ; ?>' ;
+	cardimages_default_lang = cardimages_default ;
 
 
 	// Card images

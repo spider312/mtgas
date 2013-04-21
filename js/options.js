@@ -453,7 +453,7 @@ function Options(check_id) {
 //		$.cookie('cardimages', ev.target.value) ;
 //	}, false) ;
 //}
-	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default, cardimages_choice) ;
+	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default_lang, cardimages_choice) ;
 	this.add('Appearence', 'invert_bf',		'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing',		false) ;
 	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
 	this.add('Appearence', 'transparency',		'Transparency',			'Activate transparency, nicer but slower',								true) ;
