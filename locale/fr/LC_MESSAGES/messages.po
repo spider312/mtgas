@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-21 11:27+0100\n"
-"PO-Revision-Date: 2013-04-21 11:27+0100\n"
+"PO-Revision-Date: 2013-04-21 23:42+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: ../../.././lib.php:5
 msgid "menu.chat"
-msgstr "Discuter"
+msgstr "Pouet"
 
 #: ../../.././lib.php:5
 msgid "menu.chat.title"
