@@ -1,8 +1,4 @@
 <?php
-//$str = file_get_contents('http://img.mogg.fr/MIDRES/cardlist.php') ;
-//$str = file_get_contents('cardlist.json') ;
-//$exts = json_decode($str) ;
-// $exts->TK
 $base = '/home/hosted/mogg/img/HIRES/TK/' ;
 function scan($dir) {
 	if ( is_dir($dir) ) {
