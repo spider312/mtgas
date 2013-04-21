@@ -817,6 +817,7 @@ function battlefield(player) {
 			menu.addline('Battlefield',	card_list_edit, mybf) ;
 			menu.addline() ;
 			menu.addline('Re arrange',	mybf.rearange, mybf) ;
+			/*
 			var submenutk = new menu_init(mybf) ;
 			for ( var ext in game.tokens_catalog ) {
 				var submenuext = new menu_init(mybf) ;
@@ -843,7 +844,7 @@ function battlefield(player) {
 				submenutk.addline(ext, submenuext) ;
 			}
 			menu.addline('Tokens', submenutk) ;
-			menu.addline() ;
+			menu.addline() ;*/
 			var submenu = new menu_init(mybf) ;
 			submenu.addline('20 sided',     rolldice, 20) ; // Can't add player as "message_send" mechanism is used
 			submenu.addline('6 sided',     rolldice, 6) ;
