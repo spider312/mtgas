@@ -144,7 +144,7 @@ if ( $res = mysql_fetch_object($query) ) {
 ?>
   <table>
    <tr>
-    <th>#</th>
+    <th colspan="2">#</th>
     <th>Name</th>
     <th>Rarity</th>
     <th>Card</th>
@@ -174,6 +174,12 @@ foreach ( $matches as $i => $match ) {
 	}
 	$nb = preg_match('#<p>(?<typescost>.*)</p>
         <p class="ctext"><b>(?<text>.*)</b></p>.*http\://gatherer.wizards.com/Pages/Card/Details.aspx\?multiverseid=(?<multiverseid>\d*)#s', substr($html, 0, 10240), $card_matches) ;
+	// Base checks
+	if ( $nb < 1 ) {
+		echo '<td colspan="4">Unparsable : <textarea>'.$html.'</textarea></td></tr>' ;
+		continue ;
+	}
+	$multiverseid = intval($card_matches['multiverseid']) ;
 	// Double cards : recompute name, mark as being second part (in which case card will be added, not replaced)
 	$second = false ;
 	$image_name = $name ;
@@ -186,19 +192,9 @@ foreach ( $matches as $i => $match ) {
 		$name = $name_matches[2] . ' / ' . $name_matches[3] ;
 		$image_name = $name_matches[2].$name_matches[3] ;
 	}
-	// Base checks
-	if ( $nb < 1 ) {
-		echo '<td colspan="4">Unparsable : <textarea>'.$html.'</textarea></td></tr>' ;
-		continue ;
-	}
-	/*
-	if ( ( ! $second ) && ( intval($card_matches['multiverseid']) < 1 ) ) { // On MCI, second part of a card has no multiverseID
-		echo '<td>No multiverseID</td></tr>' ;
-		continue ;
-	}
-	*/
 	// Text
-	$prevtext = $text ; // For DFC
+	$dlimage = true ;
+	$prevtext = $text ; // For Duals
 	$text = str_replace('<br><br>', "\n", $card_matches['text']) ; // Un-HTML-ise text
 	$text = trim($text) ;
 	// Types / cost
@@ -229,39 +225,34 @@ foreach ( $matches as $i => $match ) {
 		$text = $types_matches['loyalty']."\n".$text ;
 	}
 	echo "   <tr>\n" ;
+	echo "    <td>".$card_matches['multiverseid']."</td>" ;
 	echo "    <td>".($i+1)."</td>\n" ;
 	echo "    <td>$name</td>\n" ;
 	$facedown = ( intval($match['id']).'b' == $match['id'] ) ;
-	if ( $facedown ) {
-		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) {
-			$ci = '' ;
-			foreach ( explode(' ', $colors_matches['color']) as $color ) {
+	if ( $facedown || $second ) { // Second part of dual cards (all cards having multiple lines on mci)
+		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) { // Double Face card
+			$ci = '%' ;
+			foreach ( explode(' ', $colors_matches['color']) as $color )
 				if ( ( $c = array_search(strtolower($color), $colors) ) !== false )
 					$ci .= $c ;
-			}
-			$add = "\n-----\n$name\n%$ci $types\n$text" ;
-			echo '    <td colspan="3" title="'.$add.'">Update : text' ;
-			if ( $apply) {
-				$arr['text'] = $prevtext.$add ;
-				$q = query("UPDATE `card` SET
-				`text` = '".mysql_real_escape_string($arr['text'])."'
-				, `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."'
-				WHERE `id` = $card_id ;") ;
-			}
-			echo '</td>' ;
-		} else
-			echo '    <td colspan="3">Unmanaged double face card\'s face down (missing color indicator)</td>' ;
-	} else if ( $second ) {
-		$add = "\n----\n$cost\n$types\n$text" ;
-		echo "    <td>Second part : $add</td>" ;
-		if ( $apply) {
-			$arr['text'] = $prevtext.$add ;
+			$add = "\n-----\n$name\n$ci $types\n$text" ;
+		} else { 
+			$dlimage = false ; // Dual has only one image, Flipped is the same image
+			if ( $second ) // Dual card
+				$add = "\n----\n$cost\n$types\n$text" ;
+			else // Flip card
+				$add = "\n----\n$types\n$text" ;
+			echo $cost ;
+		}
+		$arr['text'] = $prevtext.$add ;
+		echo '    <td colspan="3" title="'.$arr['text'].'">Update : text' ;
+		if ( $apply)
 			$q = query("UPDATE `card` SET
 			`text` = '".mysql_real_escape_string($arr['text'])."'
 			, `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."'
 			WHERE `id` = $card_id ;") ;
-		}
-	} else {
+		echo '</td>' ;
+	} else { // "normal" cards (1 line on mci) or first part of dual card
 		$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
 		echo "    <td>$rarity</td>\n" ;
 		$nbpics = 1 ; // Anticipating number for first card havin same name as next one
@@ -296,7 +287,7 @@ foreach ( $matches as $i => $match ) {
 				echo "<td>Already in extension</td>\n" ;
 				if ( $apply) {
 					$nbpics = $res->nbpics + 1  ;
-					query("UPDATE card_ext SET `rarity` = '$rarity', `nbpics` = '$nbpics' WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
+					query("UPDATE card_ext SET `rarity` = '$rarity', `nbpics` = '$nbpics', `multiverseid` = '$multiverseid' WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
 					if ( mysql_affected_rows() > 0 ) {
 						$log .= 'Updated ('.mysql_affected_rows().') for '.$ext.' (' ;
 						if ( $res->rarity != $rarity )
@@ -310,7 +301,7 @@ foreach ( $matches as $i => $match ) {
 			} else {
 				echo "<td>Not in extension</td>\n" ;
 				if ( $apply)
-					query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`) VALUES ('$card_id', '$ext_id', '$rarity', '1') ;") ;
+					query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
 			}
 		} else {
 			echo "    <td>Not existing</td>\n" ;
@@ -321,7 +312,7 @@ foreach ( $matches as $i => $match ) {
 				VALUES ('".mysql_real_escape_string($name)."', '$cost', '$types', '".mysql_real_escape_string($text)."', '".mysql_escape_string(json_encode(new attrs($arr)))."');") ;
 				$card_id = mysql_insert_id($mysql_connection) ;
 				// Link to extension
-				query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`) VALUES ('$card_id', '$ext_id', '$rarity', '1') ;") ;
+				query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
 				$log .= 'Created and linked to '.$ext.' ('.$card_id.')' ;
 			} else
 				$log .= '<b>Insert</b> : <ul><li>'.$name.'</li><li>'.$typescost.'</li><li>'.$types.'</li><li>'.$cost.'</li><li><pre>'.$text.'</pre></li></ul><b>Link</b> : <ul><li>'.$ext_id.'</li><li>'.$rarity.'</li>' ;
@@ -329,45 +320,47 @@ foreach ( $matches as $i => $match ) {
 	}
 	// Image
 	echo "    <td>" ;
-	$nb = preg_match_all('#<img src="http://magiccards.info/images/(?<code>.{2}).gif" alt="(?<lang>.{1,100})" 
-              width="16" height="11" class="flag2"> 
-              <a href="(?<url>.{1,200})">(?<name>.{1,100})</a><br>#', $html, $matches_lang, PREG_SET_ORDER) ;
-	if ( $nb < 1 )
-		echo 'does not seem to be a valid MCI lang list<br>' ;
-	if ( $dl = image_downable('en') ) // Force DL of EN, it's not referenced as a lang as current page is in english
-		array_push($images, $dl) ;
-	foreach ( $matches_lang as $j => $lang ) {
-		$code = $lang['code'] ;
-		$localname = $lang['name'] ;
-		// Images
-		echo "     <br>" ;
-		if ( $dl = image_downable($code) )
+	if ( ! $dlimage )
+		echo 'Useless for flip cards' ;
+	else {
+		$nb = preg_match_all('#<img src="http://magiccards.info/images/(?<code>.{2}).gif" alt="(?<lang>.{1,100})" \n\s*width="16" height="11" class="flag2"> \n\s*<a href="(?<url>.{1,200})">(?<name>.{1,100})</a><br>#', $html, $matches_lang, PREG_SET_ORDER) ;
+		if ( $nb < 1 )
+			echo 'does not seem to be a valid MCI lang list<br>' ;
+		if ( $dl = image_downable('en') ) // Force DL of EN, it's not referenced as a lang as current page is in english
 			array_push($images, $dl) ;
-		// Lang
-		echo ", $localname : " ;
-		if ( $facedown ) {
-			echo 'face down not managed' ;
-			continue ;
-		}
-		if ( array_search($code, array('de', 'fr', 'it', 'es', 'pt')) === false ) { // Expected charset
-			echo 'not a managed language' ;
-			continue ;
-		}
-		$query = query("SELECT * FROM `cardname` WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
-		if ( $res = mysql_fetch_object($query) ) {
-			if ( $res->card_name == $localname )
-				echo "already right" ;
-			else
-				echo "<span class=\"no\">should be updated as $localname</span>" ;
-		} else {
-			if ( $apply ) {
-				$query = query("INSERT INTO `mtg`.`cardname` (`card_id`, `lang` ,`card_name`) VALUES ('$card_id', '$code', '".mysql_real_escape_string($localname)."');") ;
-				if ( $query )
-					echo 'inserted' ;
+		foreach ( $matches_lang as $j => $lang ) {
+			$code = $lang['code'] ;
+			$localname = $lang['name'] ;
+			// Images
+			echo "     <br>" ;
+			if ( $dl = image_downable($code) )
+				array_push($images, $dl) ;
+			// Lang
+			echo ", $localname : " ;
+			if ( $facedown ) {
+				echo 'face down not managed' ;
+				continue ;
+			}
+			if ( array_search($code, array('de', 'fr', 'it', 'es', 'pt')) === false ) { // Expected charset
+				echo 'not a managed language' ;
+				continue ;
+			}
+			$query = query("SELECT * FROM `cardname` WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
+			if ( $res = mysql_fetch_object($query) ) {
+				if ( $res->card_name == $localname )
+					echo "already right" ;
 				else
-					echo 'not inserted' ;
+					echo "<span class=\"no\">should be updated as $localname</span>" ;
 			} else {
-				echo 'will be inserted' ;
+				if ( $apply ) {
+					$query = query("INSERT INTO `mtg`.`cardname` (`card_id`, `lang` ,`card_name`) VALUES ('$card_id', '$code', '".mysql_real_escape_string($localname)."');") ;
+					if ( $query )
+						echo 'inserted' ;
+					else
+						echo 'not inserted' ;
+				} else {
+					echo 'will be inserted' ;
+				}
 			}
 		}
 	}

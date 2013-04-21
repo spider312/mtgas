@@ -43,6 +43,7 @@ function update_list() {
 			row.title = card.text ;
 			create_td(row, create_a(card.name, 'card.php?id='+card.id)) ;
 			create_td(row, card.cost) ;
+			create_td(row, card.multiverseid) ;
 			create_td(row, create_button('Remove', remove_from_ext)) ;
 			var form = create_form('/admin/cards/json/ext_update_card.php') ;
 			var j = create_input('nbpics', card.nbpics) ;

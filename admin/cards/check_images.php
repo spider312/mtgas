@@ -113,9 +113,14 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		$class = 'no' ;
 	echo '     <tr class="'.$class.'">'."\n" ;
-	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'">'.$arr['se'].'</a></td>'."\n" ;
-	echo '      <td>'.$nbcards.'</td>'."\n" ;
-	echo '      <td>'.$nbimages.'</td>'."\n" ;
+	if ( $arr['sea'] != '' )
+		$mcicode = $arr['sea'] ;
+	else
+		$mcicode = $arr['se'] ;
+	$mcicode = strtolower($mcicode) ;
+	echo '      <td><a href="http://magiccards.info/'.$mcicode.'/en.html">'.$arr['se'].'</a></td>'."\n" ;
+	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'">'.$nbcards.'</a></td>'."\n" ;
+	echo '      <td><a href="http://img.mogg.fr/MIDRES/'.$arr['se'].'">'.$nbimages.'</a></td>'."\n" ;
 	echo '      <td>'."\n" ;
 	if ( count($unimagedcards) > 0 ) {
 		echo '       <ul><a title="See folder" href="'.$url.'/'.$arr['se'].'">'."\n" ;

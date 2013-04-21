@@ -57,6 +57,7 @@ if ( $arr = mysql_fetch_array($query) ) {
     <tr>
      <th>Card <input id="cardnb" type="text" disabled size="3"></th>
      <th>Cost</th>
+     <th>Multiverseid</th>
      <th colspan="2">Actions</th><? // Colspan in order to get "remove" button and "set" form on same line, as form is block ?>
     </tr>
    </tbody>
