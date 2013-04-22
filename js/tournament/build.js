@@ -532,6 +532,8 @@ function disp_side(originaldeck, table) {
 				}
 				// Filter by rarity
 				var r = card.rarity ; // modify this rarity will change border color
+				if ( r == 'L' ) // Lands don't appear in deck as their rarity isn't managed
+					r = 'C' ; // Consider them as commons
 				if ( r == 'M' ) // Consider mythics as rares for selector
 					r = 'R' ;
 				if ( ( r != 'S' ) && ( ! active_rarity[r] ) ) {
