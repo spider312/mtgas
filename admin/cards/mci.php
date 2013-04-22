@@ -5,6 +5,7 @@ include_once '../../lib.php' ;
 include_once '../../includes/db.php' ;
 include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
+include_once 'import.php' ;
 
 // Args
 if ( isset($argv) && ( count($argv) > 1 ) ) { // CLI
@@ -165,6 +166,8 @@ foreach ( $matches as $i => $match ) {
 	$name = str_replace('Æ', 'AE', $name) ;
 	$rarity = substr($match['rarity'], 0, 1) ;
 	// Parse card itself
+	$html = cache_get(dirname($url).'/..'.$match['url'], 'cache/'.str_replace('/', '_', $match['url'])) ;
+	/*
 	$cache_file = 'cache/'.str_replace('/', '_', $match['url']) ;
 	if ( file_exists($cache_file) )
 		$html = file_get_contents($cache_file) ;
@@ -172,6 +175,7 @@ foreach ( $matches as $i => $match ) {
 		$html = file_get_contents(dirname($url).'/..'.$match['url']) ;
 		file_put_contents($cache_file, $html) ;
 	}
+	*/
 	$nb = preg_match('#<p>(?<typescost>.*)</p>
         <p class="ctext"><b>(?<text>.*)</b></p>.*http\://gatherer.wizards.com/Pages/Card/Details.aspx\?multiverseid=(?<multiverseid>\d*)#s', substr($html, 0, 10240), $card_matches) ;
 	// Base checks
