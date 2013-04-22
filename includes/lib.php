@@ -199,7 +199,7 @@ function html_menu($additionnal_entries=null) {
 			$separator = ' - ' ;
 		echo '    <a title="'.$entry->title.'" target="_blank" href="'.$entry->url.'">'.$entry->name.'</a>'.$separator."\n" ;
 	}
-	echo '    <a id="identity_shower" title="Change nickname and avatar">Nickname</a>'."\n" ;
+	echo '    <a id="identity_shower" title="'.__('menu.identity_shower.title').'">Nickname</a>'."\n" ;
 	echo '   </div>'."\n\n" ;
 }
 function html_options() { // Displays options window

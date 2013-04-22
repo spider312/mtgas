@@ -35,10 +35,7 @@ include 'includes/Browser.php' ;
 $browser = new Browser();
 if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVersion() < 5 ) ) {
 ?>
-  <div id="browser" class="section">
-   <p>In order to enjoy every functionnalities of this game, i <strong>really</strong> encourage you to play it under <a href="http://www.mozilla.com/">Firefox 5.0+</a> (and you are <strong>not</strong>)</p>
-   <p>If you want to know why : <a href="doc/browsers.php">browser functionnalities needed by this game</a></p>
-  </div>
+   <p id="browser" class="section">In order to enjoy every functionnalities of this game, i <strong>really</strong> encourage you to play it under <a href="http://www.mozilla.com/">Firefox 5.0+</a> and you are <strong>not</strong> (<a href="doc/browsers.php">Why ?</a>)</p>
 <?php
 }
 ?>
