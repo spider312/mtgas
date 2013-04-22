@@ -52,18 +52,62 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 	foreach ( $matches as $match )
 		$cost .= $match['mana'] ;
 	// Search card name
-	$regex[] = '<div class=S16>(?<name>.{1,100})</div>' ;
-	$regex[] = '<div class=G12 style="padding-top:4px;padding-bottom:.px;">(?<type>.{1,100})</div>' ;
-	$nb = preg_match_all('#'.implode('\s*', $regex).'#', $html, $matches, PREG_SET_ORDER) ;
-	$nb2 = preg_match_all('#<div id=EngShort style="display:block;" class=S12 align=justify>(?<text>.{1,3000})</div>#', $html, $matches_text, PREG_SET_ORDER) ;
-	$nb3 = preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?>#', $html, $matches_rarity, PREG_SET_ORDER) ;
-	$nb4 = preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>\d*/\d*)</div>#', $html, $matches_pt, PREG_SET_ORDER) ;
+	$html = str_replace("\n", '', $html) ;
+	$nb = preg_match_all('#<div class=S16>(?<name>.{1,100})</div>\s*<div class=G12 style="padding-top:4px;padding-bottom:.px;">(?<type>.{1,100})</div>#', $html, $matches, PREG_SET_ORDER) ; // Name and type
+        $nb2 = preg_match_all('#<div id=EngShort.*?'.'>(?<text>.*?)</div>#',$html, $matches_text, PREG_SET_ORDER) ; // Text
+        $nb3 = preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?'.'>#', $html, $matches_rarity, PREG_SET_ORDER) ; // Rarity
+	$nb4 = preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>\d*/\d*)</div>#', $html, $matches_pt, PREG_SET_ORDER) ; // P/T
+	//echo "[$nb $nb2 $nb3 $nb4]" ;
+	// Name, type and text
 	if ( $nb4 > 0 )
 		$text = $matches_pt[0]['pt']."\n" ;
 	else
 		$text = '' ;
+	if ( $nb2 > 0 ) 
+		$text .= strip_tags($matches_text[0]['text']) ;
+	switch ($nb) {
+		case 1 :
+			$match = $matches[0] ;
+			$name = card_name_sanitize($match['name']) ;
+			$basedestfilename = $name ;
+			$type = $match['type'] ;
+			break ;
+		case 2 :
+			$match = $matches[1] ;
+			$name = card_name_sanitize($match['name']) ;
+			$basedestfilename = $name ;
+			$type = $match['type'] ;
+			break ;
+		case 4 : // Dual card
+			// First part
+			$match = $matches[1] ;
+			$name = card_name_sanitize($match['name']) ;
+			$type = $match['type'] ;
+			// Second part
+			$match = $matches[3] ;
+			$basedestfilename = $name . card_name_sanitize($match['name']) ;
+			$name .= ' / '.card_name_sanitize($match['name']) ;
+			if ( preg_match('/(?<first>.{1,5})(?<second>\d.*)/', $cost, $matches_cost) ) { // Cut cost by integer
+				$cost = $matches_cost['first'] ;
+				$altcost = $matches_cost['second'] ;
+			} else { // Cut cost equaly (works with every card in DGM)
+				$cut = round(strlen($cost)/2) ;
+				$cost = substr($cost, $cut) ;
+				$altcost =  substr($cost, 0, $cut+1) ;
+			}
+			$text .= "\n----\n$altcost\n$type\n" ;
+			if ( $nb2 > 1 )
+				$text .= strip_tags($matches_text[1]['text']) ;
+			break ;
+		default :
+			echo "not a card ($nb)\n" ;
+			return false ;
+	}
+	// Rarity
 	$rarity = '' ;
-	if ( $nb3 > 0 ) {
+	if ( strpos($name, 'Guildgate') != false )
+		$rarity = 'L' ;
+	elseif ( $nb3 > 0 ) {
 		switch ( intval($matches_rarity[0][1]) ) {
 			case 4 :
 				$rarity = 'M' ;
@@ -82,45 +126,6 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 		}
 	} else
 		echo '!!' ;
-	//echo "\n$rarity\n" ;
-	if ( $nb2 > 0 ) 
-		$text .= strip_tags($matches_text[0]['text']) ;
-	switch ($nb ) {
-		case 1 :
-			$match = $matches[0] ;
-			$name = trim($match['name']) ;
-			$basedestfilename = $name ;
-			$type = $match['type'] ;
-			break ;
-		case 2 :
-			$match = $matches[1] ;
-			$name = trim($match['name']) ;
-			$basedestfilename = $name ;
-			$type = $match['type'] ;
-			break ;
-		case 4 :
-			$match = $matches[1] ;
-			$name = trim($match['name']) ;
-			$type = $match['type'] ;
-			$match = $matches[3] ;
-			$basedestfilename = $name . trim($match['name']) ;
-			$name .= ' / '.trim($match['name']) ;
-			if ( preg_match('/(?<first>.{1,5})(?<second>\d.*)/', $cost, $matches_cost) ) {
-				$cost = $matches_cost['first'] ;
-				$altcost = $matches_cost['second'] ;
-			} else {
-				$cut = round(strlen($cost)/2) ;
-				$cost = substr($cost, $cut) ;
-				$altcost =  substr($cost, 0, $cut+1) ;
-			}
-			$text .= "\n----\n$altcost\n" ;
-			if ( $nb2 > 1 )
-				$text .= strip_tags($matches_text[1]['text']) ;
-			break ;
-		default :
-			echo "not a card ($nb)\n" ;
-			return false ;
-	}
 	// DB
 	if ( $apply ) {
 		$card_id = card_import($name, $cost, $type, $text) ;

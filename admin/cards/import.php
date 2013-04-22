@@ -19,8 +19,7 @@ function cache_get($url, $cache_file) {
 }
 function card_import($name, $cost, $types, $text) {
 	global $mysql_connection ;
-	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
-	if ( $arr = mysql_fetch_array($qs) ) {
+	if ( $arr = card_get($name) ) {
 		$card_id = $arr['id'] ;
 		$updates = array() ;
 		if ( $arr['cost'] != $cost )
@@ -29,6 +28,12 @@ function card_import($name, $cost, $types, $text) {
 			$updates[] = "`types` = '".mysql_real_escape_string($types)."'" ;
 		if ( trim($arr['text']) != $text )
 			$updates[] = "`text` = '".mysql_real_escape_string($text)."'" ;
+		$arr = array(
+			'name' => $name,
+			'cost' => $cost,
+			'types' => $types,
+			'text' => $text,
+		) ;
 		if ( count($updates) > 0 )
 			$q = query("UPDATE `card` SET ".implode(', ', $updates).", `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
 		else
@@ -46,5 +51,16 @@ function card_import($name, $cost, $types, $text) {
 		$card_id = mysql_insert_id($mysql_connection) ;
 	}
 	return $card_id ;
+}
+function card_get($name) {
+	global $mysql_connection ;
+	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
+	return mysql_fetch_array($qs) ;
+}
+function card_name_sanitize($name) {
+	$name = str_replace(chr(146), "'", $name) ;
+	$name = str_replace('&AElig;', "AE", $name) ;
+	$name = trim($name) ;
+	return $name ;
 }
 ?>
