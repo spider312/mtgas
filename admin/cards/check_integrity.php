@@ -7,14 +7,14 @@ include_once 'lib.php' ;
 // Get all extensions
 $ext = array() ;
 $query = query('SELECT id, se FROM extension WHERE se != "ALL" ORDER BY id ASC ;') ;
-echo '<ul>' ;
+echo '<ul>'."\n" ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$ext[$arr['id']] = $arr['se'] ;
 	$query_b = query('SELECT * FROM card_ext WHERE ext = '.$arr['id'].' ; ') ;
 	if ( mysql_num_rows($query_b) < 1 )
 		echo '<li>Ext '.$arr['se'].' ('.$arr['id'].') has no card</li>' ;
 }
-echo '</ul>' ;
+echo '</ul>'."\n" ;
 
 // Get all cards
 $card = array() ;
@@ -23,19 +23,19 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$card[$arr['id']] = $arr['name'] ;
 	$query_b = query('SELECT * FROM card_ext WHERE card = '.$arr['id'].' ; ') ;
 	if ( mysql_num_rows($query_b) < 1 )
-		echo '<li>Card '.$arr['name'].' ('.$arr['id'].') is in no extension</li>' ;
+		echo '<li>Card '.$arr['name'].' ('.$arr['id'].') is in no extension</li>'."\n" ;
 }
 
 // Check links
 $card_ext = array() ;
-echo '<ul>' ;
+echo '<ul>'."\n" ;
 $query = query('SELECT card, ext FROM card_ext ;') ;
 while ( $arr = mysql_fetch_array($query) ) {
 	if ( ! array_key_exists($arr['ext'], $ext) )
-		echo '<li>Ext '.$arr['ext'].' does not exist</li>' ;
+		echo '<li>Ext '.$arr['ext'].' does not exist</li>'."\n" ;
 	if ( ! array_key_exists($arr['card'], $card) )
 		echo '<li>Card '.$arr['card'].' does not exist</li>' ;
 }
-echo '</ul>' ;
+echo '</ul>'."\n" ;
 ?>
 finished
