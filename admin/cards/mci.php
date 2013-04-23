@@ -235,6 +235,7 @@ foreach ( $matches as $i => $match ) {
 	$facedown = ( intval($match['id']).'b' == $match['id'] ) ;
 	if ( $facedown || $second ) { // Second part of dual cards (all cards having multiple lines on mci)
 		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) { // Double Face card
+			// Don't work for chalice of life/death, as it has no color indicator
 			$ci = '%' ;
 			foreach ( explode(' ', $colors_matches['color']) as $color )
 				if ( ( $c = array_search(strtolower($color), $colors) ) !== false )

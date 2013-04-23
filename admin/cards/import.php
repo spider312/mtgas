@@ -1,20 +1,26 @@
 <?php
-function cache_get($url, $cache_file) {
+function cache_get($url, $cache_file, $verbose = true) {
 	if ( file_exists($cache_file) ) {
-		echo '[use cache]' ;
+		if ( $verbose )
+			echo '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
 	} else {
-		echo '[update cache : ' ;
+		if ( $verbose )
+			echo '[update cache : ' ;
 		if ( ( $content = @file_get_contents($url) ) !== FALSE ) {
-			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
-				echo 'NOT updated' ;
-			else
-				echo 'updated ('.human_filesize($size).')' ;
+			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE ) {
+				if ( $verbose )
+					echo 'NOT updated' ;
+			} else {
+				if ( $verbose )
+					echo 'updated ('.human_filesize($size).')' ;
+			}
 		}
-		echo ']' ;
+		if ( $verbose )
+			echo ']' ;
 	}
 	if ( $content === false )
-		echo '[no content]' ;
+		die('[no content : '.$url.' -> '.$cache_file.']') ;
 	return $content ;
 }
 function card_import($name, $cost, $types, $text) {
@@ -58,9 +64,24 @@ function card_get($name) {
 	return mysql_fetch_array($qs) ;
 }
 function card_name_sanitize($name) {
-	$name = str_replace(chr(146), "'", $name) ;
-	$name = str_replace('&AElig;', "AE", $name) ;
+	// Base
 	$name = trim($name) ;
+	$name = html_entity_decode($name) ;
+	// Non working global tryouts
+	//$name = iconv('UTF-8', 'US-ASCII//TRANSLIT', $name) ;
+	//$name =  normalizer_normalize($name, Normalizer::FORM_D) ;
+	// MV
+	$name = str_replace(chr(146), "'", $name) ; // Strange apostrophe
+	$name = str_replace(chr(198), 'AE', $name) ;
+	$name = str_replace(chr(246), 'o', $name) ;
+	// MCI
+	$name = str_replace('á', 'a', $name) ;
+	$name = str_replace('é', 'e', $name) ;
+	$name = str_replace('í', 'i', $name) ;
+	$name = str_replace('ö', 'o', $name) ;
+	$name = str_replace('ú', 'u', $name) ;
+	$name = str_replace('û', 'u', $name) ;
+	$name = str_replace('Æ', 'AE', $name) ;
 	return $name ;
 }
 ?>

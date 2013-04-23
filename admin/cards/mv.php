@@ -1,6 +1,5 @@
 <?php
 #!/bin/php
-//include_once '../../lib.php' ;
 include_once '../../config.php' ;
 include_once 'lib.php' ;
 include_once '../../includes/lib.php' ;
@@ -42,134 +41,114 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 	echo '<li>'.$i.' : ' ;
 	// Try to get HTML file from cache
 	$html = cache_get($basecardurl.$si, 'cache/'.$mv_ext_name.$si) ;
-	if ( $html === FALSE ) {
-		echo "cache not found\n" ;
-		return FALSE;
-	}
+	//$html = preg_replace('/\s{1,}/', ' ', $html) ; // No excessive whitespaces
+	$html = preg_replace('#<td class=W12 align=center>\s*(.?\d*)</td>#', '[$1]', $html) ; // Planeswalkers steps
+	// TODO : Costs in text are images, removed during parsing
+	$html = str_replace("\n", '', $html) ; // Required for regex parsing
 	// Cost
-	preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.)\.gif>#',  $html, $matches, PREG_SET_ORDER) ;
 	$cost = '' ;
-	foreach ( $matches as $match )
-		$cost .= $match['mana'] ;
-	// Search card name
-	$html = str_replace("\n", '', $html) ;
-	$nb = preg_match_all('#<div class=S16>(?<name>.{1,100})</div>\s*<div class=G12 style="padding-top:4px;padding-bottom:.px;">(?<type>.{1,100})</div>#', $html, $matches, PREG_SET_ORDER) ; // Name and type
-        $nb2 = preg_match_all('#<div id=EngShort.*?'.'>(?<text>.*?)</div>#',$html, $matches_text, PREG_SET_ORDER) ; // Text
-        $nb3 = preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?'.'>#', $html, $matches_rarity, PREG_SET_ORDER) ; // Rarity
-	$nb4 = preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>\d*/\d*)</div>#', $html, $matches_pt, PREG_SET_ORDER) ; // P/T
-	//echo "[$nb $nb2 $nb3 $nb4]" ;
+	if ( preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.)\.gif>#',  $html, $matches, PREG_SET_ORDER) > 0 )
+		foreach ( $matches as $match )
+			$cost .= $match['mana'] ;
 	// Name, type and text
-	if ( $nb4 > 0 )
-		$text = $matches_pt[0]['pt']."\n" ;
+	$nb = preg_match_all('#<div class=S16>(?<name>.{1,100})</div>\s*<div class=G12 style="padding-top:4px;padding-bottom:.px;">(?<type>.{1,100})</div>\s*<div align=center>\s*<div id=EngShort.*?'.'>(?<text>.*?)</div>#', $html, $matches, PREG_SET_ORDER) ;
+	if ( $nb < 1 ) {
+		echo 'regex failed' ;
+		return false ;
+	}
+	// P/T
+	if ( preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>\d*/\d*)</div>#', $html, $matches_pt, PREG_SET_ORDER) > 0 ) {
+		$pt = $matches_pt[0]['pt'] ;
+		$text = "$pt\n" ;
+	} elseif ( preg_match_all('#<div class=S11 align=right>Loyalty : (?<loyalty>\d*)</div>#', $html, $matches_loyalty, PREG_SET_ORDER) > 0 ) 
+		$text = $matches_loyalty[0]['loyalty']."\n" ;
 	else
 		$text = '' ;
-	if ( $nb2 > 0 ) 
-		$text .= strip_tags($matches_text[0]['text']) ;
-	switch ($nb) {
-		case 1 :
-			$match = $matches[0] ;
-			$name = card_name_sanitize($match['name']) ;
-			$basedestfilename = $name ;
-			$type = $match['type'] ;
-			break ;
-		case 2 :
-			$match = $matches[1] ;
-			$name = card_name_sanitize($match['name']) ;
-			$basedestfilename = $name ;
-			$type = $match['type'] ;
-			break ;
-		case 4 : // Dual card
-			// First part
-			$match = $matches[1] ;
-			$name = card_name_sanitize($match['name']) ;
-			$type = $match['type'] ;
-			// Second part
-			$match = $matches[3] ;
-			$basedestfilename = $name . card_name_sanitize($match['name']) ;
-			$name .= ' / '.card_name_sanitize($match['name']) ;
-			if ( preg_match('/(?<first>.{1,5})(?<second>\d.*)/', $cost, $matches_cost) ) { // Cut cost by integer
-				$cost = $matches_cost['first'] ;
-				$altcost = $matches_cost['second'] ;
-			} else { // Cut cost equaly (works with every card in DGM)
-				$cut = round(strlen($cost)/2) ;
-				$cost = substr($cost, $cut) ;
-				$altcost =  substr($cost, 0, $cut+1) ;
-			}
-			$text .= "\n----\n$altcost\n$type\n" ;
-			if ( $nb2 > 1 )
-				$text .= strip_tags($matches_text[1]['text']) ;
-			break ;
-		default :
-			echo "not a card ($nb)\n" ;
-			return false ;
+	$text .= trim(strip_tags($matches[0]['text'])) ;
+	$name = card_name_sanitize($matches[0]['name']) ;
+	$basedestfilename = $name ;
+	$type = trim($matches[0]['type']) ;
+	if ( $nb == 2 ) { // Second part
+		$secondname = card_name_sanitize($matches[1]['name']) ;
+		$name .= ' / '.$secondname ;
+		$basedestfilename .= $secondname ;
+		if ( preg_match('/(?<first>.{1,5})(?<second>\d.*)/', $cost, $matches_cost) ) { // Cut cost by integer
+			$cost = $matches_cost['first'] ;
+			$altcost = $matches_cost['second'] ;
+		} else { // Cut cost equaly (works with every card in DGM)
+			$cut = round(strlen($cost)/2) ;
+			$altcost =  substr($cost, 0, $cut) ;
+			$cost = substr($cost, $cut) ;
+		}
+		$text .= "\n----\n$altcost\n$type\n".trim(strip_tags($matches[1]['text'])) ;
 	}
+	/*/
+	if ( $text != '' )
+		echo '<pre>'.$text.'</pre>' ;
+	else
+		echo '<hr>' ;
+	for ( $i = 0 ; $i < strlen($name) ; $i++ )
+		echo $name[$i].' : '.ord($name[$i]).'<br>' ;
+	/**/
 	// Rarity
 	$rarity = '' ;
 	if ( strpos($name, 'Guildgate') != false )
 		$rarity = 'L' ;
-	elseif ( $nb3 > 0 ) {
-		switch ( intval($matches_rarity[0][1]) ) {
-			case 4 :
-				$rarity = 'M' ;
-				break ;
-			case 10 :
-				$rarity = 'R' ;
-				break ;
-			case 20 :
-				$rarity = 'U' ;
-				break ;
-			case 30 :
-				$rarity = 'C' ;
-				break ;
-			default : 
-				echo '!'.$matches_rarity[0][1].'!' ;
-		}
-	} else
-		echo '!!' ;
+	else {
+		$rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C') ;
+		if ( preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?'.'>#', $html, $matches_rarity, PREG_SET_ORDER) > 0 ) {
+			$rid = intval($matches_rarity[0][1]) ;
+			if ( isset($rarities[$rid]) )
+				$rarity = $rarities[$rid] ;
+			else
+				echo '!'.$rid.'!' ;
+		} else
+			echo '!!' ;
+	}
+	echo "$rarity $name ($cost".(isset($altcost)?"/$altcost":'').") $type".(isset($pt)?" [$pt]":'') ;
 	// DB
 	if ( $apply ) {
 		$card_id = card_import($name, $cost, $type, $text) ;
 		$multiverseid = '' ;
 		query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
-	}
-	// Create destination file name (and dir)
-	if ( preg_match('/\<b\>(\d+)\<\/b\>/', $html, $matchesnb) )
-		$basedestfilename .= $matchesnb[1] ;
-	$disp = '' ;
-	/*
-	$nbpic = 0 ;
-	do {
+		// Create destination file name (and dir)
+		if ( preg_match('/\<b\>(\d+)\<\/b\>/', $html, $matchesnb) )
+			$basedestfilename .= $matchesnb[1] ;
 		$disp = '' ;
-		if ( $nbpic > 0 )
-			$disp = ''.$nbpic ;
-			*/
-		if ( $token )
-			$destfilename = 'TK/'.$mogg_ext_name.'/'.$basedestfilename.$disp.'.1.1.jpg' ;
-		else
-			$destfilename = $mogg_ext_name.'/'.$basedestfilename.$disp.'.full.jpg' ;
-			/*
-		$nbpic++ ;
-	} while ( is_file($destfilename) ) ;
-	*/
-	echo $destfilename.' : ' ;
-	// Get the file
-	if ( ! is_file($destfilename) ) {
-		$content = @file_get_contents($baseimgurl.$si.'.jpg') ;
-		if ( $content === FALSE )
-			echo 'image not found' ;
-		else {
-			$size = @file_put_contents($destfilename, $content) ;
-			if ( $size === FALSE )
-				echo 'NOT updated' ;
+		/*
+		$nbpic = 0 ;
+		do {
+			$disp = '' ;
+			if ( $nbpic > 0 )
+				$disp = ''.$nbpic ;
+				*/
+			if ( $token )
+				$destfilename = 'TK/'.$mogg_ext_name.'/'.$basedestfilename.$disp.'.1.1.jpg' ;
 			else
-				echo 'updated ('.human_filesize($size).')' ;
-		}
-	} else
-		echo 'existing' ;
+				$destfilename = $mogg_ext_name.'/'.$basedestfilename.$disp.'.full.jpg' ;
+				/*
+			$nbpic++ ;
+		} while ( is_file($destfilename) ) ;
+		*/
+		echo $destfilename.' : ' ;
+		// Get the file
+		if ( ! is_file($destfilename) ) {
+			$content = @file_get_contents($baseimgurl.$si.'.jpg') ;
+			if ( $content === false )
+				echo 'image not found' ;
+			else {
+				$size = @file_put_contents($destfilename, $content) ;
+				if ( $size === false )
+					echo 'NOT updated' ;
+				else
+					echo 'updated ('.human_filesize($size).')' ;
+			}
+		} else
+			echo 'existing' ;
+	}
 	echo "</li>\n" ;
-	return TRUE ;
+	return true ;
 }
-
 $ext = strtoupper($ext) ;
 $query = query("SELECT * FROM extension WHERE `se` = '$ext' OR `sea` = '$ext' ; ") ;
 if ( $res = mysql_fetch_object($query) ) {
