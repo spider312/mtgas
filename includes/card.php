@@ -646,37 +646,39 @@ function manage_text($name, $text, $target) {
 		}
 	}
 	// All creatures booster (crusade like)
-	if ( preg_match('/(?<other>other )?(?<cond>.* )?creature(?<token> token)?s (?<control>you control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches) ) {
-		$boost_bf = new simple_object() ;
-		$boost_bf->self = ( $matches['other'] != 'other ' );
-		$boost_bf->control = ( $matches['control'] == 'you control ' ) ;
-		$boost_bf->pow = intval($matches['pow']) ;
-		$boost_bf->tou = intval($matches['tou']) ;
-		if ( $matches['token'] != '' )
-			$boost_bf->cond = 'class=token' ;
-		$cond = trim($matches['cond']) ;
-		if ( $cond != '' ) {
-			$ci = array_search($cond, $colors) ;
-			if ( $ci !== false )
-				$boost_bf->cond = "color=$ci" ;
-			else {
-				$types = explode(' and ', $cond) ;
-				foreach ( $types as $i => $type ) {
-					if ( $type == 'artifact' )
-						$types[$i] = "type=$type" ;
-					else
-						$types[$i] = "ctype=$type" ;
+	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>you control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
+		foreach ( $matches as $match ) {
+			$boost_bf = new simple_object() ;
+			$boost_bf->self = ( $match['other'] != 'other ' );
+			$boost_bf->control = ( $match['control'] == 'you control ' ) ;
+			$boost_bf->pow = intval($match['pow']) ;
+			$boost_bf->tou = intval($match['tou']) ;
+			if ( $match['token'] != '' )
+				$boost_bf->cond = 'class=token' ;
+			$cond = trim($match['cond']) ;
+			if ( $cond != '' ) {
+				$ci = array_search($cond, $colors) ;
+				if ( $ci !== false )
+					$boost_bf->cond = "color=$ci" ;
+				else {
+					$types = explode(' and ', $cond) ;
+					foreach ( $types as $i => $type ) {
+						if ( $type == 'artifact' )
+							$types[$i] = "type=$type" ;
+						else
+							$types[$i] = "ctype=$type" ;
+					}
+					$boost_bf->cond = implode('|', $types) ;
 				}
-				$boost_bf->cond = implode('|', $types) ;
 			}
+			if ( array_key_exists('attrs', $match) ) {
+				global $creat_attrs ;
+				foreach ( $creat_attrs as $creat_attr )
+					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
+				//msg($name.' : '.print_r($boost_bf, true)) ;
+			}
+			$target->boost_bf[] = $boost_bf ;
 		}
-		if ( array_key_exists('attrs', $matches) ) {
-			global $creat_attrs ;
-			foreach ( $creat_attrs as $creat_attr )
-				apply_creat_attrs($matches['attrs'], $creat_attr, $boost_bf) ;
-			//msg($name.' : '.print_r($boost_bf, true)) ;
-		}
-		$target->boost_bf[] = $boost_bf ;
 	}
 	// Animate
 	if ( preg_match('/((?<cost>.*)\s*:\s*)?(?<eot>Until end of turn, )?'.addcslashes($name, '/').' (.* it )?becomes an? (?<pow>\d)\/(?<tou>\d) (?<rest>.*)/', $text, $matches) ) {
