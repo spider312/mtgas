@@ -72,10 +72,10 @@ td.buttonlist, td.nopadding {
 	padding: 0 ;
 	margin: 0 ;
 }
-.buttonlist img:hover{
+.buttonlist img:hover {
 	background-color: black ;
 }
-#buttons {
+#builder_buttons {
 	position: fixed ;
 	left: 330px ;
 	top: 100px ;

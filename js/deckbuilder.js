@@ -1,4 +1,5 @@
 function load(body, deckname) {
+	options = new Options(true) ;
 	selected = null ;
 	selected_deck = null ;
 	game = new Object() ;

@@ -6,6 +6,7 @@ html_head(
 		'style.css'
 		, 'deckbuilder.css'
 		, 'menu.css'
+		, 'options.css'
 	),
 	array(
 		'lib/jquery.js',
@@ -62,7 +63,7 @@ html_menu() ;
   </div>
 
   <!-- Buttons, between search form's results and deck -->
-  <div id="buttons" class="section">
+  <div id="builder_buttons" class="section">
    <button id="add_md" accesskey="a" title="Add card to deck"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1rightarrow.png" alt="=&gt;"></button>
    <button id="add_sb" accesskey="b" title="Add card to sideboard"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/2rightarrow.png" alt="&gt;&gt;"></button>
    <button id="del" accesskey="d" title="Remove card from deck / sideboard"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1leftarrow.png" alt="&lt;="></button>
