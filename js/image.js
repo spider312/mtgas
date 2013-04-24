@@ -1,12 +1,5 @@
 // image.js : Images and cache management
 // Lib
-function token_image_url(ext, name, attrs) {
-	var url = '/TK/'+ext+'/'+card_image_name(name)
-	if ( isn(attrs.pow) && isn(attrs.thou) )
-		url += '.'+attrs.pow + '.' + attrs.thou ;
-	url += '.jpg' ;
-	return url ;
-}
 function card_image_url(ext, name, attrs) {
 	var url = '/'+ext+'/'+card_image_name(name) ;
 	if ( attrs )

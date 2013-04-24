@@ -22,14 +22,8 @@ function Token(id, extension, name, zone, attrs, img_url) {
 function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // Modularisation between custom token creation and previous tokens recalling menu
 	if ( ! isn(nb) )
 		nb = 1 ;
-	var tmpname ;
 	for ( var i = 0 ; i < nb ; i++ ) {
-		tmpname = name ;
-		if ( tmpname == 'Eldrazi Spawn' ) // No number specified, add one at random
-			tmpname += ( rand(3) + 1 ) ;
-		if ( ( tmpname == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
-			tmpname += ( rand(3) + 1 ) ;
-		action_send('token', {'zone': zone.toString(), 'ext': ext, 'name': tmpname, 'attrs': attrs}, function(data) {
+		action_send('token', {'zone': zone.toString(), 'ext': ext, 'name': token_name(name, ext), 'attrs': attrs}, function(data) {
 			var tk = create_token_recieve(data.id, data.param.ext, data.param.name, eval(data.param.zone), JSON_parse(data.param.attrs)) ;
 			if ( typeof oncreate == 'function' )
 				oncreate(tk, oncreateparam) ; // ATM : Living weapon
@@ -41,4 +35,51 @@ function create_token_recieve(id, ext, name, zone, attrs) {
 	tk = new Token(id, ext, name, zone, attrs, token_image_url(ext, name, attrs)) ;
 	message(active_player.name+' creates '+tk.get_name(), 'zone') ;
 	return tk ;
+}
+function token_extention(img, ext) { // Search token in extensions
+	if ( ! iso(game.tokens_catalog) ) // No catalog ?
+		return ext ;
+	if ( iso(game.tokens_catalog[ext]) && iss(game.tokens_catalog[ext][img]) ) // Ext existing in catalog, and token existing in ext
+		return ext ;
+	if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) ) // Token existing in special extension
+		return 'EXT' ;
+	delete game.tokens_catalog['EXT'] ; // Don't search special extension
+	// Sort extension to rewind list from ext, then forward list from ext
+	var found = false ;
+	var exts_b = [] ; // Exts that are before 'ext'
+	var exts_a = [] ; // Exts that are before 'ext'
+	for ( var i in game.tokens_catalog ) { // Each extension, sorted by release date, "ext" at the end
+		if ( i == ext ) { // Switch between first and second pass
+			found = true ;
+			continue ; // Searched token isn't in current extension
+		}
+		if ( ! iss(game.tokens_catalog[i][img]) ) // Token isn't in extension
+			continue ;
+		if ( ! found ) // First 'pass' : extensions before 'ext'
+			exts_b.unshift(i) ;
+		else // Second pass : extensions after 'ext'
+			exts_a.push(i) ;
+	}
+	var exts = exts_b.concat(exts_a) ;
+	for ( var i in exts ) // Now 
+		if ( iss(game.tokens_catalog[exts[i]][img]) )
+			return exts[i] ;
+	log(img+' found in no extension') ;
+	return '' ;
+}
+function token_name(name, ext) { // Modify name depending on extension if needed (adds random numbers to tokens having multiple images)
+	if ( name == 'Eldrazi Spawn' )
+		name += ( rand(3) + 1 ) ;
+	if ( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
+		name += ( rand(3) + 1 ) ;
+	return name ;
+}
+function token_image_name(name, ext, attrs) { // Returns an image name from a token
+	if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
+		name += '.'+attrs.pow+'.'+attrs.thou ;
+	name += '.jpg' ;
+	return name ;
+}
+function token_image_url(ext, name, attrs) { // Returns an image's full URL
+	return '/TK/'+ext+'/'+token_image_name(name, ext, attrs) ;
 }

@@ -772,27 +772,8 @@ function card_prototype() {
 							var ext = card.ext ;
 							var name = tokens[i].name ;
 							var attrs = tokens[i].attrs ;
-							var nname = name ; // Name + number, for eldrazi spawn or other multiple-images tokens
-							if ( name == 'Eldrazi Spawn' ) // No number specified, add one at random
-								nname += rand(3) + 1 ;
-							var img = nname ; // Base img
-							if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
-								img += '.'+attrs.pow+'.'+attrs.thou ;
-							img += '.jpg' ;
-							// Little workaround to find an existing image if token isn't from extension
-							// (generally it's from an older extension from the bloc)
-							if ( ! iso(game.tokens_catalog[ext]) || ! iss(game.tokens_catalog[ext][img]) ) {
-								if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) )
-									ext = 'EXT' ;
-								else {
-									for ( var j in game.tokens_catalog )
-										if ( iss(game.tokens_catalog[j][img]) ) {
-											ext = j ;
-											break ;
-										}
-									log(img+' found in no extension') ;
-								}
-							}
+							var img = token_image_name(name, ext, attrs) ;
+							ext = token_extention(img, ext)
 							if ( isn(attrs.pow) && isn(attrs.thou) )
 								var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
 							else
@@ -800,7 +781,7 @@ function card_prototype() {
 							if ( tokens[i].nb > 1 )
 								txt += ' x '+tokens[i].nb
 							var l = cardmenu.addline(txt, create_token, ext, name, card.zone, attrs, tokens[i].nb) ;
-							l.moimg = card_images(token_image_url(ext, nname, attrs)) ;
+							l.moimg = card_images('/TK/'+ext+'/'+img) ;
 						}
 						// Animate
 						if ( iso(card.attrs.animate) ) {
