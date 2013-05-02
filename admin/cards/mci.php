@@ -27,6 +27,7 @@ if ( isset($argv) && ( count($argv) > 1 ) ) { // CLI
 	$apply = param($_GET, 'apply', false) ;
 }
 // Funcs
+$base_image_dir = substr(`bash -c "echo ~"`, 0, -1) ;
 function image_downable($code) {
 	global $base_image_dir, $ext_mci, $image_name, $ext, $nbpics, $match, $matches, $i, $apply ;
 	echo $code.' : ' ;
@@ -101,34 +102,21 @@ if ( $apply )
 	echo '  <p>Changes <strong>applied</strong></p>' ;
 else
 	echo '  <p>Changes will NOT be applied <a href="?ext='.$ext.'&ext_mci='.$ext_mci.'&apply=1">apply</a></p>'."\n" ;
-// Init
-$base_image_dir = substr(`bash -c "echo ~"`, 0, -1) ;
 // Get page content, and parse
 $ext = strtolower($ext) ;
 $ext_mci = strtolower($ext_mci) ;
-$cache_file = 'cache/'.$ext ;
-$url = 'http://magiccards.info/'.$ext_mci.'/en.html' ;
-if ( file_exists($cache_file) )
-	$html = file_get_contents($cache_file) ;
-else {
-	$html = file_get_contents($url) ;
-	file_put_contents($cache_file, $html) ;
-}
-$nb = preg_match_all('#  <tr class="(even|odd)">
-    <td align="right">(?<id>\d*[ab]?)</td>
-    <td><a href="(?<url>/'.$ext_mci.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
-    <td>(?<type>.*)</td>
-    <td>(?<cost>.*)</td>
-    <td>(?<rarity>.*)</td>
-    <td>(?<artist>.*)</td>
-    <td><img src="http://magiccards.info/images/en.gif" alt="English" width="16" height="11" class="flag2">(?<ext>.*)</td>
-  </tr>#', $html, $matches, PREG_SET_ORDER) ;
-if ( $nb < 1)
-	die('URL '.$url.' does not seem to be a valid MCI card list : '.count($matches)) ;
-
-echo '<p>'.count($matches).' cards detected</p>'."\n\n" ;
-
-// Comparison with extension in DB
+?>
+  <table>
+   <tr>
+    <th colspan="2">#</th>
+    <th>Name</th>
+    <th>Rarity</th>
+    <th>Card</th>
+    <th>Extension</th>
+    <th>Localization (image / name)</th>
+   </tr>
+<?php
+// Extension in DB
 $ext = strtoupper($ext) ;
 $query = query("SELECT * FROM extension WHERE `se` = '$ext' OR `sea` = '$ext' ; ") ;
 if ( $res = mysql_fetch_object($query) ) {
@@ -142,18 +130,28 @@ if ( $res = mysql_fetch_object($query) ) {
 	echo '<p>Extension not existing, creating</p>' ;
 	$ext_id = mysql_insert_id() ;
 }
-?>
-  <table>
-   <tr>
-    <th colspan="2">#</th>
-    <th>Name</th>
-    <th>Rarity</th>
-    <th>Card</th>
-    <th>Extension</th>
-    <th>Localization (image / name)</th>
-   </tr>
-<?php
+
+// MCI card list
+$url = 'http://magiccards.info/'.$ext_mci.'/en.html' ;
+$html = cache_get($url, 'cache/'.$ext) ;
+$nb = preg_match_all('#<tr class="(even|odd)">
+\s*<td align="right">(?<id>\d*[ab]?)</td>
+\s*<td><a href="(?<url>/'.$ext_mci.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
+\s*<td>(?<type>.*)</td>
+\s*<td>(?<cost>.*)</td>
+\s*<td>(?<rarity>.*)</td>
+\s*<td>(?<artist>.*)</td>
+\s*<td><img src="http://magiccards.info/images/en.gif" alt="English" width="16" height="11" class="flag2">(?<ext>.*)</td>
+\s*</tr>#', $html, $matches, PREG_SET_ORDER) ;
+if ( $nb < 1)
+	die('URL '.$url.' does not seem to be a valid MCI card list : '.count($matches)) ;
+
+echo '<p>'.count($matches).' cards detected</p>'."\n\n" ;
+
 $images = array() ;
+$creation = 0 ;
+$update = 0 ;
+$nothing = 0 ;
 $text = '' ;
 foreach ( $matches as $i => $match ) {
 	$log = '' ;
@@ -167,15 +165,6 @@ foreach ( $matches as $i => $match ) {
 	$rarity = substr($match['rarity'], 0, 1) ;
 	// Parse card itself
 	$html = cache_get(dirname($url).'/..'.$match['url'], 'cache/'.str_replace('/', '_', $match['url'])) ;
-	/*
-	$cache_file = 'cache/'.str_replace('/', '_', $match['url']) ;
-	if ( file_exists($cache_file) )
-		$html = file_get_contents($cache_file) ;
-	else {
-		$html = file_get_contents(dirname($url).'/..'.$match['url']) ;
-		file_put_contents($cache_file, $html) ;
-	}
-	*/
 	$nb = preg_match('#<p>(?<typescost>.*)</p>
         <p class="ctext"><b>(?<text>.*)</b></p>.*http\://gatherer.wizards.com/Pages/Card/Details.aspx\?multiverseid=(?<multiverseid>\d*)#s', substr($html, 0, 10240), $card_matches) ;
 	// Base checks
@@ -278,9 +267,11 @@ foreach ( $matches as $i => $match ) {
 				$log .= '<li><acro title="'.htmlspecialchars($arr['text']."\n->\n".$text).'">Text</acro></li>' ;
 				$updates[] = "`text` = '".mysql_real_escape_string($text)."'" ;
 			}
-			if ( $log == '' )
+			if ( $log == '' ) {
+				$nothing++ ;
 				$log = 'up to date' ;
-			else {
+			} else {
+				$update++ ;
 				$log = 'Updates : <ul>'.$log.'</ul>' ;
 				if ( $apply)
 					$q = query("UPDATE `card` SET ".implode(', ', $updates).", `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
@@ -309,7 +300,8 @@ foreach ( $matches as $i => $match ) {
 					query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
 			}
 		} else {
-			echo "    <td>Not existing</td>\n" ;
+			$creation++ ;
+			echo '    <td colspan="2" style="color:red;">Not existing</td>'."\n" ;
 			if ( $apply) {
 				// Insert card
 				query("INSERT INTO `mtg`.`card`
@@ -373,6 +365,7 @@ foreach ( $matches as $i => $match ) {
 	echo "   </tr>\n" ;
 }
 ?>
+   <caption><?php echo "$creation created, $update updated, $nothing untouched" ; ?></caption>
   </table>
   <pre>
 <?php
