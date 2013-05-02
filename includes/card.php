@@ -178,8 +178,7 @@ class attrs {
 					if ( isint($mana) ) // Is a number
 						$this->converted_cost += intval($mana) ;
 					else { // Is a mana
-						//if ( $mana != 'X' ) { // X is worth 0 and no color
-						if ( ! in_array($mana, array('X', 'Y', 'Z') ) ) { // X is worth 0 and no color
+						if ( ! in_array($mana, array('X', 'Y', 'Z') ) ) { // X is worth 0 and no color, Y and Z only are in the ultimate nightmare ...
 
 							$this->add_color($mana) ;
 							if ( isint($mana[0]) ) // Hybrid colorless/colored
@@ -209,15 +208,12 @@ class attrs {
 				// Sort colors
 				global $allcolorscode ;
 				$this->color_index = -1 ;
-				for ( $i = 0 ; $i < count($allcolorscode) ; $i++ ) { // Search right order in hardcoded list
-					$a = str_split($allcolorscode[$i]) ;
-					$b = str_split($this->color) ;
-					if ( count(array_diff($b, $a)) == 0 ) {
+				for ( $i = 0 ; $i < count($allcolorscode) ; $i++ ) // Search right order in hardcoded list
+					if ( count(array_diff(str_split($this->color), str_split($allcolorscode[$i]))) == 0 ) {
 						$this->color_index = $i ;
 						$this->color = $allcolorscode[$this->color_index] ;
 						break ;
 					}
-				}
 				if ( $this->color_index < 0 )
 					die('Color index error for ['.$this->color.'] '.$arr['name']) ;
 			} else
