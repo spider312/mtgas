@@ -178,7 +178,9 @@ class attrs {
 					if ( isint($mana) ) // Is a number
 						$this->converted_cost += intval($mana) ;
 					else { // Is a mana
-						if ( $mana != 'X' ) { // X is worth 0 and no color
+						//if ( $mana != 'X' ) { // X is worth 0 and no color
+						if ( ! in_array($mana, array('X', 'Y', 'Z') ) ) { // X is worth 0 and no color
+
 							$this->add_color($mana) ;
 							if ( isint($mana[0]) ) // Hybrid colorless/colored
 								$this->converted_cost += intval($mana[0]) ;
@@ -204,12 +206,20 @@ class attrs {
 					if ( $i = array_search($matches[1], $colornames) )
 						$this->color = $i ;
 				}
-				if ( strlen($this->color) > 1 ) {
-					$c = str_split($this->color) ;
-					if ( ! usort($c, 'color_compare') )
-						die('Bug during comparison') ;
-					$this->color = implode($c) ;
+				// Sort colors
+				global $allcolorscode ;
+				$this->color_index = -1 ;
+				for ( $i = 0 ; $i < count($allcolorscode) ; $i++ ) { // Search right order in hardcoded list
+					$a = str_split($allcolorscode[$i]) ;
+					$b = str_split($this->color) ;
+					if ( count(array_diff($b, $a)) == 0 ) {
+						$this->color_index = $i ;
+						$this->color = $allcolorscode[$this->color_index] ;
+						break ;
+					}
 				}
+				if ( $this->color_index < 0 )
+					die('Color index error for ['.$this->color.'] '.$arr['name']) ;
 			} else
 				die('No cost in array : '.$arr['name']) ;
 			// Types
@@ -341,6 +351,7 @@ function color_compare($a, $b) {
 }
 $colors = array('X' => 'colorless', 'W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
 $colorscode = array_keys($colors) ; // For ordering
+$allcolorscode = array('', 'X', 'W', 'U', 'B', 'R', 'G', 'WU','WB','UB','UR','BR','BG','RG','RW','GW','GU','WUB','UBR','BRG','RGW','GWU','WBR','URG','BGW','RWU','GUB','WUBR','UBRG','BRGW','RGWU','GWUB','WUBRG') ;
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
 $creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade', 'changeling');
 // General conditions considerations
