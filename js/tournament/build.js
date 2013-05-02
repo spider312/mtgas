@@ -272,12 +272,23 @@ function alpha_sort(card1, card2) {
 		return 1 ;
 	return -1 ;
 }
+color_order = ['X', 'W', 'U', 'B', 'R', 'G'] ;
 function color_sort(card1, card2) {
-	if ( card1.attrs.color == card2.attrs.color )
+	var c1 = card1.attrs.color ;
+	var c2 = card2.attrs.color ;
+	if ( c1 == c2 )
 		return 0 ;
-	if ( card1.attrs.color > card2.attrs.color )
-		return -1 ;
-	return 1 ;
+	var result = c1.length - c2.length ; // Gold after monocolored
+	if ( result != 0 )
+		return result ;
+	var i = 0 ; // Compare 'i'th char from both strings
+	do {
+		result = color_order.indexOf(c1[i]) - color_order.indexOf(c2[i]) ; // 'i'th char differs, returns sorting
+		i++ ;
+	} while ( ( result == 0 ) && ( i < c1.length ) ) ; // c1.length == c1.length (first test in func), so if result == 0 and i > c1.length
+	if ( result == 0 )
+		alert('compare bug '+c1+', '+c2) ;
+	return result ;
 }
 function label_check(target) {
 	if ( target.checked )

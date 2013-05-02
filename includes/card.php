@@ -204,6 +204,12 @@ class attrs {
 					if ( $i = array_search($matches[1], $colornames) )
 						$this->color = $i ;
 				}
+				if ( strlen($this->color) > 1 ) {
+					$c = str_split($this->color) ;
+					if ( ! usort($c, 'color_compare') )
+						die('Bug during comparison') ;
+					$this->color = implode($c) ;
+				}
 			} else
 				die('No cost in array : '.$arr['name']) ;
 			// Types
@@ -329,7 +335,12 @@ function manage_types($type, $target) {
 			$target->supertypes[] = $type ;
 	}
 }
-$colors = array('W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
+function color_compare($a, $b) {
+	global $colorscode ;
+	return array_search($a, $colorscode) - array_search($b, $colorscode) ;
+}
+$colors = array('X' => 'colorless', 'W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
+$colorscode = array_keys($colors) ; // For ordering
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
 $creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade', 'changeling');
 // General conditions considerations
