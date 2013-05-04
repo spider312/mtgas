@@ -4,10 +4,10 @@ include_once 'includes/lang.php' ;
 include_once 'includes/lib.php' ;
 
 // Default menu entries
-menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', _('menu.chat.title')) ;
+menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title')) ;
 menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title')) ;
 menu_add(__('menu.ranking'), '/top.php', __('menu.ranking.title')) ;
-menu_add(__('menu.data'), , '/player.php',__('menu.data.title')) ;
+menu_add(__('menu.data'), '/player.php', __('menu.data.title')) ;
 
 include_once 'config.php' ;
 
