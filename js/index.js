@@ -360,7 +360,7 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 					create_a(t.type, url, null, title), 
 					create_a(t.name, url, null, title), 
 					create_a(tournament_status(t.status), url, null, title), 
-					age, 
+					age,
 					playerlist
 				) ;
 				for ( var j in tournament.players )
