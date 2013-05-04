@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-05-04 21:00+0100\n"
-"PO-Revision-Date: 2013-05-04 21:15+0100\n"
+"PO-Revision-Date: 2013-05-04 21:16+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -131,7 +131,7 @@ msgstr "Nombre de joueurs"
 
 #: ../../.././index_tournaments.php:49
 msgid "index.tournaments.create.players"
-msgstr "Joueurs"
+msgstr "Joueurs :"
 
 #: ../../.././index_tournaments.php:53
 msgid "index.tournaments.create.suggestions.title"
