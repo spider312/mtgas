@@ -50,8 +50,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
 
 <?php
-include 'index_decks.php' ;
 include 'index_duels.php' ;
+include 'index_decks.php' ;
 ?>
 
   </div><!-- id="right_col" --><!-- ---------- / RIGHT COLUMN ---------- -->

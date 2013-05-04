@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 16:01+0100\n"
-"PO-Revision-Date: 2013-05-04 16:03+0100\n"
+"POT-Creation-Date: 2013-05-04 17:44+0100\n"
+"PO-Revision-Date: 2013-05-04 17:45+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -111,7 +111,7 @@ msgstr "Standard (T2)"
 
 #: ../../.././index_tournaments.php:42
 msgid "index.tournaments.create.edh"
-msgstr "EDH"
+msgstr "Commander"
 
 #: ../../.././index_tournaments.php:46
 msgid "index.tournaments.create.name.title"
@@ -195,7 +195,7 @@ msgstr "Rounds duration :"
 
 #: ../../.././index_tournaments.php:75
 msgid "index.tournaments.create.clone.title"
-msgstr "All players in the sealed will have the same pool"
+msgstr "All players in the sealed will have the same cards in their pool"
 
 #: ../../.././index_tournaments.php:75
 msgid "index.tournaments.create.clone"
@@ -269,12 +269,109 @@ msgstr "Keyboard &amp; mouse shortcuts"
 msgid "menu.gui.title"
 msgstr "Keyboard &amp; mouse shortcuts"
 
-#: ../../.././includes/lib.php:194
-msgid "menu.main"
-msgstr "Main page"
+#: ../../.././index_duels.php:2
+msgid "index.duels"
+msgstr "Duels"
+
+#: ../../.././index_duels.php:4
+#, fuzzy
+msgid "index.duels.join"
+msgstr "Join"
+
+#: ../../.././index_duels.php:8
+#, fuzzy
+msgid "index.duels.id"
+msgstr "ID"
+
+#: ../../.././index_duels.php:9
+#: ../../.././index_duels.php:43
+#, fuzzy
+msgid "index.duels.name"
+msgstr "Name"
+
+#: ../../.././index_duels.php:10
+#: ../../.././index_duels.php:44
+#, fuzzy
+msgid "index.duels.creator"
+msgstr "Create"
+
+#: ../../.././index_duels.php:11
+#: ../../.././index_duels.php:47
+#, fuzzy
+msgid "index.duels.age"
+msgstr "Age"
+
+#: ../../.././index_duels.php:12
+#: ../../.././index_duels.php:48
+msgid "index.duels.inactivity"
+msgstr "Inactivity"
+
+#: ../../.././index_duels.php:17
+msgid "index.duels.no"
+msgstr "No pending duel"
+
+#: ../../.././index_duels.php:22
+msgid "index.duels.wait"
+msgstr "Waiting for list of pending duels"
+
+#: ../../.././index_duels.php:27
+#, fuzzy
+msgid "index.duels.create"
+msgstr "Create"
+
+#: ../../.././index_duels.php:32
+msgid "index.duels.create.title"
+msgstr "Duel's name"
+
+#: ../../.././index_duels.php:33
+#, fuzzy
+msgid "index.duels.create.name"
+msgstr "Name :"
+
+#: ../../.././index_duels.php:34
+msgid "index.duels.create.name.placeholder"
+msgstr "Duels's name (you'd better set one)"
+
+#: ../../.././index_duels.php:34
+msgid "index.duels.create.name.title"
+msgstr "Duel's name"
+
+#: ../../.././index_duels.php:35
+#, fuzzy
+msgid "index.duels.create.create"
+msgstr "Create"
+
+#: ../../.././index_duels.php:35
+msgid "index.duels.create.create.title"
+msgstr "Create duel"
+
+#: ../../.././index_duels.php:39
+#, fuzzy
+msgid "index.duels.view"
+msgstr "View"
+
+#: ../../.././index_duels.php:45
+msgid "index.duels.score"
+msgstr "Score"
+
+#: ../../.././index_duels.php:46
+msgid "index.duels.joiner"
+msgstr "Joiner"
+
+#: ../../.././index_duels.php:53
+msgid "index.duels.view.no"
+msgstr "No running duel"
+
+#: ../../.././index_duels.php:58
+msgid "index.duels.waiting"
+msgstr "Waiting for list of running duel"
 
 #: ../../.././includes/lib.php:194
 msgid "menu.main.title"
+msgstr "Main page"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main"
 msgstr "Main page"
 
 #: ../../.././includes/lib.php:202

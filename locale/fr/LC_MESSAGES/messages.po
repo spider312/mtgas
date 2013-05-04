@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 16:14+0100\n"
-"PO-Revision-Date: 2013-05-04 16:18+0100\n"
+"POT-Creation-Date: 2013-05-04 17:43+0100\n"
+"PO-Revision-Date: 2013-05-04 17:46+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -269,13 +269,101 @@ msgstr "Contrôles"
 msgid "menu.gui.title"
 msgstr "Liste des raccourcis clavier &amp; souris"
 
-#: ../../.././includes/lib.php:194
-msgid "menu.main"
-msgstr "Accueil"
+#: ../../.././index_duels.php:2
+msgid "index.duels"
+msgstr "Duels"
+
+#: ../../.././index_duels.php:4
+msgid "index.duels.join"
+msgstr "Rejoindre"
+
+#: ../../.././index_duels.php:8
+msgid "index.duels.id"
+msgstr "ID"
+
+#: ../../.././index_duels.php:9
+#: ../../.././index_duels.php:43
+msgid "index.duels.name"
+msgstr "Nom"
+
+#: ../../.././index_duels.php:10
+#: ../../.././index_duels.php:44
+msgid "index.duels.creator"
+msgstr "Créateur"
+
+#: ../../.././index_duels.php:11
+#: ../../.././index_duels.php:47
+msgid "index.duels.age"
+msgstr "Age"
+
+#: ../../.././index_duels.php:12
+#: ../../.././index_duels.php:48
+msgid "index.duels.inactivity"
+msgstr "Inactivité"
+
+#: ../../.././index_duels.php:17
+msgid "index.duels.no"
+msgstr "Pas de duel en attente"
+
+#: ../../.././index_duels.php:22
+msgid "index.duels.wait"
+msgstr "En attente de la liste des duels"
+
+#: ../../.././index_duels.php:27
+msgid "index.duels.create"
+msgstr "Créer"
+
+#: ../../.././index_duels.php:32
+msgid "index.duels.create.title"
+msgstr "Nom du duel"
+
+#: ../../.././index_duels.php:33
+msgid "index.duels.create.name"
+msgstr "Nom : "
+
+#: ../../.././index_duels.php:34
+msgid "index.duels.create.name.placeholder"
+msgstr "Nom du duel"
+
+#: ../../.././index_duels.php:34
+msgid "index.duels.create.name.title"
+msgstr "Please specify type, rules applied"
+
+#: ../../.././index_duels.php:35
+msgid "index.duels.create.create"
+msgstr "Créer"
+
+#: ../../.././index_duels.php:35
+msgid "index.duels.create.create.title"
+msgstr "Format du tournois"
+
+#: ../../.././index_duels.php:39
+msgid "index.duels.view"
+msgstr "Voir"
+
+#: ../../.././index_duels.php:45
+msgid "index.duels.score"
+msgstr "Créer"
+
+#: ../../.././index_duels.php:46
+msgid "index.duels.joiner"
+msgstr "Rejoindre"
+
+#: ../../.././index_duels.php:53
+msgid "index.duels.view.no"
+msgstr "Pas de tournois en cours"
+
+#: ../../.././index_duels.php:58
+msgid "index.duels.waiting"
+msgstr "En attente de la liste des tournois en cours"
 
 #: ../../.././includes/lib.php:194
 msgid "menu.main.title"
 msgstr "Page principale du site"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main"
+msgstr "Accueil"
 
 #: ../../.././includes/lib.php:202
 msgid "menu.identity_shower.title"
