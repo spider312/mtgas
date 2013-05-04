@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 18:24+0100\n"
-"PO-Revision-Date: 2013-05-04 18:39+0100\n"
+"POT-Creation-Date: 2013-05-04 21:00+0100\n"
+"PO-Revision-Date: 2013-05-04 21:02+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -50,7 +50,7 @@ msgstr "Places"
 #: ../../.././index_tournaments.php:13
 #: ../../.././index_tournaments.php:92
 msgid "index.tournaments.players"
-msgstr "Joueurs"
+msgstr "Joueurs : "
 
 #: ../../.././index_tournaments.php:14
 #: ../../.././index_tournaments.php:84
@@ -225,47 +225,47 @@ msgstr "Pas de tournois en cours"
 msgid "index.tournaments.view.waiting"
 msgstr "En attente de la liste des tournois en cours"
 
-#: ../../.././lib.php:7
+#: ../../.././lib.php:18
 msgid "menu.chat"
 msgstr "Discuter"
 
-#: ../../.././lib.php:7
+#: ../../.././lib.php:18
 msgid "menu.chat.title"
 msgstr "Rencontrer d'autres joueurs"
 
-#: ../../.././lib.php:8
+#: ../../.././lib.php:19
 msgid "menu.forum"
 msgstr "Forum"
 
-#: ../../.././lib.php:8
+#: ../../.././lib.php:19
 msgid "menu.forum.title"
 msgstr "Discussions à propos du logiciel et de la base de cartes et d'images"
 
-#: ../../.././lib.php:9
+#: ../../.././lib.php:20
 msgid "menu.ranking"
 msgstr "Classement"
 
-#: ../../.././lib.php:9
+#: ../../.././lib.php:20
 msgid "menu.ranking.title"
 msgstr "Classement des joueurs par périodes"
 
-#: ../../.././lib.php:10
+#: ../../.././lib.php:21
 msgid "menu.data"
 msgstr "Vos données"
 
-#: ../../.././lib.php:10
+#: ../../.././lib.php:21
 msgid "menu.data.title"
 msgstr "Liste des duels et tournois auxquels vous avez participé"
 
-#: ../../.././lib.php:25
+#: ../../.././lib.php:22
 msgid "menu.facebook.title"
 msgstr "La page facebook de MOGG, pour vous tenir au courant sur ses évolutions"
 
-#: ../../.././lib.php:26
+#: ../../.././lib.php:23
 msgid "menu.gui"
 msgstr "Contrôles"
 
-#: ../../.././lib.php:26
+#: ../../.././lib.php:23
 msgid "menu.gui.title"
 msgstr "Liste des raccourcis clavier &amp; souris"
 
@@ -319,7 +319,7 @@ msgstr "Nouveau"
 
 #: ../../.././index_decks.php:24
 msgid "index.decks.create.name"
-msgstr "Nom :"
+msgstr "Nom du deck"
 
 #: ../../.././index_decks.php:24
 msgid "index.decks.create.name.title"
