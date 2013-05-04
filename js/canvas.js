@@ -384,13 +384,17 @@ function draw() {
 			var coords = game.widget_under_mouse.grid_at(game.mouseX, game.mouseY) ;
 			var nb = 0 ;
 			var pow = 0 ;
-			for ( var i = 0 ; i < bfcols ; i++ ) {
-				var card = game.widget_under_mouse.grid[i][coords.y] ;
-				if ( card != null ) {
-					nb++ ;
-					pow += card.get_pow_total() ;
+			var untap = 0 ;
+			for ( var j = -1 ; j < 2 ; j++ )
+				for ( var i = 0 ; i < bfcols ; i++ ) {
+					var card = game.widget_under_mouse.grid[i][coords.y+j] ;
+					if ( card != null ) {
+						nb++ ;
+						pow += card.get_pow_total() ;
+						if ( card.is_land() && ! card.tapped )
+							untap++ ;
+					}
 				}
-			}
 			var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
 			/*
 			var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
@@ -401,6 +405,7 @@ function draw() {
 			game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
 			canvas_reset_alpha() ;
 			/**/
+
 			if ( nb > 0 ) {
 				game.context.save()
 				canvas_set_alpha(.2) ;
@@ -408,6 +413,8 @@ function draw() {
 				var txt = nb ;
 				if ( pow > 0 )
 					txt += ' : '+pow ;
+				if ( untap > 0 )
+					txt = untap+' / '+txt ;
 				canvas_text_tr(game.context, txt, pos.x+gridswidth, pos.y, 'white') ;
 				canvas_reset_alpha() ;
 				game.context.restore() ;
