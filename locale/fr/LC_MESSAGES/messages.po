@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 16:04+0100\n"
-"PO-Revision-Date: 2013-05-04 16:14+0100\n"
+"POT-Creation-Date: 2013-05-04 16:14+0100\n"
+"PO-Revision-Date: 2013-05-04 16:18+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -151,7 +151,7 @@ msgstr "Boosters pour le tournois : "
 
 #: ../../.././index_tournaments.php:58
 msgid "index.tournaments.create.reset"
-msgstr "Réinitialiser"
+msgstr "Vider"
 
 #: ../../.././index_tournaments.php:60
 msgid "index.tournaments.create.booster_add.title"
