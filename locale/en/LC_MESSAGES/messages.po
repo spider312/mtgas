@@ -2,28 +2,64 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-21 11:27+0100\n"
-"PO-Revision-Date: 2013-04-21 16:49+0100\n"
+"POT-Creation-Date: 2013-05-04 14:51+0100\n"
+"PO-Revision-Date: 2013-05-04 14:51+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
+"X-Poedit-KeywordsList: __;gettext;gettext_noop\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-Language: English\n"
 "X-Poedit-Country: UNITED STATES\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
 
-#: ../../.././lib.php:5
+#: ../../.././lib.php:7
 msgid "menu.chat"
 msgstr "Chat"
 
-#: ../../.././lib.php:5
+#: ../../.././lib.php:7
 msgid "menu.chat.title"
 msgstr "Meet other players"
+
+#: ../../.././lib.php:8
+msgid "menu.forum"
+msgstr "Forum"
+
+#: ../../.././lib.php:8
+msgid "menu.forum.title"
+msgstr "Discuss the game, help improve it"
+
+#: ../../.././lib.php:9
+msgid "menu.ranking"
+msgstr "Top players"
+
+#: ../../.././lib.php:9
+msgid "menu.ranking.title"
+msgstr "Player rankings based on games played and won, for various periods"
+
+#: ../../.././lib.php:10
+msgid "menu.data"
+msgstr "Your data"
+
+#: ../../.././lib.php:10
+msgid "menu.data.title"
+msgstr "Lists duels and tournaments you participated, allowing to replay them"
+
+#: ../../.././lib.php:26
+msgid "menu.facebook.title"
+msgstr "Another way to keep yourself informed : Mogg.fr on faceboo"
+
+#: ../../.././lib.php:27
+msgid "menu.gui"
+msgstr "Keyboard &amp; mouse shortcuts"
+
+#: ../../.././lib.php:27
+msgid "menu.gui.title"
+msgstr "Keyboard &amp; mouse shortcuts"
 
 #: ../../.././includes/lib.php:202
 msgid "menu.identity_shower.title"
