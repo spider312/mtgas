@@ -88,7 +88,7 @@
         <td><?=__('index.tournaments.type');?></td>
         <td><?=__('index.tournaments.name');?></td>
         <td><?=__('index.tournaments.status');?></td>
-        <td title="><?=__('index.tournaments.time_left.title');?>"><?=__('index.tournaments.time_left');?></td>
+        <td title="<?=__('index.tournaments.time_left.title');?>"><?=__('index.tournaments.time_left');?></td>
         <td><?=__('index.tournaments.players');?></td>
        </tr>
       </thead>
