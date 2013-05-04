@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 18:20+0100\n"
-"PO-Revision-Date: 2013-05-04 18:22+0100\n"
+"POT-Creation-Date: 2013-05-04 19:12+0100\n"
+"PO-Revision-Date: 2013-05-04 19:14+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -50,7 +50,7 @@ msgstr "Slots"
 #: ../../.././index_tournaments.php:13
 #: ../../.././index_tournaments.php:92
 msgid "index.tournaments.players"
-msgstr "Players"
+msgstr "Players :"
 
 #: ../../.././index_tournaments.php:14
 #: ../../.././index_tournaments.php:84
@@ -131,7 +131,7 @@ msgstr "Number of players"
 
 #: ../../.././index_tournaments.php:49
 msgid "index.tournaments.create.players"
-msgstr "Players"
+msgstr "Players :"
 
 #: ../../.././index_tournaments.php:53
 msgid "index.tournaments.create.suggestions.title"
@@ -139,7 +139,7 @@ msgstr "Suggestions for tournament's boosters"
 
 #: ../../.././index_tournaments.php:53
 msgid "index.tournaments.create.suggestions"
-msgstr "Suggestions"
+msgstr "Suggestions :"
 
 #: ../../.././index_tournaments.php:56
 msgid "index.tournaments.create.boosters.title"
@@ -225,47 +225,47 @@ msgstr "No running tournaments"
 msgid "index.tournaments.view.waiting"
 msgstr "Waiting for list of running tournaments"
 
-#: ../../.././lib.php:7
+#: ../../.././lib.php:18
 msgid "menu.chat"
 msgstr "Chat"
 
-#: ../../.././lib.php:7
+#: ../../.././lib.php:18
 msgid "menu.chat.title"
 msgstr "Meet other players"
 
-#: ../../.././lib.php:8
+#: ../../.././lib.php:19
 msgid "menu.forum"
 msgstr "Forum"
 
-#: ../../.././lib.php:8
+#: ../../.././lib.php:19
 msgid "menu.forum.title"
 msgstr "Discuss the game, help improve it"
 
-#: ../../.././lib.php:9
+#: ../../.././lib.php:20
 msgid "menu.ranking"
 msgstr "Top players"
 
-#: ../../.././lib.php:9
+#: ../../.././lib.php:20
 msgid "menu.ranking.title"
 msgstr "Player rankings based on games played and won, for various periods"
 
-#: ../../.././lib.php:10
+#: ../../.././lib.php:21
 msgid "menu.data"
 msgstr "Your data"
 
-#: ../../.././lib.php:10
+#: ../../.././lib.php:21
 msgid "menu.data.title"
 msgstr "Lists duels and tournaments you participated, allowing to replay them"
 
-#: ../../.././lib.php:25
+#: ../../.././lib.php:22
 msgid "menu.facebook.title"
 msgstr "Another way to keep yourself informed : Mogg.fr on faceboo"
 
-#: ../../.././lib.php:26
+#: ../../.././lib.php:23
 msgid "menu.gui"
 msgstr "Keyboard &amp; mouse shortcuts"
 
-#: ../../.././lib.php:26
+#: ../../.././lib.php:23
 msgid "menu.gui.title"
 msgstr "Keyboard &amp; mouse shortcuts"
 
@@ -359,7 +359,7 @@ msgstr "Deck URL"
 
 #: ../../.././index_decks.php:43
 msgid "index.decks.download.url.title"
-msgstr "A deck file hosted by a web-server, paste the 'export MWS' link on a deck on mtgtop8.com for example"
+msgstr "URL of the deck file (in MWS (.mwDeck) or Aprentice (.dec) file format)"
 
 #: ../../.././index_decks.php:45
 msgid "index.decks.download.download"
