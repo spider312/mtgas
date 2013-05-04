@@ -396,19 +396,17 @@ function draw() {
 					}
 				}
 			var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
-			/*
+			game.context.save()
+			/** /
+			canvas_set_alpha(.1) ;
 			var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
 			var post = game.widget_under_mouse.grid_coords(coords.x, 0) ;
-			canvas_set_alpha(.2) ;
 			game.context.fillStyle = 'white' ;
 			game.context.fillRect(posl.x, posl.y, bfcols*gridswidth, gridsheight) ;
-			game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
-			canvas_reset_alpha() ;
+			//game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
 			/**/
-
+			canvas_set_alpha(.2) ;
 			if ( nb > 0 ) {
-				game.context.save()
-				canvas_set_alpha(.2) ;
 				game.context.font = gridsheight+"pt Arial";
 				var txt = nb ;
 				if ( pow > 0 )
@@ -416,9 +414,9 @@ function draw() {
 				if ( untap > 0 )
 					txt = untap+' / '+txt ;
 				canvas_text_tr(game.context, txt, pos.x+gridswidth, pos.y, 'white') ;
-				canvas_reset_alpha() ;
-				game.context.restore() ;
 			}
+			canvas_reset_alpha() ;
+			game.context.restore() ;
 		}
 		// Additionnal information
 		if ( game.options.get('debug') ) {
