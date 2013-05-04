@@ -158,7 +158,7 @@ function init() {
 		// Basic lands
 	lands = [] ;
 	function landbase(id, name) {
-		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X'}, toString: function() { return this.name+"\n" ; } } ;
+		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1}, toString: function() { return this.name+"\n" ; } } ;
 	}
 	arr = [
 		landbase(3332, 'Forest'),
@@ -201,7 +201,9 @@ function timer(id, s) {
 						rdeck.side.sort(alpha_sort) ;
 						player.deck_obj.main.sort(alpha_sort) ;
 						player.deck_obj.side.sort(alpha_sort) ;
-						if ( obj2deck(player.deck_obj) != obj2deck(rdeck) ) {
+						var dt1 = obj2deck(player.deck_obj) ;
+						var dt2 = obj2deck(rdeck) ;
+						if ( dt1 != dt2 ) {
 							// Reinit lands (filled by filter_lands)
 							for ( var i in lands ) {
 								document.getElementById('md'+lands[i].name).value = 0 ;
@@ -382,7 +384,7 @@ function card_div(card) { // Returns visual representation of a card
 	div.id = card.id ;
 	div.card = card ;
 	div.classList.add(card.rarity) ;
-	div.title = card.attrs.color_index+' '+card.name+' , click to add/remove from deck, right or middle click to get infos' ;
+	div.title = card.name+' , click to add/remove from deck, right or middle click to get infos' ;
 	div.url = '' ;
 	div.transformed_url = '' ;
 	// Image loading
