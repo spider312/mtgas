@@ -557,7 +557,7 @@ function decks_list() {
 			label.addEventListener('dblclick', function(ev) {
 				document.getElementById('deck_edit').click() ;
 			}, false) ;
-			label.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament, double click to eddit' ;
+			label.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament, double click to edit' ;
 			cell.appendChild(label) ;
 			// View
 			var cell = row.insertCell(-1) ;
