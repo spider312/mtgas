@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 17:46+0100\n"
-"PO-Revision-Date: 2013-05-04 17:53+0100\n"
+"POT-Creation-Date: 2013-05-04 18:24+0100\n"
+"PO-Revision-Date: 2013-05-04 18:39+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -268,6 +268,102 @@ msgstr "Contrôles"
 #: ../../.././lib.php:26
 msgid "menu.gui.title"
 msgstr "Liste des raccourcis clavier &amp; souris"
+
+#: ../../.././index_decks.php:2
+msgid "index.decks"
+msgstr "Decks"
+
+#: ../../.././index_decks.php:7
+msgid "index.decks.name"
+msgstr "Nom"
+
+#: ../../.././index_decks.php:8
+msgid "index.decks.actions"
+msgstr "Actions"
+
+#: ../../.././index_decks.php:9
+msgid "index.decks.actions.edit.title"
+msgstr "Visualiser et modifier le deck sélectionné"
+
+#: ../../.././index_decks.php:9
+msgid "index.decks.actions.edit"
+msgstr "Modifier"
+
+#: ../../.././index_decks.php:10
+msgid "index.decks.actions.delete.title"
+msgstr "Retirer le deck sélectionné de la liste"
+
+#: ../../.././index_decks.php:10
+msgid "index.decks.actions.delete"
+msgstr "Supprimer"
+
+#: ../../.././index_decks.php:11
+msgid "index.decks.actions.export.title"
+msgstr "Sauvegarder le deck en fichier .mwdeck"
+
+#: ../../.././index_decks.php:11
+msgid "index.decks.actions.export"
+msgstr "Exporter"
+
+#: ../../.././index_decks.php:17
+msgid "index.decks.waiting"
+msgstr "En attente de la liste des decks"
+
+#: ../../.././index_decks.php:21
+msgid "index.decks.create.title"
+msgstr "Un deck vide"
+
+#: ../../.././index_decks.php:23
+msgid "index.decks.create"
+msgstr "Nouveau"
+
+#: ../../.././index_decks.php:24
+msgid "index.decks.create.name"
+msgstr "Nom :"
+
+#: ../../.././index_decks.php:24
+msgid "index.decks.create.name.title"
+msgstr "Nom du deck à créer"
+
+#: ../../.././index_decks.php:25
+msgid "index.decks.create.create"
+msgstr "Créer"
+
+#: ../../.././index_decks.php:29
+msgid "index.decks.upload.title"
+msgstr "Un fichier sur votre ordinateur"
+
+#: ../../.././index_decks.php:30
+msgid "index.decks.upload"
+msgstr "Depuis votre ordinateur"
+
+#: ../../.././index_decks.php:33
+msgid "index.decks.upload.file.title"
+msgstr "Fichiers de deck (au format MWS - .mwdeck ou Apprentice - .dec). Vous pouvez en sélectionner plusieurs grâce aux touches Ctrl et Shift"
+
+#: ../../.././index_decks.php:36
+msgid "index.decks.upload.file.upload"
+msgstr "Envoyer"
+
+#: ../../.././index_decks.php:40
+msgid "index.decks.download.title"
+msgstr "Un deck hébergé sur un site web, coller le lien 'export MWS' d'un deck sur mtgtop8.com par exemple"
+
+#: ../../.././index_decks.php:41
+msgid "index.decks.download"
+msgstr "Depuis un site web"
+
+#: ../../.././index_decks.php:43
+msgid "index.decks.download.placeholder"
+msgstr "URL du deck"
+
+#: ../../.././index_decks.php:43
+msgid "index.decks.download.url.title"
+msgstr "URL du deck (au format MWS - .mwDeck ou Apprentice - .dec)"
+
+#: ../../.././index_decks.php:45
+msgid "index.decks.download.download"
+msgstr "Téléchérger"
 
 #: ../../.././index_duels.php:2
 msgid "index.duels"

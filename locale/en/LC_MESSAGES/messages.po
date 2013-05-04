@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 17:44+0100\n"
-"PO-Revision-Date: 2013-05-04 17:45+0100\n"
+"POT-Creation-Date: 2013-05-04 18:20+0100\n"
+"PO-Revision-Date: 2013-05-04 18:22+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -269,35 +269,126 @@ msgstr "Keyboard &amp; mouse shortcuts"
 msgid "menu.gui.title"
 msgstr "Keyboard &amp; mouse shortcuts"
 
+#: ../../.././index_decks.php:2
+msgid "index.decks"
+msgstr "Decks"
+
+#: ../../.././index_decks.php:7
+msgid "index.decks.name"
+msgstr "Name"
+
+#: ../../.././index_decks.php:8
+msgid "index.decks.actions"
+msgstr "Actions"
+
+#: ../../.././index_decks.php:9
+msgid "index.decks.actions.edit.title"
+msgstr "View and change selected deck's list"
+
+#: ../../.././index_decks.php:9
+msgid "index.decks.actions.edit"
+msgstr "Edit"
+
+#: ../../.././index_decks.php:10
+msgid "index.decks.actions.delete.title"
+msgstr "Remove selected deck from list"
+
+#: ../../.././index_decks.php:10
+msgid "index.decks.actions.delete"
+msgstr "Delete"
+
+#: ../../.././index_decks.php:11
+msgid "index.decks.actions.export.title"
+msgstr "Save selected deck as a .mwdeck file"
+
+#: ../../.././index_decks.php:11
+msgid "index.decks.actions.export"
+msgstr "Export"
+
+#: ../../.././index_decks.php:17
+msgid "index.decks.waiting"
+msgstr "Waiting for decks to load"
+
+#: ../../.././index_decks.php:21
+msgid "index.decks.create.title"
+msgstr "A deck from scratch"
+
+#: ../../.././index_decks.php:23
+msgid "index.decks.create"
+msgstr "From scratch"
+
+#: ../../.././index_decks.php:24
+msgid "index.decks.create.name"
+msgstr "Deck name"
+
+#: ../../.././index_decks.php:24
+msgid "index.decks.create.name.title"
+msgstr "Name of the deck"
+
+#: ../../.././index_decks.php:25
+msgid "index.decks.create.create"
+msgstr "Create"
+
+#: ../../.././index_decks.php:29
+msgid "index.decks.upload.title"
+msgstr "Deck files on your computer"
+
+#: ../../.././index_decks.php:30
+msgid "index.decks.upload"
+msgstr "From your computer"
+
+#: ../../.././index_decks.php:33
+msgid "index.decks.upload.file.title"
+msgstr "Deck files (in MWS (.mwDeck) or Aprentice (.dec) file format). You can select multiple with Ctrl, Shift or mouse selection"
+
+#: ../../.././index_decks.php:36
+msgid "index.decks.upload.file.upload"
+msgstr "Import"
+
+#: ../../.././index_decks.php:40
+msgid "index.decks.download.title"
+msgstr "A deck file hosted by a web-server, paste the 'export MWS' link on a deck on mtgtop8.com for example"
+
+#: ../../.././index_decks.php:41
+msgid "index.decks.download"
+msgstr "From a website"
+
+#: ../../.././index_decks.php:43
+msgid "index.decks.download.placeholder"
+msgstr "Deck URL"
+
+#: ../../.././index_decks.php:43
+msgid "index.decks.download.url.title"
+msgstr "A deck file hosted by a web-server, paste the 'export MWS' link on a deck on mtgtop8.com for example"
+
+#: ../../.././index_decks.php:45
+msgid "index.decks.download.download"
+msgstr "Download"
+
 #: ../../.././index_duels.php:2
 msgid "index.duels"
 msgstr "Duels"
 
 #: ../../.././index_duels.php:4
-#, fuzzy
 msgid "index.duels.join"
 msgstr "Join"
 
 #: ../../.././index_duels.php:8
-#, fuzzy
 msgid "index.duels.id"
 msgstr "ID"
 
 #: ../../.././index_duels.php:9
 #: ../../.././index_duels.php:43
-#, fuzzy
 msgid "index.duels.name"
 msgstr "Name"
 
 #: ../../.././index_duels.php:10
 #: ../../.././index_duels.php:44
-#, fuzzy
 msgid "index.duels.creator"
 msgstr "Create"
 
 #: ../../.././index_duels.php:11
 #: ../../.././index_duels.php:47
-#, fuzzy
 msgid "index.duels.age"
 msgstr "Age"
 
@@ -315,7 +406,6 @@ msgid "index.duels.wait"
 msgstr "Waiting for list of pending duels"
 
 #: ../../.././index_duels.php:27
-#, fuzzy
 msgid "index.duels.create"
 msgstr "Create"
 
@@ -324,7 +414,6 @@ msgid "index.duels.create.title"
 msgstr "Duel's name"
 
 #: ../../.././index_duels.php:33
-#, fuzzy
 msgid "index.duels.create.name"
 msgstr "Name :"
 
@@ -337,7 +426,6 @@ msgid "index.duels.create.name.title"
 msgstr "Duel's name"
 
 #: ../../.././index_duels.php:35
-#, fuzzy
 msgid "index.duels.create.create"
 msgstr "Create"
 
@@ -346,7 +434,6 @@ msgid "index.duels.create.create.title"
 msgstr "Create duel"
 
 #: ../../.././index_duels.php:39
-#, fuzzy
 msgid "index.duels.view"
 msgstr "View"
 
