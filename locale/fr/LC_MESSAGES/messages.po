@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-05-04 21:00+0100\n"
-"PO-Revision-Date: 2013-05-04 21:10+0100\n"
+"PO-Revision-Date: 2013-05-04 21:15+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -139,7 +139,7 @@ msgstr "Suggestions de boosters"
 
 #: ../../.././index_tournaments.php:53
 msgid "index.tournaments.create.suggestions"
-msgstr "Suggestions"
+msgstr "Suggestions :"
 
 #: ../../.././index_tournaments.php:56
 msgid "index.tournaments.create.boosters.title"
@@ -183,7 +183,7 @@ msgstr "Forcer le tournois à comporter plus de rondes que le nombre de joueurs 
 
 #: ../../.././index_tournaments.php:69
 msgid "index.tournaments.create.round_number"
-msgstr "Nombre de rondes"
+msgstr "Nombre de rondes :"
 
 #: ../../.././index_tournaments.php:72
 msgid "index.tournaments.create.round_duration.title"
@@ -191,7 +191,7 @@ msgstr "Changer la durée des rondes, en minutes"
 
 #: ../../.././index_tournaments.php:72
 msgid "index.tournaments.create.round_duration"
-msgstr "Durée des rondes"
+msgstr "Durée des rondes :"
 
 #: ../../.././index_tournaments.php:75
 msgid "index.tournaments.create.clone.title"
