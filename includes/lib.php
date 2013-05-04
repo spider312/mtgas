@@ -191,7 +191,7 @@ function bootstrap_menu($additionnal_entries=null) {
 function html_menu($additionnal_entries=null) {
 	global $menu_entries, $url ;
 	echo '   <div id="header" class="section">'."\n" ;
-	echo '    <a title="Main page" href="'.$url.'">Main page</a> - '."\n" ;
+	echo '    <a title="'.__('menu.main').'" href="'.$url.'">'.__('menu.main.title').'</a> - '."\n" ;
 	foreach ( $menu_entries as $i => $entry ) {
 		if ( $i == count($menu_entries)-1 )
 			$separator = '' ;

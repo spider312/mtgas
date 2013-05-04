@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 14:51+0100\n"
-"PO-Revision-Date: 2013-05-04 14:51+0100\n"
+"POT-Creation-Date: 2013-05-04 15:04+0100\n"
+"PO-Revision-Date: 2013-05-04 15:04+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -49,17 +49,25 @@ msgstr "Your data"
 msgid "menu.data.title"
 msgstr "Lists duels and tournaments you participated, allowing to replay them"
 
-#: ../../.././lib.php:26
+#: ../../.././lib.php:25
 msgid "menu.facebook.title"
 msgstr "Another way to keep yourself informed : Mogg.fr on faceboo"
 
-#: ../../.././lib.php:27
+#: ../../.././lib.php:26
 msgid "menu.gui"
 msgstr "Keyboard &amp; mouse shortcuts"
 
-#: ../../.././lib.php:27
+#: ../../.././lib.php:26
 msgid "menu.gui.title"
 msgstr "Keyboard &amp; mouse shortcuts"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main"
+msgstr "Main page"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main.title"
+msgstr "Main page"
 
 #: ../../.././includes/lib.php:202
 msgid "menu.identity_shower.title"
