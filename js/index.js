@@ -372,9 +372,10 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 			document.getElementById('tournament_view').classList.add('hidden') ;
 	}) ;
 	// Loop's next iteration
-	window.setTimeout(tournaments_timer, game_list_timer // Call same function in 'game_list_timer' seconds
-		, pending_tournaments, tournament_no // With all same parameters (pointers to result displaying tables)
-		, running_tournaments, running_tournament_no) ;
+	if ( true ) // To stop loop for debuging
+		window.setTimeout(tournaments_timer, game_list_timer // Call same function in 'game_list_timer' seconds
+			, pending_tournaments, tournament_no // With all same parameters (pointers to result displaying tables)
+			, running_tournaments, running_tournament_no) ;
 }
 function list_players(tournament) {
 	var ul = document.createElement('ol') ;

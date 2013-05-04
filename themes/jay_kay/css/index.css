@@ -52,7 +52,7 @@ td.nowrap {
 	margin-top: 15px ;
 }
 /* Table lines enhancement */
-td a {
+td a, td label {
 	display: block ;
 	text-decoration: none ;
 	color: black ;
