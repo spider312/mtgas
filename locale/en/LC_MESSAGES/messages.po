@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 19:12+0100\n"
-"PO-Revision-Date: 2013-05-04 19:14+0100\n"
+"POT-Creation-Date: 2013-05-04 21:00+0100\n"
+"PO-Revision-Date: 2013-05-04 21:10+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -159,7 +159,7 @@ msgstr "Add one booster selected in list"
 
 #: ../../.././index_tournaments.php:60
 msgid "index.tournaments.create.booster_add"
-msgstr "Add"
+msgstr "Add :"
 
 #: ../../.././index_tournaments.php:62
 msgid "index.tournaments.create.waiting"
