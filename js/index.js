@@ -554,7 +554,10 @@ function decks_list() {
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
 			var label = create_label(null, radio, deck_name_s) ;
-			label.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament' ;
+			label.addEventListener('dblclick', function(ev) {
+				document.getElementById('deck_edit').click() ;
+			}, false) ;
+			label.title = 'Click to select '+deck_name+' before creating or joining a duel or constructed tournament, double click to eddit' ;
 			cell.appendChild(label) ;
 			// View
 			var cell = row.insertCell(-1) ;
