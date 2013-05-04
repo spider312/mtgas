@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 17:43+0100\n"
-"PO-Revision-Date: 2013-05-04 17:46+0100\n"
+"POT-Creation-Date: 2013-05-04 17:46+0100\n"
+"PO-Revision-Date: 2013-05-04 17:53+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -327,7 +327,7 @@ msgstr "Nom du duel"
 
 #: ../../.././index_duels.php:34
 msgid "index.duels.create.name.title"
-msgstr "Please specify type, rules applied"
+msgstr "Spécifiez le type de partie que vous voulez, l'utilisation du side, la nombre de parties, etc."
 
 #: ../../.././index_duels.php:35
 msgid "index.duels.create.create"
