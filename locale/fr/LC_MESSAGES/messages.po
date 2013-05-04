@@ -2,28 +2,280 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-21 11:27+0100\n"
-"PO-Revision-Date: 2013-04-21 11:27+0100\n"
+"POT-Creation-Date: 2013-05-04 16:04+0100\n"
+"PO-Revision-Date: 2013-05-04 16:14+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
+"X-Poedit-KeywordsList: __;gettext;gettext_noop\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-Language: French\n"
 "X-Poedit-Country: FRANCE\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
 
-#: ../../.././lib.php:5
+#: ../../.././index_tournaments.php:2
+msgid "index.tournaments"
+msgstr "Tournois"
+
+#: ../../.././index_tournaments.php:4
+msgid "index.tournaments.join"
+msgstr "Rejoindre"
+
+#: ../../.././index_tournaments.php:8
+msgid "index.tournaments.id"
+msgstr "ID"
+
+#: ../../.././index_tournaments.php:9
+#: ../../.././index_tournaments.php:88
+msgid "index.tournaments.type"
+msgstr "Type"
+
+#: ../../.././index_tournaments.php:10
+#: ../../.././index_tournaments.php:89
+msgid "index.tournaments.name"
+msgstr "Nom"
+
+#: ../../.././index_tournaments.php:11
+msgid "index.tournaments.age"
+msgstr "Age"
+
+#: ../../.././index_tournaments.php:12
+msgid "index.tournaments.slots"
+msgstr "Places"
+
+#: ../../.././index_tournaments.php:13
+#: ../../.././index_tournaments.php:92
+msgid "index.tournaments.players"
+msgstr "Joueurs"
+
+#: ../../.././index_tournaments.php:14
+#: ../../.././index_tournaments.php:84
+msgid "index.tournaments.view"
+msgstr "Voir"
+
+#: ../../.././index_tournaments.php:19
+msgid "index.tournaments.join.no"
+msgstr "Pas de tournois en attente"
+
+#: ../../.././index_tournaments.php:24
+msgid "index.tournaments.join.wating"
+msgstr "Attente de la liste de tournois en attente de joueurs"
+
+#: ../../.././index_tournaments.php:29
+msgid "index.tournaments.create"
+msgstr "Créer"
+
+#: ../../.././index_tournaments.php:31
+msgid "index.tournaments.create.format.title"
+msgstr "Format du tournois"
+
+#: ../../.././index_tournaments.php:31
+msgid "index.tournaments.create.format"
+msgstr "Format :"
+
+#: ../../.././index_tournaments.php:33
+msgid "index.tournaments.create.limited"
+msgstr "Limité"
+
+#: ../../.././index_tournaments.php:34
+msgid "index.tournaments.create.draft"
+msgstr "Draft"
+
+#: ../../.././index_tournaments.php:35
+msgid "index.tournaments.create.sealed"
+msgstr "Paquet scellé"
+
+#: ../../.././index_tournaments.php:37
+msgid "index.tournaments.create.constructed"
+msgstr "Construit"
+
+#: ../../.././index_tournaments.php:38
+msgid "index.tournaments.create.vintage"
+msgstr "Vintage (T1)"
+
+#: ../../.././index_tournaments.php:39
+msgid "index.tournaments.create.legacy"
+msgstr "Legacy (T1.5)"
+
+#: ../../.././index_tournaments.php:40
+msgid "index.tournaments.create.modern"
+msgstr "Moderne"
+
+#: ../../.././index_tournaments.php:41
+msgid "index.tournaments.create.standard"
+msgstr "Standard"
+
+#: ../../.././index_tournaments.php:42
+msgid "index.tournaments.create.edh"
+msgstr "EDH"
+
+#: ../../.././index_tournaments.php:46
+msgid "index.tournaments.create.name.title"
+msgstr "Nom du tournois"
+
+#: ../../.././index_tournaments.php:46
+msgid "index.tournaments.create.name"
+msgstr "Nom : "
+
+#: ../../.././index_tournaments.php:47
+msgid "index.tournaments.create.name_placeholder"
+msgstr "Nom du tournois"
+
+#: ../../.././index_tournaments.php:49
+msgid "index.tournaments.create.players.title"
+msgstr "Nombre de joueurs"
+
+#: ../../.././index_tournaments.php:49
+msgid "index.tournaments.create.players"
+msgstr "Joueurs"
+
+#: ../../.././index_tournaments.php:53
+msgid "index.tournaments.create.suggestions.title"
+msgstr "Suggestions de boosters"
+
+#: ../../.././index_tournaments.php:53
+msgid "index.tournaments.create.suggestions"
+msgstr "Suggestions"
+
+#: ../../.././index_tournaments.php:56
+msgid "index.tournaments.create.boosters.title"
+msgstr "Boosters pour le tournois"
+
+#: ../../.././index_tournaments.php:56
+msgid "index.tournaments.create.boosters"
+msgstr "Boosters pour le tournois : "
+
+#: ../../.././index_tournaments.php:58
+msgid "index.tournaments.create.reset"
+msgstr "Réinitialiser"
+
+#: ../../.././index_tournaments.php:60
+msgid "index.tournaments.create.booster_add.title"
+msgstr "Ajouter un booster de l'extension sélectionnée dans la liste"
+
+#: ../../.././index_tournaments.php:60
+msgid "index.tournaments.create.booster_add"
+msgstr "Ajouter"
+
+#: ../../.././index_tournaments.php:62
+msgid "index.tournaments.create.waiting"
+msgstr "En attente de la liste"
+
+#: ../../.././index_tournaments.php:64
+msgid "index.tournaments.create.add"
+msgstr "Ajouter"
+
+#: ../../.././index_tournaments.php:67
+msgid "index.tournaments.create.options.title"
+msgstr "Cliquez sur le + pour voir plus d'options"
+
+#: ../../.././index_tournaments.php:68
+msgid "index.tournaments.create.options"
+msgstr "Options"
+
+#: ../../.././index_tournaments.php:69
+msgid "index.tournaments.create.round_number.title"
+msgstr "Forcer le tournois à comporter plus de rondes que le nombre de joueurs ne l'implique"
+
+#: ../../.././index_tournaments.php:69
+msgid "index.tournaments.create.round_number"
+msgstr "Nombre de rondes"
+
+#: ../../.././index_tournaments.php:72
+msgid "index.tournaments.create.round_duration.title"
+msgstr "Changer la durée des rondes, en minutes"
+
+#: ../../.././index_tournaments.php:72
+msgid "index.tournaments.create.round_duration"
+msgstr "Durée des rondes"
+
+#: ../../.././index_tournaments.php:75
+msgid "index.tournaments.create.clone.title"
+msgstr "Tous les joueurs dans le tournois auront les mêmes cartes dans leur paquet"
+
+#: ../../.././index_tournaments.php:75
+msgid "index.tournaments.create.clone"
+msgstr "Cloner le paquet scellé : "
+
+#: ../../.././index_tournaments.php:81
+msgid "index.tournaments.create.create"
+msgstr "Créer"
+
+#: ../../.././index_tournaments.php:90
+msgid "index.tournaments.status"
+msgstr "Statut"
+
+#: ../../.././index_tournaments.php:91
+msgid "index.tournaments.time_left.title"
+msgstr "Avant la fin de la ronde"
+
+#: ../../.././index_tournaments.php:91
+msgid "index.tournaments.time_left"
+msgstr "Temps restant"
+
+#: ../../.././index_tournaments.php:97
+msgid "index.tournaments.view.no"
+msgstr "Pas de tournois en cours"
+
+#: ../../.././index_tournaments.php:102
+msgid "index.tournaments.view.waiting"
+msgstr "En attente de la liste des tournois en cours"
+
+#: ../../.././lib.php:7
 msgid "menu.chat"
 msgstr "Discuter"
 
-#: ../../.././lib.php:5
+#: ../../.././lib.php:7
 msgid "menu.chat.title"
 msgstr "Rencontrer d'autres joueurs"
+
+#: ../../.././lib.php:8
+msgid "menu.forum"
+msgstr "Forum"
+
+#: ../../.././lib.php:8
+msgid "menu.forum.title"
+msgstr "Discussions à propos du logiciel et de la base de cartes et d'images"
+
+#: ../../.././lib.php:9
+msgid "menu.ranking"
+msgstr "Classement"
+
+#: ../../.././lib.php:9
+msgid "menu.ranking.title"
+msgstr "Classement des joueurs par périodes"
+
+#: ../../.././lib.php:10
+msgid "menu.data"
+msgstr "Vos données"
+
+#: ../../.././lib.php:10
+msgid "menu.data.title"
+msgstr "Liste des duels et tournois auxquels vous avez participé"
+
+#: ../../.././lib.php:25
+msgid "menu.facebook.title"
+msgstr "La page facebook de MOGG, pour vous tenir au courant sur ses évolutions"
+
+#: ../../.././lib.php:26
+msgid "menu.gui"
+msgstr "Contrôles"
+
+#: ../../.././lib.php:26
+msgid "menu.gui.title"
+msgstr "Liste des raccourcis clavier &amp; souris"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main"
+msgstr "Accueil"
+
+#: ../../.././includes/lib.php:194
+msgid "menu.main.title"
+msgstr "Page principale du site"
 
 #: ../../.././includes/lib.php:202
 msgid "menu.identity_shower.title"

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-04 15:04+0100\n"
-"PO-Revision-Date: 2013-05-04 15:04+0100\n"
+"POT-Creation-Date: 2013-05-04 16:01+0100\n"
+"PO-Revision-Date: 2013-05-04 16:03+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -16,6 +16,214 @@ msgstr ""
 "X-Poedit-Country: UNITED STATES\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
+
+#: ../../.././index_tournaments.php:2
+msgid "index.tournaments"
+msgstr "Tournaments"
+
+#: ../../.././index_tournaments.php:4
+msgid "index.tournaments.join"
+msgstr "Join"
+
+#: ../../.././index_tournaments.php:8
+msgid "index.tournaments.id"
+msgstr "ID"
+
+#: ../../.././index_tournaments.php:9
+#: ../../.././index_tournaments.php:88
+msgid "index.tournaments.type"
+msgstr "Type"
+
+#: ../../.././index_tournaments.php:10
+#: ../../.././index_tournaments.php:89
+msgid "index.tournaments.name"
+msgstr "Name"
+
+#: ../../.././index_tournaments.php:11
+msgid "index.tournaments.age"
+msgstr "Age"
+
+#: ../../.././index_tournaments.php:12
+msgid "index.tournaments.slots"
+msgstr "Slots"
+
+#: ../../.././index_tournaments.php:13
+#: ../../.././index_tournaments.php:92
+msgid "index.tournaments.players"
+msgstr "Players"
+
+#: ../../.././index_tournaments.php:14
+#: ../../.././index_tournaments.php:84
+msgid "index.tournaments.view"
+msgstr "View"
+
+#: ../../.././index_tournaments.php:19
+msgid "index.tournaments.join.no"
+msgstr "No pending tournaments"
+
+#: ../../.././index_tournaments.php:24
+msgid "index.tournaments.join.wating"
+msgstr "Waiting for list of pending tournaments"
+
+#: ../../.././index_tournaments.php:29
+msgid "index.tournaments.create"
+msgstr "Create"
+
+#: ../../.././index_tournaments.php:31
+msgid "index.tournaments.create.format.title"
+msgstr "Tournament's format"
+
+#: ../../.././index_tournaments.php:31
+msgid "index.tournaments.create.format"
+msgstr "Format :"
+
+#: ../../.././index_tournaments.php:33
+msgid "index.tournaments.create.limited"
+msgstr "Limited"
+
+#: ../../.././index_tournaments.php:34
+msgid "index.tournaments.create.draft"
+msgstr "Draft"
+
+#: ../../.././index_tournaments.php:35
+msgid "index.tournaments.create.sealed"
+msgstr "Sealed"
+
+#: ../../.././index_tournaments.php:37
+msgid "index.tournaments.create.constructed"
+msgstr "Constructed"
+
+#: ../../.././index_tournaments.php:38
+msgid "index.tournaments.create.vintage"
+msgstr "Vintage (T1)"
+
+#: ../../.././index_tournaments.php:39
+msgid "index.tournaments.create.legacy"
+msgstr "Legacy (T1.5)"
+
+#: ../../.././index_tournaments.php:40
+msgid "index.tournaments.create.modern"
+msgstr "Modern"
+
+#: ../../.././index_tournaments.php:41
+msgid "index.tournaments.create.standard"
+msgstr "Standard (T2)"
+
+#: ../../.././index_tournaments.php:42
+msgid "index.tournaments.create.edh"
+msgstr "EDH"
+
+#: ../../.././index_tournaments.php:46
+msgid "index.tournaments.create.name.title"
+msgstr "Tournament's name"
+
+#: ../../.././index_tournaments.php:46
+msgid "index.tournaments.create.name"
+msgstr "Name :"
+
+#: ../../.././index_tournaments.php:47
+msgid "index.tournaments.create.name_placeholder"
+msgstr "Tournament's name"
+
+#: ../../.././index_tournaments.php:49
+msgid "index.tournaments.create.players.title"
+msgstr "Number of players"
+
+#: ../../.././index_tournaments.php:49
+msgid "index.tournaments.create.players"
+msgstr "Players"
+
+#: ../../.././index_tournaments.php:53
+msgid "index.tournaments.create.suggestions.title"
+msgstr "Suggestions for tournament's boosters"
+
+#: ../../.././index_tournaments.php:53
+msgid "index.tournaments.create.suggestions"
+msgstr "Suggestions"
+
+#: ../../.././index_tournaments.php:56
+msgid "index.tournaments.create.boosters.title"
+msgstr "Tournament's boosters"
+
+#: ../../.././index_tournaments.php:56
+msgid "index.tournaments.create.boosters"
+msgstr "Boosters for tournament :"
+
+#: ../../.././index_tournaments.php:58
+msgid "index.tournaments.create.reset"
+msgstr "Reset"
+
+#: ../../.././index_tournaments.php:60
+msgid "index.tournaments.create.booster_add.title"
+msgstr "Add one booster selected in list"
+
+#: ../../.././index_tournaments.php:60
+msgid "index.tournaments.create.booster_add"
+msgstr "Add"
+
+#: ../../.././index_tournaments.php:62
+msgid "index.tournaments.create.waiting"
+msgstr "Waiting for list"
+
+#: ../../.././index_tournaments.php:64
+msgid "index.tournaments.create.add"
+msgstr "Add"
+
+#: ../../.././index_tournaments.php:67
+msgid "index.tournaments.create.options.title"
+msgstr "Click the + to get more options"
+
+#: ../../.././index_tournaments.php:68
+msgid "index.tournaments.create.options"
+msgstr "Options"
+
+#: ../../.././index_tournaments.php:69
+msgid "index.tournaments.create.round_number.title"
+msgstr "Force more rounds even if not enough players"
+
+#: ../../.././index_tournaments.php:69
+msgid "index.tournaments.create.round_number"
+msgstr "Number of rounds :"
+
+#: ../../.././index_tournaments.php:72
+msgid "index.tournaments.create.round_duration.title"
+msgstr "Change duration of rounds, in minutes"
+
+#: ../../.././index_tournaments.php:72
+msgid "index.tournaments.create.round_duration"
+msgstr "Rounds duration :"
+
+#: ../../.././index_tournaments.php:75
+msgid "index.tournaments.create.clone.title"
+msgstr "All players in the sealed will have the same pool"
+
+#: ../../.././index_tournaments.php:75
+msgid "index.tournaments.create.clone"
+msgstr "Clone sealed :"
+
+#: ../../.././index_tournaments.php:81
+msgid "index.tournaments.create.create"
+msgstr "Create"
+
+#: ../../.././index_tournaments.php:90
+msgid "index.tournaments.status"
+msgstr "Status"
+
+#: ../../.././index_tournaments.php:91
+msgid "index.tournaments.time_left.title"
+msgstr "Before end of current phase, or round"
+
+#: ../../.././index_tournaments.php:91
+msgid "index.tournaments.time_left"
+msgstr "Time left"
+
+#: ../../.././index_tournaments.php:97
+msgid "index.tournaments.view.no"
+msgstr "No running tournaments"
+
+#: ../../.././index_tournaments.php:102
+msgid "index.tournaments.view.waiting"
+msgstr "Waiting for list of running tournaments"
 
 #: ../../.././lib.php:7
 msgid "menu.chat"
