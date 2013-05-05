@@ -15,7 +15,7 @@ if ( ( $reg == null ) || ! isset($reg->deck) )
 else
 	$deck = $reg->deck ;
 $deck = deck2arr($deck) ;
-/* Stats for those cards 
+/* Stats for those cards * /
 $card_connection = card_connect() ;
 $order_by = 'score_ratio' ;
 $cards = query_as_array("SELECT
@@ -37,12 +37,15 @@ ORDER BY
 function statsize($card, $cards) {
 	global $order_by ;
 	foreach ( $cards as $i => $c )
-		if ( $c->card_id == $card->id )
-			break ;
-	$card->stats = $c ;
-	$card->stats->rank = $i ;
-	$card->stats->count = count($cards) ;
-	$card->stats->order_by = $order_by ;
+		if ( $c->card_id == $card->id ) {
+			$card->stats = $c ;
+			$card->stats->rank = $i ;
+			$card->stats->count = count($cards) ;
+			$card->stats->order_by = $order_by ;
+			return true ;
+		}
+	$card->stats = null ;
+	return false ;
 }
 foreach ( $deck->main as $card )
 	statsize($card, $cards) ;
