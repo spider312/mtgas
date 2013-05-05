@@ -55,13 +55,8 @@ function card_list_edit(zone, dest, n) {
 	zone.editor_window.zone = zone.toString() ;
 	zone.editor_window.dest = dest.toString() ;
 	zone.editor_window.n = n ;
-		// Header
-	var listtool = document.createElement('div') ;
-	listtool.classList.add('listtool') ;
-	zone.editor_window.appendChild(listtool) ;
-			// Button close
-	var but_close = create_button('X', function(ev) {
-		var div = ev.target.parentNode.parentNode ;
+	zone.editor_window.close = function() {
+		var div = this ;
 		var zone = eval(div.zone) ;
 		zone.editor_window = null ;
 		div.parentNode.removeChild(div) ;
@@ -77,6 +72,14 @@ function card_list_edit(zone, dest, n) {
 		if ( tmp.checked )
 			zone.shuffle() ;
 		zone.refresh() ;
+	}
+		// Header
+	var listtool = document.createElement('div') ;
+	listtool.classList.add('listtool') ;
+	zone.editor_window.appendChild(listtool) ;
+			// Button close
+	var but_close = create_button('X', function(ev) {
+		ev.target.parentNode.parentNode.close() ;
 	}, 'Close list', 'but_close') ;
 	zone.editor_window.appendChild(but_close) ;
 	listtool.appendChild(but_close) ;
@@ -282,6 +285,10 @@ function listContextMenu(ev) {
 	var card = ev.target.thing ;
 	var menu = new menu_init(card) ;
 	card.changezone_menu(menu, card) ;
+	menu.addline('Shuffle and put on top', function(card) {
+		card.zone.editor_window.close() ;
+		card.moveinzone(card.zone.cards.length) ;
+	}, card) ;
 	menu.addline() ;
 	if ( card.is_visible() ) {
 		menu.addline('Informations (offsite)', card.info) ;
