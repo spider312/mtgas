@@ -1310,7 +1310,7 @@ function card_prototype() {
 		return attrs ;
 	}
 	this.setattrs = function(attrs) { // Get a new "attrs" array, and compare each element with current "attrs" array, then apply each difference
-		if ( isb(attrs.flip) && ( attrs.flip != this.attrs.flip ) )
+		if ( isb(attrs.flipped) && ( attrs.flipped != this.attrs.flipped ) )
 			this.flip_recieve() ;
 		if ( typeof attrs.transformed != 'undefined' )
 			if ( this.attrs.transformed != attrs.transformed ) {
@@ -1463,18 +1463,19 @@ function card_prototype() {
 	}
 	// Flip
 	this.flip = function() {
+		this.attrs.flipped = ! this.attrs.flipped ;
+		this.sync() ; // Only send flip status, same flip_recieve will be done on both side
+		this.attrs.flipped = ! this.attrs.flipped ;
 		this.flip_recieve() ;
-		this.sync() ;
 	}
 	this.flip_recieve = function() {
 		message(active_player.name+' flips '+this.get_name()) ;
-		var flipped = this.attrs.flipped ;
-		flipped = ! flipped ;
+		var flipped = ! this.attrs.flipped ;
 		if ( flipped )
 			this.attrs = this.flip_attrs ;
 		else
 			this.attrs = this.orig_attrs ;
-		this.attrs.flipped = flipped ;
+		this.attrs.flipped = flipped ; // Must be done after attrs overwriting
 		this.refreshpowthou() ;
 	}
 	// Transform
