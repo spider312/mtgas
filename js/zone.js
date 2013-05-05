@@ -817,34 +817,6 @@ function battlefield(player) {
 			menu.addline('Battlefield',	card_list_edit, mybf) ;
 			menu.addline() ;
 			menu.addline('Re arrange',	mybf.rearange, mybf) ;
-			/*
-			var submenutk = new menu_init(mybf) ;
-			for ( var ext in game.tokens_catalog ) {
-				var submenuext = new menu_init(mybf) ;
-				var tks = game.tokens_catalog[ext] ;
-				for ( var j in tks ) {
-					var matches = j.match(/(.*)\.jpg/)
-					if ( matches == null )
-						submenuext.addline(j) ;
-					else {
-						var name = matches[1] ;
-						matches = j.match(/(.*)\.(\d+)\.(\d+)/)
-						if ( matches == null ) {
-							var attrs = {'types': ['emblem']} ;
-						} else {
-							var name = matches[1] ;
-							var attrs = {'types': ['creature']} ;
-							attrs.pow = parseInt(matches[2]) ;
-							attrs.thou = parseInt(matches[3]) ;
-						}
-						var item = submenuext.addline(name, create_token, ext, name, mybf, attrs) ;
-						item.moimg = card_images(token_image_url(ext, name, attrs)) ;
-					}
-				}
-				submenutk.addline(ext, submenuext) ;
-			}
-			menu.addline('Tokens', submenutk) ;
-			menu.addline() ;*/
 			var submenu = new menu_init(mybf) ;
 			submenu.addline('20 sided',     rolldice, 20) ; // Can't add player as "message_send" mechanism is used
 			submenu.addline('6 sided',     rolldice, 6) ;
