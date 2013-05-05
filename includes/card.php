@@ -262,7 +262,7 @@ class attrs {
 							$flip = new simple_object() ;
 							if ( count($matches) > 0 )
 								manage_types(array_shift($matches), $flip) ;
-							$this->flip = $flip ;
+							$this->flip_attrs = $flip ;
 							manage_all_text($arr['name'], implode("\n", $matches), $flip) ;
 						} else { // "/" in name, it's a dual
 							$dual = new simple_object() ;

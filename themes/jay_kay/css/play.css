@@ -50,6 +50,11 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	width: 100% ;
 	margin-bottom: -3px ; /* ?!? */
 }
+#zoom.rotated {
+	-webkit-transform: rotate(180deg) ;
+	-moz-transform: rotate(180deg) ;
+	transform: rotate(180deg) ;
+}
 #timeleft, #info {
 	font-size: 18px ;
 	text-align: center ;

@@ -47,9 +47,13 @@ function card_prototype() {
 		this.init_attrs(attrs) ;
 		// Expected and no need to sync
 		this.expected_attrs('manas', attrs) ;
+		this.expected_attrs('flip_attrs', attrs) ;
 		this.expected_attrs('transformed_attrs', attrs) ;
+		// Default value
+		if ( this.flip_attrs )
+			attrs.flipped = false ;
 		if ( this.transformed_attrs)
-			attrs.transformed = false ; // Default value
+			attrs.transformed = false ;
 		// / Attributes
 		this.orig_attrs = attrs ;
 		this.attrs = clone(this.orig_attrs) ;
@@ -329,9 +333,21 @@ function card_prototype() {
 			var offset = 1.5 ;
 			context.strokeRect(lw+offset, lw+offset, this.w-2*(lw+offset), this.h-2*(lw+offset)) ;
 		}
+		// Flip
+		if ( this.attrs.flipped ) {
+			context.translate(this.w/2, this.h/2) ;
+			context.rotate(Math.PI) ;
+			context.translate(-this.w/2, -this.h/2) ;
+		}
 		// Image
 		if ( this.img != null )
 			context.drawImage(this.img, lw, lw, this.w-2*lw, this.h-2*lw) ;
+		// Flip
+		if ( this.attrs.flipped ) {
+			context.translate(this.w/2, this.h/2) ;
+			context.rotate(-Math.PI) ;
+			context.translate(-this.w/2, -this.h/2) ;
+		}
 		// Copy
 		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) && ( this.attrs.copy.img != null ) ) {
 			var offset = 10 ;
@@ -501,6 +517,10 @@ function card_prototype() {
 			var doc = document ;
 		var zoom = doc.getElementById('zoom') ;
 		zoom.thing = this ;
+		if ( this.attrs.flipped )
+			zoom.classList.add('rotated') ;
+		else
+			zoom.classList.remove('rotated') ;
 		// Load image
 		game.image_cache.load(this.imgurl(), function(img, card) {
 			doc.getElementById('zoom').src = img.src ;
@@ -751,6 +771,9 @@ function card_prototype() {
 							} else {
 								cardmenu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
 							}
+						// Flip
+						if ( card.flip )
+							cardmenu.addline('Flip', card.flip).checked = card.attrs.flipped ;
 						// Transform
 						if ( card.transformed_attrs ) {
 							var l = cardmenu.addline('Transform', card.toggle_transform) ;
@@ -1287,6 +1310,8 @@ function card_prototype() {
 		return attrs ;
 	}
 	this.setattrs = function(attrs) { // Get a new "attrs" array, and compare each element with current "attrs" array, then apply each difference
+		if ( isb(attrs.flip) && ( attrs.flip != this.attrs.flip ) )
+			this.flip_recieve() ;
 		if ( typeof attrs.transformed != 'undefined' )
 			if ( this.attrs.transformed != attrs.transformed ) {
 				if ( attrs.transformed )
@@ -1435,6 +1460,22 @@ function card_prototype() {
 		}
 
 		return false ;
+	}
+	// Flip
+	this.flip = function() {
+		this.flip_recieve() ;
+		this.sync() ;
+	}
+	this.flip_recieve = function() {
+		message(active_player.name+' flips '+this.get_name()) ;
+		var flipped = this.attrs.flipped ;
+		flipped = ! flipped ;
+		if ( flipped )
+			this.attrs = this.flip_attrs ;
+		else
+			this.attrs = this.orig_attrs ;
+		this.attrs.flipped = flipped ;
+		this.refreshpowthou() ;
 	}
 	// Transform
 	this.toggle_transform = function() {
