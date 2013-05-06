@@ -256,10 +256,11 @@ class attrs {
 					// Dual / Flip
 					$pieces = explode("\n----\n", $arr['text']) ;
 					if ( count($pieces) > 1 ) {
-						manage_all_text($arr['name'], $pieces[0], $this) ;
+						manage_all_text($arr['name'], $pieces[0], $this) ; // Manage "main" part
 						$matches = explode("\n", $pieces[1]) ;
 						if ( strpos($arr['name'], '/') === false ) { // No "/" in name, it's a flip
 							$flip = new simple_object() ;
+							$flip->name = array_shift($matches) ;
 							if ( count($matches) > 0 )
 								manage_types(array_shift($matches), $flip) ;
 							$this->flip_attrs = $flip ;

@@ -235,8 +235,7 @@ foreach ( $matches as $i => $match ) {
 			if ( $second ) // Dual card
 				$add = "\n----\n$cost\n$types\n$text" ;
 			else // Flip card
-				$add = "\n----\n$types\n$text" ;
-			echo $cost ;
+				$add = "\n----\n$name\n$types\n$text" ;
 		}
 		$arr['text'] = $prevtext.$add ;
 		echo '    <td colspan="3" title="'.$arr['text'].'">Update : text' ;
