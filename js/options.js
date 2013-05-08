@@ -117,6 +117,12 @@ function Options(check_id) {
 		this.options[name] = option ;
 		return option ;
 	}
+	this.add_trigger = function(name, trigger) {
+		if ( ! this.options.hasOwnProperty(name) )
+			return false ;
+		this.options[name].onChange = trigger ;
+		return true ;
+	} 
 	this.get = function(name) {
 		if ( this.options.hasOwnProperty(name) )
 			return this.options[name].get() ;
