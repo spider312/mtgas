@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-05-04 21:17+0100\n"
-"PO-Revision-Date: 2013-05-04 23:32+0100\n"
+"PO-Revision-Date: 2013-05-08 14:38+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: \n"
@@ -15,6 +15,7 @@ msgstr ""
 "X-Poedit-Language: French\n"
 "X-Poedit-Country: FRANCE\n"
 "X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Bookmarks: 0,51,62,86,-1,-1,-1,-1,-1,-1\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
 
 #: ../../.././index_tournaments.php:2
@@ -363,7 +364,7 @@ msgstr "URL du deck (au format MWS - .mwDeck ou Apprentice - .dec)"
 
 #: ../../.././index_decks.php:45
 msgid "index.decks.download.download"
-msgstr "Téléchérger"
+msgstr "Télécharger"
 
 #: ../../.././index_duels.php:2
 msgid "index.duels"
