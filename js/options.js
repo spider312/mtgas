@@ -1,5 +1,5 @@
 // Manage 1 option
-function Option(name, desc, longdesc, def, choices) {
+function Option(name, desc, longdesc, def, choices, onChange) {
 	// Methods
 		// Accessors
 	this.set = function(value) {
@@ -88,14 +88,19 @@ function Option(name, desc, longdesc, def, choices) {
 	this.desc = desc ;
 	this.longdesc = longdesc ;
 	this.def = def ;
-	if ( this.get() == null )
-		this.set(def) ;
+	this.label = null ;
+	this.input = null ;
 	if ( ! iso(choices) )
 		choices = null ;
 	this.choices = choices ;
-	this.label = null ;
-	this.input = null ;
-	this.onChange = null ;
+	if ( ! isf(onChange) )
+		onChange = null ;
+	this.onChange = onChange ;
+	if ( this.get() == null ) {
+		this.set(def) ;
+		if ( isf(this.onChange) )
+			this.onChange(this) ;
+	}
 }
 // Manage all options
 function Options(check_id) {
@@ -104,8 +109,8 @@ function Options(check_id) {
 	this.groups = {} ;
 	// Methods
 		// Accessors
-	this.add = function(group, name, desc, longdesc, def, choices) {
-		var option = new Option(name, desc, longdesc, def, choices) ;
+	this.add = function(group, name, desc, longdesc, def, choices, onChange) {
+		var option = new Option(name, desc, longdesc, def, choices, onChange) ;
 		if ( ! iso(this.groups[group]) )
 			this.groups[group] = {} ;
 		this.groups[group][name] = option ;
@@ -123,12 +128,6 @@ function Options(check_id) {
 			return this.options[name].set(value) ;
 		else
 			return null ;
-	}
-	this.add_trigger = function(name, trigger) {
-		if ( ! this.options.hasOwnProperty(name) )
-			return false ;
-		this.options[name].onChange = trigger ;
-		return true ;
 	}
 		// Rendering
 			// Lib
@@ -193,11 +192,7 @@ function Options(check_id) {
 				fieldset.appendChild(group[j].render()) ;
 			container.appendChild(fieldset) ;
 		}
-		var buttons = create_div() ;
-		buttons.id = 'buttons' ;
-		buttons.appendChild(this.button_identity) ;
-		buttons.appendChild(this.button_profile) ;
-		container.appendChild(buttons) ;
+		this.add_buttons(container, 'options') ;
 		this.resize(container) ;
 	}
 			// Identity
@@ -252,29 +247,10 @@ function Options(check_id) {
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
 		container.appendChild(fieldset) ;
-		// Buttons
-		var buttons = create_div() ;
-		buttons.id = 'buttons' ;
-		buttons.appendChild(this.button_options) ;
-		buttons.appendChild(this.button_profile) ;
-		container.appendChild(buttons) ;
-		this.resize(container) ; // Done on image error/load
 		nick.select() ;
-	}
-	this.identity_apply = function() {
-		// Find hook
-		var is = document.getElementById('identity_shower') ;
-		if ( is == null )
-			return false ;
-		// Replace its content
-		node_empty(is) ;
-		var img = create_img(localize_image(this.get('profile_avatar'))) ;
-		is.appendChild(img) ;
-		is.appendChild(create_text(this.get('profile_nick'))) ;
-		// Check nickname validity or open identity window
-		var nick = this.get('profile_nick')
-		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) )
-			this.identity_show() ;
+		this.resize(container) ; // Done on image error/load
+		// Buttons
+		this.add_buttons(container, 'identity') ;
 	}
 		// Profile
 	this.profile_show = function() {
@@ -417,13 +393,20 @@ function Options(check_id) {
 		// End
 		container.appendChild(fieldset) ;
 		this.resize(container) ;
+		this.add_buttons(container, 'profile') ;
+	}
+	this.add_buttons = function(container, disabled) {
 		var buttons = create_div() ;
 		buttons.id = 'buttons' ;
+		this.button_identity.disabled = (disabled == 'identity') ;
+		this.button_options.disabled = (disabled == 'options') ;
+		this.button_profile.disabled = (disabled == 'profile') ;
 		buttons.appendChild(this.button_identity) ;
 		buttons.appendChild(this.button_options) ;
+		buttons.appendChild(this.button_profile) ;
 		container.appendChild(buttons) ;
 	}
-	// Buttons
+	// Buttons cache
 	var myoptions = this ;
 	this.button_identity = create_button('Identity', function(ev) { myoptions.identity_show()  }, 'Manage your nickname and avatar') ;
 	this.button_options = create_button('Options', function(ev) { // Verify nickname before leaving 'identity' window
@@ -436,6 +419,22 @@ function Options(check_id) {
 			return false ; // No hide if trigger returns false
 		myoptions.profile_show() ;
 	}, 'Manage local and server-side profiles')
+	// Hook
+	this.identity_apply = function() {
+		// Find hook
+		var is = document.getElementById('identity_shower') ;
+		if ( is == null )
+			return false ;
+		// Replace its content
+		node_empty(is) ;
+		var img = create_img(localize_image(this.get('profile_avatar'))) ;
+		is.appendChild(img) ;
+		is.appendChild(create_text(this.get('profile_nick'))) ;
+		// Check nickname validity or open identity window
+		var nick = this.get('profile_nick')
+		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) )
+			this.identity_show() ;
+	}
 	// Data
 		// Identity
 	this.add('Identity', 'profile_nick', 'Nickname', 'Will appear near your life counter/avatar and in all messages displayed in chatbox', 'Nickname') ; 
@@ -459,8 +458,7 @@ function Options(check_id) {
 //		$.cookie('cardimages', ev.target.value) ;
 //	}, false) ;
 //}
-	this.add('Appearence', 'lang',			'Language',			'Language used for every message printed on this site, does not include card images',			applang, applangs) ;
-	this.add_trigger('lang', function(option) {
+	this.add('Appearence', 'lang',			'Language',			'Language used for every message printed on this site, does not include card images',			applang, applangs, function(option) {
 		$.cookie(option.name, option.get()) ;
 	}) ;
 	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default_lang, cardimages_choice) ;
