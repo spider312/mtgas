@@ -181,17 +181,29 @@ function init() {
 	}
 }
 // Timer loop
+started = null ; // Is tournament already started when user loads page
 function timer(id, s) {
 	spectactor = s ;
 	$.getJSON('json/tournament.php', {'id': id, 'firsttime': true}, function(data) { // Get time left
 		tournament = data ;
-		if ( ( ! spectactor ) && ( data.status != 4 ) ) // If tournament isn't in "drafting" status, go back to tournament index (that will normally redirect to build)
+		if ( ( ! spectactor ) && ( data.status != 4 ) ) // If tournament isn't in "building" status, go back to tournament index (that will normally redirect to build)
 			window.location.replace('index.php?id='+id) ;
 		else {
 			window.setTimeout(timer, sealed_timer, id, spectactor) ; // Refresh in 30 secs
 			document.getElementById('timeleft').value = time_disp(parseInt(data.timeleft)) ;
 			tournament_players_update(data) ;
 			tournament_log_update(data) ;
+			if ( data.log.length > 0 ) { // First recieved object doesn't contain log
+				for ( var i = 0 ; i < data.log.length ; i++ )
+					if ( data.log[i].type == 'start' ) {
+						if ( started == null )
+							started = true ; // tournament is already started
+						else if ( ! started ) // Not started yet, but recieving this means we need redirection
+							window.location.replace('index.php?id='+id) ;
+					}
+				if ( started == null )
+					started = false // After reading all log messages, we know if game is already started at page load
+			}
 			if ( spectactor )
 				for ( var i = 0 ; i < data.players.length ; i++ ) {
 					var player = data.players[i] ;
