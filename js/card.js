@@ -772,7 +772,7 @@ function card_prototype() {
 								cardmenu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
 							}
 						// Flip
-						if ( card.flip )
+						if ( this.flip_attrs != null )
 							cardmenu.addline('Flip', card.flip).checked = card.attrs.flipped ;
 						// Transform
 						if ( card.transformed_attrs ) {
@@ -796,7 +796,7 @@ function card_prototype() {
 							var name = tokens[i].name ;
 							var attrs = tokens[i].attrs ;
 							var img = token_image_name(name, ext, attrs) ;
-							ext = token_extention(img, ext)
+							ext = token_extention(img, ext) ;
 							if ( isn(attrs.pow) && isn(attrs.thou) )
 								var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
 							else

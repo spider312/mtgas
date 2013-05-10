@@ -43,17 +43,18 @@ function token_extention(img, ext) { // Search token in extensions
 		return ext ;
 	if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) ) // Token existing in special extension
 		return 'EXT' ;
-	delete game.tokens_catalog['EXT'] ; // Don't search special extension
+	var tokens_catalog = clone(game.tokens_catalog) ;
+	delete tokens_catalog['EXT'] ; // Don't search special extension
 	// Sort extension to rewind list from ext, then forward list from ext
 	var found = false ;
 	var exts_b = [] ; // Exts that are before 'ext'
-	var exts_a = [] ; // Exts that are before 'ext'
-	for ( var i in game.tokens_catalog ) { // Each extension, sorted by release date, "ext" at the end
+	var exts_a = [] ; // Exts that are after 'ext'
+	for ( var i in tokens_catalog ) { // Each extension, sorted by release date, "ext" at the end
 		if ( i == ext ) { // Switch between first and second pass
 			found = true ;
-			continue ; // Searched token isn't in current extension
+			continue ; // Searched token isn't in current extension, it was the first check in this function
 		}
-		if ( ! iss(game.tokens_catalog[i][img]) ) // Token isn't in extension
+		if ( ! iss(tokens_catalog[i][img]) ) // Token isn't in extension
 			continue ;
 		if ( ! found ) // First 'pass' : extensions before 'ext'
 			exts_b.unshift(i) ;
@@ -62,7 +63,7 @@ function token_extention(img, ext) { // Search token in extensions
 	}
 	var exts = exts_b.concat(exts_a) ;
 	for ( var i in exts ) // Now 
-		if ( iss(game.tokens_catalog[exts[i]][img]) )
+		if ( iss(tokens_catalog[exts[i]][img]) )
 			return exts[i] ;
 	log(img+' found in no extension') ;
 	return '' ;
@@ -75,6 +76,7 @@ function token_name(name, ext) { // Modify name depending on extension if needed
 	return name ;
 }
 function token_image_name(name, ext, attrs) { // Returns an image name from a token
+	name = token_name(name, ext) ;
 	if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
 		name += '.'+attrs.pow+'.'+attrs.thou ;
 	name += '.jpg' ;
