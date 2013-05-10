@@ -69,9 +69,11 @@ function token_extention(img, ext) { // Search token in extensions
 	return '' ;
 }
 function token_name(name, ext) { // Modify name depending on extension if needed (adds random numbers to tokens having multiple images)
-	if ( name == 'Eldrazi Spawn' )
-		name += ( rand(3) + 1 ) ;
-	if ( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
+	if (
+		( name == 'Eldrazi Spawn' )
+		||
+		( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
+	)
 		name += ( rand(3) + 1 ) ;
 	return name ;
 }
