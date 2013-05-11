@@ -1,4 +1,6 @@
 <?php
+include_once '../../includes/lib.php' ;
+$base_image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/' ;
 function cache_get($url, $cache_file, $verbose = true) {
 	if ( file_exists($cache_file) ) {
 		if ( $verbose )

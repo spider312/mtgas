@@ -1,5 +1,5 @@
 <?php
-include_once '../../includes/lib.php' ;
+//include_once '../../includes/lib.php' ;
 include_once '../../config.php' ;
 include_once '../../lib.php' ;
 include_once '../../includes/db.php' ;
@@ -27,7 +27,6 @@ if ( isset($argv) && ( count($argv) > 1 ) ) { // CLI
 	$apply = param($_GET, 'apply', false) ;
 }
 // Funcs
-$base_image_dir = substr(`bash -c "echo ~"`, 0, -1) ;
 function image_downable($code) {
 	global $base_image_dir, $ext_mci, $image_name, $ext, $nbpics, $match, $matches, $i, $apply ;
 	echo $code.' : ' ;
@@ -37,7 +36,7 @@ function image_downable($code) {
 		echo $image_name.$nbpics.' / ' ;
 	}
 	$image_name_l = card_img_by_name($image_name_l) ;
-	$image_path = $base_image_dir.'/img/'.strtoupper($code).'/'.$ext.'/'.$image_name_l ;
+	$image_path = $base_image_dir.strtoupper($code).'/'.$ext.'/'.$image_name_l ;
 	if ( is_file($image_path) ) {
 		echo 'Present' ;
 		return false ;
@@ -271,7 +270,7 @@ foreach ( $matches as $i => $match ) {
 				$log = 'up to date' ;
 			} else {
 				$update++ ;
-				$log = 'Updates : <ul>'.$log.'</ul>' ;
+				$log = '<a name="update'.$update.'">Updates</a> : <ul style="color: red;">'.$log.'</ul><a href="#update'.($update+1).'">Next update</a>' ;
 				if ( $apply)
 					$q = query("UPDATE `card` SET ".implode(', ', $updates).", `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
 			}
@@ -364,7 +363,7 @@ foreach ( $matches as $i => $match ) {
 	echo "   </tr>\n" ;
 }
 ?>
-   <caption><?php echo "$creation created, $update updated, $nothing untouched" ; ?></caption>
+   <caption><?php echo "$creation created, <a href=\"#update1\">$update updated</a>, $nothing untouched" ; ?></caption>
   </table>
   <pre>
 <?php

@@ -91,6 +91,7 @@ if ($handle = opendir('../'.$raw_dir)) {
       <input type="submit" value="Import from MCI">
      </form>
     </li>
+    <li><a href="cards/mci_extra.php">Import token images from MCI</a></li>
     <!--li><a href="cards/parse_all.php">Install all cards from master text spoiler</a></li-->
     <li><a href="cards/compile.php">Compile cards (adds attributes specific to MTGAS in database)</a></li>
     <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
