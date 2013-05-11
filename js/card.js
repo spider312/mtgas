@@ -1477,6 +1477,7 @@ function card_prototype() {
 			this.attrs = this.orig_attrs ;
 		this.attrs.flipped = flipped ; // Must be done after attrs overwriting
 		this.refreshpowthou() ;
+		this.zone.refresh_pt() ;
 	}
 	// Transform
 	this.toggle_transform = function() {
