@@ -429,6 +429,8 @@ function manage_text($name, $text, $target) {
 	// Various types
 	global $manacost, $boost, $boosts, $cardtypes, $colors ;
 	// Workarounds
+	$text = trim($text) ;
+	$text = str_replace('—', '-', $text) ; // Causes bugs in regex parsing
 	$text = str_replace('comes into play', 'enters the battlefield', $text) ; // Old style CIP
 	$text = preg_replace('/\(.*\)/', '', $text) ; // Remove reminder texts as they can interfere in parsing (vanishing reminder has text for upkeep trigger for exemple)
 	// Card attributes
