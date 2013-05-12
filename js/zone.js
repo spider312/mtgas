@@ -1004,12 +1004,13 @@ function battlefield(player) {
 				if ( card.attrs.no_untap_once ) {
 					card.attrs.no_untap_once = false ;
 					card.refresh() ;
+					card.sync() ;
 					redraw = true ;
 				} else
 					sel.add(card) ;
 			}
 		}
-		if ( redraw)
+		if ( redraw )
 			draw() ;
 		sel.tap(false) ;
 	}
