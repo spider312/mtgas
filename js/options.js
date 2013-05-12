@@ -449,6 +449,7 @@ function Options(check_id) {
 		//player_id
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
 	this.add('Hidden', 'deck', '', '', '') ;
+	this.add('Hidden', 'allowed', '', '', '') ;
 		// Tournament hidden
 	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
 	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;

@@ -205,7 +205,7 @@ function manage_action(action) {
 			new Spectactor(action.sender, param.name) ;
 			break ;
 		case 'allow' :
-			game.spectactors[param.spectactor].allow(active_player) ;
+			game.spectactors[param.spectactor].allow_recieve(active_player) ;
 			break ;
 		// Game actions
 			// Communication

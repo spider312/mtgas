@@ -320,48 +320,6 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 	this.exile.default_visibility = true ;
 	this.sideboard.default_visibility = false ; // No preloading, seeing those cards will be done by other mechanisms (listeditor, side)
 }
-function Spectactor(id, name) {
-	this.allowed = [] ;
-	this.allow = function(player) {
-		if ( ! inarray(player, this.allowed) ) {
-			this.allowed.push(player) ;
-			if ( $.cookie(session_id) == this.id )  {
-				var zone = player.hand ;
-				zone.default_visibility = true ;
-				for ( var i = 0 ; i < zone.cards.length ; i++ )
-					zone.cards[i].load_image() ;
-				message(player.get_name()+' allowed you', this.msgtype) ;
-			} else
-				message(player.get_name()+' allowed '+this.name, this.msgtype) ;
-		} else
-			message(player.get_name()+' already allowed '+this.name, this.msgtype) ;
-	}
-	this.id = id ;
-	this.name = name ;
-	this.msgtype = 'join' ;
-	if ( ! game.spectactors[id] )
-		game.spectactors[id] = this ;
-	else {
-		message(game.spectactors[id].name+' has re-join as spectactor', this.msgtype) ;
-		return game.spectactors[id] ;
-	}
-	msg = name+' has join as spectactor'
-	game.infobulle.set(msg) ;
-	var span = null ;
-	if ( ! spectactor ) { // Allow / ban button
-		var spec = this ;
-		span = create_span(
-			create_button('Show hand', function(ev) {
-				action_send('allow', {'spectactor': id}, function(data){/*log(data)*/}) ;
-				spec.allow(game.player) ;
-				ev.target.parentNode.removeChild(ev.target) ;
-			})/*, 
-			create_button('Ban', function(ev) {
-			})*/
-		) ;
-	}
-	message(msg, 'join', span) ;
-}
 function Sound() {
 	// Sounds
 	this.sounds = {} ;

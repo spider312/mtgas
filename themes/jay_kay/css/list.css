@@ -30,7 +30,7 @@
 	width: 21px ;
 	height: 21px ;
 }
-label	{
+.cardlist label	{
 	display: block ;
 	cursor: pointer ;
 }

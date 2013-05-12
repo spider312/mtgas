@@ -31,6 +31,7 @@
 	padding-left: 5px ;
 	margin-left: 5px ; /* Like style.css's one, for play.php */
 	border: 1px solid transparent ;
+	display: block ;
 }
 #options label:hover {
 	background-color: rgba(0, 0, 0, 0.2) ;

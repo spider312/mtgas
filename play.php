@@ -122,6 +122,7 @@ add_css(array(
   <script type="text/javascript" src="js/html.js"></script>
   <script type="text/javascript" src="js/selection.js"></script>
   <script type="text/javascript" src="js/options.js"></script>
+  <script type="text/javascript" src="js/spectactor.js"></script>
   <script type="text/javascript" src="variables.js.php"></script>
   <script type="text/javascript">
 $(function() { // When page is loaded : initialize everything
