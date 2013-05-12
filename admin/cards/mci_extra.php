@@ -12,6 +12,7 @@ include_once '../../includes/db.php' ;
 include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
 include_once 'import.php' ;
+$apply = true ;
 $url = 'http://magiccards.info/extras.html' ;
 echo '<p>Parsing <a href="'.$url.'">'.$url.'</a></p>' ;
 $verbose = false ;
@@ -31,6 +32,39 @@ array_shift($exts) ; // First part is begining of page, useless
 $nocodename = array() ;
 $notoken = array() ;
 $nodb = array() ;
+$pimp = array( // Extension redirection for promo tokens
+	'player-rewards-2001/bird' => 'IN',
+	'player-rewards-2001/elephant' => 'IN',
+	'player-rewards-2001/goblin-soldier' => 'AP',
+	'player-rewards-2001/saproling' => 'IN',
+	'player-rewards-2001/spirit' => 'PS',
+	'player-rewards-2001/bear' => 'OD',
+	'player-rewards-2001/beast' => 'OD',
+	'player-rewards-2002/elephant' => 'OD',
+	'player-rewards-2002/squirrel' => 'OD',
+	'player-rewards-2002/wurm' => 'OD',
+	'player-rewards-2002/zombie' => 'OD',
+	'player-rewards-2002/dragon' => 'ON',
+	'player-rewards-2002/soldier' => 'ON',
+	'player-rewards-2003/insect' => 'ON',
+	'player-rewards-2003/sliver' => 'LG',
+	'player-rewards-2003/bear' => 'ON',
+	'player-rewards-2003/goblin' => 'LG',
+	'player-rewards-2003/demon' => 'MR',
+	'player-rewards-2003/rukh' => '8E',
+	'player-rewards-2004/angel' => 'SC',
+	'player-rewards-2004/pentavite' => 'MR',
+	'player-rewards-2004/beast' => 'FD',
+	'player-rewards-2004/myr' => 'MR',
+	'player-rewards-2004/spirit' => 'CHK',
+	'avacyn-restored-the-helvault-experience/angel' => 'AVR', 
+	'avacyn-restored-the-helvault-experience/demon' => 'AVR', 
+	'league/knight' => 'RTR', 
+	'league/goblin' => 'M13', 
+	'league/soldier' => 'GTC', 
+	'league/bird' => 'DGM'
+) ;
+
 foreach ( $exts as $ext ) {
 	if ( ! preg_match('@^(?<code>.*?)"></a><h2>(?<name>.*?)</h2>@', $ext, $matches) ) {
 		$nocodename[] = $ext ;
@@ -42,14 +76,26 @@ foreach ( $exts as $ext ) {
 		continue ;
 	}
 	$query = query("SELECT * FROM extension WHERE `name` = '".$matches['name']."' ; ") ;
-	if ( $res = mysql_fetch_object($query) )
-		echo '<tr><th colspan="4"><a href="'.$url.'#'.$matches['code'].'">'.$res->name.' ('.$res->se.') '.'</a></th></tr>' ;
-	else {
+	if ( $res = mysql_fetch_object($query) ) {
+	} else {
 		$nodb[$matches['code']] = $matches['name'] ;
-		continue ;
+		$res = new simple_object() ;
+		$res->se = $matches['code'] ;
 	}
+	echo '<tr><th colspan="4">'.(isset($res->name)?'Found':'Not found').' in DB : <a href="'.$url.'#'.$matches['code'].'">'.$matches['name'].' ('.$res->se.') '.'</a></th></tr>' ;
 	foreach ( $matches_line as $match ) {
+		$force = false ;
 		if ( $match['type'] == 'Token' ) {
+			// Promo tokens redirected upon pimp array
+			if ( ! isset($res->name) ) {
+				if ( isset($pimp[$matches['code'].'/'.$match['url']]) ) {
+					$res->se = $pimp[$matches['code'].'/'.$match['url']] ;
+					$force = true ; // Pimp mode : overwrite extension token with pimp even if pimp is in lower quality
+				} else {
+					echo '<tr><td colspan="3">'.$match['name'].'</td></tr>' ;
+					continue ;
+				}
+			}
 			$img = cache_get('http://magiccards.info/extras/token/'.$matches['code'].'/'.$match['url'].'.jpg', 'cache/'.$matches['code'].'_'.$match['url'], $verbose) ;
 			echo '<tr>' ;
 			echo '<td><a href="http://magiccards.info/extra/token/'.$matches['code'].'/'.$match['url'].'.html">'.$match['name'].'</a></td>' ;
@@ -101,12 +147,10 @@ foreach ( $exts as $ext ) {
 						$parts = explode('-', $match['url']) ;
 						if ( $parts[0] == 'emblem' )
 							array_shift($parts) ;
-						if ( count($parts) > 1 ) {
+						if ( count($parts) > 1 )
 							$pname = 'Emblem.'.$parts[0] ;
-							echo 'Emblem '.$parts[0] ;
-						} else {
+						else
 							echo 'Not a creature token nor emblem' ;
-						}
 					}
 
 			}
@@ -116,23 +160,30 @@ foreach ( $exts as $ext ) {
 			echo '<td>'.human_filesize(strlen($img)) ;
 			$oldumask = umask(0) ;
 			if ( ! file_exists($lurl) ) {
-				if ( ! file_exists(dirname($lurl)) ) {
+				if ( ! file_exists(dirname($lurl)) && $apply) {
 					if ( mkdir(dirname($lurl), 0755, true) )
 						echo '[Dir created]';
 					else
 						echo '[Dir NOT created]';
 				}
-				if ( copy('cache/'.$matches['code'].'_'.$match['url'], $lurl) )
-					echo '[Created]' ;
-				else
-					echo '[NOT Created]' ;
-			} else {
-				if ( strlen($img) > filesize($lurl) ) {
-					echo ' > '.human_filesize(filesize($lurl)) ;
+				if ( $apply ) {
 					if ( copy('cache/'.$matches['code'].'_'.$match['url'], $lurl) )
-						echo '[Updated]';
+						echo '[Created]' ;
 					else
-						echo '[NOT Updated]';
+						echo '[NOT Created]' ;
+				} else
+					echo '[Creation]' ;
+			} else {
+				if ( $force || ( strlen($img) > filesize($lurl) ) ) {
+				//if ( $force ) { // To only overwrite base tokens with pimp ones
+					echo ' > '.human_filesize(filesize($lurl)) ;
+					if ( $apply ) {
+						if ( copy('cache/'.$matches['code'].'_'.$match['url'], $lurl) )
+							echo '[Updated]' ;
+						else
+							echo '[NOT Updated]' ;
+					} else
+						echo '[Update]' ;
 				} else
 					echo ' < '.human_filesize(filesize($lurl)) ;
 			}
