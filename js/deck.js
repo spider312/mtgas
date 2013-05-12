@@ -152,7 +152,6 @@ function deck_file_load(files) {
 		var reader = new FileReader();
 		reader.name = file.name.replace(/\.mwdeck$/gi, '') ;
 		reader.addEventListener('load', function(ev) {
-			log2(ev.target) ;
 			deck_set(ev.target.name, ev.target.result) ;
 			decks_list() ;
 		}, false) ;
