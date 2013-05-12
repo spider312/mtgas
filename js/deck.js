@@ -149,10 +149,13 @@ function deck_get(name) {
 function deck_file_load(files) {
 	for ( var i = 0 ; i < files.length ; i++ ) {
 		var file = files.item(i) ;
-		var name = file.name ;
-		name = name.replace(/\.mwdeck$/gi, '') ;
 		var reader = new FileReader();
-		reader.addEventListener('load', function(ev) {deck_set(name, ev.target.result) ; decks_list() ; }, false) ;
+		reader.name = file.name.replace(/\.mwdeck$/gi, '') ;
+		reader.addEventListener('load', function(ev) {
+			log2(ev.target) ;
+			deck_set(ev.target.name, ev.target.result) ;
+			decks_list() ;
+		}, false) ;
 		reader.readAsText(file) ;
 	}
 	decks_list() ;
