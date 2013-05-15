@@ -1868,10 +1868,29 @@ function card_prototype() {
 						continue ;
 					if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
 						continue ;
+					if ( boost.control < 0 )
+						continue ;
 					result += boost[type] ;
 				}
 			}
 		}
+		var cards = this.controler.opponent[this.zone.type].cards ;
+		for ( var i = 0 ; i < cards.length ; i++ ) {
+			var card = cards[i] ;
+			if ( iso(card.attrs.boost_bf) ) {
+				for ( var j = 0 ; j < card.attrs.boost_bf.length ; j++ ) {
+					var boost = card.attrs.boost_bf[j] ;
+					if ( ( ! boost.self ) && ( this == card ) ) // Boost doesn't work on self
+						continue ;
+					if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
+						continue ;
+					if ( boost.control > 0 )
+						continue ;
+					result += boost[type] ;
+				}
+			}
+		}
+
 		return result ;
 	}
 	this.refreshpowthou = function() { // Cache power and toughness in order not to recompute it on each frame draw

@@ -425,7 +425,8 @@ function manage_all_text($name, $text, $target) {
 		manage_text($name, $text_line, $target) ;
 	}
 }
-function manage_text($name, $text, $target) {
+// Reads 1 "line" of text and adds to target attributes parsed inside
+function manage_text($name, $text, $target) { 
 	// Various types
 	global $manacost, $boost, $boosts, $cardtypes, $colors ;
 	// Workarounds
@@ -469,6 +470,15 @@ function manage_text($name, $text, $target) {
 		$target->counter += intval($matches[1]) ;
 		$target->note = '+1/+1' ;
 	}
+		// Hideaway
+	if ( stripos($text, 'Hideaway') !== false )
+		$target->tapped = true ;
+		// Untap
+	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
+		$target->no_untap = true ;
+		// Upkeep trigger
+	if ( preg_match('/At the beginning of your upkeep, (.*)/', $text, $matches) )
+		$target->trigger_upkeep = stripslashes($matches[1]) ;
 	// CIP
 	if ( preg_match('/'.addcslashes($name, '\'"\\/' ).' enters the battlefield (or (?<alt>[^,]*),)?(?<act>.*)/', $text, $matches) ) {
 		/* Alternate trigger ('or attacks', 'or leaves play' ...)
@@ -511,19 +521,9 @@ function manage_text($name, $text, $target) {
 				$target->counter = text2number($matches[1]) ; ;
 				if ( $matches[2] != 'charge' ) // Basic counter type, no use to let the user know. +1/-1 will be removed later while parsing pow/tou
 					$target->note = $matches[2] ;
-			} /*else
-				echo ' - '.$name.' : '.$txt.'<br>' ;*/
+			}
 		}
 	}
-		// Hideaway
-	if ( stripos($text, 'Hideaway') !== false )
-		$target->tapped = true ;
-		// Untap
-	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
-		$target->no_untap = true ;
-		// Upkeep trigger
-	if ( preg_match('/At the beginning of your upkeep, (.*)/', $text, $matches) )
-		$target->trigger_upkeep = stripslashes($matches[1]) ;
 	// Creature attributes (permanent attributes for exalt)
 	global $creat_attrs ;
 	foreach ( $creat_attrs as $creat_attr )
@@ -582,7 +582,6 @@ function manage_text($name, $text, $target) {
 								$type = 'elf' ;
 							$target->powtoucond->cond = 'ctype='.$type ;
 					}
-				//msg($name.' : '.$target->powtoucond->what.' '.$target->powtoucond->from.' : '.$target->powtoucond->cond) ;
 			}
 		}
 		// Conditionnal mono boost (+1/+2 as long as ...)
@@ -602,8 +601,7 @@ function manage_text($name, $text, $target) {
 								$target->powtoucond->cond = 'type='.$mm[1] ;
 							else
 								$target->powtoucond->cond = 'ctype='.$mm[1] ;
-						}/* else
-							msg($name.' : '.$m['what']) ;*/
+						}
 						break ;
 					case 'an opponent' :
 					case 'no opponent' :
@@ -666,12 +664,27 @@ function manage_text($name, $text, $target) {
 			$target->tokens[] = $token ;
 		}
 	}
+	// Distinct activated from static abilities
+	//$parts = explode(':', $text) ;
+	$parts = preg_split('/\s*:\s*/', $text) ;
+	if ( count($parts) == 2 ) {
+		$cost = $parts[0] ;
+		$text = $parts[1] ;
+		if ( ! isset($target->activated) )
+			$target->activated = new Simple_object() ;
+		$target = $target->activated ;
+	}
 	// All creatures booster (crusade like)
-	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>you control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
 			$boost_bf = new simple_object() ;
 			$boost_bf->self = ( $match['other'] != 'other ' );
-			$boost_bf->control = ( $match['control'] == 'you control ' ) ;
+			//$boost_bf->control = ( $match['control'] == 'you control ' ) ; // Boolean version
+			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
+			if ( $match['control'] == 'you control ' ) // "New" boost way : only creatures you control
+				$boost_bf->control = 1 ;
+			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
+				$boost_bf->control = -1 ;
 			$boost_bf->pow = intval($match['pow']) ;
 			$boost_bf->tou = intval($match['tou']) ;
 			if ( $match['token'] != '' )

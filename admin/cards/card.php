@@ -190,11 +190,11 @@ foreach ( $ext as $i => $value ) {
       <input type="submit" value="Add">
      </form>
     </td>
-    <td id="cardimage" rowspan="8" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimage" rowspan="9" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 if ( isset($json->transformed_attrs) ) {
 ?>
-    <td id="cardimageback" rowspan="8" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimageback" rowspan="9" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 }
 ?>
@@ -230,8 +230,12 @@ if ( isset($json->transformed_attrs) ) {
      <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><?php debug($json) ; ?></td>
     </tr>
     <tr>
+     <th>Compile log</th>
+     <td><?php $attrs = new attrs($card_bdd) ;?></td>
+    </tr>
+    <tr>
      <th>Compiled</th>
-     <td title="<?php $attrs = new attrs($card_bdd) ; echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><?php debug($attrs) ; ?></td>
+     <td title="<?php echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><?php debug($attrs) ; ?></td>
     </tr>
    </form>
 

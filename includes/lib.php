@@ -17,6 +17,13 @@ function param($arr, $param, $defaultvalue='') {
 function message($txt='no text to send') {
 	$_SESSION['messages'][] = $txt ;
 }
+// Debug
+function l($obj) {
+	echo '<pre>'.print_r($obj, true).'</pre>' ;
+}
+function d($obj) {
+	die('<pre>'.print_r($obj, true).'</pre>') ;
+}
 // Object
 function object() {
 	return new simple_object() ;
