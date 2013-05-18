@@ -17,8 +17,8 @@ $(function() { // On page load
 	}, false) ;
 	document.getElementById('report_due').addEventListener('click', function(ev) {
 		var due_time = document.getElementById('due_time') ;
-		var t = due_time.value.split(/[- :]/);
-		var date = new Date(t[0], t[1]-1, t[2], t[3], t[4], t[5]);
+		var t = due_time.value.split(/[- :]/) ;
+zsh:1: command not found: q
 		date.setMinutes(date.getMinutes()+10) ;
 		due_time.value = date.toMysqlFormat() ;
 	}, false) ;
