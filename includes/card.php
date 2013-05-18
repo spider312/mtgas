@@ -642,9 +642,7 @@ function manage_text($name, $text, $target) {
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
-	$last_working_reg = '/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+) creature token/' ;
-	$test_reg = '/(?<number>\w+) [legendary ]?(?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (<color>.*) creature token/' ;
-	if ( preg_match_all($last_working_reg, $text, $all_matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+) creature token/', $text, $all_matches, PREG_SET_ORDER) ) {
 		foreach ( $all_matches as $matches ) {
 			$token = new simple_object() ;
 			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
@@ -665,7 +663,6 @@ function manage_text($name, $text, $target) {
 		}
 	}
 	// Distinct activated from static abilities
-	//$parts = explode(':', $text) ;
 	$parts = preg_split('/\s*:\s*/', $text) ;
 	if ( count($parts) == 2 ) {
 		$cost = $parts[0] ;
