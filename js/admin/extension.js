@@ -16,6 +16,11 @@ $(function() { // On page load
 		}) ;
 		return eventStop(ev) ;
 	}, false) ;
+	document.getElementById('filter').addEventListener('submit', function(ev) {
+		if ( ev.target.rarity.value != '' )
+			update_list({'rarity' : ev.target.rarity.value}) ;
+		return eventStop(ev) ;
+	}, false) ;
 	// Cards management
 	var ext_h = document.getElementById('ext') ;
 	ext = ext_h.value ;
@@ -29,8 +34,11 @@ $(function() { // On page load
 	// Display cards
 	update_list() ;
 }) ;
-function update_list() {
-	$.getJSON('/admin/cards/json/cards.php', {'ext': ext}, function(data) {
+function update_list(obj) {
+	if ( !iso(obj) )
+		obj = {} ;
+	obj['ext'] = ext ;
+	$.getJSON('/admin/cards/json/cards.php', obj, function(data) {
 		cardnb.value = data.length ;
 		var tbody = document.getElementById('cards')
 		node_empty(tbody) ;

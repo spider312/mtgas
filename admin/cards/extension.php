@@ -49,7 +49,12 @@ if ( $arr = mysql_fetch_array($query) ) {
     Priority : <input type="text" name="priority" size="2" value="<?php echo $ext_bdd['priority'] ; ?>">
     Release date : <input type="text" name="release_date" size="10" value="<?php echo $ext_bdd['release_date'] ; ?>">
     Bloc : <input type="text" name="bloc" size="2" value="<?php echo $ext_bdd['bloc'] ; ?>">
-    <input type="submit" name="submit" value="Update">
+    <input type="submit" name="update" value="Update">
+  </form>
+
+  <form id="filter">
+   Rarity : <input type="text" name="rarity">
+   <input type="submit" name="filter" value="filter">
   </form>
 
   <table>
