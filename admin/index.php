@@ -61,9 +61,10 @@ if ($handle = opendir('../'.$spoiler_dir)) {
 }
 */
 ?>
-    </li-->
+    </li>
     <li>Install extension from raw list : 
 <?php
+/*
 include_once 'cards/lib.php' ;
 if ($handle = opendir('../'.$raw_dir)) {
 	echo '  <ul>' ;
@@ -74,7 +75,15 @@ if ($handle = opendir('../'.$raw_dir)) {
 	closedir($handle) ;
 	echo '  </ul>' ;
 }
+*/
 ?>
+    </li-->
+    <li>
+     <form action="cards/upload.php" enctype="multipart/form-data" method="post">
+      <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">
+      <input type="file" name="list">
+      <button type="submit">Upload list</button>
+     </form>
     </li>
     <li>
      <form action="cards/cards.php" method="get">
