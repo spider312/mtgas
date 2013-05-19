@@ -20,7 +20,7 @@ if ( $result->player = mysql_fetch_object(query("SELECT * FROM `registration` WH
 	$result->msg = 'Player '.$player_id.' not registered to tournament #'.$id ;
 // Get booster
 if ( $result->booster = mysql_fetch_object(
-	query("SELECT * FROM `booster` WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;")
+	query("SELECT * FROM `booster` WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' AND `number` = '".$result->tournament->round."' ;")
 ) ) {
 } else if ( $result->tournament->status == 3 )
 	$result->msg = 'Unable to get booster '.$result->tournament->round.' for tournament #'.$id.' (player '.$result->player->order.')'+gettype($result->tournament->status) ;
@@ -50,7 +50,7 @@ if ( ( $pick != 0 ) && ( $pick != intval($result->booster->pick) ) ) { // If a p
 	}
 }
 if ( $updatepick ) {
-	$query = "UPDATE `booster` SET `pick` = $pick WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;" ;
+	$query = "UPDATE `booster` SET `pick` = $pick WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' AND `number` = '".$result->tournament->round."' ;" ;
 	query($query) ;
 	if ( mysql_affected_rows() > 1 ) 
 		$result->msg = mysql_affected_rows().' boosters updated : '.$query ;

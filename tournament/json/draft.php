@@ -26,7 +26,7 @@ if ( $result->player = mysql_fetch_object(query("SELECT * FROM `registration` WH
 } else
 	$result->msg = 'Player '.$player_id.' not registered to tournament #'.$id ;
 // Get booster
-if ( $result->booster = mysql_fetch_object(query("SELECT * FROM `booster` WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;")) ) {
+if ( $result->booster = mysql_fetch_object(query("SELECT * FROM `booster` WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' AND `number` = '".$result->tournament->round."';")) ) {
 	// Pick
 	$content = json_decode($result->booster->content) ;
 	// Get card data
@@ -61,7 +61,7 @@ if ( $result->booster = mysql_fetch_object(query("SELECT * FROM `booster` WHERE 
 				$destination = ", `destination` = 'side' " ;
 		} else
 			$destination = '' ;
-		$query = "UPDATE `booster` SET `pick` = $pick $destination WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' ;" ;
+		$query = "UPDATE `booster` SET `pick` = $pick $destination WHERE `tournament` = '$id' AND `player` = '".$result->player->order."' AND `number` = '".$result->tournament->round."' ;" ;
 		query($query) ;
 		//if ( mysql_affected_rows() > 1 ) // Wrong behaviour
 			//$result->msg = mysql_affected_rows().' boosters updated : '.$query ;

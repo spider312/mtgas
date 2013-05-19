@@ -128,14 +128,37 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		$cid = ts3_chan('Tournament '.$tournament->id, $tournament->name) ; // Create chan
 		ts3_invite($players, $cid) ; // Move each tournament's player to chan
 		ts3_disco() ;
+		// Unicity initialization
+		$cards = null ; // No unicity by default
+		$uniqs = array('CUB', 'OMC', 'CUBL') ; // Extensions that will trigger unicity (move inside booster creation func ?)
+		foreach ( $uniqs as $uniq )
+			if ( in_array($uniq, $data->boosters) )
+				$cards = array() ;
 		// Start first stage for tournament depending on type
 		switch ( $tournament->type ) {
 			case 'draft' :
-				$booster = array_shift($data->boosters) ;
+				// Delete previous booster in case it's needed
+				query("DELETE FROM `booster` WHERE `tournament` = '".$tournament->id."' ;") ;
 				$tournament->round = 1 ;
-				$cards = tournament_singleton($data) ;
-				foreach ( $players as $player )
-					booster_open($tournament, $player, $booster) ; // Must be done after updating tournament, 'cuz it takes infos in it (round)
+				$number = 0 ;
+				foreach ( $data->boosters as $booster ) {
+					$number++ ;
+					foreach ( $players as $player ) {
+						echo $player->nick." booster $booster ($number)\n" ;
+						$content = booster_as_array_with_ext($booster, $cards) ;
+						$object = new simple_object() ;
+						$object->ext = $content->ext ;
+						$object->cards = array() ;
+						foreach ( $content->cards as $card )
+							$object->cards[] = $card->name ;
+						query("INSERT INTO `booster` (`content`, `tournament`, `player`, `number`) VALUES
+							('".mysql_real_escape_string(json_encode($object))."',
+							'".$tournament->id."',
+							'".$player->order."', 
+							'".$number."')
+						;") ;
+					}
+				}
 				query("UPDATE `tournament` SET
 					`status` = '3',
 					`round` = '".$tournament->round."',
@@ -146,11 +169,10 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				tournament_log($tournament->id, '', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				$cards = tournament_singleton($data) ;
 				if ( $data->clone_sealed ) { // Each player has the same deck
 					query("UPDATE `registration`
 						SET
-							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), &$cards)."' 
+							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $cards)."' 
 						WHERE
 							`tournament_id` = '".$tournament->id."'
 						;") ;
@@ -159,7 +181,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 						query("UPDATE `registration`
 							SET
 							
-							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), &$cards)."' 
+							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $cards)."' 
 							WHERE
 								`tournament_id` = '".$tournament->id."'
 								AND `player_id` = '".$player->player_id."'
@@ -198,8 +220,10 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		WHERE
 			`registration`.`tournament_id` = '".$tournament->id."' AND
 			`booster`.`tournament` = '".$tournament->id."' AND
-			`booster`.`player` = `registration`.`order`
+			`booster`.`player` = `registration`.`order` AND
+			`booster`.`number` = '".$tournament->round."'
 		ORDER BY `registration`.`order`; ") ; // All players from the events and their current boosters
+		$content = new Simple_object() ;
 		while ( $player = mysql_fetch_object($players_query) ) {
 			// Defining pick
 			$content = json_decode($player->content) ; // Decode JSON from MySQL
@@ -222,6 +246,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			WHERE
 				`tournament` = '".$tournament->id."'
 				AND `player` = '".$player->order."'
+				AND `number` = '".$tournament->round."'
 			;") ; // Remove pick from booster
 			// Adding to player's pool
 			if ( count($splice) == 1 ) {
@@ -229,11 +254,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				$ex = explode('/', $line) ; // Transformable
 				if ( count($ex) > 1 )
 					$line = $ex[0] ; // Store only head face
-				// Old way : barbarianly add text at the end, works well
-				//$pick = 'SB: 1 ['.$content->ext.'] '.mysql_real_escape_string($line)."\n" ; // Converting to mwDeck format
-				//query("UPDATE `registration` SET `deck` = CONCAT(`deck`, '$pick'), `ready` = 0
-				//	WHERE `tournament_id` = '".$tournament->id."' AND `player_id` = '".$player->player_id."' ;") ;
-				// New way : parse deck as an object, add it to destination, stringify
+				// Parse deck as an object, add it to destination, stringify
 				$deck = deck2arr($player->deck) ;
 				$card = card2obj($card_connection, $line, $content->ext) ;
 				if ( $player->destination == 'main')
@@ -268,20 +289,12 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				if ( $even_round )
 					switch_booster($nb_players, $min_order, $tournament) ; // Used 0 as switch
 			}
-			if ( ( count($content->cards) == 1 ) && ( count($data->boosters) == 0) ) // Last pick from last booster
-				$delay = 1 ;
-			else
-				$delay = draft_time(count($content->cards), $tournament->round) ;
+			$delay = draft_time(count($content->cards), $tournament->round == count($data->boosters)) ;
 		} else {
 			$tournament->round++ ;
-			if ( count($data->boosters) > 0 ) { // Some boosters left to draft
-				$booster = array_shift($data->boosters) ;
-				$players_query = query("SELECT * FROM `registration` WHERE `registration`.`tournament_id` = '".$tournament->id."'
-				ORDER BY `registration`.`order`;") ; // All players from the events
-				while ( $player = mysql_fetch_object($players_query) )
-					booster_open($tournament, $player, $booster) ; // Open a new booster
+			if ( $row = mysql_fetch_array(query("SELECT * FROM `booster` WHERE `tournament` = '".$tournament->id."' AND `number` = '".$tournament->round."' ;") ) ) // Some boosters left to draft
 				$delay = draft_time() ;
-			} else { // No booster left to draft
+			else { // No booster left to draft
 				$tournament->status++ ; // Shift to build mode
 				$tournament->round = 0 ;
 				query("DELETE FROM `booster` WHERE `tournament` = '".$tournament->id."' ;") ; // Clean boosters

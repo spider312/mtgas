@@ -476,15 +476,6 @@ function booster_r_or_m($cards) {
 		return 'M' ;
 	return 'R' ;
 }
-function booster_as_array($ext='') {
-	$boost = booster_as_array_with_ext($ext) ;
-	$object = new simple_object() ;
-	$object->ext = $boost->ext ;
-	$object->cards = array() ;
-	foreach ( $boost->cards as $card )
-		$object->cards[] = $card->name ;
-	return $object ;
-}
 function booster_as_array_with_ext($ext='', &$ext_cards=null) {
 	$object = new simple_object() ;
 	$object->ext = $ext ;
@@ -495,55 +486,41 @@ function booster_as_array_with_ext($ext='', &$ext_cards=null) {
 	$cards = array() ; // Array of rarity, each rarity being an array of cards
 	$cardsf = array() ; // Array of all extension's cards, for foils
 	$cardst = array() ; // Array of all transformed cards
-	if ( $ext_cards != null ) {
-		foreach ( $ext_cards as $row ) {
-			$attrs = json_decode($row->attrs) ;
-			if ( isset($attrs->transformed_attrs) && $tr_ext )
-				$a =& $cardst ;
-			else
-				$a =& $cards ;
-			if ( ! array_key_exists($row->rarity, $a) )
-				$a[$row->rarity] = array() ;
-			$a[$row->rarity][] = $row ;
-			//$cardsf[] = $row ;
-		}
-	} else {
-		// Get possible cards list
-		$common_query = '	SELECT
-			`card`.`name`,
-			`card`.`attrs`,
-			`card_ext`.`nbpics`,
-			`card_ext`.`rarity`,
-			`extension`.`se`
-		FROM
-			`card`,
-			`card_ext`,
-			`extension`
-		WHERE
-			`card`.`id` = `card_ext`.`card`
-			AND `extension`.`id` = `card_ext`.`ext`
-		' ; // Part of the query in common in each case (tables, fields, join)
-		$card_connection = card_connect() ;
-		if ( $ext == 'ALL' ) // All cards from all ext that are core set or blocs (no special cards such as ung, promo, dual deck, FTV)
-			$query = query($common_query.'AND `extension`.`bloc` >= 0 ; ', 'Get all cards', $card_connection) ;
-		else // All cards in extension in param
-			$query = query($common_query."AND `extension`.`se` = '$ext' ; ", 'Get cards in extension', $card_connection) ;
-		if ( mysql_num_rows($query) < 1 ) {
-			echo 'No card found in '.$ext ;
-			return null ;
-		}
-		// Dispatch those cards in various list (rarity filtered, foils, transforms)
-		while ( $row = mysql_fetch_object($query) ) {
-			$attrs = json_decode($row->attrs) ;
-			if ( isset($attrs->transformed_attrs) && $tr_ext )
-				$a =& $cardst ;
-			else
-				$a =& $cards ;
-			if ( ! array_key_exists($row->rarity, $a) )
-				$a[$row->rarity] = array() ;
-			$a[$row->rarity][] = $row ;
-			$cardsf[] = $row ;
-		}
+	// Get possible cards list
+	$common_query = '	SELECT
+		`card`.`name`,
+		`card`.`attrs`,
+		`card_ext`.`nbpics`,
+		`card_ext`.`rarity`,
+		`extension`.`se`
+	FROM
+		`card`,
+		`card_ext`,
+		`extension`
+	WHERE
+		`card`.`id` = `card_ext`.`card`
+		AND `extension`.`id` = `card_ext`.`ext`
+	' ; // Part of the query in common in each case (tables, fields, join)
+	$card_connection = card_connect() ;
+	if ( $ext == 'ALL' ) // All cards from all ext that are core set or blocs (no special cards such as ung, promo, dual deck, FTV)
+		$query = query($common_query.'AND `extension`.`bloc` >= 0 ; ', 'Get all cards', $card_connection) ;
+	else // All cards in extension in param
+		$query = query($common_query."AND `extension`.`se` = '$ext' ; ", 'Get cards in extension', $card_connection) ;
+	if ( mysql_num_rows($query) < 1 ) {
+		echo 'No card found in '.$ext ;
+		return null ;
+	}
+	// Dispatch those cards in various list (rarity filtered, foils, transforms)
+	while ( $row = mysql_fetch_object($query) ) {
+		$attrs = json_decode($row->attrs) ;
+		if ( isset($attrs->transformed_attrs) && $tr_ext )
+			$a =& $cardst ;
+		else
+			$a =& $cards ;
+		if ( ! array_key_exists($row->rarity, $a) )
+			$a[$row->rarity] = array() ;
+		$a[$row->rarity][] = $row ;
+		$cardsf[] = $row ;
 	}
 	// Commons are managed at the end, as foils, timeshifted and transform must be managed before
 	// uncommons
@@ -578,9 +555,8 @@ function booster_as_array_with_ext($ext='', &$ext_cards=null) {
 			$r = 'C' ;
 		$result[] = rand_card($cardst[$r], $ext_cards) ;
 	}
-	$foil = ( rand(1, $proba_foil) == 1 ) ;
 	// 0-1 foil
-	if ( $foil && ( $ext != 'CUB' ) && ( $ext != 'OMC' ) ) { // CUB don't want foils, they break unicity
+	if ( ( rand(1, $proba_foil) == 1 ) && ( $ext_cards !== null ) ) { // CUB don't want foils, they break unicity
 		$c-- ;
 		$result[] = rand_card($cardsf, $ext_cards) ; // Uses it's own card list, so won't be removed from 'normal' cards lists
 	}
@@ -589,51 +565,63 @@ function booster_as_array_with_ext($ext='', &$ext_cards=null) {
 		for ( $i = 0 ; $i < $nb_l ; $i++ )
 			$result[] = rand_card($cards['L'], $ext_cards) ;
 	// commons (after all other exceptions have been managed)
-	if ( array_key_exists('C', $cards) )
-		for ( $i = 0 ; $i < $c ; $i++ ) {
-			//echo count($cards['C']).' -> ' ;
+	if ( array_key_exists('C', $cards) && ( count($cards['C']) >= $c ) )
+		for ( $i = 0 ; $i < $c ; $i++ )
 			array_unshift($result, rand_card($cards['C'], $ext_cards)) ; // put on begining of booster
-			//echo count($cards['C'])."\n" ;
-		}
 	else
-		echo 'No commons in ext '.$ext."\n" ;
-	$object->cards = $result ;
+		echo 'Not enough commons leftin ext '.$ext." ($c/".count($cards['C']).")\n" ;
+	// Final copy
+	$object->cards = array() ;
+	foreach ( $result as $card )
+		$object->cards[] = $card ;
 	return $object ;
 }
-function rand_card(&$arr, &$removefrom=null) { // param by adrress, returned card will be removed from cards list
+function in_obj_array_property($val, $arr, $prop) { // Search in an obj array if an object hase given value for given property
+	foreach ( $arr as $el )
+		if ( ( property_exists($el, $prop) ) && ( $el->$prop == $val ) )
+			return true ;
+	return false ;
+}
+function obj_implode($glue, $pieces, $prop) { // Implode an array property
+	$result = '' ;
+	foreach ( $pieces as $piece )
+		if ( property_exists($piece, $prop) ) {
+			if ( $result != '' )
+				$result .= $glue ;
+			$result .= $piece->$prop ;
+		}
+	return $result ;
+}
+function rand_card(&$arr, &$addto=null) { // param by adrress, returned card will be removed from cards list
 	if ( ! is_array($arr) ) {
 		echo "rand_card called without a card array\n" ;
 		return null ;
 	}
-	$cards = array_splice($arr, mt_rand(0, count($arr)-1), 1) ;
-	$card = $cards[0] ;
-	if ( $removefrom != null ) {
-		$i = array_search($card, $removefrom) ;
-		if ( $i !== FALSE )
-			array_splice($removefrom, $i, 1) ;
-	}
-	$name = $card->name ; // Extract name
+	// Card search
+	do {
+		if ( count($arr) < 1 ) {
+			echo "No cards left in random array\n" ;
+			return null ;
+		}
+		$cards = array_splice($arr, mt_rand(0, count($arr)-1), 1) ;
+		$card = $cards[0] ;
+		if ( $addto === null ) // No unicity
+			break ; // End of search
+		else { // Unicity
+			if ( ! in_array($card->name, $addto) ) {
+				array_push($addto, $card->name) ;
+				break ;
+			}
+		}
+	} while ( true ) ;
+	// Data preparation
+	$name = $card->name ;
 	if ( $card->nbpics > 1 ) // If multiple pics
 		$name .= ' ('.rand(1, $card->nbpics).')' ; // Random pic
 	$object = new simple_object() ; // Return as object
 	$object->name = $name ;
 	$object->ext = $card->se ;
 	return $object ;
-}
-function booster_open($tournament, $player, $booster, &$cards=null) {
-	// Delete previous booster in case it's needed
-	query("DELETE FROM `booster` WHERE `tournament` = '".$tournament->id."' AND `player` = '".$player->order."' ;") ;
-	// Generate random booster
-	query("INSERT INTO `booster` (`content`, `tournament`, `player`) VALUES
-	('".mysql_real_escape_string(json_encode(booster_as_array($booster, &$cards)))."', '".$tournament->id."', '".$player->order."') ") ;
-	// Initialize player's "deck"
-	query("UPDATE `registration`
-		SET
-			`deck` = CONCAT(`deck`, '// Picks from booster #".$tournament->round ." ($booster)\n')
-		WHERE
-			`tournament_id` = '".$tournament->id."'
-			AND `player_id` = '".$player->player_id."'
-		;") ;
 }
 function add_side_lands($ext='UNH', $nb=20) {
 	return "// Lands in side
@@ -645,55 +633,30 @@ SB: $nb [$ext] Swamp" ;
 }
 function pool_open($boosters, $name='', &$cards=null) {
 	$pool = '// Sealed pool for tournament '.$name."\n" ;
-	foreach ( $boosters as $i => $booster ) {
-		if ( ( $booster == 'CUB' ) || ( $booster == 'OMC' ) )
-			$booster_content = booster_as_mwdeck($booster, &$cards) ;
-		else
-			$booster_content = booster_as_mwdeck($booster) ;
-		$pool .= mysql_real_escape_string("// Cards from booster ".($i+1)." ($booster)\n".$booster_content) ;
-	}
+	foreach ( $boosters as $i => $booster )
+		$pool .= mysql_real_escape_string("// Cards from booster ".($i+1)." ($booster)\n".booster_as_mwdeck($booster, $cards)) ;
 	$pool .= add_side_lands() ;
 	return $pool ;
 }
-function tournament_singleton($data) {
-	$uniq_ext = '' ;
-	if ( array_search('CUB', $data->boosters) !== FALSE )
-		$uniq_ext = 'CUB' ;
-	else if ( array_search('OMC', $data->boosters) !== FALSE )
-		$uniq_ext = 'OMC' ;
-	if ( $uniq_ext != '' ) {
-		$card_connection = card_connect() ;
-		$cards = query_as_array('
-		SELECT
-			`card`.`name`,
-			`card`.`attrs`,
-			`card_ext`.`nbpics`,
-			`card_ext`.`rarity`,
-			`extension`.`se`
-		FROM
-			`card`,
-			`card_ext`,
-			`extension`
-		WHERE
-			`card`.`id` = `card_ext`.`card`
-			AND `extension`.`id` = `card_ext`.`ext`
-		'."AND `extension`.`se` = '$uniq_ext' ; ", 'Get cards in $uniq_ext', $card_connection) ;
-	} else
-		$cards = null ;
-	return $cards ;
-}
 // Draft specific functions
-function draft_time($cards=15, $round=0) {
+function draft_time($cards=15, $lastround=false) {
 	global $draft_base_time, $draft_time_per_card, $draft_lastpick_time ;
-	if ( ( $cards < 2 ) && ( $round != 3 ) ) // 1 card left and not last booster
+	if ( ( $cards < 2 ) && ( ! $lastround ) ) // 1 card left and not last booster
 		$result = $draft_lastpick_time ; // lastpick_time applied
 	else
 		$result = $draft_base_time + ( $draft_time_per_card * $cards ) ;
 	return $result ;
 }
 function switch_booster($source, $dest, $tournament) {
-	$query = "UPDATE `booster` SET `player` = '$dest' WHERE
-	`tournament` = '".$tournament->id."' AND `player` = '$source' ;" ;
+	$query = "UPDATE
+	`booster`
+SET
+	`player` = '$dest'
+WHERE
+	`tournament` = '".$tournament->id."'
+	AND `player` = '$source'
+	AND `number` = '".$tournament->round."'
+;" ;
 	query($query) ;
 	$nb = mysql_matched_rows() ;
 	if ( $nb != 1 )
