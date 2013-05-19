@@ -75,7 +75,7 @@ foreach ( $exts as $ext ) {
 		$notoken[$matches['code']] = $matches['name'] ;
 		continue ;
 	}
-	$query = query("SELECT * FROM extension WHERE `name` = '".$matches['name']."' ; ") ;
+	$query = query("SELECT * FROM extension WHERE `name` = '".mysql_real_escape_string($matches['name'])."' ; ") ;
 	if ( $res = mysql_fetch_object($query) ) {
 	} else {
 		$nodb[$matches['code']] = $matches['name'] ;
