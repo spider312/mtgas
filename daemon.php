@@ -139,6 +139,9 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			case 'draft' :
 				// Delete previous booster in case it's needed
 				query("DELETE FROM `booster` WHERE `tournament` = '".$tournament->id."' ;") ;
+				$nb = mysql_matched_rows() ;
+				if ( $nb != 1 )
+					echo "$nb boosters cleaned during draft #".$tournament->id."'s initialisation \n" ;
 				$tournament->round = 1 ;
 				$number = 0 ;
 				foreach ( $data->boosters as $booster ) {

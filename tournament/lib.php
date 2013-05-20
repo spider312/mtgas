@@ -667,7 +667,7 @@ function mysql_matched_rows() {
 	$words = explode(' ', $mi) ;
 	if ( count($words) > 3 )
 		return $words[2] ;
-	echo "No row nb in mysql info : $mi\n" ;
+	//echo "No row nb in mysql info : $mi\n" ;
 	return 1 ;
 }
 ?>
