@@ -147,7 +147,6 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				foreach ( $data->boosters as $booster ) {
 					$number++ ;
 					foreach ( $players as $player ) {
-						echo $player->nick." booster $booster ($number)\n" ;
 						$content = booster_as_array_with_ext($booster, $cards) ;
 						$object = new simple_object() ;
 						$object->ext = $content->ext ;
