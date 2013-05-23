@@ -53,11 +53,18 @@ pre.maximized {
 	-webkit-transition: all 0.2s ;
 	-o-transition: all 0.2s ;
 	-ms-transition: all 0.2s ;
-	transition-timing-function: ease-in-out ;
-	-moz-transition-timing-function: ease-in-out ;
-	-webkit-transition-timing-function: ease-in-out ;
-	-o-transition-timing-function: ease-in-out ;
-	-ms-transition-timing-function: ease-in-out ;
+	transition-timing-function: ease ;
+	-moz-transition-timing-function: ease ;
+	-webkit-transition-timing-function: ease ;
+	-o-transition-timing-function: ease ;
+	-ms-transition-timing-function: ease ;
+/*
+ease : Rapide sur le début et ralenti sur la fin.
+linear : La vitesse est constante sur toute la durée de l'animation.
+ease-in : Lent sur le début et accélère de plus en plus vers la fin.
+ease-out : Rapide sur le début et décèlere sur la fin.
+ease-in-out : Le départ et la fin sont lents.
+*/
 }
 /* Stats */
 #stats {
