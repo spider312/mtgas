@@ -115,22 +115,7 @@ $ext_mci = strtolower($ext_mci) ;
     <th>Localization (image / name)</th>
    </tr>
 <?php
-// Extension in DB
-$ext = strtoupper($ext) ;
-$query = query("SELECT * FROM extension WHERE `se` = '$ext' OR `sea` = '$ext' ; ") ;
-if ( $res = mysql_fetch_object($query) ) {
-	$ext_id = $res->id ;
-	if ( $apply) {
-		query("DELETE FROM `card_ext` WHERE `ext` = '$ext_id'") ;
-		echo '  <p>'.mysql_affected_rows().' cards unlinked from '.$ext."</p>\n\n" ;
-	}
-} else {
-	$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".mysql_real_escape_string($matches[0]['ext'])."')") ;
-	echo '<p>Extension not existing, creating</p>' ;
-	$ext_id = mysql_insert_id() ;
-}
-
-// MCI card list
+// MCI card list (first, to get all data)
 $url = 'http://magiccards.info/'.$ext_mci.'/en.html' ;
 $html = cache_get($url, 'cache/'.$ext) ;
 $nb = preg_match_all('#<tr class="(even|odd)">
@@ -146,6 +131,22 @@ if ( $nb < 1)
 	die('URL '.$url.' does not seem to be a valid MCI card list : '.count($matches)) ;
 
 echo '<p>'.count($matches).' cards detected</p>'."\n\n" ;
+
+// Extension in DB
+$ext = strtoupper($ext) ;
+$query = query("SELECT * FROM extension WHERE `se` = '$ext' OR `sea` = '$ext' ; ") ;
+if ( $res = mysql_fetch_object($query) ) {
+	$ext_id = $res->id ;
+	if ( $apply) {
+		query("DELETE FROM `card_ext` WHERE `ext` = '$ext_id'") ;
+		echo '  <p>'.mysql_affected_rows().' cards unlinked from '.$ext."</p>\n\n" ;
+	}
+} else {
+	$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".mysql_real_escape_string($matches[0]['ext'])."')") ;
+	echo '<p>Extension not existing, creating</p>' ;
+	$ext_id = mysql_insert_id() ;
+}
+
 
 $images = array() ;
 $creation = 0 ;

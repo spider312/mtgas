@@ -20,6 +20,8 @@ $nb = preg_match_all('@<li><a href="/(?<se>.*?)/en.html">(?<name>.*?)</a> <small
 if ( $nb < 1)
 	die('No extension found in : '.$eng_matches['content']) ;
 ?>
+<a href="<?php echo $url ; ?>">Import from MCI Sitemap</a>
+
 <table>
  <tr>
   <th>DB se</th>
@@ -33,7 +35,8 @@ if ( $nb < 1)
 $db_exts = query_as_array("SELECT * FROM extension ;") ;
 foreach ( $matches as $mci_i => $mci_ext ) {
 	foreach ( $db_exts as $db_i => $db_ext ) {
-		if ( ( strtolower($db_ext->se) == $mci_ext['se'] ) || ( strtolower($db_ext->sea) == $mci_ext['se'] ) ) {
+		//if ( ( strtolower($db_ext->se) == $mci_ext['se'] ) || ( strtolower($db_ext->sea) == $mci_ext['se'] ) ) {
+		if ( strtolower($db_ext->sea) == $mci_ext['se'] ) {
 			echo ' <tr>' ;
 			echo '  <td>'.$db_ext->se.'</td>' ;
 			echo '  <td>'.$db_ext->sea.'</td>' ;
