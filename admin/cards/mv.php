@@ -29,8 +29,8 @@ if ( isset($argv) && ( count($argv) > 1 ) ) { // CLI
 
 $mv_ext_name = $ext_mci ; // Magic-ville's one !
 $mogg_ext_name = $ext ;
-$nbcards = 156 ;
-$nbtokens = 0 ;
+$nbcards = 229 ;
+$nbtokens = 16 ;
 
 $basecardurl = 'http://www.magic-ville.com/fr/carte?'.$mv_ext_name ;
 $baseimgurl = 'http://www.magic-ville.com/pics/big/'.$mv_ext_name.'/' ;
@@ -108,9 +108,11 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 	echo "$rarity $name ($cost".(isset($altcost)?"/$altcost":'').") $type".(isset($pt)?" [$pt]":'') ;
 	// DB
 	if ( $apply ) {
-		$card_id = card_import($name, $cost, $type, $text) ;
-		$multiverseid = '' ;
-		query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
+		if ( ! $token ) {
+			$card_id = card_import($name, $cost, $type, $text) ;
+			$multiverseid = '' ;
+			query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`) VALUES ('$card_id', '$ext_id', '$rarity', '1', '$multiverseid') ;") ;
+		}
 		// Create destination file name (and dir)
 		if ( preg_match('/\<b\>(\d+)\<\/b\>/', $html, $matchesnb) )
 			$basedestfilename .= $matchesnb[1] ;
@@ -135,7 +137,7 @@ function get_card($i, $token = false) { // Get the HTML file for card $i, then g
 		if ( ! is_file($destfilename) ) {
 			$content = @file_get_contents($baseimgurl.$si.'.jpg') ;
 			if ( $content === false )
-				echo 'image not found' ;
+				echo 'image '.$baseimgurl.$si.'not found' ;
 			else {
 				$size = @file_put_contents($destfilename, $content) ;
 				if ( $size === false )
