@@ -231,7 +231,7 @@ if ( isset($json->transformed_attrs) ) {
     </tr>
     <tr>
      <th>Compile log</th>
-     <td><?php $attrs = new attrs($card_bdd) ;?></td>
+     <td><pre><?php $attrs = new attrs($card_bdd) ;?></pre></td>
     </tr>
     <tr>
      <th>Compiled</th>
