@@ -11,8 +11,10 @@ function query($query, $name='Query', $conn=null) {
 }
 function query_oneshot($query, $name='Query', $conn=null) {
 	$result = query($query, $name, $conn) ;
-	$nb = mysql_num_rows($result) ;
-	if ( $nb > 1 )
+	$nb = 0 ;
+	if ( $result && ! is_bool($result) )
+		$nb = mysql_num_rows($result) ;
+	if ( $nb != 1 )
 		die("$name returned $nb rows") ;
 	if ( $row = mysql_fetch_object($result) )
 		return $row ;
