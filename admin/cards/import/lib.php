@@ -1,5 +1,6 @@
 <?php
-include_once '../../includes/lib.php' ;
+include_once '../../../includes/lib.php' ;
+include_once '../../../includes/card.php' ; // Some globals
 $base_image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/' ;
 function cache_get($url, $cache_file, $verbose = true) {
 	if ( file_exists($cache_file) ) {
@@ -85,5 +86,61 @@ function card_name_sanitize($name) {
 	$name = str_replace('û', 'u', $name) ;
 	$name = str_replace('Æ', 'AE', $name) ;
 	return $name ;
+}
+
+class Importrer {
+	public $cards = array() ;
+	public $tokens = array() ;
+	function __construct() {
+	}
+	function __destruct() {
+	}
+	function addcard($rarity, $name, $cost, $types, $text, $url) { // + attrs fixed_attrs
+		foreach ( $this->cards as $card )
+			if ( $card->name == $name ) {
+				echo 'Card already parsed : '.$name.'<br>' ;
+				return $card ;
+			}
+		$card = new ImportCard($rarity, $name, $cost, $types, $text, $url) ;
+		$this->cards[] = $card ;
+		return $card ;
+	}
+	function addtoken($type, $pow, $tou, $url) {
+		$this->tokens[] = array($type, $pow, $tou, $url) ;
+	}
+}
+class ImportCard {
+	public $rarity = 'N' ;
+	public $name = 'Uninitialized' ;
+	public $cost = 'Uninitialized' ;
+	public $types = 'Uninitialized' ;
+	public $text = 'Uninitialized' ;
+	public $images = array() ;
+	public $langs = array() ;
+	function __construct($rarity, $name, $cost, $types, $text, $url) {
+		$this->rarity = $rarity ;
+		$this->name = card_name_sanitize($name) ;
+		$this->cost = $cost ;
+		$this->types = $types ;
+		$this->text = $text ;
+		$this->addimage($url) ;
+	}
+	function addimage($url) { // For double faced cards
+		$this->images[] = $url ;
+	}
+	function addtext($add) { // For all multiple cards (split, flip, double face)
+		$this->text .= $add ;
+	}
+	function setlang($code, $name, $url) {
+		$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
+	}
+	function addlang($code, $name, $url=null) {
+		if ( isset($this->langs[$code]) ) {
+			$this->langs[$code]['name'] .= '/'.$name ;
+			if ( $url != null )
+				$this->langs[$code]['images'][] = $url ;
+		} else
+			$this->setlang($code, $name, $url) ;
+	}
 }
 ?>

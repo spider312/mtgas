@@ -155,13 +155,6 @@ $nothing = 0 ;
 $text = '' ;
 foreach ( $matches as $i => $match ) {
 	$log = '' ;
-	$name = str_replace('á', 'a', $match['name']) ;
-	$name = str_replace('é', 'e', $name) ;
-	$name = str_replace('í', 'i', $name) ;
-	$name = str_replace('ö', 'o', $name) ;
-	$name = str_replace('ú', 'u', $name) ;
-	$name = str_replace('û', 'u', $name) ;
-	$name = str_replace('Æ', 'AE', $name) ;
 	$rarity = substr($match['rarity'], 0, 1) ;
 	// Parse card itself
 	$html = cache_get(dirname($url).'/..'.$match['url'], 'cache/'.str_replace('/', '_', $match['url'])) ;
@@ -175,6 +168,7 @@ foreach ( $matches as $i => $match ) {
 	$multiverseid = intval($card_matches['multiverseid']) ;
 	// Double cards : recompute name, mark as being second part (in which case card will be added, not replaced)
 	$second = false ;
+	$name = card_name_sanitize($match['name']) ;
 	$image_name = $name ;
 	if ( preg_match('/(.*) \((\1)\/(.*)\)/', $name, $name_matches) ) {
 		$name = $name_matches[2] . ' / ' . $name_matches[3] ;
