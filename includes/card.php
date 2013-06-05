@@ -440,7 +440,7 @@ function manage_text($name, $text, $target) {
 		$target->cycling = manacost($matches[1]) ;
 	if ( preg_match('/Morph ('.$manacost.')/', $text, $matches) )
 		$target->morph = manacost($matches[1]) ;
-	if ( preg_match('/Suspend (\d+)-('.$manacost.')/', $text, $matches) ) {
+	if ( preg_match('/Suspend (\d+)\s*-\s*('.$manacost.')/', $text, $matches) ) {
 		$target->suspend = intval($matches[1]) ;
 		$target->suspend_cost = manacost($matches[2]) ;
 	}
@@ -663,14 +663,15 @@ function manage_text($name, $text, $target) {
 		}
 	}
 	// Distinct activated from static abilities
-	$parts = preg_split('/\s*:\s*/', $text) ;
-	if ( count($parts) == 2 ) {
+	
+	//$parts = preg_split('/\s*:\s*/', $text) ;
+	/*if ( count($parts) == 2 ) {
 		$cost = $parts[0] ;
 		$text = $parts[1] ;
 		if ( ! isset($target->activated) )
 			$target->activated = new Simple_object() ;
 		$target = $target->activated ;
-	}
+	}*/
 	// All creatures booster (crusade like)
 	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
