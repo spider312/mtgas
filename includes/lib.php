@@ -232,6 +232,21 @@ function html_options() { // Displays options window
 	echo '       <option value="'.$choice_url.'" selected="selected">'.$choice_name.'</option>'."\n" ;
 
 }
+// HTML Generation
+function html_option($value, $disp, $selected) {
+	$return  = '<option value="'.$value.'"' ;
+	if ( $value == $selected )
+		$return .= ' selected="selected"' ;
+	$return .= '>'.$disp.'</option>' ;
+	return $return ;
+}
+function html_checkbox($name, $checked) {
+	$return = '<input type="checkbox" name="'.$name.'"' ;
+	if ( $checked )
+		$return .= ' checked="checked"' ;
+	$return .= '>' ;
+	return $return ;
+}
 // JSON
 function json_verbose_error($i) {
 	switch ( $i ) {
