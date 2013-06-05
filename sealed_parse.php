@@ -24,7 +24,10 @@ FROM
 WHERE
 	`registration`.`tournament_id` = `tournament`.`id`
 	AND `tournament`.`min_players` > 1
-	AND `tournament`.`type` = 'sealed'
+	AND  (
+		`tournament`.`type` = 'sealed'
+		OR `tournament`.`type` = 'draft'
+	)
 	AND `tournament`.`creation_date` > '$date'
 " ;
 if ( $name != '' )
