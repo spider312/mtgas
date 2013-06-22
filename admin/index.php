@@ -44,70 +44,41 @@ foreach ( $t as $tournament )
 
   <div class="section">
    <h1>Cards</h1>
+   <h2>Browse</h2>
+   <p><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>, <a href="http://www.crystalkeep.com/magic/misc/symbols.php">Unofficial one</a>)</p>
+
+   <h2>Search</h2>
+   <form action="cards/cards.php" method="get">
+    <input type="text" name="name" placeholder="Name">
+    <input type="text" name="text" placeholder="Text">
+    <input type="text" name="types" placeholder="Type">
+    <input type="text" name="cost" placeholder="Cost">
+    <input type="submit" value="Search">
+   </form>
+
+   <h2>Import</h2>
+   <a href="cards/import/">Import cards</a>
+   <form action="cards/upload.php" enctype="multipart/form-data" method="post">
+    Create/update a (<abbr title="No new card will be created, listed cards will be added to extension if already existing">virtual</Abbr>) extension from a list
+    <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">
+    <input type="file" name="list">
+    <button type="submit">Upload list</button>
+   </form>
+
+   <h2>Tools</h2>
+   <h3>Actions</h3>
    <ul>
-    <li><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>, <a href="http://www.crystalkeep.com/magic/misc/symbols.php">Unofficial one</a>)</li>
-    <!--li>Install extension from text spoiler : 
-<?php
-/*
-include_once 'cards/lib.php' ;
-if ($handle = opendir('../'.$spoiler_dir)) {
-	echo '  <ul>' ;
-	while (false !== ($file = readdir($handle)))
-		if ( ( $file != '..' ) && ( $file != '.' ) )
-			echo '   <li><a href="cards/parse_extension.php?file='.$file.'">'.$file.'</a></li>' ;
-			$ext_spoil[] = $file ;
-	closedir($handle) ;
-	echo '  </ul>' ;
-}
-*/
-?>
-    </li>
-    <li>Install extension from raw list : 
-<?php
-/*
-include_once 'cards/lib.php' ;
-if ($handle = opendir('../'.$raw_dir)) {
-	echo '  <ul>' ;
-	while (false !== ($file = readdir($handle)))
-		if ( ( $file != '..' ) && ( $file != '.' ) )
-			echo '   <li><a href="cards/parse_raw.php?file='.$file.'">'.$file.'</a></li>' ;
-			$ext_spoil[] = $file ;
-	closedir($handle) ;
-	echo '  </ul>' ;
-}
-*/
-?>
-    </li-->
-    <li>
-     <form action="cards/upload.php" enctype="multipart/form-data" method="post">
-      <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">
-      <input type="file" name="list">
-      <button type="submit">Upload list</button>
-     </form>
-    </li>
-    <li>
-     <form action="cards/cards.php" method="get">
-      <input type="text" name="name" placeholder="Name">
-      <input type="text" name="text" placeholder="Text">
-      <input type="text" name="types" placeholder="Ctype">
-      <input type="text" name="cost" placeholder="Cost">
-      <input type="submit" value="Search">
-     </form>
-    </li>
-    <li>
-     <form action="cards/mci.php" method="get">
-      <input type="text" name="ext" placeholder="Extension's 3 letters code">
-      <input type="submit" value="Import from MCI">
-     </form>
-    </li>
-    <li><a href="cards/cube.php">Dispatch cards from CUB to CUBL / CUBS depending on rarity</a>
-    <li><a href="cards/import/mcis.php">Compare extensions from MCI with DB</a></li>
-    <li><a href="cards/import/mci_extra.php">Import token images from MCI</a></li>
     <li><a href="cards/compile.php">Compile cards (adds attributes specific to MTGAS in database)</a></li>
+    <li><a href="cards/import/mci_extra.php">Import token images from MCI</a></li>
+    <li><a href="cards/cube.php">Dispatch cards from CUB to CUBL / CUBS depending on rarity</a>
+   </ul>
+   <h3>Checks</h3>
+   <ul>
+    <li><a href="cards/import/mcis.php">Compare extensions from MCI with DB</a></li>
     <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
     <li><a href="cards/check_integrity.php">Check database integrity</a></li>
-   <ul>
-  </div>
+   </ul>
+  </div><!-- Cards -->
 
   <div class="section">
    <h1>Card inclusion statistics</h1>
