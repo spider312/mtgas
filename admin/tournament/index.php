@@ -1,10 +1,5 @@
 <?php
-include_once '../../lib.php' ;
-include_once '../../includes/db.php' ;
-include_once '../../config.php' ;
-include_once '../../includes/card.php' ;
-include_once '../../includes/lib.php' ;
-include_once '../../includes/tournament.php' ;
+include_once 'lib.php' ;
 $id = param_or_die($_GET, 'id') ;
 html_head(
 	'Admin > Tournament',

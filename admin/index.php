@@ -1,9 +1,6 @@
 <?php
 include_once '../lib.php' ;
 include_once '../includes/db.php' ;
-include_once '../config.php' ;
-include_once '../includes/card.php' ;
-include_once '../includes/lib.php' ;
 html_head(
 	'Admin',
 	array(
@@ -17,8 +14,23 @@ html_head(
 <?php
 html_menu() ;
 ?>
+
   <div class="section">
    <h1>Tournaments</h1>
+   <h2>Tools</h2>
+   <ul>
+    <li><a href="tournament/recompute.php">Recompute tournament's scores</a></li>
+    <li>
+     <form action="tournament/sealed_parse.php">
+      Update card inclusion statistics : 
+      <input type="date" name="date" placeholder="Starting date">
+      <input type="text" name="name" placeholder="Name mask">
+      <input type="submit" value="Update">
+     </form>
+    </li>
+    <li><a href="/sealed_top.php">Card inclusion statistics</a> (public)</li>
+
+   </ul>
    <h2>Current</h2>
    <ul>
 <?php
@@ -77,26 +89,15 @@ foreach ( $t as $tournament )
     <li><a href="cards/import/mcis.php">Compare extensions from MCI with DB</a></li>
     <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
     <li><a href="cards/check_integrity.php">Check database integrity</a></li>
+    <li><a href="cards/cub_csv.php">Download CUB list as a spreadsheet</a></li>
    </ul>
   </div><!-- Cards -->
 
-  <div class="section">
-   <h1>Card inclusion statistics</h1>
-   <ul>
-    <form action="/sealed_parse.php">
-     <input type="date" name="date" placeholder="Starting date">
-     <input type="text" name="name" placeholder="Name mask">
-     <input type="submit" value="Update">
-    </form>
-    <li><a href="/sealed_top.php">Show</a></li>
-   </ul>
-  </div>
 
   <div class="section">
    <h1>Player</h1>
    <ul>
-    <li><a href="player_merge.php">Merge</a></li>
-    <li><a href="recompute_tournaments.php">Recompute tournament's scores</a></li>
+    <li><a href="player_merge.php">Merge multiple player scores into one</a></li>
    </ul>
   </div>
 

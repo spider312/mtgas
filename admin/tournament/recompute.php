@@ -1,7 +1,5 @@
 <?php
-include '../lib.php' ;
-include '../includes/db.php' ;
-include '../tournament/lib.php' ;
+include_once 'lib.php' ;
 html_head(
 	'Admin > Tournament > Recompute',
 	array(

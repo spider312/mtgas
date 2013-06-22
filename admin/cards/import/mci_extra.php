@@ -7,7 +7,6 @@ th {
 </style>
 <?php
 include_once 'lib.php' ;
-//include_once '../../../includes/db.php' ;
 $apply = true ;
 $url = 'http://magiccards.info/extras.html' ;
 echo '<p>Parsing <a href="'.$url.'">'.$url.'</a></p>' ;

@@ -1,7 +1,6 @@
 <?php
 if ( array_key_exists('id', $_GET) ) {
-	include '../../lib.php' ;
-	include '../../includes/db.php' ;
+	include_once 'lib.php' ;
 	$id = param_or_die($_GET, 'id') ;
 	$status = param_or_die($_GET, 'status') ;
 	$due_time = param_or_die($_GET, 'due_time') ;
