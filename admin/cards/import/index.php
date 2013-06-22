@@ -1,8 +1,5 @@
 <?php
-include_once '../../../lib.php' ; // param* html*
-include_once '../../../config.php' ;
-include_once 'lib.php' ; // cache_get
-include_once '../lib.php' ; // cache_get
+include_once 'lib.php' ;
 // Args
 $ext_local = param($_GET, 'ext_local', '') ;
 $source = param($_GET, 'source', 'mci') ;

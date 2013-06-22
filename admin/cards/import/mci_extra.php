@@ -6,12 +6,8 @@ th {
 }
 </style>
 <?php
-include_once '../../config.php' ;
-include_once '../../lib.php' ;
-include_once '../../includes/db.php' ;
-include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
-include_once 'import.php' ;
+//include_once '../../../includes/db.php' ;
 $apply = true ;
 $url = 'http://magiccards.info/extras.html' ;
 echo '<p>Parsing <a href="'.$url.'">'.$url.'</a></p>' ;

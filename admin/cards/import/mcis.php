@@ -1,11 +1,5 @@
 <?php
-include_once '../../includes/lib.php' ;
-include_once '../../config.php' ;
-//include_once '../../lib.php' ;
-include_once '../../includes/db.php' ;
-include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
-include_once 'import.php' ;
 
 // Extract all extension in one language from MCI sitemap
 $url = 'http://magiccards.info/sitemap.html' ;

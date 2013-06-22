@@ -1,8 +1,7 @@
 <?php
-// Includes
-include_once 'config.php' ;
-include_once 'includes/lang.php' ;
-include_once 'includes/lib.php' ;
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'config.php' ;
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'includes/lang.php' ;
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'includes/lib.php' ;
 
 // Globals
 $cr = "\n" ;

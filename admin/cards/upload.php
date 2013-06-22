@@ -1,8 +1,4 @@
 <?php
-include_once '../../includes/lib.php' ;
-include_once '../../config.php' ;
-include_once '../../lib.php' ;
-include_once '../../includes/db.php' ;
 include 'lib.php' ;
 
 // File upload/reuse

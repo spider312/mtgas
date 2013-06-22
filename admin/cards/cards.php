@@ -1,9 +1,4 @@
 <?php
-include_once '../../includes/lib.php' ;
-include_once '../../config.php' ;
-include_once '../../lib.php' ;
-include_once '../../includes/db.php' ;
-include_once '../../includes/card.php' ;
 include_once 'lib.php' ;
 
 $name = param($_GET, 'name', '') ;

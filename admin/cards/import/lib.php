@@ -1,6 +1,5 @@
 <?php
-include_once '../../../includes/lib.php' ;
-include_once '../../../includes/card.php' ; // Some globals
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 $base_image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/' ;
 function cache_get($url, $cache_file, $verbose = true) {
 	if ( file_exists($cache_file) ) {
@@ -26,6 +25,7 @@ function cache_get($url, $cache_file, $verbose = true) {
 		die('[no content : '.$url.' -> '.$cache_file.']') ;
 	return $content ;
 }
+/*
 function card_import($name, $cost, $types, $text) {
 	global $mysql_connection ;
 	if ( $arr = card_get($name) ) {
@@ -66,6 +66,7 @@ function card_get($name) {
 	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
 	return mysql_fetch_array($qs) ;
 }
+*/
 function card_name_sanitize($name) {
 	// Base
 	$name = trim($name) ;
