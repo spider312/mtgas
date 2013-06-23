@@ -1,6 +1,19 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 $base_image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/' ;
+// Cache management
+
+function file_get_contents_utf8($fn) {
+	$opts = array(
+	'http' => array(
+	    'method'=>"GET",
+	    'header'=>"Content-Type: text/html; charset=utf-8"
+	)
+	);
+	$context = stream_context_create($opts);
+	$result = @file_get_contents($fn,false,$context);
+	return $result;
+} 
 function cache_get($url, $cache_file, $verbose = true) {
 	if ( file_exists($cache_file) ) {
 		if ( $verbose )
@@ -25,71 +38,53 @@ function cache_get($url, $cache_file, $verbose = true) {
 		die('[no content : '.$url.' -> '.$cache_file.']') ;
 	return $content ;
 }
-/*
-function card_import($name, $cost, $types, $text) {
-	global $mysql_connection ;
-	if ( $arr = card_get($name) ) {
-		$card_id = $arr['id'] ;
-		$updates = array() ;
-		if ( $arr['cost'] != $cost )
-			$updates[] = "`cost` = '$cost'" ;
-		if ( $arr['types'] != $types )
-			$updates[] = "`types` = '".mysql_real_escape_string($types)."'" ;
-		if ( trim($arr['text']) != $text )
-			$updates[] = "`text` = '".mysql_real_escape_string($text)."'" ;
-		$arr = array(
-			'name' => $name,
-			'cost' => $cost,
-			'types' => $types,
-			'text' => $text,
-		) ;
-		if ( count($updates) > 0 )
-			$q = query("UPDATE `card` SET ".implode(', ', $updates).", `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
-		else
-			$q = query("UPDATE `card` SET `attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."' WHERE `id` = $card_id ;") ;
-	} else {
-		$arr = array(
-			'name' => $name,
-			'cost' => $cost,
-			'types' => $types,
-			'text' => $text,
-		) ;
-		query("INSERT INTO `mtg`.`card`
-		(`name` ,`cost` ,`types` ,`text`, `attrs`)
-		VALUES ('".mysql_real_escape_string($name)."', '$cost', '$types', '".mysql_real_escape_string($text)."', '".mysql_escape_string(json_encode(new attrs($arr)))."');") ;
-		$card_id = mysql_insert_id($mysql_connection) ;
+// Diff ( http://compsci.ca/v3/viewtopic.php?p=142539 )
+function diff($old, $new){
+	$maxlen = 0 ;
+	foreach($old as $oindex => $ovalue){
+		$nkeys = array_keys($new, $ovalue);
+		foreach($nkeys as $nindex){
+			$matrix[$oindex][$nindex] = isset($matrix[$oindex - 1][$nindex - 1]) ?
+				$matrix[$oindex - 1][$nindex - 1] + 1 : 1;
+			if($matrix[$oindex][$nindex] > $maxlen){
+				$maxlen = $matrix[$oindex][$nindex];
+				$omax = $oindex + 1 - $maxlen;
+				$nmax = $nindex + 1 - $maxlen;
+			}
+		}       
 	}
-	return $card_id ;
+	if($maxlen == 0) return array(array('d'=>$old, 'i'=>$new));
+	return array_merge(
+		diff(array_slice($old, 0, $omax), array_slice($new, 0, $nmax)),
+		array_slice($new, $nmax, $maxlen),
+		diff(array_slice($old, $omax + $maxlen), array_slice($new, $nmax + $maxlen)));
 }
-function card_get($name) {
-	global $mysql_connection ;
-	$qs = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($name)."' ; ") ;
-	return mysql_fetch_array($qs) ;
+function htmlDiff($old, $new){
+	$ret = '' ;
+	$diff = diff(explode(' ', $old), explode(' ', $new));
+	foreach($diff as $k){
+		if(is_array($k))
+			$ret .= (!empty($k['d'])?"<del>".implode(' ',$k['d'])."</del> ":'').
+				(!empty($k['i'])?"<ins>".implode(' ',$k['i'])."</ins> ":'');
+		else $ret .= $k . ' ';
+	}
+	return $ret;
 }
-*/
-function card_name_sanitize($name) {
-	// Base
-	$name = trim($name) ;
-	$name = html_entity_decode($name) ;
-	// Non working global tryouts
-	//$name = iconv('UTF-8', 'US-ASCII//TRANSLIT', $name) ;
-	//$name =  normalizer_normalize($name, Normalizer::FORM_D) ;
-	// MV
-	$name = str_replace(chr(146), "'", $name) ; // Strange apostrophe
-	$name = str_replace(chr(198), 'AE', $name) ;
-	$name = str_replace(chr(246), 'o', $name) ;
-	// MCI
-	$name = str_replace('á', 'a', $name) ;
-	$name = str_replace('é', 'e', $name) ;
-	$name = str_replace('í', 'i', $name) ;
-	$name = str_replace('ö', 'o', $name) ;
-	$name = str_replace('ú', 'u', $name) ;
-	$name = str_replace('û', 'u', $name) ;
-	$name = str_replace('Æ', 'AE', $name) ;
-	return $name ;
+function string_detail_disp($str) {
+	$result = '<pre>' ;
+	for ( $i=0 ; $i < strlen($str) ; $i++ )
+		$result .= '<span title="'.ord($str[$i]).'">'.$str[$i].'</span>' ;
+	$result .= '</pre>' ;
+	return $result ;
 }
-
-class Importrer {
+function string_detail($str) {
+	$result = '' ;
+	for ( $i=0 ; $i < strlen($str) ; $i++ )
+		$result .= '['.$str[$i].'] : '.ord($str[$i])."\n" ;
+	return $result ;
+}
+// Classes
+class ImportExtension {
 	public $cards = array() ;
 	public $tokens = array() ;
 	function __construct() {
@@ -109,6 +104,12 @@ class Importrer {
 	function addtoken($type, $pow, $tou, $url) {
 		$this->tokens[] = array($type, $pow, $tou, $url) ;
 	}
+	function import($apply=false) {
+		$result = array() ;
+		foreach ( $this->cards as $card )
+			$result[] = $card->import($apply) ;
+		return $result ;
+	}
 }
 class ImportCard {
 	public $rarity = 'N' ;
@@ -123,14 +124,14 @@ class ImportCard {
 		$this->name = card_name_sanitize($name) ;
 		$this->cost = $cost ;
 		$this->types = $types ;
-		$this->text = $text ;
+		$this->text = card_text_sanitize($text) ;
 		$this->addimage($url) ;
 	}
 	function addimage($url) { // For double faced cards
 		$this->images[] = $url ;
 	}
 	function addtext($add) { // For all multiple cards (split, flip, double face)
-		$this->text .= $add ;
+		$this->text .= "\n".card_text_sanitize($add) ;
 	}
 	function setlang($code, $name, $url) {
 		$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
@@ -142,6 +143,45 @@ class ImportCard {
 				$this->langs[$code]['images'][] = $url ;
 		} else
 			$this->setlang($code, $name, $url) ;
+	}
+	function import($apply=false) {
+		global $mysql_connection ;
+		$res = query("SELECT * FROM card WHERE `name` = '".mysql_real_escape_string($this->name)."' ; ") ;
+		$arr = mysql_fetch_array($res) ;
+		$upd = array() ;
+		$found = mysql_num_rows($res) ;
+		if ( $found ) { // Card found in DB, update
+			// Check if fields need updating
+			foreach ( array('cost', 'types', 'text') as $f) {
+				if ( $arr[$f] != $this->$f ) {
+					$upd[$f] = $arr[$f] ; // Mark filed as updated, saving old value for returning
+					$arr[$f] = $this->$f ; // Override current DB record copy for attrs compiling
+				}
+			}
+			// Update if needed
+			if ( $apply && count($upd) > 0 ) {
+				$updates = array() ;
+				foreach ( $upd as $field => $update ) {
+					$updates[] = "`$field` = '".mysql_real_escape_string($this->$field)."'" ;
+					if ( $field == 'text' ) // Compile text if changing
+						$updates[] = "`attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."'" ;
+				}
+				$q = query("UPDATE `card` SET ".implode(', ', $updates)." WHERE `id` = '".$arr['id']."' ;") ;
+			}
+		} else {
+			$arr = array( // Needed for attrs compiling
+				'name' => $this->name,
+				'cost' => $this->cost,
+				'types' => $this->types,
+				'text' => $this->text,
+			) ;
+			query("INSERT INTO `mtg`.`card`
+			(`name` ,`cost` ,`types` ,`text`, `attrs`)
+			VALUES ('".mysql_real_escape_string($this->name)."', '".$this->cost."', '".$this->types."', '".
+			mysql_real_escape_string($this->text)."', '".mysql_escape_string(json_encode(new attrs($arr)))."');") ;
+			//$card_id = mysql_insert_id($mysql_connection) ;
+		}
+		return array('card' => $this, 'found' => $found, 'updates' => $upd) ;
 	}
 }
 ?>

@@ -85,19 +85,19 @@ foreach ( $matches as $match ) {
 			foreach ( explode(' ', $colors_matches['color']) as $color )
 				if ( ( $c = array_search(strtolower($color), $colors) ) !== false )
 					$ci .= $c ;
-			$add = "\n-----\n$name\n$ci $types\n$text" ;
+			$add = "-----\n$name\n$ci $types\n$text" ;
 			$lastcard->addimage(card_image_url($match)) ;
 		} else { 
 			if ( $split ) // Split card
-				$add = "\n----\n$cost\n$types\n$text" ;
+				$add = "----\n$cost\n$types\n$text" ;
 			else // Flip card
-				$add = "\n----\n$name\n$types\n$text" ;
+				$add = "----\n$name\n$types\n$text" ;
 		}
 		$lastcard->addtext($add) ; // Assume that last parsed card was the first part of the same card
 	} else { // "normal" cards (1 line on mci) or first part of dual card
 		$rarity = substr($match['rarity'], 0, 1) ;
 		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) // Cards with no casting cost (Ancestral Vision)
-			$text = $name.' is '.strtolower(implode(' and ', explode(' ', $colors_matches['color'])))."\n".$text ;
+			$text = $name.' is '.strtolower(implode(' and ', explode(' ', $colors_matches['color']))).".\n".$text ;
 		$lastcard = $importer->addcard($rarity, $name, $cost, $types, $text, card_image_url($match)) ;
 	}
 	// Lang

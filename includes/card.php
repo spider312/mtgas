@@ -74,6 +74,44 @@ function card_id($name, $conn=null) {
 		return -2 ;
 }
 // === [ LIB ] =================================================================
+function card_name_sanitize($name) {
+	// Base
+	$name = trim($name) ;
+	$name = html_entity_decode($name) ;
+	// Non working global tryouts
+	//$name = iconv('UTF-8', 'US-ASCII//TRANSLIT', $name) ;
+	//$name =  normalizer_normalize($name, Normalizer::FORM_D) ;
+	// MV
+	$name = str_replace(chr(146), "'", $name) ; // Strange apostrophe
+	$name = str_replace(chr(198), 'AE', $name) ;
+	$name = str_replace(chr(246), 'o', $name) ;
+	// MCI
+	$name = str_replace('á', 'a', $name) ;
+	$name = str_replace('é', 'e', $name) ;
+	$name = str_replace('í', 'i', $name) ;
+	$name = str_replace('ö', 'o', $name) ;
+	$name = str_replace('ú', 'u', $name) ;
+	$name = str_replace('û', 'u', $name) ;
+	$name = str_replace('Æ', 'AE', $name) ;
+	return $name ;
+}
+function card_text_sanitize($text) {
+	$text = preg_replace('/ ?\([^)]*\([^()]*?\)[^(]*\)/', '', $text) ; // UGLY workaround for parenthesis contained in parenthesis on MV
+	$text = preg_replace('/ ?\(.*?\)/', '', $text) ; // Remove helper texts
+	$text = preg_replace('/ *— */', ' - ', $text) ;
+	$text = str_replace("\r\n", "\n", $text) ; // Keep only one type of carriage return
+	$text = str_replace(chr(147), '"', $text) ;
+	$text = str_replace(chr(148), '"', $text) ;
+	$text = card_name_sanitize($text) ; // Same card name in card text than in card
+	$text = html_entity_decode($text) ;
+	$pieces = mb_split('\n|  ', $text) ; // Trim each line
+	foreach ( $pieces as $i => $piece ) {
+		$pieces[$i] = trim($pieces[$i]) ;
+		$pieces[$i] = trim($pieces[$i], '.') ;
+	}
+	$text = implode("\n", $pieces) ;
+	return $text ;
+}
 function firstline($string='') {
 	$pos = strpos($string, "\n") ;
 	if ( $pos === false )

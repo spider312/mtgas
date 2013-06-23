@@ -17,7 +17,9 @@ foreach ( $matches_list as $match ) { //
 	} else
 		die('Unparsable URL '.$match['url']) ;
 	// Parse card itself
-	$html = cache_get('http://www.magic-ville.com/fr/'.$match['url'], 'cache/'.str_replace('/', '_', $match['url']), $verbose) ;
+	$url='http://www.magic-ville.com/fr/'.$match['url'] ;
+	$path = 'cache/'.str_replace('/', '_', $match['url']) ;
+	$html = cache_get($url, $path, $verbose) ;
 	// Cost
 	$cost = '' ;
 	if ( preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.{1,2})\.gif>#',  $html, $matches_cost, PREG_SET_ORDER) > 0 )
@@ -27,14 +29,13 @@ foreach ( $matches_list as $match ) { //
 			else
 				$cost .= '{'.implode('/', str_split($match_cost['mana'])).'}' ;
 	// Name, type and text
-	$nb = preg_match_all(
-'#<div style="height:20.*></div>
-\s*<div class=S16>(?<name>.*)</div>
+	$nb = preg_match_all('#<div style=".*></div>
+\s*<div class=S16>(?<name>.*?)</div>
 \s*<div class=G12 style="padding-top:4px;padding-bottom:.px;">(?<type>.*)</div>
 \s*<div align=center>
-\s*<div id=EngShort style="display:block;" class=S1[12] align=justify>(?<text>.*)</div>#Us', $html, $matches, PREG_SET_ORDER) ;
+\s*<div id=EngShort style="display:block;" class=S1. align=justify>(?<text>.*?)</div>#s', $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
-		echo 'regex failed' ;
+		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path ;
 		return false ;
 	}
 	// Text
@@ -42,17 +43,22 @@ foreach ( $matches_list as $match ) { //
 	$text = '' ;
 	$pow = '' ;
 	$tou = '' ;
-	if ( preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>(?<pow>\d*)/(?<tou>\d*))</div>#', $html, $matches_pt, PREG_SET_ORDER) > 0 ) {
+			// Creature
+	if ( preg_match_all('#<div align=right class=G14 style="padding-right:4px;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))</div>#', $html, $matches_pt, PREG_SET_ORDER) > 0 ) {
 		$pt = $matches_pt[0]['pt'] ;
 		$pow = $matches_pt[0]['pow'] ;
 		$tou = $matches_pt[0]['tou'] ;
 		$text = "$pt\n" ;
+			// Planeswalker
 	} elseif ( preg_match_all('#<div class=S11 align=right>Loyalty : (?<loyalty>\d*)</div>#', $html, $matches_loyalty, PREG_SET_ORDER) > 0 ) {
 		$text = $matches_loyalty[0]['loyalty']."\n" ;
-		$matches[0]['text'] = preg_replace('@\s*<tr .*?'.'>\s*<td valign=middle width=36><table width=30 bgcolor=#000000 cellpadding=2 cellspacing=0 align=center><tr><td class=W12 align=center>\s*(.*?)</td></tr></table></td>\s*<td class=S11 align=justify>(.*?)</td>\s*</tr>@', '$1 : $2'."\n", $matches[0]['text']) ; // Planeswalkers steps
+		$matches[0]['text'] = preg_replace('@\s*<tr .*?'.'>\s*<td valign=middle width=36><table width=30 bgcolor=#000000 cellpadding=2 cellspacing=0 align=center><tr><td class=W12 align=center>\s*(.*?)</td></tr></table></td>\s*<td class=S11 align=justify>(.*?)</td>\s*</tr>@', '$1: $2'."\n", $matches[0]['text']) ; // Planeswalkers steps
 	}
 	$tmp = $matches[0]['text'] ;
-	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%(.)">#', '{$1}', $tmp) ; // Cost parsing before strip_tags
+	// Cost parsing before strip_tags
+	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.)(.).gif alt="%\1\2">#', '{$1/$2}', $tmp) ; // Hybrid
+	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%\1">#', '{$1}', $tmp) ; // Normal
+	$tmp = str_replace(' : ', ': ', $tmp) ;
 	$text .= trim(strip_tags($tmp)) ;
 	// Name
 	$name = card_name_sanitize($matches[0]['name']) ;

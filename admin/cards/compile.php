@@ -2,11 +2,8 @@
 include_once 'lib.php' ;
 $query = query('SELECT * FROM card ORDER BY `id` DESC') ; // Last added cards are managed first, in order not to wait before a die
 while ( $arr = mysql_fetch_array($query) ) {
-	//$pieces = explode("\n", $arr['text']) ;
-	$pieces = mb_split('\n|  ', $arr['text']) ;
-	foreach ( $pieces as $piece )
-		$piece = trim($piece) ;
-	$arr['text'] = implode("\n", $pieces) ;
+	// $arr needed for attrs parsing
+	$arr['text'] = card_text_sanitize($arr['text']) ;
 	query("UPDATE
 		card
 	SET
