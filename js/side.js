@@ -33,7 +33,7 @@ function side_start(player, winner) {
 	side_window.appendChild(side_ul) ;
 	// Buttons
 	var div_but = create_div() ;
-	div_but.id = 'buttons' ;
+	div_but.id = 'side_buttons' ;
 	var but_reload = create_button(create_img(theme_image('deckbuilder/reload.png')[0], 'Reload'), function(ev) {
 		var toswapout = [] ;
 		var toswapin = [] ;
