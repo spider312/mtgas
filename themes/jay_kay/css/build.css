@@ -133,7 +133,6 @@ div.S {
 	position: fixed ;
 }
 #zoomed.split {
-	/*-webkit-transform: rotate(90deg);*/
 	transform: rotate(90deg);
 	transform-origin: left top ;
 }
