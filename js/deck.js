@@ -110,7 +110,7 @@ function deck_set(name, content) {
 		name = prompt('What is this deck\'s name ?') ;
 	if ( name == null )
 		return false ;
-	name = name.replace(/(\s+)/g, '_') ;
+	name = name.replace(/([,'\s]+)/g, '_') ;
 	// Content checking
 	content = deck_xml_to_mw(content) ;
 	// Deck creation
