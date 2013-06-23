@@ -291,7 +291,7 @@ class attrs {
 					$this->transformed_attrs = $transform ;
 				}
 				else {
-					// Dual / Flip
+					// Split / Flip
 					$pieces = explode("\n----\n", $arr['text']) ;
 					if ( count($pieces) > 1 ) {
 						manage_all_text($arr['name'], $pieces[0], $this) ; // Manage "main" part
@@ -303,20 +303,19 @@ class attrs {
 								manage_types(array_shift($matches), $flip) ;
 							$this->flip_attrs = $flip ;
 							manage_all_text($arr['name'], implode("\n", $matches), $flip) ;
-						} else { // "/" in name, it's a dual
-							$dual = new simple_object() ;
+						} else { // "/" in name, it's a split
+							$split = new simple_object() ;
 							if ( count($matches) > 0 )
-								$dual->manas = cost_explode(array_shift($matches)) ;
+								$split->manas = cost_explode(array_shift($matches)) ;
 							if ( count($matches) > 0 )
-								manage_types(array_shift($matches), $dual) ;
-							$this->dual = $dual ;
+								manage_types(array_shift($matches), $split) ;
+							$this->split = $split ;
 							manage_all_text($arr['name'], implode("\n", $matches), $this) ;
 							// Apply colors to initial card
-							foreach ( $dual->manas as $mana ) // mana symbols
+							foreach ( $split->manas as $mana ) // mana symbols
 								if ( ! isint($mana) ) // Is a mana
 									if ( $mana != 'X' ) // X is worth 0 and no color
 										$this->add_color($mana) ;
-
 						}
 					} else
 						manage_all_text($arr['name'], $arr['text'], $this) ;

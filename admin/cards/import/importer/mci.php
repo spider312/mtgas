@@ -75,7 +75,7 @@ foreach ( $matches as $match ) {
 		$types = $types_matches['types'] ;
 		$text = $types_matches['loyalty']."\n".$text ;
 	}
-	// Second part of dual cards (all cards having multiple lines on mci)
+	// Second part of split cards (all cards having multiple lines on mci)
 	$secondpart = ( intval($match['id']).'b' == $match['id'] ) ;
 	if ( $secondpart ) {
 		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) { // Double Face card
@@ -94,7 +94,7 @@ foreach ( $matches as $match ) {
 				$add = "----\n$name\n$types\n$text" ;
 		}
 		$lastcard->addtext($add) ; // Assume that last parsed card was the first part of the same card
-	} else { // "normal" cards (1 line on mci) or first part of dual card
+	} else { // "normal" cards (1 line on mci) or first part of split card
 		$rarity = substr($match['rarity'], 0, 1) ;
 		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) // Cards with no casting cost (Ancestral Vision)
 			$text = $name.' is '.strtolower(implode(' and ', explode(' ', $colors_matches['color']))).".\n".$text ;

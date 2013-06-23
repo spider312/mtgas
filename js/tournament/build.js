@@ -419,6 +419,10 @@ function card_div(card) { // Returns visual representation of a card
 	div.addEventListener('mouseover', function(ev) { // Initialize zoom
 		zoomed.src = ev.target.url ;
 		zoomed.width = cardimagewidth ;
+		if ( iso(ev.target.card.attrs.split) )
+			zoomed.classList.add('split') ;
+		else
+			zoomed.classList.remove('split') ;
 		if ( ev.target.transformed_url != '' ) {
 			transformed.src = ev.target.transformed_url ;
 			transformed.width = cardimagewidth ;
@@ -436,12 +440,17 @@ function card_div(card) { // Returns visual representation of a card
 		// The goal of this behaviour is to never display zoom on top of cursor (it would interact with mouse* events)
 		// and make cards always readable
 		var x = ev.clientX + 5 ; // 5px on cursor's right
+		if ( iso(ev.target.card.attrs.split) )
+			x += zoomed.height ;
 		if ( x + zoom.width > window.innerWidth ) // Outside inner screen
 			x = ev.clientX - zoom.width - 5 ; // 5px on cursor's left
 		zoom.style.left = max(x, 0)+'px' ;
 		var y = ev.clientY + 5 ;// 5px on cursor's bottom
-		if ( y + zoom.clientHeight > window.innerHeight ) // Outside inner screen
+		if ( y + zoom.clientHeight > window.innerHeight ) { // Outside inner screen
 			y = ev.clientY - zoom.clientHeight - 5 ; // 5px on cursor's top
+			if ( iso(ev.target.card.attrs.split) )
+				y += zoomed.height - zoomed.width ;
+		}
 		zoom.style.top = max(y, 0)+'px' ;
 	}, false) ;
 	div.addEventListener('mouseout', function(ev) { // Clear zoom

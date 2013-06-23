@@ -132,6 +132,11 @@ div.S {
 	display: inline !important ;
 	position: fixed ;
 }
+#zoomed.split {
+	/*-webkit-transform: rotate(90deg);*/
+	transform: rotate(90deg);
+	transform-origin: left top ;
+}
 #transformed {
 	display: none ;
 }
