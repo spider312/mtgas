@@ -247,6 +247,9 @@ function html_checkbox($name, $checked) {
 	$return .= '>' ;
 	return $return ;
 }
+function html_pre($str) {
+	return '<pre>'.$str.'</pre>' ;
+}
 // JSON
 function json_verbose_error($i) {
 	switch ( $i ) {
