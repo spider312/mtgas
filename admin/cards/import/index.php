@@ -1,5 +1,6 @@
 <?php
 include_once 'lib.php' ;
+include 'HtmlDiff.php' ;
 // Args
 $ext_local = param($_GET, 'ext_local', '') ;
 $source = param($_GET, 'source', 'mci') ;
@@ -88,7 +89,10 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.$card->name.'</td>
       <td>'.$card->cost.'</td>
       <td>'.$card->types.'</td>
-      <td><a href="'.$card->images[0].'">'.$card->images[0].'</a></td>
+      <td>' ;
+	foreach ( $card->images as $image)
+		echo '<li><a href="'.$image.'">'.$image.'</a></li>' ;
+	echo '</td>
      </tr>
 ' ;
 }
@@ -129,32 +133,7 @@ foreach ( $importer->tokens as $token ) {
   <div class="section">
    <h2>To</h2>
 <?php
-// Extension in DB
-$ext = strtoupper($ext_local) ;
-$res = mysql_fetch_object(query("SELECT * FROM extension WHERE `se` = '$ext' ; ")) ; // First search in SE
-if ( ! $res ) // Take another chance with sea
-	$res = mysql_fetch_object(query("SELECT * FROM extension WHERE `sea` = '$ext' ; ")) ;	
-if ( ! $res ) {
-	echo 'Extension '.$ext.' not found' ;
-	if ( $apply ) {
-		echo 'Would create it' ;
-		/*
-		$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".mysql_real_escape_string($matches[0]['ext'])."')") ;
-		echo '<p>Extension not existing, creating</p>' ;
-		$ext_id = mysql_insert_id() ;
-		*/
-	}
-} else {
-	$ext_id = $res->id ;
-	echo $ext_id.' : '.$res->name ;
-	if ( $apply) {
-		echo 'Would delete cards' ;
-		/*
-		query("DELETE FROM `card_ext` WHERE `ext` = '$ext_id'") ;
-		echo '  <p>'.mysql_affected_rows().' cards unlinked from '.$ext."</p>\n\n" ;
-		*/
-	}
-}
+$import_log = $importer->import($apply) ;
 ?>
 
    <table>
@@ -165,7 +144,6 @@ if ( ! $res ) {
       <th>Updates</th>
      </tr>
 <?php
-$import_log = $importer->import($apply) ;
 $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
@@ -179,9 +157,11 @@ foreach ( $import_log as $i => $log ) {
       <td>' ;
 		foreach ( $log['updates'] as $field => $upd ) {
 			if ( $field == 'text' ) {
-				echo $field.'<textarea cols="50" rows="5">'./*string_detail*/($upd).'</textarea>->' ;
-				echo '<textarea cols="50" rows="5">'./*string_detail*/($card->{$field}).'</textarea>' ;
-				echo '<div style="white-space:pre-wrap">'.htmlDiff($upd, $card->{$field}).'</div>' ;
+				//echo $field.'<textarea cols="50" rows="5">'.$upd.'</textarea>->' ;
+				//echo '<textarea cols="50" rows="5">'.$card->{$field}.'</textarea>' ;
+				$diff = new HtmlDiff($upd,  $card->{$field}) ;
+				echo '<div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
+				//htmlDiff($upd, $card->{$field})
 			} else
 				echo $field.' : '.$upd.' -> '.$card->{$field} ;
 			echo '<br>' ;
