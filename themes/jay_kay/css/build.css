@@ -125,7 +125,7 @@ div.S {
 	display: none ;
 }
 /* Zoom */
-#zoom {
+#zoom { /* Div containing images */
 	display: none ;
 }
 #zoom.disp {
@@ -136,12 +136,15 @@ div.S {
 	transform: rotate(90deg);
 	transform-origin: left top ;
 }
-#transformed {
+#transformed, #fliped {
 	display: none ;
 }
-#transformed.disp {
+#transformed.disp, #fliped.disp {
 	display: inline !important ;
 	position: fixed ;
+}
+#fliped.disp {
+	transform: rotate(180deg);
 }
 /* Card stats inside zoom */
 #cardstats {

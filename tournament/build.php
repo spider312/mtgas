@@ -28,6 +28,7 @@ html_head($title,
 	array(
 		'lib/jquery.js'
 		, 'lib/jquery.cookie.js'
+		, 'http://github.com/betamax/getImageData/raw/master/jquery.getimagedata.min.js'
 		, 'lib/Flotr2/flotr2.min.js'
 		, 'html.js'
 		, 'math.js'
@@ -146,7 +147,12 @@ if ( $id > 0 ) {
 ?>
   </div>
 
-  <div id="zoom" class="nowrap"><img id="zoomed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Zoom on hovered card"><img id="transformed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Transformed part for zoom on hovered card"></div><!-- hidden by CSS, displayed on card hover -->
+  <div id="zoom" class="nowrap"><!-- hidden by CSS, displayed on card hover -->
+   <img id="zoomed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Zoom on hovered card">
+   <img id="fliped" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Fliped part for zoom on hovered card">
+   <img id="transformed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Transformed part for zoom on hovered card">
+  </div>
+  <canvas id="rotated"></canvas>
 <?php
 if ( is_file('../footer.php') )
 	include '../footer.php' ;

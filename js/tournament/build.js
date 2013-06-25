@@ -69,7 +69,11 @@ function init() {
 	land = document.getElementById('land') ;
 	zoom = document.getElementById('zoom') ;
 	zoomed = document.getElementById('zoomed') ;
+	fliped = document.getElementById('fliped') ;
 	transformed = document.getElementById('transformed') ;
+	zoomed.width = cardimagewidth ;
+	fliped.width = cardimagewidth ;
+	transformed.width = cardimagewidth ;
 	ready = document.getElementById('ready') ;
 	tournament = null ;
 	ajax_error_management() ;
@@ -400,10 +404,23 @@ function card_div(card) { // Returns visual representation of a card
 	div.url = '' ;
 	div.transformed_url = '' ;
 	// Image loading
-	game.image_cache.load(card_images(card_image_url(card.ext, card.name, card.attrs)), function(img, tag) {
+	var urls = card_images(card_image_url(card.ext, card.name, card.attrs)) ;
+	if ( iso(card.attrs.split) ) { // Security workaround for cross-site image loading
+		for ( var i in urls )
+			urls[i] = '/proxy.php?url='+urls[i] ;
+	}
+	game.image_cache.load(urls, function(img, tag) {
 		var src = img.src ;
 		tag.url = src ;
-		tag.style.backgroundImage = 'url('+src.replace('\'', '\\\'')+')' ; // Chromium & Opera don't like apostrophes
+		if ( iso(tag.card.attrs.split) ) {
+			var rotated = create_canvas(img.height, img.width) ;
+			rotated.style.border = '1px solid red' ;
+			var ctx = rotated.getContext("2d") ;
+			ctx.rotate(Math.PI/2) ;
+			ctx.drawImage(img, 0, -img.height) ;
+			tag.style.backgroundImage = 'url('+rotated.toDataURL()+')';
+		} else
+			tag.style.backgroundImage = 'url('+src.replace('\'', '\\\'')+')' ; // Chromium & Opera don't like apostrophes
 	}, function(tag, url) {
 		tag.appendChild(document.createTextNode('['+tag.card.ext+']'+tag.card.name)) ;
 	}, div) ;
@@ -417,22 +434,25 @@ function card_div(card) { // Returns visual representation of a card
 	}
 	// Events
 	div.addEventListener('mouseover', function(ev) { // Initialize zoom
-		zoomed.src = ev.target.url ;
-		zoomed.width = cardimagewidth ;
-		if ( iso(ev.target.card.attrs.split) ) // Split
+		zoomed.src = ev.target.url ; // "Main" image
+		// Split
+		if ( iso(ev.target.card.attrs.split) )
 			zoomed.classList.add('split') ;
 		else
 			zoomed.classList.remove('split') ;
-		if ( ev.target.transformed_url != '' ) { // Transformed
+		// Flip
+		if ( iso(ev.target.card.attrs.flip_attrs) ) {
+			fliped.src = ev.target.url ;
+			fliped.classList.add('disp') ;
+		} else
+			fliped.classList.remove('disp') ;
+		// Transformed
+		if ( ev.target.transformed_url != '' ) {
 			transformed.src = ev.target.transformed_url ;
-			transformed.width = cardimagewidth ;
 			transformed.classList.add('disp') ;
-			zoom.width = 2*cardimagewidth ;
-		} else { // Previous was transformed, curent isn't
+		} else
 			transformed.classList.remove('disp') ;
-			zoom.width = cardimagewidth ;
-		}
-		zoom.classList.add('disp') ;
+		zoom.classList.add('disp') ; // Container
 	}, false) ;
 	div.addEventListener('mousemove', function(ev) { // Update zoom
 		// Image is displayed on cursor's bottom right by default
@@ -441,9 +461,9 @@ function card_div(card) { // Returns visual representation of a card
 		// and make cards always readable
 		var x = ev.clientX + 5 ; // 5px on cursor's right
 		if ( iso(ev.target.card.attrs.split) ) // Split
-			x += zoomed.height ;
-		if ( x + zoom.width > window.innerWidth ) // Outside inner screen
-			x = ev.clientX - zoom.width - 5 ; // 5px on cursor's left
+			x += zoomed.clientHeight ;
+		if ( x + zoom.clientWidth > window.innerWidth ) // Outside inner screen
+			x = ev.clientX - zoom.clientWidth - 5 ; // 5px on cursor's left
 		zoom.style.left = max(x, 0)+'px' ;
 		var y = ev.clientY + 5 ;// 5px on cursor's bottom
 		if ( y + zoom.clientHeight > window.innerHeight ) { // Outside inner screen
@@ -465,9 +485,8 @@ function card_div(card) { // Returns visual representation of a card
 					// but the toggle won't fire mouseout, doing it by hand here
 					break ;
 				case 1 :
-					window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
-					break ;
 				case 2 :
+					window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
 					break ;
 			}
 	}, false) ;
