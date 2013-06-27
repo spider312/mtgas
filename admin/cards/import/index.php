@@ -65,34 +65,43 @@ $ext_source = strtolower($ext_source) ;
    <h2>From</h2>
 <?php
 $chosen_importer = 'importer/'.$source.'.php' ;
-if ( file_exists($chosen_importer) ) {
-	$importer = new ImportExtension() ;
-	include_once $chosen_importer ;
-} else
+if ( ! file_exists($chosen_importer) )
 	die('No importer for source '.$source) ;
-?>
+
+$importer = new ImportExtension() ;
+echo '<pre>' ;
+include_once $chosen_importer ;
+if ( ! $importer->validate() )
+	$apply = false ;
+?></pre>
 
    <table>
     <caption><?php echo count($importer->cards) ; ?> cards detected <button id="import_cards_button">Show / Hide</button></caption>
     <tbody id="import_cards">
      <tr>
-      <th>rarity</th>
-      <th>name</th>
-      <th>cost</th>
-      <th>types</th>
-      <th>image url</th>
+      <th>#</th>
+      <th>Rarity</th>
+      <th>Name</th>
+      <th>Cost</th>
+      <th>Types</th>
+      <th>Images</th>
+      <th>URL</th>
+      <th>MultiverseID
      </tr>
 <?php
 foreach ( $importer->cards as $i => $card ) {
-	echo '     <tr title="'.$card->text.'">
-      <td>'.$i.' : '.$card->rarity.'</td>
-      <td>'.$card->name.'</td>
+	echo '     <tr title="'.htmlentities($card->text).'">
+      <td>'.($i+1).'</td>
+      <td>'.$card->rarity.'</td>
+      <td><a href="'.$card->url.'" target="_blank">'.$card->name.'</a></td>
       <td>'.$card->cost.'</td>
       <td>'.$card->types.'</td>
+      <td>'.$card->nbimages.'</td>
       <td>' ;
 	foreach ( $card->images as $image)
-		echo '<li><a href="'.$image.'">'.$image.'</a></li>' ;
+		echo '<li><a href="'.$image.'" target="_blank">'.$image.'</a></li>' ;
 	echo '</td>
+      <td>'.$card->multiverseid.'</td>
      </tr>
 ' ;
 }
@@ -132,9 +141,7 @@ foreach ( $importer->tokens as $token ) {
 
   <div class="section">
    <h2>To</h2>
-<?php
-$import_log = $importer->import($apply) ;
-?>
+   <pre><?php $import_log = $importer->import($ext_local, $apply) ; // PHP Import ?></pre>
 
    <table>
     <tbody id="imported_cards">
@@ -147,6 +154,7 @@ $import_log = $importer->import($apply) ;
 $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
+$actions = array() ;
 foreach ( $import_log as $i => $log ) {
 	$card = $log['card'] ;
 	if ( count($log['updates']) > 0 ) {
@@ -156,15 +164,11 @@ foreach ( $import_log as $i => $log ) {
       <td>'.$log['found'].'</td>
       <td>' ;
 		foreach ( $log['updates'] as $field => $upd ) {
-			if ( $field == 'text' ) {
-				//echo $field.'<textarea cols="50" rows="5">'.$upd.'</textarea>->' ;
-				//echo '<textarea cols="50" rows="5">'.$card->{$field}.'</textarea>' ;
-				$diff = new HtmlDiff($upd,  $card->{$field}) ;
-				echo '<div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
-				//htmlDiff($upd, $card->{$field})
-			} else
-				echo $field.' : '.$upd.' -> '.$card->{$field} ;
-			echo '<br>' ;
+			//echo $field.' : ['.$upd.'] -> ['.$card->{$field}.']' ;
+			//echo $field.'<textarea cols="50" rows="5">'.$upd.'</textarea>->' ;
+			//echo '<textarea cols="50" rows="5">'.$card->{$field}.'</textarea>' ;
+			$diff = new HtmlDiff($upd,  $card->{$field}) ;
+			echo '<strong>'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
 		}
 		echo '</td>
      </tr>
@@ -175,16 +179,29 @@ foreach ( $import_log as $i => $log ) {
 		else
 			$notfound[] = $card->name ;
 	}
+	if ( isset($actions[$log['action']]) )
+		$actions[$log['action']][] = $card ;
+	else
+		$actions[$log['action']] = array($card) ;
 }
 ?>
     </tbody>
     <caption><?php echo $updates ; ?> cards to update <button id="imported_cards_button">Show / Hide</button></caption>
    </table>
 <?php
+/*
 if ( count($found) > 0 )
 	echo '<p>'.count($found).' cards found but not updated : <br>'.implode(', ', $found).'</p>' ;
 if ( count($notfound) > 0 )
 	echo '<p>'.count($notfound).' cards not found, so inserted : <br>'.implode(', ', $notfound).'</p>' ;
+*/
+echo 'Actions on links : ' ;
+foreach ( $actions as $i => $action ) {
+	$names = array() ;
+	foreach ( $action as $card )
+		$names[] = $card->name ;
+	echo '<div title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</div>' ;
+}
 ?>
 
   </div>

@@ -7,3 +7,19 @@ div.section {
 .updating {
 	background-color: red ;
 }
+/* Diff */
+.diffins, .diffmod, .diffdel {
+	text-decoration: none ;
+}
+ins.diffins {
+	color: green ;
+}
+ins.diffins, ins.diffmod {
+	background-color: lightgreen ;
+}
+del.diffdel, del.diffmod {
+	background-color: pink ;
+}
+del.diffdel {
+	color: red ;
+}
