@@ -6,6 +6,8 @@ $ext_local = param($_GET, 'ext_local', '') ;
 $source = param($_GET, 'source', 'mci') ;
 $ext_source = param($_GET, 'ext_source', $ext_local) ;
 $apply = param($_GET, 'apply', false) ;
+if ( $apply !== false )
+	$apply = true ;
 $verbose = false ;
 
 html_head(
@@ -71,8 +73,9 @@ if ( ! file_exists($chosen_importer) )
 $importer = new ImportExtension() ;
 echo '<pre>' ;
 include_once $chosen_importer ;
-if ( ! $importer->validate() )
+if ( ! $importer->validate() ) {
 	$apply = false ;
+}
 ?></pre>
 
    <table>
@@ -124,10 +127,10 @@ if ( count($importer->tokens) > 0 ) {
 <?php
 foreach ( $importer->tokens as $token ) {
 	echo '     <tr>
-      <td>'.$token[0].'</td>
-      <td>'.$token[1].'</td>
-      <td>'.$token[2].'</td>
-      <td><a href="'.$token[3].'">'.$token[3].'</a></td>
+      <td><a href="'.$token['card_url'].'" target="_blank">'.$token['type'].'</td>
+      <td>'.$token['pow'].'</td>
+      <td>'.$token['tou'].'</td>
+      <td><a href="'.$token['image_url'].'">'.$token['image_url'].'</a></td>
      </tr>
 ' ;
 }
@@ -189,21 +192,27 @@ foreach ( $import_log as $i => $log ) {
     <caption><?php echo $updates ; ?> cards to update <button id="imported_cards_button">Show / Hide</button></caption>
    </table>
 <?php
-/*
 if ( count($found) > 0 )
-	echo '<p>'.count($found).' cards found but not updated : <br>'.implode(', ', $found).'</p>' ;
+	echo '<p title="'.implode(', ', $found).'">'.count($found).' cards found but not updated</p>' ;
 if ( count($notfound) > 0 )
-	echo '<p>'.count($notfound).' cards not found, so inserted : <br>'.implode(', ', $notfound).'</p>' ;
-*/
+	echo '<p title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
 echo 'Actions on links : ' ;
 foreach ( $actions as $i => $action ) {
 	$names = array() ;
 	foreach ( $action as $card )
 		$names[] = $card->name ;
-	echo '<div title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</div>' ;
+	echo '<p title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
 }
+$_SESSION['importer'] = $importer ;
 ?>
 
+  </div>
+
+  <div class="section">
+   <h2>Pics</h2>
+   <a href="images.php" target="img_dl">Download</a><br>
+   <iframe name="img_dl" class="fullwidth">
+   </iframe>
   </div>
 
 <script type="text/javascript">
@@ -223,8 +232,6 @@ foreach ( $actions as $i => $action ) {
 	}, false) ;
 
 </script>
-
-
 
  </body>
 </html>

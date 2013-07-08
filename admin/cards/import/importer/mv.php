@@ -4,6 +4,7 @@ $importer->init('http://www.magic-ville.com/fr/set_cards.php?setcode='.$ext_sour
 $list_regex = '#<img src="graph/rarity/(?<rarity>.*?)\.gif"><a (class=und)? href=(?<url>carte\.php\?ref=.*?)>(?<name>.*?)</a>#' ;
 $reg_flip = '#<div class=S16>(?<name>[^<>]*?)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<type>[^<>]*?)</div><div style="display:block;" class=S12 align=justify>(?<text>.*?)</div>#s' ;
 $reg_moon = '#<div class=S16><img src=graph/moteur/moon.png> (?<name>.*)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<colors><img .*>) (?<type>.*)</div><div style="display:block;" class=S12 align=justify>(?<text>.*)</div><div align=right class=G14 style="padding-right:4px;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>#Us' ;
+$rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 
 // Lib
 function card_image_url($url) {
@@ -51,10 +52,10 @@ foreach ( $matches_list as $match ) { //
 	} else
 		die('Unparsable URL '.$match['url']) ;
 	// Parse card itself
-	$url='http://www.magic-ville.com/fr/'.$match['url'] ;
-	$path = 'cache/'.str_replace('/', '_', $match['url']) ;
+	$url = 'http://www.magic-ville.com/fr/'.$match['url'] ;
+	$path = 'cache/'.str_replace('/', '_', $url) ;
 	$html = cache_get($url, $path, $verbose) ;
-	// Name, type and text
+	// Name, cost, type and text
 	$nb = preg_match_all('#<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>.*?
 \s*<div style=".*?".*?'.'></div>
 \s*<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
@@ -66,8 +67,6 @@ foreach ( $matches_list as $match ) { //
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
 		return false ;
 	}
-	// Cost
-	$cost = mv2cost($matches[0]['cost']) ;
 
 	// Text
 		// Type specific
@@ -83,36 +82,37 @@ foreach ( $matches_list as $match ) { //
 	$text .= mv2txt($matches[0]['text']) ;
 	// Name
 	$name = card_name_sanitize($matches[0]['name']) ;
-	$type = trim($matches[0]['type']) ;
-	$token = false ;
-	// Rarity
-	$rarity = '' ;
-	if ( strpos($type, 'Gate') != false )
-		$rarity = 'L' ;
-	else {
-		$rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
-		if ( preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?'.'>#', $html, $matches_rarity, PREG_SET_ORDER) > 0 ) {
-			$rid = intval($matches_rarity[0][1]) ;
-			if ( isset($rarities[$rid]) )
-				$rarity = $rarities[$rid] ;
-			else {
-				echo 'Unknown rarity ID : "'.$rid.'"' ;
-				$token = true ;
-			}
-		} else
-			$token = true ;
-	}
 	$card = null ;
-	if ( ! $token )
-		$card = $importer->addcard($url, $rarity, $name, $cost, $type, $text, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
-	else {
+	if ( ! preg_match('#<div>\d{1,2}/\d{1,2}</div>#', $html) ) { // Tokens are numbered
+		$type = trim($matches[0]['type']) ;
+		// Rarity
+		$rarity = '' ;
+		if ( strpos($type, 'Gate') != false ) // DGM Gates must be considered as a land in DB
+			$rarity = 'L' ;
+		else {
+			if ( preg_match_all('#<img src=graph/rarity/carte(\d{1,2}).gif( border=0)?'.'>#', $html, $matches_rarity, PREG_SET_ORDER) > 0 ) {
+				$rid = intval($matches_rarity[0][1]) ;
+				if ( isset($rarities[$rid]) )
+					$rarity = $rarities[$rid] ;
+				else
+					echo 'Unknown rarity ID : "'.$rid.'"' ;
+			} else {
+				if ( array_search($name, array('Forest', 'Island', 'Mountain', 'Plains', 'Swamp')) > -1 )
+					$rarity = 'L' ;
+				else
+					$rarity = 'C' ; // In doubt
+				echo 'Rarity icon not found : ['.$name."] (default applied : $rarity)\n" ;
+			}
+		}
+		$card = $importer->addcard($url, $rarity, $name, mv2cost($matches[0]['cost']), $type, $text, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+	} else {
 		$pow = '' ;
 		$tou = '' ;
 		if ( isset($matches[0]['pow']) )
 			$pow = $matches[0]['pow'] ;
 		if ( isset($matches[0]['tou']) )
 			$tou = $matches[0]['tou'] ;
-		$importer->addtoken($name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+		$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
 	}
 
 	// Second part

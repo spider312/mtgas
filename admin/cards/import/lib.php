@@ -1,41 +1,31 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
-$base_image_dir = substr(`bash -c "echo ~"`, 0, -1).'/img/' ;
-// Cache management
+$homedir = substr(`bash -c "echo ~"`, 0, -1) ;
+$base_image_dir = $homedir.'/img/' ;
 
-function file_get_contents_utf8($fn) {
-	$opts = array(
-	'http' => array(
-	    'method'=>"GET",
-	    'header'=>"Content-Type: text/html; charset=utf-8"
-	)
-	);
-	$context = stream_context_create($opts);
-	$result = @file_get_contents($fn,false,$context);
-	return $result;
-} 
-function cache_get($url, $cache_file, $verbose = true) {
-	if ( file_exists($cache_file) ) {
-		if ( $verbose )
-			echo '[use cache]' ;
+// Cache management
+function cache_get($url, $cache_file, $verbose = true, $cache_life=3600) {
+	$message = '' ;
+	clearstatcache() ;
+	if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
+		$message .= '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
 	} else {
-		if ( $verbose )
-			echo '[update cache : ' ;
+		$message .= '[update cache : ' ;
 		if ( ( $content = @file_get_contents($url) ) !== FALSE ) {
-			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE ) {
-				if ( $verbose )
-					echo 'NOT updated' ;
-			} else {
-				if ( $verbose )
-					echo 'updated ('.human_filesize($size).')' ;
-			}
+			if ( $content === false )
+				$message .= 'not downloadable ('.$url.')' ;
+			elseif ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
+				$message .= 'not updatable ('.$cache_file.')' ;
+			else
+				$message .= 'updated ('.human_filesize($size).')' ;
 		}
-		if ( $verbose )
-			echo ']' ;
+		$message .= ']' ;
 	}
-	if ( $content === false )
-		die('[no content : '.$url.' -> '.$cache_file.']') ;
+	if ( $verbose )
+		echo $message ;
+	/*if ( $content === false )
+		die('[no content : '.$url.' -> '.$cache_file.']') ;*/
 	return $content ;
 }
 // Debug
@@ -60,22 +50,30 @@ class ImportExtension {
 	public $url = '' ;
 	public $cards = array() ;
 	public $tokens = array() ;
+	public $errors = array() ;
 	function __construct() {
 	}
 	function __destruct() {
 	}
+	// Extensioçn related funcs
 	function init($url) {
 		$this->url = $url ;
 	}
 	function setext($code, $name, $cards) {
 		$this->code = $code ;
+		$this->dbcode = $code ;
 		$this->name = $name ;
 		$this->nbcards = intval($cards) ;
 		echo 'Extension detected : <a href="'.$this->url.'" target="_blank">'."$code - $name</a>\n" ;
 	}
+	// Card/token parsing
 	function addcard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid='') {
+		// Name checking
 		$name = card_name_sanitize($name) ;
-		$text = card_text_sanitize($text) ;
+		if ( $name == '' ) {
+			$this->errors['Empty name'][] = $card_url ;
+			return null ;
+		}
 		foreach ( $this->cards as $card )
 			if ( $card->name == $name ) {
 				$log = '' ;
@@ -84,18 +82,29 @@ class ImportExtension {
 						$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
 				if ( $log != '' ) // Shouldn't happen
 					echo 'Card already parsed with different data : '.$name."\n".$log."\n" ;
-				$card->nbimages++ ;
-				$card->addimage($url) ;
+				if ( $card->addimage($url) )
+					$card->nbimages++ ;
 				return $card ;
 			}
+		$text = card_text_sanitize($text) ;
+		$types = preg_replace('#\s+#', ' ', $types) ;
 		$card = new ImportCard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid) ;
 		$this->cards[] = $card ;
 		return $card ;
 	}
-	function addtoken($type, $pow, $tou, $url) {
-		$this->tokens[] = array($type, $pow, $tou, $url) ;
+	function addtoken($card_url, $type, $pow, $tou, $image_url) {
+		$this->tokens[] = array('card_url' => $card_url, 'type' => $type, 'pow' => $pow, 'tou' => $tou, 'image_url' => $image_url) ;
 	}
+	// Importing
 	function validate() {
+		// Errors
+		if ( count($this->errors) > 0 ) {
+			echo "Errors : \n" ;
+			foreach ( $this->errors as $i => $error )
+				echo ' - '.$i.' : '.count($error)."\n" ;
+		} else
+			echo "No errors during parsing\n" ;
+
 		// Cards
 		$nbcards = 0 ;
 		foreach ( $this->cards as $card )
@@ -106,8 +115,12 @@ class ImportExtension {
 		if ( $nbcards == $this->nbcards )
 			echo 'Card number OK' ;
 		else {
-			echo $nbcards.' card images found despite '.$this->nbcards.' expected'."\n" ;
-			return false ;
+			if ( $this->nbcards == $nbcards + count($this->tokens) ) 
+				echo 'Card number wrongly reported as card nb + token nb, accepted'."\n" ; // Magic-ville sometimes do that
+			else {
+				echo $nbcards.' card images found despite '.$this->nbcards.' expected'."\n" ;
+				return false ;
+			}
 		}
 		return true ;
 	}
@@ -127,13 +140,14 @@ class ImportExtension {
 				echo 'Extension ['.$ext.'] not found'."\n" ;
 				if ( $apply ) {
 					$query = query("INSERT INTO extension (`se`, `name`) VALUE
-						 ('$ext', '".mysql_real_escape_string($matches[0]['ext'])."')") ;
+						 ('$ext', '".mysql_real_escape_string($this->name)."')") ;
 					$ext_id = mysql_insert_id() ;
 					echo 'Created'."\n" ;
 				}
 			} else {
 				$ext_id = $res->id ;
 				$code = $res->se ;
+				$this->dbcode = $code ;
 				if ( $code != $res->sea )
 					$code .= '/'.$res->sea ;
 				echo 'Extension found : '.$code.' - '.$res->name."\n" ;
@@ -177,6 +191,63 @@ class ImportExtension {
 		}
 		return $result ;
 	}
+	function download() {
+		// Dirs
+		global $homedir, $base_image_dir ;
+		$dir = $base_image_dir.'HIRES/'.$this->dbcode.'/' ;
+		if ( ! rmkdir($dir) )
+			return false ;
+		$tkdir = $base_image_dir.'HIRES/TK/'.$this->dbcode.'/' ;
+		if ( ! rmkdir($tkdir) )
+			return false ;
+		$oldumask = umask(022) ;
+		// Card images
+		echo count($this->cards).' cards to download'."\n" ;
+		foreach ( $this->cards as $card ) {
+			echo $card->name.' : ' ;
+			foreach ( $card->images as $i => $image ) {
+				$path = $dir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
+				cache_get($image, $path, true) ;
+			}
+			echo "\n" ;
+		}
+		// Token images
+		echo "\n".count($this->tokens).' tokens to download'."\n" ;
+		foreach ( $this->tokens as $token ) {
+			echo $token['type'].' : ' ;
+			$name = $token['type'] ;
+			if ( preg_match('/Emblem (.*)/', $name, $matches) ) // Token is an emblem
+				foreach ( $this->cards as $card ) // Search which planeswalker it is for
+					if ( $card->name == $matches[1] ) {
+						$attrs = $card->attrs() ;
+						$name = 'Emblem.'.$attrs->subtypes[0] ;
+					}
+			$path = $tkdir.$name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
+			echo $path ;
+			cache_get($token['image_url'], $path, true) ;
+			echo "\n" ;
+		}
+		// Thumbnailing
+		/*
+		$oldumask = umask(0022) ;
+		shell_exec($homedir.'/bin/thumb '.$this->dbcode) ;
+		shell_exec($homedir.'/bin/thumb TK/'.$this->dbcode) ;
+		umask($oldumask) ;
+		*/
+		umask($oldumask) ;
+		echo 'Finished (think about thumbnailing)' ;
+		return true ;
+	}
+}
+function rmkdir($dir) {
+	if ( file_exists($dir) )
+		return true ;
+	else {
+		$oldumask = umask(0) ;
+		$result = mkdir($dir, 0755, true) ;
+		umask($oldumask) ;
+		return $result ;
+	}
 }
 class ImportCard {
 	public $url = 'Uninitialized' ;
@@ -216,7 +287,7 @@ class ImportCard {
 	function addimage($url) { // For double faced cards
 		foreach ( $this->images as $image )
 			if ( $url == $image ) {
-				echo "Image already added for ".$this->name ;
+				echo 'Image already added for '.$this->name."\n" ; // Triggered in MV for coloured artifacts, as they are in art + color
 				return false ;
 			}
 		$this->images[] = $url ;
@@ -235,6 +306,14 @@ class ImportCard {
 				$this->langs[$code]['images'][] = $url ;
 		} else
 			$this->setlang($code, $name, $url) ;
+	}
+	function attrs() {
+		$arr = array('name' => $this->name, 'cost' => $this->cost, // Needed for attrs
+			'types' => $this->types, 'text' => $this->text) ;
+		return new attrs($arr) ;
+	}
+	function json_attrs() {
+		return json_encode($this->attrs()) ;
 	}
 	// Import
 	function import($apply=false) {
@@ -258,17 +337,15 @@ class ImportCard {
 				foreach ( $upd as $field => $update ) {
 					$updates[] = "`$field` = '".mysql_real_escape_string($this->$field)."'" ;
 					if ( $field == 'text' ) // Compile text if changing
-						$updates[] = "`attrs` = '".mysql_escape_string(json_encode(new attrs($arr)))."'" ;
+						$updates[] = "`attrs` = '".mysql_escape_string($this->json_attrs())."'" ;
 				}
 				query("UPDATE `card` SET ".implode(', ', $updates)." WHERE `id` = '".$arr['id']."' ;") ;
 			}
 		} else { // Card not found in DB, insert
 			if ( $apply ) {
-				$arr = array('name' => $this->name, 'cost' => $this->cost, // Needed for attrs
-					'types' => $this->types, 'text' => $this->text) ;
 				query("INSERT INTO `mtg`.`card` (`name` ,`cost` ,`types` ,`text`, `attrs`)
 				VALUES ('".mysql_real_escape_string($this->name)."', '".$this->cost."', '".$this->types."', '".
-				mysql_real_escape_string($this->text)."', '".mysql_escape_string(json_encode(new attrs($arr)))."');") ;
+				mysql_real_escape_string($this->text)."', '".mysql_escape_string($this->json_attrs())."');") ;
 				$card_id = mysql_insert_id($mysql_connection) ; // Returned for linking
 			} else
 				$card_id = -1 ;
