@@ -4,30 +4,39 @@ $homedir = substr(`bash -c "echo ~"`, 0, -1) ;
 $base_image_dir = $homedir.'/img/' ;
 
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $cache_life=3600) {
+function cache_get($url, $cache_file, $verbose = true, $cache_life=28800 /* 8 hours */) {
 	$message = '' ;
 	clearstatcache() ;
+	rmkdir(dirname($cache_file)) ;
 	if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
 		$message .= '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
 	} else {
 		$message .= '[update cache : ' ;
 		if ( ( $content = @file_get_contents($url) ) !== FALSE ) {
-			if ( $content === false )
-				$message .= 'not downloadable ('.$url.')' ;
-			elseif ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
+			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
 				$message .= 'not updatable ('.$cache_file.')' ;
 			else
 				$message .= 'updated ('.human_filesize($size).')' ;
-		}
+		} else
+			$message .= 'not downloadable ('.$url.')' ;
 		$message .= ']' ;
 	}
 	if ( $verbose )
 		echo $message ;
-	/*if ( $content === false )
-		die('[no content : '.$url.' -> '.$cache_file.']') ;*/
 	return $content ;
 }
+function rmkdir($dir) { // mkdir recursively without umask bug
+	if ( file_exists($dir) )
+		return true ;
+	else {
+		$oldumask = umask(0) ;
+		$result = mkdir($dir, 0755, true) ;
+		umask($oldumask) ;
+		return $result ;
+	}
+}
+
 // Debug
 function string_detail($str) {
 	$result = '' ;
@@ -223,7 +232,6 @@ class ImportExtension {
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 					}
 			$path = $tkdir.$name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-			echo $path ;
 			cache_get($token['image_url'], $path, true) ;
 			echo "\n" ;
 		}
@@ -235,18 +243,8 @@ class ImportExtension {
 		umask($oldumask) ;
 		*/
 		umask($oldumask) ;
-		echo 'Finished (think about thumbnailing)' ;
+		echo "\n".'Finished (think about thumbnailing)' ;
 		return true ;
-	}
-}
-function rmkdir($dir) {
-	if ( file_exists($dir) )
-		return true ;
-	else {
-		$oldumask = umask(0) ;
-		$result = mkdir($dir, 0755, true) ;
-		umask($oldumask) ;
-		return $result ;
 	}
 }
 class ImportCard {
