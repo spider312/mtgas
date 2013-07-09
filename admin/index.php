@@ -57,7 +57,7 @@ foreach ( $t as $tournament )
   <div class="section">
    <h1>Cards</h1>
    <h2>Browse</h2>
-   <p><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>, <a href="http://www.crystalkeep.com/magic/misc/symbols.php">Unofficial one</a>)</p>
+   <p><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>)</p>
 
    <h2>Search</h2>
    <form action="cards/cards.php" method="get">
