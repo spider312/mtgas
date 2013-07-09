@@ -895,7 +895,22 @@ function card_prototype() {
 						fufunc = card.face_down ;
 					else
 						fufunc = card.face_up ;
-					menu.addline('Face down',		fufunc).checked = ( card.attrs.visible == false ) ;
+					var line = menu.addline('Face down',		fufunc) ;
+					line.checked = ( card.attrs.visible == false ) ;
+					//if ( ( game.player == card.controler ) && ( line.checked ) )
+						//line.moimg = card_images(card.imgurl_relative()) ;
+					if ( line.checked )
+						line.buttons.push({'text': 'Look', 'callback': function(ev, cards) {
+							for ( var i = 0 ; i < cards.length ; i++ ) {
+								var card = cards[i] ;
+								message_send(game.player.get_name()+' looked facedown card') ;
+								message(card.name) ;
+								card.attrs.visible = true ;
+								card.zoom() ;
+								card.attrs.visible = false ;
+							}
+						}}) ;
+
 					// Remove targets
 					menu.addline('Remove targets',		function() {
 						var targets = game.target.alltargets(card) ;
