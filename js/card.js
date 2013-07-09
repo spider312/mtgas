@@ -828,6 +828,14 @@ function card_prototype() {
 				if ( ! card.controler.access()  )
 					menu.addline('No action') ;
 				else {
+					// Remove targets
+					if ( game.target.alltargets(card).length > 0 ) 
+						menu.addline('Remove targets',		function() {
+							var targets = game.target.alltargets(card) ;
+							for ( var i = 0 ; i < targets.length ; i++ )
+								targets[i].del() ;
+						}) ;
+					// Tap
 					var entry = menu.addline('Tap',  game.selected.tap, ! card.tapped) ;
 					entry.override_target = game.selected ;
 					entry.checked = card.tapped ;
@@ -911,12 +919,6 @@ function card_prototype() {
 							}
 						}}) ;
 
-					// Remove targets
-					menu.addline('Remove targets',		function() {
-						var targets = game.target.alltargets(card) ;
-						for ( var i = 0 ; i < targets.length ; i++ )
-							targets[i].del() ;
-					}) ;
 					// Duplicate
 					menu.addline('Duplicate',		card.duplicate) ;
 					// Copy
