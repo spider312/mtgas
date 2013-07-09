@@ -896,6 +896,12 @@ function card_prototype() {
 					else
 						fufunc = card.face_up ;
 					menu.addline('Face down',		fufunc).checked = ( card.attrs.visible == false ) ;
+					// Remove targets
+					menu.addline('Remove targets',		function() {
+						var targets = game.target.alltargets(card) ;
+						for ( var i = 0 ; i < targets.length ; i++ )
+							targets[i].del() ;
+					}) ;
 					// Duplicate
 					menu.addline('Duplicate',		card.duplicate) ;
 					// Copy

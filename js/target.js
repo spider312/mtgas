@@ -156,7 +156,6 @@ function Targets() {
 		}
 		if ( !isf(dest.get_name) )
 			log(dest) ;
-		//message(orig.controler.name+'\'s '+orig.name+' targets '+dest.get_name(), 'target') ;
 		message(orig.get_name()+' targets '+dest.get_name(), 'target') ;
 		for ( var i = 0 ; i < this.targets.length ; i++ ) { // Browse older arows, if one is the same, delete the old, as this new one will replace it
 			var line = this.targets[i] ;
@@ -186,11 +185,6 @@ function Targets() {
 		}
 		return result ;
 	}
-	// External calls
-	this.toFront = function() {
-		for ( var i = 0 ; i < this.targets.length ; i++ )
-			this.targets[i].arrow.toFront() ;
-	}
 		// On a step, phase or turn change : clean arrows by reach
 	this.clean = function(reach) {
 		var result = false ;
@@ -203,7 +197,7 @@ function Targets() {
 		}
 		return result ;
 	}
-		// On a card deletion, delete arrows sourced or destinated to that card
+		// On a card deletion, delete arrows sourced or destinated to that card (don't send)
 	this.del_by_target = function(thing) {
 		var result = false ;
 		for ( var i = 0 ; i < this.targets.length ; i++ ) {
