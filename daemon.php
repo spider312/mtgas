@@ -130,10 +130,12 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		ts3_disco() ;
 		// Unicity initialization
 		$cards = null ; // No unicity by default
-		$uniqs = array('OMC', 'CUB', 'CUBL', 'CUBS') ; // Extensions that will trigger unicity (move inside booster creation func ?)
-		foreach ( $uniqs as $uniq )
-			if ( in_array($uniq, $data->boosters) )
-				$cards = array() ;
+		if ( count($data->boosters) > 0 ) {
+			$uniqs = array('OMC', 'CUB', 'CUBL', 'CUBS') ; // Extensions that will trigger unicity (move inside booster creation func ?)
+			foreach ( $uniqs as $uniq )
+				if ( in_array($uniq, $data->boosters) )
+					$cards = array() ;
+		}
 		// Start first stage for tournament depending on type
 		switch ( $tournament->type ) {
 			case 'draft' :
