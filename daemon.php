@@ -130,7 +130,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		ts3_disco() ;
 		// Unicity initialization
 		$cards = null ; // No unicity by default
-		if ( count($data->boosters) > 0 ) {
+		if ( ( property_exists($data, 'boosters') ) && count($data->boosters) > 0 ) {
 			$uniqs = array('OMC', 'CUB', 'CUBL', 'CUBS') ; // Extensions that will trigger unicity (move inside booster creation func ?)
 			foreach ( $uniqs as $uniq )
 				if ( in_array($uniq, $data->boosters) )

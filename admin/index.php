@@ -13,6 +13,7 @@ html_head(
  <body>
 <?php
 html_menu() ;
+// === [ Tournaments ] =========================================================
 ?>
 
   <div class="section">
@@ -53,7 +54,7 @@ foreach ( $t as $tournament )
 ?>
    </ul>
   </div>
-
+<?php // === [ Cards ] ========================================================= ?>
   <div class="section">
    <h1>Cards</h1>
    <h2>Browse</h2>
