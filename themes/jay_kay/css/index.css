@@ -6,6 +6,12 @@ table {
 ol {
 	padding-left: 25px ;
 }
+/* "clickable" labels */
+label	{
+	display: block ;
+	cursor: pointer ;
+	margin-left: 5px ;
+}
 td label {
 	margin: 0 ;
 }

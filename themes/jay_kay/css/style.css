@@ -45,12 +45,6 @@ h3, h4, h5, h6 {
 	padding-left: 10px ;
 	margin-top: 5px ;
 }
-/* "clickable" labels */
-label	{
-	display: block ;
-	cursor: pointer ;
-	margin-left: 5px ;
-}
 p > input, p > button {
 	margin-left: 5px ;
 }
