@@ -48,6 +48,9 @@ h3, h4, h5, h6 {
 p > input, p > button {
 	margin-left: 5px ;
 }
+label	{
+	cursor: pointer ;
+}
 ul {
 	margin: 0px ;
 	padding-left: 30px ;
