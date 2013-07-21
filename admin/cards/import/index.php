@@ -96,7 +96,10 @@ foreach ( $importer->cards as $i => $card ) {
 	echo '     <tr title="'.htmlentities($card->text).'">
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
-      <td><a href="'.$card->url.'" target="_blank">'.$card->name.'</a></td>
+      <td><ul>' ;
+	foreach ( $card->urls as $url )
+		echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>'."\n" ;
+	echo '</ul></td>
       <td>'.$card->cost.'</td>
       <td>'.$card->types.'</td>
       <td>'.$card->nbimages.'</td>

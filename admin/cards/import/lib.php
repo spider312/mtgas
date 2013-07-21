@@ -64,7 +64,7 @@ class ImportExtension {
 	}
 	function __destruct() {
 	}
-	// Extensioçn related funcs
+	// Extension related funcs
 	function init($url) {
 		$this->url = $url ;
 	}
@@ -79,24 +79,29 @@ class ImportExtension {
 	function addcard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid='') {
 		// Name checking
 		$name = card_name_sanitize($name) ;
+		$text = card_text_sanitize($text) ;
+		$types = preg_replace('#\s+#', ' ', $types) ;
 		if ( $name == '' ) {
 			$this->errors['Empty name'][] = $card_url ;
 			return null ;
 		}
+		// Searching in already imùported cards
 		foreach ( $this->cards as $card )
 			if ( $card->name == $name ) {
 				$log = '' ;
 				foreach ( array('rarity', 'name', 'cost', 'types', 'text'/*, 'multiverseid'*/) as $val )
-					if ( $$val != $card->{$val} )
+					if ( $$val != $card->{$val} ) {
 						$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
+						//$card->{$val} = $$val ;
+					}
 				if ( $log != '' ) // Shouldn't happen
 					echo 'Card already parsed with different data : '.$name."\n".$log."\n" ;
 				if ( $card->addimage($url) )
 					$card->nbimages++ ;
+				$card->addurl($card_url) ;
 				return $card ;
 			}
-		$text = card_text_sanitize($text) ;
-		$types = preg_replace('#\s+#', ' ', $types) ;
+		// Else it's a new card
 		$card = new ImportCard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid) ;
 		$this->cards[] = $card ;
 		return $card ;
@@ -249,6 +254,7 @@ class ImportExtension {
 }
 class ImportCard {
 	public $url = 'Uninitialized' ;
+	public $urls = array() ;
 	public $rarity = 'N' ;
 	public $name = 'Uninitialized' ;
 	public $cost = 'Uninitialized' ;
@@ -260,6 +266,7 @@ class ImportCard {
 	public $langs = array() ;
 	function __construct($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid=0) {
 		$this->url = $card_url ;
+		$this->urls[] = $card_url ;
 		$this->rarity = $rarity ;
 		$this->name = $name ;
 		$this->cost = $cost ;
@@ -282,6 +289,16 @@ class ImportCard {
 		$this->addimage($url) ;
 	}
 	// Linked data
+	function addurl($url) {
+		foreach ( $this->urls as $card_url )
+			if ( $url == $card_url ) {
+				echo 'URL already added for '.$this->name."\n" ; // Triggered in MV for coloured artifacts, as they are in art + color
+				return false ;
+			}
+		$this->urls[] = $url ;
+		return true ;
+
+	}
 	function addimage($url) { // For double faced cards
 		foreach ( $this->images as $image )
 			if ( $url == $image ) {

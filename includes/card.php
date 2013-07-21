@@ -93,6 +93,7 @@ function card_name_sanitize($name) {
 	$name = str_replace('ú', 'u', $name) ;
 	$name = str_replace('û', 'u', $name) ;
 	$name = str_replace('Æ', 'AE', $name) ;
+	//$name = str_replace("'", '‘', $name) ;
 	return $name ;
 }
 function card_text_sanitize($text) {
