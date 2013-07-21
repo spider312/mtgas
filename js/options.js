@@ -396,8 +396,27 @@ function Options(check_id) {
 			fieldset.appendChild(form) ;
 /*<div>Please be sure <a href="http://forum.mogg.fr/viewtopic.php?pid=65#p65">you really need it</a> before create a server side profile (and you probably don't if you always connect here from the same computer)</div>*/
 		}
-		// End
 		container.appendChild(fieldset) ;
+			// Spectactors (there is space in this window)
+		var fieldset = create_fieldset('Spectators') ;
+		if ( spectactor_allowed_forever().length == 0 )
+			fieldset.appendChild(create_text('No spectators allowed forever')) ;
+		else {
+			var select = spectator_select() ;
+			fieldset.appendChild(select) ;
+			var button = create_button('Un-allow', function(ev) {
+				if ( select.selectedIndex == -1 )
+					alert('Please select a spectator to un-allow') ;
+				else {
+					spectactor_unallow_forever(select.value) ;
+					fieldset.replaceChild(spectator_select(), select) ;
+				}
+			}) ;
+			button.type = 'button' ; // Don't send form
+			fieldset.appendChild(button) ;
+		}
+		container.appendChild(fieldset) ;
+		// End
 		this.resize(container) ;
 		this.add_buttons(container, 'profile') ;
 	}
@@ -450,6 +469,7 @@ function Options(check_id) {
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
 	this.add('Hidden', 'deck', '', '', '') ;
 	this.add('Hidden', 'allowed', '', '', '') ;
+	this.add('Hidden', 'allowed_nicks', '', '', '') ;
 		// Tournament hidden
 	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
 	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
