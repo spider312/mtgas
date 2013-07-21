@@ -3,7 +3,8 @@ $(function() { // On page load
 	document.getElementById('game_name').select() ; // Give focus on page load
 	ajax_error_management() ;
 	player_id = $.cookie(session_id) ;
-	options = new Options(true) ;
+	game = {}
+	game.options = new Options(true) ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
@@ -60,8 +61,8 @@ $(function() { // On page load
 				name = "I'm a noob ! " ;
 			$.post(ev.target.action, {
 				'name': name,
-				'nick': options.get('profile_nick'),
-				'avatar': options.get('profile_avatar'),
+				'nick': game.options.get('profile_nick'),
+				'avatar': game.options.get('profile_avatar'),
 				'deck': deck_get(deckname)
 			}, function(data) {
 				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
@@ -82,8 +83,8 @@ $(function() { // On page load
 				'name' : ev.target.name.value,
 				'players' : ev.target.players.value,
 				'boosters' : ev.target.boosters.value,
-				'nick' : options.get('profile_nick'), 
-				'avatar' : options.get('profile_avatar'), 
+				'nick' : game.options.get('profile_nick'), 
+				'avatar' : game.options.get('profile_avatar'), 
 				'deck' : deck_get(deckname), 
 				'rounds_number' : ev.target.rounds_number.value,
 				'rounds_duration' : ev.target.rounds_duration.value,
@@ -199,8 +200,8 @@ function games_timer(pending_games, cell_no, running_games, running_games_no) {
 				var submit = create_submit('id', round.id, 'game_' + round.id) ;
 				// Normal form for clients not trigering events
 				var form = create_form('join.php', 'post', 
-					create_hidden('nick', options.get('profile_nick')), 
-					create_hidden('avatar', options.get('profile_avatar')), 
+					create_hidden('nick', game.options.get('profile_nick')), 
+					create_hidden('avatar', game.options.get('profile_avatar')), 
 					create_hidden('deck', deck_get(deck_checked())),
 					submit
 				) ;
@@ -292,8 +293,8 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 				var submit = create_submit('id', tournament.id, 'tournament_' + tournament.id) ;
 				// Normal form for clients not trigering events
 				var form = create_form('tournament/json/join.php', 'post', 
-					create_hidden('nick', options.get('profile_nick')), 
-					create_hidden('avatar', options.get('profile_avatar')), 
+					create_hidden('nick', game.options.get('profile_nick')), 
+					create_hidden('avatar', game.options.get('profile_avatar')), 
 					create_hidden('deck', deck_get(deck_checked())),
 					submit
 				) ;
@@ -305,8 +306,8 @@ function tournaments_timer(pending_tournaments, tournament_no, running_tournamen
 					else
 						$.post(ev.target.action, {
 							'id' : ev.target.id.value, 
-							'nick' : options.get('profile_nick'), 
-							'avatar' : options.get('profile_avatar'), 
+							'nick' : game.options.get('profile_nick'), 
+							'avatar' : game.options.get('profile_avatar'), 
 							'deck' : deck_get(deckname)
 						 }, function(data) {
 							if ( data.msg != '' )
@@ -465,13 +466,13 @@ function tournament_boosters(type) {
 	switch ( type ) {
 		case 0 : // Draft
 			limited_div.classList.remove('hidden') ;
-			boosters.value = options.get('draft_boosters') ;
+			boosters.value = game.options.get('draft_boosters') ;
 			boosters.size = 25 ;
 			content = draft_formats ;
 			break ;
 		case 1 : // Sealed
 			limited_div.classList.remove('hidden') ;
-			boosters.value = options.get('sealed_boosters') ;
+			boosters.value = game.options.get('sealed_boosters') ;
 			boosters.size = 50 ;
 			content = sealed_formats
 			break ;
@@ -546,7 +547,7 @@ function decks_list() {
 			var cell = row.insertCell(-1) ;
 			cell.colSpan = 2 ;
 			// Radio
-			var radio = create_radio('deck', deck_name, (deck_name == options.get('deck'))) ;
+			var radio = create_radio('deck', deck_name, (deck_name == game.options.get('deck'))) ;
 			radio.addEventListener('change', function(ev) {
 				store(ev.target.name, ev.target.value) ;
 			}, false) ;
@@ -592,8 +593,8 @@ function decks_list() {
 					return false ;
 				}
 				var form = create_form('goldfish.php', 'post',
-					create_hidden('nick', options.get('profile_nick')),
-					create_hidden('avatar', options.get('profile_avatar')),
+					create_hidden('nick', game.options.get('profile_nick')),
+					create_hidden('avatar', game.options.get('profile_avatar')),
 					create_hidden('deck', deck_get(deck)), 
 					create_hidden('goldfish_nick', ev.target.deck_name),
 					create_hidden('goldfish_avatar', 'themes/'+theme+'/goldfish.png'),

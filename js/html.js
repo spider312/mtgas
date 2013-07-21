@@ -284,7 +284,8 @@ function create_label(target) {
 				var el = arguments[i] ;
 				break ;
 			default :
-				alert(typeof arguments[i]) ;
+				//alert(i+'/'+arguments.length+' : '+typeof arguments[i]) ;
+				continue ;
 		}
 		mylabel.appendChild(el) ;
 	}
@@ -483,4 +484,19 @@ function log2(arg) {
 			text += "Type unrecognized by loging engine :  "+typeof arg ;
 	}
 	alert(text);
+}
+// JSON
+function JSON_parse(text) { /* Wrapper to parse JSON with exception management */
+        if ( ! iss(text) ) // We only can parse a string
+		return text ;
+	var res = text ;
+	try {
+		res = JSON.parse(text) ;
+	} catch (e) {
+		log('Crash when parsing JSON : ['+text+']') ;
+		log(e) ;
+		//log(stack_trace(JSON_parse)) ;
+		res = null ; // An object is expected, return one empty
+	}
+	return res ;
 }

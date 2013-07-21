@@ -167,16 +167,31 @@ function tournament_log_li(line, nick, players, spectactors) {
 			var li = create_li(nick+' joined as spectactor') ;
 			var p = player_get(players, $.cookie(session_id)) ;
 			var s = spectactors.get(line.sender) ;
-			if ( ( p != null ) && ( ! s.is_allowed($.cookie(session_id)) ) )
-				li.appendChild(create_button(create_text('Allow'), function(ev) {
-					if ( s == null )
-						return false ;
-					s.allow($.cookie(session_id)) ;
-					$.getJSON('json/allow.php', {'id': tid, 'spectactor': line.sender}, function(data) {
-						if ( data.nb != 1 )
-							alert(data.nb+' affected rows') ;
-					}) ;
-				})) ;
+			var cb = null ;
+			var allow_button_callback = function(ev) {
+				if ( s == null )
+					return false ;
+				s.allow($.cookie(session_id)) ;
+				$.getJSON('json/allow.php', {'id': tid, 'spectactor': line.sender}, function(data) {
+					if ( data.nb != 1 )
+						alert(data.nb+' affected rows') ;
+				}) ;
+				if ( (cb != null ) && cb.checked ) // Allow forever
+					spectactor_allow_forever(line.sender, line.value) ;
+			}
+			if ( ( p != null ) && ( ! s.is_allowed($.cookie(session_id)) ) ) {
+				if ( spectactor_is_allowed_forever(line.sender) )
+					allow_button_callback() ;
+				else {
+					cb = create_checkbox('allow') ;
+					var button = create_button(create_text('Allow'), allow_button_callback) ;
+					span = create_span(
+						button, 
+						create_label(null, cb, 'Forever')
+					) ;
+					li.appendChild(span) ;
+				}
+			}
 			return li ;
 			break ;
 		case 'allow' :
@@ -209,13 +224,10 @@ function tournament_log_li(line, nick, players, spectactors) {
 			break ;
 		case 'end' :
 			msg = 'Tournament ended' ;
-			//if ( pid != '' ) // New fashion winner
-			//	msg += ', congratulations to '+nick ;
-			//else
-				if ( line.sender != '' ) // Old fashion winner
-					msg += ', congratulations to '+nick ;
-				else
-					msg += ', can\'t fnid a winner' ;
+			if ( line.sender != '' ) // Old fashion winner
+				msg += ', congratulations to '+nick ;
+			else
+				msg += ', can\'t fnid a winner' ;
 			break ;
 		case 'msg' :
 			msg = '<'+nick+'> '+line.value ;
@@ -226,6 +238,8 @@ function tournament_log_li(line, nick, players, spectactors) {
 	return create_li(msg) ;
 }
 function tournament_log_ul(tournament_log, log, players, spectactors) {
+	if ( log[log.length-1].id == game.last_log_id ) // Cache last log id, only refresh log when it change
+		return false ;
 	var scrbot = tournament_log.scrollHeight - ( tournament_log.scrollTop + tournament_log.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
 	node_empty(tournament_log) ;
 	while ( log.length > 0 ) {
@@ -247,6 +261,7 @@ function tournament_log_ul(tournament_log, log, players, spectactors) {
 		var li = tournament_log_li(line, nick, players, spectactors) ;
 		li.title = (new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString() ;
 		tournament_log.appendChild(li) ;
+		game.last_log_id = line.id ;
 	}
 	// Scroll
 	if ( scrbot == 0 )

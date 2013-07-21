@@ -7,8 +7,8 @@ function Spectactor(id, name) {
 			message(player.get_name()+' already allowed '+this.name, this.msgtype) ;
 		else {
 			this.allowed.push(player.id) ;
-			if ( $.cookie(session_id) == this.id )  {
-				var zone = player.hand ;
+			if ( $.cookie(session_id) == this.id )  { // I am allowed spectator
+				var zone = player.hand ; // Show hand
 				zone.default_visibility = true ;
 				for ( var i = 0 ; i < zone.cards.length ; i++ )
 					zone.cards[i].load_image() ;
@@ -62,59 +62,4 @@ function Spectactor(id, name) {
 	message(msg, 'join', span) ;
 	if ( spectactor_is_allowed_forever(id) && ! spec.is_allowed(game.player) )
 		spec.allow() ;
-}
-function spectactor_allowed_forever() {
-	var allowed_str = game.options.get('allowed')
-	if ( allowed_str == '' ) // Nobody allowed
-		return [] ;
-	else
-		return allowed_str.split(',') ;
-}
-function spectactor_is_allowed_forever(id) {
-	return ( spectactor_allowed_forever(id).indexOf(id) > -1 ) ;
-}
-function spectactor_allow_forever(id, name) {
-	var allowed = spectactor_allowed_forever() ;
-	allowed.push(id) ;
-	game.options.set('allowed', allowed.join(',')) ;
-	// Nick cache
-	var anicks_str = game.options.get('allowed_nicks') ;
-	var anicks = JSON_parse(anicks_str) ;
-	if ( anicks == null )
-		anicks = {} ;
-	anicks[id] = name ;
-	anicks_str = JSON.stringify(anicks) ;
-	game.options.set('allowed_nicks', anicks_str) ;
-}
-function spectactor_unallow_forever(id) {
-	var allowed = spectactor_allowed_forever() ;
-	var i = allowed.indexOf(id) ;
-	if ( i != -1 ) // Spectator found
-		allowed.splice(i, 1) ;
-	else
-		alert('Spectator '+id+' not found') ;
-	game.options.set('allowed', allowed.join(',')) ;
-}
-function spectator_select() {
-	var select = create_select() ;
-	select.title = 'Double click a spectator to un-allow' ;
-	var spectactors = spectactor_allowed_forever() ;
-	select.size = max(2, min(10, spectactors.length)) ; // At least 2 in order to display a full list, max 10 to stay inside screen
-	var anicks_str = game.options.get('allowed_nicks') ;
-	var anicks = JSON_parse(anicks_str) ;
-	for ( var i = 0 ; i < spectactors.length ; i++ ) {
-		var name = 'Not found' ;
-		if ( anicks[spectactors[i]] )
-			name = anicks[spectactors[i]] ;
-		select.add(create_option(name, spectactors[i]))
-	}
-	select.addEventListener('dblclick', function(ev) {
-		if ( ev.target.localName != 'option' )
-			alert('Please double click a line') ;
-		else {
-			spectactor_unallow_forever(ev.target.value) ;
-			ev.target.parentNode.parentNode.replaceChild(spectator_select(), ev.target.parentNode) ;
-		}
-	}, false) ;
-	return select ;
 }

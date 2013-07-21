@@ -322,20 +322,6 @@ function manage_action(action) {
 	return true ;
 }
 /* Lib */
-function JSON_parse(text) { /* Wrapper to parse JSON with exception management */
-        if ( ! iss(text) ) // We only can parse a string
-		return text ;
-	var res = text ;
-	try {
-		res = JSON.parse(text) ;
-	} catch (e) {
-		log('Crash when parsing JSON : ['+text+']') ;
-		log(e) ;
-		//log(stack_trace(JSON_parse)) ;
-		res = null ; // An object is expected, return one empty
-	}
-	return res ;
-}
 function get_card(id) {
 	var cards = game.cards.concat(game.tokens) ;
 	for ( var j = 0 ; j < cards.length ; j++ )

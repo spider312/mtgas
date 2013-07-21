@@ -63,7 +63,7 @@ function init() {
 	// Initialisations
 	game = new Object() ;
 	game.image_cache = new image_cache() ;
-	options = new Options() ;
+	game.options = new Options() ;
 	pool = document.getElementById('pool') ;
 	deck = document.getElementById('deck') ;
 	land = document.getElementById('land') ;

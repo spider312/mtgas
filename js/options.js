@@ -209,7 +209,7 @@ function Options(check_id) {
 				return false ;
 			if (  ( nickfield.value != '' ) && ( nickfield.value != 'Nickname' ) ) {
 				nickfield.classList.remove('errored') ;
-				options.identity_apply() ;
+				game.options.identity_apply() ;
 				return true ;
 			} else {
 				nickfield.classList.add('errored') ;
@@ -512,7 +512,7 @@ function Options(check_id) {
 	var is = document.getElementById('identity_shower')
 	if ( is != null )
 		is.addEventListener('click', function(ev) {
-			options.identity_show() ;
+			game.options.identity_show() ;
 		}, false) ;
 }
 function gallery() {
@@ -606,4 +606,60 @@ function save(myfield) {
 		return true ;
 	}
 	return false ;
+}
+// Spectactor forever allow
+function spectactor_allowed_forever() {
+	var allowed_str = game.options.get('allowed')
+	if ( allowed_str == '' ) // Nobody allowed
+		return [] ;
+	else
+		return allowed_str.split(',') ;
+}
+function spectactor_is_allowed_forever(id) {
+	return ( spectactor_allowed_forever(id).indexOf(id) > -1 ) ;
+}
+function spectactor_allow_forever(id, name) {
+	var allowed = spectactor_allowed_forever() ;
+	allowed.push(id) ;
+	game.options.set('allowed', allowed.join(',')) ;
+	// Nick cache
+	var anicks_str = game.options.get('allowed_nicks') ;
+	var anicks = JSON_parse(anicks_str) ;
+	if ( anicks == null )
+		anicks = {} ;
+	anicks[id] = name ;
+	anicks_str = JSON.stringify(anicks) ;
+	game.options.set('allowed_nicks', anicks_str) ;
+}
+function spectactor_unallow_forever(id) {
+	var allowed = spectactor_allowed_forever() ;
+	var i = allowed.indexOf(id) ;
+	if ( i != -1 ) // Spectator found
+		allowed.splice(i, 1) ;
+	else
+		alert('Spectator '+id+' not found') ;
+	game.options.set('allowed', allowed.join(',')) ;
+}
+function spectator_select() {
+	var select = create_select() ;
+	select.title = 'Double click a spectator to un-allow' ;
+	var spectactors = spectactor_allowed_forever() ;
+	select.size = max(2, min(10, spectactors.length)) ; // At least 2 in order to display a full list, max 10 to stay inside screen
+	var anicks_str = game.options.get('allowed_nicks') ;
+	var anicks = JSON_parse(anicks_str) ;
+	for ( var i = 0 ; i < spectactors.length ; i++ ) {
+		var name = 'Not found' ;
+		if ( anicks[spectactors[i]] )
+			name = anicks[spectactors[i]] ;
+		select.add(create_option(name, spectactors[i]))
+	}
+	select.addEventListener('dblclick', function(ev) {
+		if ( ev.target.localName != 'option' )
+			alert('Please double click a line') ;
+		else {
+			spectactor_unallow_forever(ev.target.value) ;
+			ev.target.parentNode.parentNode.replaceChild(spectator_select(), ev.target.parentNode) ;
+		}
+	}, false) ;
+	return select ;
 }
