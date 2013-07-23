@@ -489,12 +489,14 @@ function log2(arg) {
 function JSON_parse(text) { /* Wrapper to parse JSON with exception management */
         if ( ! iss(text) ) // We only can parse a string
 		return text ;
+	if ( text == '' )
+		return null ;
 	var res = text ;
 	try {
 		res = JSON.parse(text) ;
 	} catch (e) {
-		log('Crash when parsing JSON : ['+text+']') ;
-		log(e) ;
+		//log2('Crash when parsing JSON : ['+text+']') ;
+		//log2(e) ;
 		//log(stack_trace(JSON_parse)) ;
 		res = null ; // An object is expected, return one empty
 	}

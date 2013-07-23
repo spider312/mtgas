@@ -401,20 +401,8 @@ function Options(check_id) {
 		var fieldset = create_fieldset('Spectators') ;
 		if ( spectactor_allowed_forever().length == 0 )
 			fieldset.appendChild(create_text('No spectators allowed forever')) ;
-		else {
-			var select = spectator_select() ;
-			fieldset.appendChild(select) ;
-			var button = create_button('Un-allow', function(ev) {
-				if ( select.selectedIndex == -1 )
-					alert('Please select a spectator to un-allow') ;
-				else {
-					spectactor_unallow_forever(select.value) ;
-					fieldset.replaceChild(spectator_select(), select) ;
-				}
-			}) ;
-			button.type = 'button' ; // Don't send form
-			fieldset.appendChild(button) ;
-		}
+		else
+			fieldset.appendChild(spectator_select()) ;
 		container.appendChild(fieldset) ;
 		// End
 		this.resize(container) ;
@@ -468,8 +456,7 @@ function Options(check_id) {
 		//player_id
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
 	this.add('Hidden', 'deck', '', '', '') ;
-	this.add('Hidden', 'allowed', '', '', '') ;
-	this.add('Hidden', 'allowed_nicks', '', '', '') ;
+	this.add('Hidden', 'allowed', '', '', '{}') ;
 		// Tournament hidden
 	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
 	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
@@ -608,58 +595,71 @@ function save(myfield) {
 	return false ;
 }
 // Spectactor forever allow
-function spectactor_allowed_forever() {
-	var allowed_str = game.options.get('allowed')
-	if ( allowed_str == '' ) // Nobody allowed
-		return [] ;
-	else
-		return allowed_str.split(',') ;
+function spectactor_allowed_forever() { // Returns a list of allowed players in form of {id: 'Nick', id2: 'Nick2' ... }
+	var allowed_str = game.options.get('allowed') ;
+	var allowed = JSON_parse(allowed_str) ;
+	if ( allowed != null ) // Parsing OK
+		return allowed ;
+	else { // Parsing not OK : conversion utility
+		if ( allowed_str == '' ) // Nobody allowed
+			return {} ;
+		// Somebody allowed
+		allowed = allowed_str.split(',') ;
+		var result = {} ;
+		for ( var i = 0 ; i < allowed.length ; i++ ) {
+			var id = allowed[i] ;
+			result[id] = id ;
+		}
+		return result ;
+	}
 }
 function spectactor_is_allowed_forever(id) {
-	return ( spectactor_allowed_forever(id).indexOf(id) > -1 ) ;
+	return iss(spectactor_allowed_forever()[id]) ;
 }
 function spectactor_allow_forever(id, name) {
 	var allowed = spectactor_allowed_forever() ;
-	allowed.push(id) ;
-	game.options.set('allowed', allowed.join(',')) ;
-	// Nick cache
-	var anicks_str = game.options.get('allowed_nicks') ;
-	var anicks = JSON_parse(anicks_str) ;
-	if ( anicks == null )
-		anicks = {} ;
-	anicks[id] = name ;
-	anicks_str = JSON.stringify(anicks) ;
-	game.options.set('allowed_nicks', anicks_str) ;
+	allowed[id] = name ;
+	game.options.set('allowed', JSON.stringify(allowed)) ;
 }
 function spectactor_unallow_forever(id) {
 	var allowed = spectactor_allowed_forever() ;
-	var i = allowed.indexOf(id) ;
-	if ( i != -1 ) // Spectator found
-		allowed.splice(i, 1) ;
+	delete allowed[id] ;
+	game.options.set('allowed', JSON.stringify(allowed)) ;
+	// If while in options window (only way to do it) refresh it
+	var div = document.getElementById('allowed_spectators') ;
+	if ( div != null )
+		div.parentNode.replaceChild(spectator_select(), div) ;
 	else
-		alert('Spectator '+id+' not found') ;
-	game.options.set('allowed', allowed.join(',')) ;
+		alert('Unable to find option window, shouldn\'t happen')
 }
-function spectator_select() {
+function spectator_select() { // Returns a HTMLSelect listing spectators allowed forever
+	var div = create_div() ;
+	div.id = 'allowed_spectators' ;
 	var select = create_select() ;
-	select.title = 'Double click a spectator to un-allow' ;
-	var spectactors = spectactor_allowed_forever() ;
-	select.size = max(2, min(10, spectactors.length)) ; // At least 2 in order to display a full list, max 10 to stay inside screen
-	var anicks_str = game.options.get('allowed_nicks') ;
-	var anicks = JSON_parse(anicks_str) ;
-	for ( var i = 0 ; i < spectactors.length ; i++ ) {
-		var name = 'Not found' ;
-		if ( anicks[spectactors[i]] )
-			name = anicks[spectactors[i]] ;
-		select.add(create_option(name, spectactors[i]))
+	var allowed = spectactor_allowed_forever() ;
+	for ( var i in allowed )
+		select.add(create_option(allowed[i], i)) ;
+	if ( select.options.length < 1 )
+		div.appendChild(create_text('No spectator to unallow')) ;
+	else {
+		select.title = 'Double click a spectator to un-allow' ;
+		select.size = max(2, min(10, select.options.length)) ; // At least 2 in order to display a full list, max 10 to stay inside screen
+		select.addEventListener('dblclick', function(ev) {
+			if ( ev.target.localName != 'option' )
+				alert('Please double click a line') ;
+			else
+				spectactor_unallow_forever(ev.target.value) ;
+		}, false) ;
+		div.appendChild(select) ;
+		var button = create_button('Un-allow', function(ev) {
+			if ( select.selectedIndex == -1 )
+				alert('Please select a spectator to un-allow') ;
+			else
+				spectactor_unallow_forever(select.value) ;
+		}) ;
+		button.type = 'button' ; // Don't send form
+		div.appendChild(create_element('br')) ;
+		div.appendChild(button) ;
 	}
-	select.addEventListener('dblclick', function(ev) {
-		if ( ev.target.localName != 'option' )
-			alert('Please double click a line') ;
-		else {
-			spectactor_unallow_forever(ev.target.value) ;
-			ev.target.parentNode.parentNode.replaceChild(spectator_select(), ev.target.parentNode) ;
-		}
-	}, false) ;
-	return select ;
+	return div ;
 }
