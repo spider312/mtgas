@@ -340,7 +340,7 @@ function Sound() {
 			if ( this.sounds[target] )
 				this.sounds[target].play() ;
 			else
-				alert('Sound "'+target+'" doesn\'t exists') ;
+				log('Sound "'+target+'" doesn\'t exists') ;
 		}
 	}
 	this.loadall = function() {
