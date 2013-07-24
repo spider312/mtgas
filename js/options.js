@@ -113,8 +113,7 @@ function Options(check_id) {
 	// Init
 	this.options = {} ;
 	this.groups = {} ;
-	// Methods
-		// Accessors
+	// Accessors
 	this.add = function(group, name, desc, longdesc, def, choices, onChange) {
 		var option = new Option(name, desc, longdesc, def, choices, onChange) ;
 		if ( ! iso(this.groups[group]) )
@@ -141,15 +140,71 @@ function Options(check_id) {
 		else
 			return null ;
 	}
-		// Rendering
-			// Lib
+	// Rendering
+		// Lib
 	this.hide = function(win) {
 		if ( !iso(win) )
 			win = document.getElementById('options_hider') ;
 		if ( win != null )
 			document.body.removeChild(win) ;
 	}
-	this.resize = function() {
+	this.close = function() { // Checks if everything OK then hide option window
+		// Nick checking
+		var nick = game.options.get('profile_nick') ;
+		if ( ( nick == '' ) || ( nick == 'Nickname' ) ) {
+			var nickfield = document.getElementById('profile_nick') ;
+			if ( nickfield == null ) { // Options opened on another tab
+				game.options.select_tab('Identity') ;
+				nickfield = document.getElementById('profile_nick') ;
+			}
+			nickfield.classList.add('errored') ;
+			nickfield.select() ;
+			return false ;
+		}
+		game.options.identity_apply() ;
+		game.options.hide() ;
+	}
+	this.show = function(tab) {
+		// Container
+		var container = create_div() ;
+		container.id = 'options' ;
+		container.classList.add('section') ;
+		// Hider
+		var hider = create_div(container) ;
+		hider.id = 'options_hider' ;
+		hider.classList.add('hider') ;
+		document.body.appendChild(hider) ; // Needed by this.select_tab, have to do it early
+		// Tabs
+		var ul = create_ul('options_tabs') ;
+		for ( var i in this.tabs ) {
+			var li = create_li(i) ;
+			li.addEventListener('click', function(ev) {
+				var tab = ev.target.textContent ;
+				window.game.options.select_tab(tab) ;
+			}, false) ;
+			ul.appendChild(li) ;
+		}
+		container.appendChild(ul) ;
+		// Center tabs in window = center in screen, should redo on resize() but only usefull if ul height changes ...
+		ul.style.marginTop = '-'+(Math.ceil(ul.offsetHeight/2)+5)+'px' ;
+		// Content
+		var content = create_div() ;
+		content.id = 'options_content' ;
+		container.appendChild(content) ;
+		this.select_tab(tab) ;
+		// Close button
+		var btnimg = create_img(theme_image('deckbuilder/button_ok.png')[0]) ;
+		btnimg.addEventListener('load', function (ev) {
+			game.options.resize() ;
+		}, false) ;
+		var button = create_button(btnimg, function(ev) {
+			game.options.close() ;
+		}, 'Close') ;
+		button.id = 'options_close' ;
+		container.appendChild(button) ;
+		this.resize() ;
+	}
+	this.resize = function() { // Set option window size to match its content
 		var container = document.getElementById('options') ;
 		var content = document.getElementById('options_content') ;
 		if ( ( container == null ) || ( content == null ) ) {
@@ -174,61 +229,7 @@ function Options(check_id) {
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
 	}
-	this.show = function(tab) {
-		// Container
-		var container = create_div() ;
-		container.id = 'options' ;
-		container.classList.add('section') ;
-		// Hider
-		var hider = create_div(container) ;
-		hider.id = 'options_hider' ;
-		hider.classList.add('hider') ;
-		document.body.appendChild(hider) ; // Needed by this.select_tab, have to do it early
-		// Tabs
-		var ul = create_ul('options_tabs') ;
-		for ( var i in this.tabs ) {
-			var li = create_li(i) ;
-			li.addEventListener('click', function(ev) {
-				var tab = ev.target.textContent ;
-				window.game.options.select_tab(tab) ;
-			}, false) ;
-			ul.appendChild(li) ;
-		}
-		container.appendChild(ul) ;
-			// Center tabs in window = center in screen, should redo on resize() but only usefull if ul height changes ...
-		ul.style.marginTop = '-'+(Math.ceil(ul.offsetHeight/2)+5)+'px' ;
-		// Content
-		var content = create_div() ;
-		content.id = 'options_content' ;
-		container.appendChild(content) ;
-		this.select_tab(tab) ;
-		// Close button
-		var btnimg = create_img(theme_image('deckbuilder/button_ok.png')[0]) ;
-		btnimg.addEventListener('load', function (ev) {
-			game.options.resize() ;
-		}, false) ;
-		var button = create_button(btnimg, function(ev) {
-			// Nick checking
-			var nick = game.options.get('profile_nick') ;
-			if ( ( nick == '' ) || ( nick == 'Nickname' ) ) {
-				var nickfield = document.getElementById('profile_nick') ;
-				if ( nickfield == null ) {
-					game.options.select_tab('Identity') ;
-					nickfield = document.getElementById('profile_nick') ;
-				}
-				nickfield.classList.add('errored') ;
-				nickfield.focus() ;
-				nickfield.select() ;
-				
-			} else {
-				game.options.identity_apply() ;
-				game.options.hide() ;
-			}
-		}, 'Close') ;
-		button.id = 'options_close' ;
-		container.appendChild(button) ;
-		this.resize() ; // AFTER adding to body
-	}
+
 	this.select_tab = function(tab) {
 		if ( ! iss(tab) || ! this.tabs[tab] )
 			tab = 'Options' ;
@@ -250,23 +251,21 @@ function Options(check_id) {
 		// Resize option window
 		this.resize() ;
 	}
-			// Options
-	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset
-		for ( var i in {'Appearence': true, 'Behaviour': true, 'Debug': true} ) {
-			var group = this.groups[i] ;
-			var fieldset = create_fieldset(i) ;
-			for ( var j in group )
-				fieldset.appendChild(group[j].render()) ;
-			container.appendChild(fieldset) ;
-		}
-	}
-			// Identity
+		// Identity
 	this.tab_identity = function(container) {
 		var fieldset = create_div() ;
+		container.appendChild(fieldset) ;
 		// Nick
 		var nick = this.options['profile_nick'].render() ;
+		var inick = nick.childNodes[1] ; // Input inside renderer
+		nick.childNodes[1].focus() ;
+		nick = create_form('', '', nick) ;
+		nick.addEventListener('submit', function(ev) {
+			game.options.close() ;
+			return eventStop(ev) ;
+		}, false) ;
 		fieldset.appendChild(nick) ;
-		nick = nick.childNodes[1] ;
+		inick.select() ;
 		// Avatar
 			// Input + link to demo
 		var avatar = this.options['profile_avatar'].render() ;
@@ -296,10 +295,18 @@ function Options(check_id) {
 				ev.target.src = last_working_avatar ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
-		container.appendChild(fieldset) ;
-		nick.select() ;
 	}
-			// Spectators
+		// Options
+	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset
+		for ( var i in {'Appearence': true, 'Behaviour': true, 'Debug': true} ) {
+			var group = this.groups[i] ;
+			var fieldset = create_fieldset(i) ;
+			for ( var j in group )
+				fieldset.appendChild(group[j].render()) ;
+			container.appendChild(fieldset) ;
+		}
+	}
+		// Spectators
 	this.tab_spectators = function(container) {
 		var fieldset = create_fieldset('Allowed forever') ;
 		if ( spectactor_allowed_forever().length == 0 )
