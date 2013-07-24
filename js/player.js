@@ -87,10 +87,10 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 	this.movedate = new Date() ;
 	this.infobulle = new InfoBulle() ;
 	// Options custom behaviour
-	this.options.add_trigger('sounds', function(ev) { if ( ev.target.checked ) game.sound.loadall() ; }) ;
-	this.options.add_trigger('invert_bf', function(ev) { resize_window() ; }) ;
-	this.options.add_trigger('display_card_names', function(ev) { refresh_cards_in_selzone() ; draw() ; }) ;
-	this.options.add_trigger('transparency', function(ev) {
+	this.options.add_trigger('sounds', function(option) { if ( option.input.checked ) game.sound.loadall() ; }) ;
+	this.options.add_trigger('invert_bf', function() { resize_window() ; }) ;
+	this.options.add_trigger('display_card_names', function() { refresh_cards_in_selzone() ; draw() ; }) ;
+	this.options.add_trigger('transparency', function() {
 		refresh_cards_in_selzone() ;
 		for ( var i in game.turn.steps )
 			game.turn.steps[i].refresh() ;
