@@ -108,14 +108,8 @@ function InfoBulle() {
 	}
 }
 function resize_window(ev) {
-	var chatbox = document.getElementById('chatbox') ; // ? Should be cached
-	var sendbox = document.getElementById('sendbox') ;
-	var autotext = document.getElementById('autotext') ;
-	var scrbot = chatbox.scrollHeight - ( chatbox.scrollTop + chatbox.clientHeight ) ; // Scroll from bottom, if 0, will scroll to se added line
 // --- [ Globals used by canvas ] ----------------------------------------------
-	//draw_counter = 0 ;
 	ping = 0 ;
-	bench = 0 ;
 // --- [ Compute dimensions ] --------------------------------------------------
 	if ( window.innerHeight > 800 ) {
 		cardimagewidth = 250 ; // Width of card images in zoom, draft and build
@@ -176,6 +170,13 @@ function resize_window(ev) {
 	game.turn.coords_compute() ;
 	draw() ;
 // --- [ Right column ] --------------------------------------------------------
+	resize_right_column() ;
+}
+function resize_right_column() {
+	//var chatbox = document.getElementById('chatbox') ; // ? Should be cached
+	//var sendbox = document.getElementById('sendbox') ; // Globally cached by network.js
+	//var autotext = document.getElementById('autotext') ;
+	var scrbot = chatbox.scrollHeight - ( chatbox.scrollTop + chatbox.clientHeight ) ; // Scroll from bottom, if 0, will scroll to se added line
 	// Refresh autotext buttons in order to know size of their container
 	if ( ! spectactor )
 		autotext_buttons() ;
@@ -269,8 +270,7 @@ function draw() {
 	//draw_counter++ ;
 	game.drawing = true ;
 	if ( game.drawing ) {
-		var begin = new Date()
-		var begin = begin.getMilliseconds() + begin.getSeconds()*1000 ;
+		var begin = bench() ;
 		// Background
 		game.context.clearRect(0, 0, game.canvas.width, game.canvas.height) ;
 		// Widgets (zones, manapools, phases ...)
@@ -420,13 +420,9 @@ function draw() {
 		}
 		// Additionnal information
 		if ( game.options.get('debug') ) {
-			var end = new Date()
-			var end = end.getMilliseconds() + end.getSeconds()*1000 ;
-			var time = end - begin ;
-			var txt = 'Display : '+time+'ms' ;
+			var txt = 'Display : '+(bench() - begin)+'ms' ;
 			txt += ' Ping : '+ping+'ms' ;
 			//txt += ' Frames : '+draw_counter ;
-			//txt += ' Message : '+bench ;
 			//txt += ' Selection : '+game.selected.zone ;
 			canvas_text_tr(game.context, txt, game.turn.x + game.turn.w-5, game.turn.y+5, 'white', paperwidth) ;
 		}
