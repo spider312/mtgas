@@ -48,7 +48,7 @@ html_menu() ;
      <th>Nb img</th>
      <th>Missing images</th>
      <th>Missing cards</th>
-     <th>Mean size</th>
+     <th>Filder / mean size</th>
     </tr>
 <?
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
@@ -152,7 +152,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	if ( $nbimages == 0 )
 		echo '      <td>N/A</td>'."\n" ;
 	else
-		echo '      <td>'.human_filesize(round($foldersize/$nbimages)).'</td>'."\n" ;
+		echo '      <td>'.human_filesize($foldersize).' / '.human_filesize(round($foldersize/$nbimages)).'</td>'."\n" ;
 	echo '     </tr>'."\n" ;
 	unset($exts[$arr['se']]) ;
 }

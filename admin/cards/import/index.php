@@ -37,6 +37,7 @@ html_menu() ;
 ?>
   <div class="section">
    <h1>Import cards</h1>
+   <a href="../../">Return to admin</a>
 
    <form>
     <fieldset>
