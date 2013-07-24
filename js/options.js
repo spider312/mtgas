@@ -26,9 +26,12 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 					alert(data.msg) ;
 				else if ( ( data.affected != 0 ) && ( data.affected != 1 ) ) {
 					alert('Something went wrong : '+data.affected) ;
+					log2(data) ;
 					$.cookie('login', null) ;
-				} else if ( option.label != null )
+				} else if ( option.label != null ) {
 					option.label.classList.remove('updating') ;
+					option.label.classList.add('updated') ;
+				}
 			}, 'json') ;
 		}
 	}
@@ -41,7 +44,7 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 			return null ;
 	}
 		// Rendering
-	this.render = function() {
+	this.render = function() { // Returns a form element adequate for option type
 		var myoption = this ; // for triggers
 		if ( this.choices == null ) {
 			if ( isb(this.def) ) {
@@ -58,6 +61,9 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 					if ( isf(ev.target.option.onChange) )
 						ev.target.option.onChange(myoption) ;
 				}, false) ;
+				this.input.addEventListener('keypress', function(ev) {
+					ev.stopPropagation() ; // Overrides play's keypress interception
+				}, false)
 			}
 		} else {
 			this.input = create_select(name, name) ;
@@ -137,60 +143,115 @@ function Options(check_id) {
 	}
 		// Rendering
 			// Lib
-	this.container = function(title, onsubmit) {
-		this.onsubmit = onsubmit ;
-		var myoptions = this ; // Local name
-		var container = create_form() ;
-		container.addEventListener('submit', function(ev) {
-			ev.preventDefault() ;
-			if ( isf(onsubmit) && ! onsubmit(myoptions) ) // Trigger
-				return false ; // No hide if trigger returns false
-			myoptions.hide() ;
-		}, false) ;
-		container.id = 'choicewin' ;
-		container.classList.add('section') ;
-		container.appendChild(create_h(1, title)) ;
-		var btnimg = create_img(theme_image('deckbuilder/button_ok.png')[0]) ;
-		myoptions = this ;
-		btnimg.addEventListener('load', function (ev) {
-			myoptions.resize(container) ;
-		}, false) ;
-		var button = create_button(btnimg, 'Close', 'Close') ;
-		button.id = 'options_close' ;
-		container.appendChild(button) ;
-		var result = create_div(container) ;
-		result.id = 'options' ;
-		result.classList.add('hider') ;
-		document.body.appendChild(result) ;
-		return container ;
+	this.hide = function(win) {
+		if ( !iso(win) )
+			win = document.getElementById('options_hider') ;
+		if ( win != null )
+			document.body.removeChild(win) ;
 	}
-	this.resize = function(container, width) {
+	this.resize = function() {
+		var container = document.getElementById('options') ;
+		var content = document.getElementById('options_content') ;
+		if ( ( container == null ) || ( content == null ) ) {
+			alert('Trying to resize an unexisting option window') ;
+			return false ;
+		}
 		var width = 400 ;
 		var style = container.style ;
 		style.width = width+'px' ;
 		style.marginLeft = '-'+Math.ceil(width/2)+'px' ;
-		var height = 10 ; // Margin around H (not sure)
-		for ( var i = 0 ; i < container.childNodes.length ; i++ ) {
-			var el = container.childNodes[i] ;
+		var height = 0 ; // Sum heights of all elements in content
+		for ( var i = 0 ; i < content.childNodes.length ; i++ ) {
+			var el = content.childNodes[i] ;
 			if ( el.id == 'buttons' )
 				continue ;
 			var bcr = el.getBoundingClientRect() ;
 			var cs = window.getComputedStyle(el)
-			var add =bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
+			var add = bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
 			height += add ;
 		}
+		height = max(180, height) ; // At least N px height in order to correctly display tabs
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
 	}
-	this.hide = function(win) {
-		if ( !iso(win) )
-			win = document.getElementById('options') ;
-		if ( win != null )
-			document.body.removeChild(win) ;
+	this.show = function(tab) {
+		// Container
+		var container = create_div() ;
+		container.id = 'options' ;
+		container.classList.add('section') ;
+		// Hider
+		var hider = create_div(container) ;
+		hider.id = 'options_hider' ;
+		hider.classList.add('hider') ;
+		document.body.appendChild(hider) ; // Needed by this.select_tab, have to do it early
+		// Tabs
+		var ul = create_ul('options_tabs') ;
+		for ( var i in this.tabs ) {
+			var li = create_li(i) ;
+			li.addEventListener('click', function(ev) {
+				var tab = ev.target.textContent ;
+				window.game.options.select_tab(tab) ;
+			}, false) ;
+			ul.appendChild(li) ;
+		}
+		container.appendChild(ul) ;
+			// Center tabs in window = center in screen, should redo on resize() but only usefull if ul height changes ...
+		ul.style.marginTop = '-'+(Math.ceil(ul.offsetHeight/2)+5)+'px' ;
+		// Content
+		var content = create_div() ;
+		content.id = 'options_content' ;
+		container.appendChild(content) ;
+		this.select_tab(tab) ;
+		// Close button
+		var btnimg = create_img(theme_image('deckbuilder/button_ok.png')[0]) ;
+		btnimg.addEventListener('load', function (ev) {
+			game.options.resize() ;
+		}, false) ;
+		var button = create_button(btnimg, function(ev) {
+			// Nick checking
+			var nick = game.options.get('profile_nick') ;
+			if ( ( nick == '' ) || ( nick == 'Nickname' ) ) {
+				var nickfield = document.getElementById('profile_nick') ;
+				if ( nickfield == null ) {
+					game.options.select_tab('Identity') ;
+					nickfield = document.getElementById('profile_nick') ;
+				}
+				nickfield.classList.add('errored') ;
+				nickfield.focus() ;
+				nickfield.select() ;
+				
+			} else {
+				game.options.identity_apply() ;
+				game.options.hide() ;
+			}
+		}, 'Close') ;
+		button.id = 'options_close' ;
+		container.appendChild(button) ;
+		this.resize() ; // AFTER adding to body
+	}
+	this.select_tab = function(tab) {
+		if ( ! iss(tab) || ! this.tabs[tab] )
+			tab = 'Options' ;
+		var content = document.getElementById('options_content') ;
+		if ( content == null ) {
+			alert('options not opened ('+tab+')') ;
+			return false ;
+		}
+		node_empty(content) ;
+		content.appendChild(create_h(1, tab)) ;
+		this.tabs[tab].call(this, content) ;
+		// Refresh tabs (unselected/selected)
+		var lis = document.getElementById('options').firstElementChild.children ;
+		for ( var i = 0 ; i < lis.length ; i++ )
+			if ( lis[i].textContent == tab )
+				lis[i].classList.add('selected') ;
+			else
+				lis[i].classList.remove('selected') ;
+		// Resize option window
+		this.resize() ;
 	}
 			// Options
-	this.show = function() {
-		var container = this.container('Options') ;
+	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset
 		for ( var i in {'Appearence': true, 'Behaviour': true, 'Debug': true} ) {
 			var group = this.groups[i] ;
 			var fieldset = create_fieldset(i) ;
@@ -198,26 +259,9 @@ function Options(check_id) {
 				fieldset.appendChild(group[j].render()) ;
 			container.appendChild(fieldset) ;
 		}
-		this.add_buttons(container, 'options') ;
-		this.resize(container) ;
 	}
 			// Identity
-	this.identity_show = function() {
-		var container = this.container('Identity', function(options) {
-			var nickfield = document.getElementById('profile_nick') ;
-			if ( nickfield == null )
-				return false ;
-			if (  ( nickfield.value != '' ) && ( nickfield.value != 'Nickname' ) ) {
-				nickfield.classList.remove('errored') ;
-				game.options.identity_apply() ;
-				return true ;
-			} else {
-				nickfield.classList.add('errored') ;
-				nickfield.focus() ;
-				nickfield.select() ;
-				return false ;
-			}
-		}, this) ;
+	this.tab_identity = function(container) {
 		var fieldset = create_div() ;
 		// Nick
 		var nick = this.options['profile_nick'].render() ;
@@ -241,12 +285,12 @@ function Options(check_id) {
 				ev.target.classList.remove('errored') ;
 				last_working_avatar = ev.target.src ; // Backup as last working avatar, for future errors
 			}
-			myoptions.resize(container) ;
+			myoptions.resize() ;
 		}, false) ;
 		avatar_demo.addEventListener('error', function (ev) {
 			ev.target.classList.add('errored') ;
 			if ( ev.target.src == last_working_avatar ) {
-				myoptions.resize(container) ; // Last working
+				myoptions.resize() ; // Last working
 				alert('err') ;
 			} else
 				ev.target.src = last_working_avatar ;
@@ -254,81 +298,37 @@ function Options(check_id) {
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
 		container.appendChild(fieldset) ;
 		nick.select() ;
-		this.resize(container) ; // Done on image error/load
-		// Buttons
-		this.add_buttons(container, 'identity') ;
+	}
+			// Spectators
+	this.tab_spectators = function(container) {
+		var fieldset = create_fieldset('Allowed forever') ;
+		if ( spectactor_allowed_forever().length == 0 )
+			fieldset.appendChild(create_text('No spectators allowed forever')) ;
+		else
+			fieldset.appendChild(spectator_select()) ;
+		container.appendChild(fieldset) ;
 	}
 		// Profile
-	this.profile_show = function() {
-		var container = this.container('Profile') ;
+	this.tab_profile = function(container) {
 		// Local
 		var fieldset = create_fieldset('Local') ;
 			// Backup
-		var clone = {} ;
-		for ( var i = 0 ; i < localStorage.length ; i++ ) {
-			var key = localStorage.key(i) ;
-			clone[key] = localStorage[key] ; 
-		}
-		var d = new Date() ;
-		var form = create_form('/download_file.php', 'post', 
-     		create_hidden('name', 'mtgas_profile_'+clone.profile_nick+'_'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.mtgas'), 
-     		create_hidden('content', JSON.stringify(clone)),
-     		create_submit('', 'Backup profile')
-		) ;
-		form.title = 'Downloads a profile file, that can be restored on another mtgas (nick, avatars, decks, tokens ...)' ;
-		fieldset.appendChild(form) ;
+		fieldset.appendChild(create_button('Backup', profile_backup, 'Download a profile file, that can be restored on another mtgas (nick, avatar, decks, options)')) ;
 			// Restore
-		var file = create_file('profile_file', 'Path of the profile file (in .mtgas (json) file format)') ;
-		file.size = 2 ;
-		var submit = create_submit('', 'Restore profile') ;
-		submit.disabled = true ;
+		var file = create_file('profile_file', 'Restore a profile file previously saved') ;
 		file.addEventListener('change', function(ev) {
-			if ( ev.target.files.length > 0 )
-				submit.disabled = false ;
-		}, false) ;
-		var form = create_form('', 'get', 
-			file ,
-     		submit
-		) ;
-		form.title = 'Restore a profile file previously saved or from another mtgas' ;
-		form.addEventListener('submit', function(ev) {
-			ev.preventDefault() ;
-			if ( ev.target.profile_file.files.length == 0 )
-				alert('Please browse to the saved profile file you want to restore') ;
-			else {
-				var form = ev.target ; // Used in reader.onload, where ev is another event
+			game.options.resize() ;
+			if ( ev.target.files.length > 0 ) {
 				var reader = new FileReader() ; // https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
-				reader.onload = function(ev) {
-					var text = ev.target.result ;
-					try {
-						var profile = JSON.parse(text) ;
-					} catch (e) {
-						alert('The file '+file.fileName+' ('+file.type+') doesn\'t appears to be a valid MTGAS profile file (json)') ;
-						return null ;
-					}
-					if ( confirm('Are you sure you want to overwrite all your personnal data (nick, avatar, decks, options) with ones stored in profile file with nick '+profile.profile_nick) ) {
-						form.profile_file.value = '' ;
-						localStorage.clear() ;
-						for ( var i in profile )
-							store(i, profile[i]) ;
-						alert('All data were overwritten, reloading page') ;
-						document.location = document.location ;
-					}
-
-				} ;
-				reader.readAsText(form.profile_file.files.item(0)) ;
+				reader.addEventListener('load', function(ev) {
+					profile_restore(JSON_parse(ev.target.result)) ;
+				}, false) ;
+				reader.readAsText(ev.target.files.item(0)) ;
 			}
 		}, false) ;
-		fieldset.appendChild(form) ;
+		fieldset.appendChild(create_element('div', create_text('Restore : '), file)) ;
 			// Clear
-		var button = create_button('Clear profile', function(ev) {
-			if ( confirm('Are you sure you want to clear all your personnal data on this website ? (nick, avatar, decks, tokens, games, tournaments)') ) {
-				localStorage.clear() ;
-				$.cookie(session_id, null);
-				alert('All data were cleared, reloading page') ;
-				document.location = document.location ;
-			}
-		}, 'Erase all mtgas-related informations from your browser') ;
+		var button = create_button('Clear', profile_clear, 'Erase all mtgas-related informations from your browser') ;
 		fieldset.appendChild(button) ;
 		container.appendChild(fieldset) ;
 		// Server side
@@ -342,7 +342,7 @@ function Options(check_id) {
 							alert(data.msg) ;
 						//document.location = document.location ;
 						myoptions.hide() ;
-						myoptions.profile_show() ;
+						myoptions.show('Profile') ;
 						decks_list() ;
 					}) ;
 					return eventStop(ev) ;
@@ -374,7 +374,7 @@ function Options(check_id) {
 							$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
 								//document.location = document.location ; // Refresh login form
 								myoptions.hide() ;
-								myoptions.profile_show() ;
+								myoptions.show('Profile') ;
 								decks_list() ;
 							}, 'json') ;
 						// If server sent data, store them
@@ -385,7 +385,7 @@ function Options(check_id) {
 								localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
 							//document.location = document.location ; // Refresh all data
 							myoptions.hide() ;
-							myoptions.profile_show() ;
+							myoptions.show('Profile') ;
 							decks_list() ;
 						} else
 							alert('Nothing happend') ;
@@ -397,41 +397,14 @@ function Options(check_id) {
 /*<div>Please be sure <a href="http://forum.mogg.fr/viewtopic.php?pid=65#p65">you really need it</a> before create a server side profile (and you probably don't if you always connect here from the same computer)</div>*/
 		}
 		container.appendChild(fieldset) ;
-			// Spectactors (there is space in this window)
-		var fieldset = create_fieldset('Spectators') ;
-		if ( spectactor_allowed_forever().length == 0 )
-			fieldset.appendChild(create_text('No spectators allowed forever')) ;
-		else
-			fieldset.appendChild(spectator_select()) ;
-		container.appendChild(fieldset) ;
-		// End
-		this.resize(container) ;
-		this.add_buttons(container, 'profile') ;
 	}
-	this.add_buttons = function(container, disabled) {
-		var buttons = create_div() ;
-		buttons.id = 'buttons' ;
-		this.button_identity.disabled = (disabled == 'identity') ;
-		this.button_options.disabled = (disabled == 'options') ;
-		this.button_profile.disabled = (disabled == 'profile') ;
-		buttons.appendChild(this.button_identity) ;
-		buttons.appendChild(this.button_options) ;
-		buttons.appendChild(this.button_profile) ;
-		container.appendChild(buttons) ;
-	}
-	// Buttons cache
-	var myoptions = this ;
-	this.button_identity = create_button('Identity', function(ev) { myoptions.identity_show()  }, 'Manage your nickname and avatar') ;
-	this.button_options = create_button('Options', function(ev) { // Verify nickname before leaving 'identity' window
-		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) )
-			return false ; // No hide if trigger returns false
-		myoptions.show() ;
-	}, 'Change various options')
-	this.button_profile = create_button('Profile', function(ev) { // Verify nickname before leaving 'identity' window
-		if ( isf(myoptions.onsubmit) && ! myoptions.onsubmit(myoptions) )
-			return false ; // No hide if trigger returns false
-		myoptions.profile_show() ;
-	}, 'Manage local and server-side profiles')
+	// Tabs definition
+	this.tabs = {
+		'Identity': this.tab_identity,
+		'Options': this.tab_options,
+		'Spectators': this.tab_spectators,
+		'Profile': this.tab_profile
+	} ;
 	// Hook
 	this.identity_apply = function() {
 		// Find hook
@@ -445,21 +418,15 @@ function Options(check_id) {
 		is.appendChild(create_text(this.get('profile_nick'))) ;
 		// Check nickname validity or open identity window
 		var nick = this.get('profile_nick')
-		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) )
-			this.identity_show() ;
+		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) ) {
+			//game.options = this ; // If we're in object creation, it has not already been returned, then stored here
+			this.show('Identity') ;
+		}
 	}
 	// Data
 		// Identity
 	this.add('Identity', 'profile_nick', 'Nickname', 'Will appear near your life counter/avatar and in all messages displayed in chatbox', 'Nickname') ; 
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', 'img/avatar/kuser.png') ;
-		// Hidden (Only retrieved, or set by other means)
-		//player_id
-	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
-	this.add('Hidden', 'deck', '', '', '') ;
-	this.add('Hidden', 'allowed', '', '', '{}') ;
-		// Tournament hidden
-	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
-	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
 		// Options
 			// Appearence
 //function save_restore_options() { // Previous options management had a way for user to define card images URL (not choosing in a list) :
@@ -493,13 +460,21 @@ function Options(check_id) {
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
+		// Hidden (Only retrieved, or set by other means)
+		//player_id
+	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
+	this.add('Hidden', 'deck', '', '', '') ;
+	this.add('Hidden', 'allowed', '', '', '{}') ;
+		// Tournament hidden
+	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
+	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
 	// Init
 	if ( check_id ) // Object was created with checking
 		this.identity_apply() ;
 	var is = document.getElementById('identity_shower')
 	if ( is != null )
 		is.addEventListener('click', function(ev) {
-			game.options.identity_show() ;
+			game.options.show('Identity') ;
 		}, false) ;
 }
 function gallery() {
@@ -594,9 +569,54 @@ function save(myfield) {
 	}
 	return false ;
 }
+// Profile management
+function profile_backup() {
+	var clone = {} ;
+	for ( var i = 0 ; i < localStorage.length ; i++ ) {
+		var key = localStorage.key(i) ;
+		clone[key] = localStorage[key] ; 
+	}
+	var d = new Date() ;
+	var form = create_form('/download_file.php', 'post', 
+		create_hidden('name', 'mtgas_profile_'+clone.profile_nick+'_'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.mtgas'), 
+		create_hidden('content', JSON.stringify(clone))
+	) ;
+	document.body.appendChild(form) ;
+	form.submit() ;
+	document.body.removeChild(form) ;
+}
+function profile_restore(profile) {
+	if ( ! iso(profile) || ( profile == null ) ) {
+		alert('File is not a profile') ;
+		return false ;
+	}
+	var nick = '[not found in profile]' ;
+	if ( iss(profile.profile_nick) )
+		nick = profile.profile_nick
+	if ( ! confirm('Are you sure you want to overwrite all your personnal data (nick, avatar, decks, options) with ones stored in profile file with nick '+nick+' ?') ) {
+		alert('Profile restoration aborted') ;
+		return false ;
+	}
+	localStorage.clear() ;
+	for ( var i in profile )
+		store(i, profile[i]) ;
+	alert('All data were overwritten, reloading page') ;
+	document.location = document.location ;
+	return true ;
+}
+function profile_clear() {
+	if ( confirm('Are you sure you want to clear all your personnal data on this website ? (nick, avatar, decks, games, tournaments)') ) {
+		localStorage.clear() ;
+		$.cookie(session_id, null);
+		alert('All data were cleared, reloading page') ;
+		document.location = document.location ;
+	}
+}
 // Spectactor forever allow
 function spectactor_allowed_forever() { // Returns a list of allowed players in form of {id: 'Nick', id2: 'Nick2' ... }
 	var allowed_str = game.options.get('allowed') ;
+	if ( !iss(allowed_str) )
+		allowed_str = '' ;
 	var allowed = JSON_parse(allowed_str) ;
 	if ( allowed != null ) // Parsing OK
 		return allowed ;
@@ -642,6 +662,7 @@ function spectator_select() { // Returns a HTMLSelect listing spectators allowed
 	if ( select.options.length < 1 )
 		div.appendChild(create_text('No spectator to unallow')) ;
 	else {
+		// Select
 		select.title = 'Double click a spectator to un-allow' ;
 		select.size = max(2, min(10, select.options.length)) ; // At least 2 in order to display a full list, max 10 to stay inside screen
 		select.addEventListener('dblclick', function(ev) {
@@ -651,6 +672,8 @@ function spectator_select() { // Returns a HTMLSelect listing spectators allowed
 				spectactor_unallow_forever(ev.target.value) ;
 		}, false) ;
 		div.appendChild(select) ;
+		div.appendChild(create_element('br')) ;
+		// Button
 		var button = create_button('Un-allow', function(ev) {
 			if ( select.selectedIndex == -1 )
 				alert('Please select a spectator to un-allow') ;
@@ -658,7 +681,6 @@ function spectator_select() { // Returns a HTMLSelect listing spectators allowed
 				spectactor_unallow_forever(select.value) ;
 		}) ;
 		button.type = 'button' ; // Don't send form
-		div.appendChild(create_element('br')) ;
 		div.appendChild(button) ;
 	}
 	return div ;

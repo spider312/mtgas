@@ -18,9 +18,6 @@ td.nowrap {
 	margin: 0 ;
 	white-space: nowrap;
 }
-.errored {
-	border: 2px solid red ;
-}
 /* Index is divided in 2 columns */
 #left_col, #right_col {
 	float: left ;

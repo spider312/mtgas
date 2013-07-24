@@ -1,3 +1,7 @@
+/* Generic */
+.errored {
+	border: 2px solid red ;
+}
 /* Hider */
 .hider {
 	position: fixed ;
@@ -19,7 +23,44 @@
 	background-color: rgba(255, 127, 127, 0.5) !important ;
 	border-color: rgba(255, 127, 127, 0.75) ;
 }
-/* Options */
+.updated {
+	background-color: rgba(127, 255, 127, 0.5) !important ;
+	border-color: rgba(127, 255, 127, 0.75) ;
+}
+/* Options window */
+#options { /* Container */
+	padding-right: 100px ; /* For tabs */
+}
+#options h1 {
+	margin-right: -90px ;
+}
+	/* Tabs*/
+#options_tabs {
+	padding-left: 0 ;
+	width: 100px ;
+	position: absolute ;
+	right: 0 ;
+	top: 50% ; /* Centered in options window, itself centered in screen : fixed position */
+}
+#options li {
+	list-style-type: none ;
+	text-align: right ;
+}
+#options li:not(.selected):hover {
+	cursor: pointer ;
+	background-color: rgba(0, 0, 0, 0.2) ;
+}
+#options li.selected {
+	cursor: default ;
+	background-color: rgba(0, 0, 0, 0.2) ;
+	font-weight: bold ;
+}
+#options_close {
+	position: absolute ;
+	right: 10px ;
+	bottom: 10px ;
+}
+/* Content */
 #options fieldset {
 	margin: 5px 10px 0 10px ;
 	padding: 0 ;
@@ -37,17 +78,6 @@
 	background-color: rgba(0, 0, 0, 0.2) ;
 	border-color: rgba(0, 0, 0, 0.1) ;
 	border-radius: 2px;
-}
-#options_close {
-	position: absolute ;
-	right: 10px ;
-	bottom: 10px ;
-	z-index: 1 ; /* Only usefull in options during games */
-}
-#buttons {
-	position: absolute ;
-	left: 10px ;
-	bottom: 10px ;
 }
 /* Identity */
 #avatar_demo {

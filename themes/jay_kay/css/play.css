@@ -159,20 +159,29 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	display: block !important ;
 	z-index: 50 ;
 }
+/* Option window */
+#options {
+	background-color: white ;
+	border: 1px solid white ;
+	box-shadow: 0 0 5px 3px #000000 ;
+}
+#options h1 {
+	margin-right: -100px !important ;
+}
 /* Choice window (options, triggers, dredge ...)*/
 #choicewin {
 	z-index: 2 ;
 	position: absolute ;
 	width: 256px ;
 	background-color: white ;
-	border: 1px solid white ;	/* 3px outset black ;*/
-	box-shadow: 0 0 5px 3px #000000;
+	border: 1px solid white ; 
+	box-shadow: 0 0 5px 3px #000000 ;
 }
 #choicewin .title {
 	font-size: 18px ;
 	height: 22px ;
 }
-#choicewin .title, #choicewin h1, #choicewin h2, #choicewin h3, #choicewin h4	{
+#options h1, #choicewin .title, #choicewin h1, #choicewin h2, #choicewin h3, #choicewin h4	{
 	color: white ;
 	background-color: black ;
 	font-weight: bold ;
