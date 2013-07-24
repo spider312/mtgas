@@ -21,7 +21,8 @@ function start() { // When page is loaded : initialize everything
 	Card.prototype = new card_prototype() ;
 	Token.prototype = new card_prototype() ;
 	// caching getElementById
-	zoom = document.getElementById('zoom') ;
+	zoom = document.getElementById('zoom') ; // Redraw right column when zoom size changes
+	zoom.addEventListener('load', resize_window, false) ; // benched @ 20-26ms on garruk
 	timeleft = document.getElementById('timeleft') ;
 	// AJAX Communication
 	$.ajaxSetup({'cache': false, 'error': function(XMLHttpRequest, textStatus, errorThrown) {
