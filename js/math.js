@@ -177,7 +177,10 @@ function time_disp(duration) { // In seconds
 	}
 	return prefix + disp ;
 }
-
+function bench() {
+	var date = new Date()
+	return date.getMilliseconds() + date.getSeconds()*1000 ;
+}
 // Types ( https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/typeof )
 function isset(val) {
 	return ( typeof val != 'undefined' ) ;
