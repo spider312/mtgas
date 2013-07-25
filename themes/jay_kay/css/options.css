@@ -46,6 +46,8 @@
 #options_tabs li {
 	list-style-type: none ;
 	text-align: right ;
+	padding: 1px ;
+	padding-right: 5px ;
 }
 #options_tabs li:not(.selected):hover {
 	cursor: pointer ;

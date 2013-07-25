@@ -225,7 +225,7 @@ function Options(check_id) {
 			var add = bcr.height + parseInt(cs.marginTop) + parseInt(cs.marginBottom);
 			height += add ;
 		}
-		height = max(180, height) ; // At least N px height in order to correctly display tabs
+		height = max(190, height) ; // At least N px height in order to correctly display tabs
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
 	}
