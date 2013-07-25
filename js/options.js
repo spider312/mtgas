@@ -62,8 +62,8 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 						ev.target.option.onChange(myoption) ;
 				}, false) ;
 				this.input.addEventListener('keypress', function(ev) {
-					ev.stopPropagation() ; // Overrides play's keypress interception
-				}, false)
+					ev.stopPropagation() ; // Overrides play.js keypress interception
+				}, false) ;
 			}
 		} else {
 			this.input = create_select(name, name) ;
@@ -253,7 +253,7 @@ function Options(check_id) {
 	}
 		// Identity
 	this.tab_identity = function(container) {
-		var fieldset = create_div() ;
+		var fieldset = create_fieldset('Identity') ;
 		container.appendChild(fieldset) ;
 		// Nick
 		var nick = this.options['profile_nick'].render() ;
@@ -432,7 +432,7 @@ function Options(check_id) {
 	}
 	// Data
 		// Identity
-	this.add('Identity', 'profile_nick', 'Nickname', 'Will appear near your life counter/avatar and in all messages displayed in chatbox', 'Nickname') ; 
+	this.add('Identity', 'profile_nick', 'Nickname', 'A nickname identifying you in game interface and chat', 'Nickname') ; 
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', 'img/avatar/kuser.png') ;
 		// Options
 			// Appearence
