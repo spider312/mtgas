@@ -203,13 +203,14 @@ function tournament_log_li(line, nick, players, spectactors) {
 			break ;
 		case 'build' :
 			msg = 'Build started' ;
+			startdate = mysql2date(line.timestamp) ;
 			break ;
 		case 'save' :
 			msg = nick+' saved a deck' ;
 			break ;
 		case 'ready' :
 			if ( line.value == '1' )
-				msg = nick+' is ready' ;
+				msg = nick+' is ready (built in '+time_disp(Math.round((mysql2date(line.timestamp)-startdate)/1000))+')' ;
 			else
 				msg = nick+' isn\'t ready anymore' ;
 			break ;
@@ -235,13 +236,17 @@ function tournament_log_li(line, nick, players, spectactors) {
 		default :
 			msg = line.type+' : '+line.value+' (raw)' ;
 	}
-	return create_li(msg) ;
+	var li = create_li(msg) ;
+	li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
+	return li ;
+
 }
 function tournament_log_ul(tournament_log, log, players, spectactors) {
 	if ( log[log.length-1].id == game.last_log_id ) // Cache last log id, only refresh log when it change
 		return false ;
 	var scrbot = tournament_log.scrollHeight - ( tournament_log.scrollTop + tournament_log.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
 	node_empty(tournament_log) ;
+	var startdate = new Date(0) ;
 	while ( log.length > 0 ) {
 		line = log.shift() ;
 		last_id = parseInt(line.id) ;
@@ -258,9 +263,7 @@ function tournament_log_ul(tournament_log, log, players, spectactors) {
 					nick = s.nick ;
 			}
 		}
-		var li = tournament_log_li(line, nick, players, spectactors) ;
-		li.title = (new Date(line.timestamp.replace(' ', 'T'))).toLocaleTimeString() ;
-		tournament_log.appendChild(li) ;
+		tournament_log.appendChild(tournament_log_li(line, nick, players, spectactors)) ;
 		game.last_log_id = line.id ;
 	}
 	// Scroll

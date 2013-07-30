@@ -181,6 +181,9 @@ function bench() {
 	var date = new Date()
 	return date.getMilliseconds() + date.getSeconds()*1000 ;
 }
+function mysql2date(mysqldate) {
+	return new Date(mysqldate.replace(' ', 'T')) ;
+}
 // Types ( https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/typeof )
 function isset(val) {
 	return ( typeof val != 'undefined' ) ;
