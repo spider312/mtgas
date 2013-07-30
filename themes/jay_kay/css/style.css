@@ -95,7 +95,7 @@ a:hover {
 	float: right ;
 	cursor: pointer ;
 }
-#identity_shower img {
+#identity_shower img#avatar {
 	vertical-align: middle ;
 	height: 30px ;
 }

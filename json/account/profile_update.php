@@ -1,10 +1,10 @@
 <?php
-include '../lib.php' ;
-include '../includes/db.php' ;
+include '../../lib.php' ;
+include '../../includes/db.php' ;
+if ( ! array_key_exists('login', $_SESSION) || ! array_key_exists('password', $_SESSION) )
+	die('{"msg": "No login or password in session"}') ;
 $result = new simple_object() ;
 $json = param_or_die($_POST, 'json') ;
-if ( ! array_key_exists('login', $_SESSION) || ! array_key_exists('password', $_SESSION) )
-	die('{}') ;
 $email = param_or_die($_SESSION, 'login') ;
 $password = param_or_die($_SESSION, 'password') ;
 $q = query("SELECT `password`, `content` FROM `profile` WHERE `email` = '$email' ;") ;
@@ -36,7 +36,7 @@ if ( mysql_num_rows($q) == 0 ) {
 			$u = query("UPDATE `profile` SET `content` = '$content' WHERE `email` = '$email' AND `password` = '$password' ;") ;
 			// Return
 			$result->affected = mysql_affected_rows() ;
-			//$result->msg = $log ;
+			$result->log = $log ;
 		}
 	} else
 		$result->msg .= 'Profile unfetchable. ' ;

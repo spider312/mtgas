@@ -34,6 +34,19 @@ session_name($session_id) ;
 session_start() or die('Session failed');
 if ( session_id() == '' )
 	session_regenerate_id() ;
+// Sets session cookie to live more than just session
+$cookie_expire = time()+60*60*24*365 ; // One year cookies
+if ( array_key_exists($session_id, $_COOKIE) )
+	setcookie($session_id, $_COOKIE[$session_id], $cookie_expire, '/') ;
+
+// Reconnection
+if ( 
+	( ! array_key_exists('login', $_SESSION) || ! array_key_exists('password', $_SESSION) ) // Missing login or pass in session
+	&& array_key_exists('login', $_COOKIE) && array_key_exists('password', $_COOKIE) // And existing in cookies
+) {
+	$_SESSION['login'] = $_COOKIE['login'] ;
+	$_SESSION['password'] = $_COOKIE['password'] ;
+}
 
 // Globals depending from session
 if ( array_key_exists($session_id, $_COOKIE) ) // Server has no cookies

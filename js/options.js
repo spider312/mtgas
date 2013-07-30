@@ -21,7 +21,7 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 			var json = {} ;
 			json[this.name] = value ;
 			var option = this ;
-			$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(data) {
+			$.post(url+'/json/account/profile_update.php', {'json': JSON.stringify(json)}, function(data) {
 				if ( iss(data.msg) && ( data.msg != '' ) )
 					alert(data.msg) ;
 				else if ( ( data.affected != 0 ) && ( data.affected != 1 ) ) {
@@ -31,6 +31,9 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 				} else if ( option.label != null ) {
 					option.label.classList.remove('updating') ;
 					option.label.classList.add('updated') ;
+					window.setTimeout(function(ol) {
+						ol.classList.remove('updated') ;
+					}, 500, option.label) ;
 				}
 			}, 'json') ;
 		}
@@ -278,18 +281,17 @@ function Options(check_id) {
 		var txt = 'Current avatar, click to choose one from a gallery' ;
 		var avatar_demo = create_img(localize_image(this.get('profile_avatar')), txt, txt) ;
 		avatar_demo.id = 'avatar_demo' ;
-		var myoptions = this ;
 		avatar_demo.addEventListener('load', function (ev) {
 			if ( last_working_avatar != ev.target.src  ) {
 				ev.target.classList.remove('errored') ;
 				last_working_avatar = ev.target.src ; // Backup as last working avatar, for future errors
 			}
-			myoptions.resize() ;
+			game.options.resize() ;
 		}, false) ;
 		avatar_demo.addEventListener('error', function (ev) {
 			ev.target.classList.add('errored') ;
 			if ( ev.target.src == last_working_avatar ) {
-				myoptions.resize() ; // Last working
+				game.options.resize() ; // Last working
 				alert('err') ;
 			} else
 				ev.target.src = last_working_avatar ;
@@ -317,6 +319,43 @@ function Options(check_id) {
 	}
 		// Profile
 	this.tab_profile = function(container) {
+		// Server side
+		if ( $.cookie && ( $.cookie('login') != null ) )  // Already logged-in
+			// Log out button
+			container.appendChild(
+				create_fieldset(
+					'Logged in as '+$.cookie('login'),
+					create_button('Logout',profile_logout, 'Logout')
+				)
+			) ;
+		else { // Not logged in
+			// Login form
+			var fieldset = profile_form('Login', 'json/account/login.php', function(data, ev) {
+				// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
+				/*if ( ev.target.overwrite.checked )
+					profile_upload() ;
+				else*/
+				// If server sent data, store them
+				if ( ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) )
+					profile_downloaded(JSON_parse(data.recieve)) ;
+				else
+					alert('Your online profile was empty') ;
+			}) ;
+			/*
+			var form = fieldset.firstChild.nextElementSibling ;
+			var overwrite = create_checkbox('overwrite', false, 'overwrite') ;
+			var overwrite_l = create_label(overwrite, 'Overwrite : ', overwrite) ;
+			overwrite_l.title = 'Overwrite your server profile with your local profile instead of fetching your server profile' ;
+			form.insertBefore(overwrite_l, form.submit_button) ;
+			*/
+			container.appendChild(fieldset) ;
+			// Register form
+			var fieldset = profile_form('Register', 'json/account/register.php', function(data, ev) {
+				alert('Account '+ev.target.email.value+' created, an e-mail has been sent to this adress, you can simply trash it.') ;
+				profile_upload() ;
+			}) ;
+			container.appendChild(fieldset) ;
+		}
 		// Local
 		var fieldset = create_fieldset('Local') ;
 			// Backup
@@ -338,72 +377,6 @@ function Options(check_id) {
 		var button = create_button('Clear', profile_clear, 'Erase all mtgas-related informations from your browser') ;
 		fieldset.appendChild(button) ;
 		container.appendChild(fieldset) ;
-		// Server side
-		var myoptions = this ;
-		if ( $.cookie && ( $.cookie('login') != null ) )  {
-			var fieldset = create_fieldset(
-				'Logged in as '+$.cookie('login'),
-				create_button('Logout', function(ev) {
-					$.getJSON('json/logout.php', {}, function(data) {
-						if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-							alert(data.msg) ;
-						//document.location = document.location ;
-						myoptions.hide() ;
-						myoptions.show('Profile') ;
-						decks_list() ;
-					}) ;
-					return eventStop(ev) ;
-				}, 'Logout')
-			) ;
-		} else {
-			var fieldset = create_fieldset('Login') ;
-			var email = create_input('email', '', 'email') ;
-			var password = create_password('password', '', 'password') ;
-			var overwrite = create_checkbox('overwrite', false, 'overwrite') ;
-			var overwrite_l = create_label(overwrite, 'Overwrite : ', overwrite) ;
-			overwrite_l.title = 'Overwrite your server profile with your local profile instead of fetching your server profile' ;
-			var form = create_form('json/login.php', 'get',
-				create_label(email, 'E-mail : ', email), 
-				create_label(password, 'Password : ', password),
-				overwrite_l,
-		 		create_submit('', 'Login/register')
-			) ;
-			form.addEventListener('submit', function(ev) {
-				$.getJSON(ev.target.action, {
-					'email': ev.target.email.value,
-					'password': ev.target.password.value,
-				}, function(data) {
-					if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-						alert(data.msg) ;
-					else {
-						// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
-						if ( ( data.send ) || ev.target.overwrite.checked ) {
-							$.post('json/profile_udate.php', {'json': JSON.stringify(localStorage)}, function(d) {
-								//document.location = document.location ; // Refresh login form
-								myoptions.hide() ;
-								myoptions.show('Profile') ;
-								decks_list() ;
-							}, 'json') ;
-						// If server sent data, store them
-						} else if ( ( ! ev.target.overwrite.checked ) && ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) ) {
-							var profile = JSON.parse(data.recieve) ;
-							localStorage.clear() ;
-							for ( var i in profile )
-								localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
-							//document.location = document.location ; // Refresh all data
-							myoptions.hide() ;
-							myoptions.show('Profile') ;
-							decks_list() ;
-						} else
-							alert('Nothing happend') ;
-					}
-				}) ;
-				return eventStop(ev) ;
-			}, false) ;
-			fieldset.appendChild(form) ;
-/*<div>Please be sure <a href="http://forum.mogg.fr/viewtopic.php?pid=65#p65">you really need it</a> before create a server side profile (and you probably don't if you always connect here from the same computer)</div>*/
-		}
-		container.appendChild(fieldset) ;
 	}
 	// Tabs definition
 	this.tabs = {
@@ -420,15 +393,22 @@ function Options(check_id) {
 			return false ;
 		// Replace its content
 		node_empty(is) ;
+		if ( $.cookie && ( $.cookie('login') != null ) ) {
+			var img = create_img(theme_image('greenled.png')[0]) ;
+			img.title = 'Logged in as '+$.cookie('login')
+		} else {
+			var img = create_img(theme_image('redled.png')[0]) ;
+			img.title = 'Logged out from server-side profile' ;
+		}
+		is.appendChild(img) ;
 		var img = create_img(localize_image(this.get('profile_avatar'))) ;
+		img.id = 'avatar' ;
 		is.appendChild(img) ;
 		is.appendChild(create_text(this.get('profile_nick'))) ;
 		// Check nickname validity or open identity window
 		var nick = this.get('profile_nick')
-		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) ) {
-			//game.options = this ; // If we're in object creation, it has not already been returned, then stored here
+		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) )
 			this.show('Identity') ;
-		}
 	}
 	// Data
 		// Identity
@@ -483,6 +463,15 @@ function Options(check_id) {
 		is.addEventListener('click', function(ev) {
 			game.options.show('Identity') ;
 		}, false) ;
+	// Debug info
+	if ( this.get('debug') ) {
+		var footer = document.getElementById('footer') ;
+		if ( footer != null ) {
+			footer.appendChild(create_div(create_text('session id : '+player_id))) ;
+			footer.appendChild(create_div(create_text('cookie login : '+$.cookie('login')))) ;
+			footer.appendChild(create_div(create_text('cookie password : '+$.cookie('password')))) ;
+		}
+	}
 }
 function gallery() {
 	window.open('/avatars.php') ;
@@ -495,8 +484,10 @@ $(function() { // On page load
 	if ( ( localStorage['player_id'] == null ) || ( localStorage['player_id'] == '' ) ) // No player ID
 		store('player_id', player_id) ; // Store actual PHPSESSID
 	else if ( player_id != localStorage['player_id'] ) { // Player ID different from PHPSESSID
-		$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
-		window.location = window.location ; // Curent web page isn't informed ID changed, reload
+		if ( confirm('Restore previous player_id ? (yes if you don\'t know)') ) {
+			$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
+			window.location = window.location ; // Curent web page isn't informed ID changed, reload
+		}
 	}
 }) ;
 // Other saved fields
@@ -551,7 +542,7 @@ function store(key, value) {
 			e.parentNode.classList.add('updating') ;
 		var json = {} ;
 		json[key] = value ;
-		$.post(url+'/json/profile_udate.php', {'json': JSON.stringify(json)}, function(data) {
+		$.post(url+'/json/account/profile_update.php', {'json': JSON.stringify(json)}, function(data) {
 			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
 				alert(data.msg) ;
 			else if ( ( data.affected != 0 ) && ( data.affected != 1 ) ) {
@@ -577,6 +568,7 @@ function save(myfield) {
 	return false ;
 }
 // Profile management
+	// Local
 function profile_backup() {
 	var clone = {} ;
 	for ( var i = 0 ; i < localStorage.length ; i++ ) {
@@ -606,18 +598,84 @@ function profile_restore(profile) {
 	}
 	localStorage.clear() ;
 	for ( var i in profile )
-		store(i, profile[i]) ;
-	alert('All data were overwritten, reloading page') ;
-	document.location = document.location ;
-	return true ;
+		//store(i, profile[i]) ;
+		localStorage[i] = profile[i] ;
+	$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
+	game.options.identity_apply() ;
+	decks_list() ;
+	game.options.select_tab('Identity') ;
+	//alert('All data were overwritten, reloading page') ;
+	//document.location = document.location ;
 }
 function profile_clear() {
 	if ( confirm('Are you sure you want to clear all your personnal data on this website ? (nick, avatar, decks, games, tournaments)') ) {
 		localStorage.clear() ;
-		$.cookie(session_id, null);
+		$.cookie(session_id, null) ;
 		alert('All data were cleared, reloading page') ;
 		document.location = document.location ;
 	}
+}
+	// Server side
+function profile_upload() { // Server side profile registration || login with overwrite
+	$.post('json/account/profile_update.php', {'json': JSON.stringify(localStorage)}, function(d) {
+		game.options.select_tab('Profile') ;
+	}, 'json') ;
+}
+function profile_downloaded(profile) { // Server side login without overwrite
+	if ( !iso(profile) || ( profile == null ) )
+		return false ;
+	localStorage.clear() ;
+	for ( var i in profile )
+		localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
+	$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
+	// Apply data downloaded
+	decks_list() ;
+	game.options.identity_apply() ;
+	// Show modified
+	game.options.select_tab('Identity') ;
+}
+function profile_logout(ev) {
+	$.getJSON('json/account/logout.php', {}, function(data) {
+		game.options.identity_apply() ;
+		if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
+			alert(data.msg) ; // Something wrong happened
+		else
+			game.options.select_tab('Profile') ; // Offer to re-login
+	}) ;
+	return eventStop(ev) ;
+}
+function profile_form(name, target, callback) {
+	var email = create_input('email', '', 'email_'+name) ;
+	var password = create_password('password', '', 'password_'+name) ;
+	var remember = create_checkbox('remember', false, 'remember_'+name) ;
+	var remember_l = create_label(remember, remember, 'Remember') ;
+	remember_l.title = 'Reconnect automatically on next visits' ;
+	var form = create_form(target, 'get',
+		create_label(email, 'E-mail : ', email), 
+		create_label(password, 'Password : ', password),
+		remember_l, 
+		create_submit('submit_button', name)
+	) ;
+	form.addEventListener('submit', function(ev) {
+		var obj = {} ;
+		for ( var i = 0 ; i < ev.target.elements.length ; i++ ) {
+			var el = ev.target.elements[i] ;
+			if ( el.type == 'checkbox' )
+				obj[el.name] = el.checked ;
+			else if ( el.type != 'submit' ) 
+				obj[el.name] = el.value ;
+		}
+		$.getJSON(ev.target.action, obj, function(data) {
+			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
+				alert(data.msg) ;
+			else
+				callback(data, ev) ;
+			
+		}) ;
+		return eventStop(ev) ;
+	}, false) ;
+	var fieldset = create_fieldset(name, form) ;
+	return fieldset ;
 }
 // Spectactor forever allow
 function spectactor_allowed_forever() { // Returns a list of allowed players in form of {id: 'Nick', id2: 'Nick2' ... }
