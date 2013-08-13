@@ -14,7 +14,7 @@ function start(id) {
 	}, false) ;
 	game = new Object() ;
 	game.image_cache = new image_cache() ;
-	options = new Options() ;
+	game.options = new Options() ;
 	cache_draft = null ;
 	cache_pick = '' ;
 	cache_pool = '' ;
@@ -89,7 +89,7 @@ function draft(id) { // Call by 1s timer (self-relaunching), get current booster
 					else
 						ev.target.className = 'picking' ;
 					var r = ready.checked+0 ; 
-					if ( options.get('draft_auto_ready') )
+					if ( game.options.get('draft_auto_ready') )
 						r = 1 ;
 					$.getJSON('json/draft.php', {'id': id, 'pick': ev.target.id, 'ready': r, 'main': !ev.ctrlKey}, function(data) { // Update pick
 						if ( data.msg )
