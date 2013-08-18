@@ -3,19 +3,18 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-05-04 21:17+0100\n"
-"PO-Revision-Date: 2013-05-08 14:38+0100\n"
+"PO-Revision-Date: 2013-08-18 11:38+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
-"Language: \n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-KeywordsList: __;gettext;gettext_noop\n"
 "X-Poedit-Basepath: .\n"
-"X-Poedit-Language: French\n"
-"X-Poedit-Country: FRANCE\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: 0,51,62,86,-1,-1,-1,-1,-1,-1\n"
+"X-Generator: Poedit 1.5.4\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
 
 #: ../../.././index_tournaments.php:2
@@ -30,13 +29,11 @@ msgstr "Rejoindre"
 msgid "index.tournaments.id"
 msgstr "ID"
 
-#: ../../.././index_tournaments.php:9
-#: ../../.././index_tournaments.php:88
+#: ../../.././index_tournaments.php:9 ../../.././index_tournaments.php:88
 msgid "index.tournaments.type"
 msgstr "Type"
 
-#: ../../.././index_tournaments.php:10
-#: ../../.././index_tournaments.php:89
+#: ../../.././index_tournaments.php:10 ../../.././index_tournaments.php:89
 msgid "index.tournaments.name"
 msgstr "Nom"
 
@@ -48,13 +45,11 @@ msgstr "Age"
 msgid "index.tournaments.slots"
 msgstr "Places"
 
-#: ../../.././index_tournaments.php:13
-#: ../../.././index_tournaments.php:92
+#: ../../.././index_tournaments.php:13 ../../.././index_tournaments.php:92
 msgid "index.tournaments.players"
 msgstr "Joueurs"
 
-#: ../../.././index_tournaments.php:14
-#: ../../.././index_tournaments.php:84
+#: ../../.././index_tournaments.php:14 ../../.././index_tournaments.php:84
 msgid "index.tournaments.view"
 msgstr "Voir"
 
@@ -180,7 +175,9 @@ msgstr "Options"
 
 #: ../../.././index_tournaments.php:69
 msgid "index.tournaments.create.round_number.title"
-msgstr "Forcer le tournois à comporter plus de rondes que le nombre de joueurs ne l'implique"
+msgstr ""
+"Forcer le tournois à comporter plus de rondes que le nombre de joueurs ne "
+"l'implique"
 
 #: ../../.././index_tournaments.php:69
 msgid "index.tournaments.create.round_number"
@@ -196,7 +193,8 @@ msgstr "Durée des rondes :"
 
 #: ../../.././index_tournaments.php:75
 msgid "index.tournaments.create.clone.title"
-msgstr "Tous les joueurs dans le tournois auront les mêmes cartes dans leur paquet"
+msgstr ""
+"Tous les joueurs dans le tournois auront les mêmes cartes dans leur paquet"
 
 #: ../../.././index_tournaments.php:75
 msgid "index.tournaments.create.clone"
@@ -260,7 +258,8 @@ msgstr "Liste des duels et tournois auxquels vous avez participé"
 
 #: ../../.././lib.php:22
 msgid "menu.facebook.title"
-msgstr "La page facebook de MOGG, pour vous tenir au courant sur ses évolutions"
+msgstr ""
+"La page facebook de MOGG, pour vous tenir au courant sur ses évolutions"
 
 #: ../../.././lib.php:23
 msgid "menu.gui"
@@ -340,7 +339,9 @@ msgstr "Depuis votre ordinateur"
 
 #: ../../.././index_decks.php:33
 msgid "index.decks.upload.file.title"
-msgstr "Fichiers de deck (au format MWS - .mwdeck ou Apprentice - .dec). Vous pouvez en sélectionner plusieurs grâce aux touches Ctrl et Shift"
+msgstr ""
+"Fichiers de deck (au format MWS - .mwdeck ou Apprentice - .dec). Vous pouvez "
+"en sélectionner plusieurs grâce aux touches Ctrl et Shift"
 
 #: ../../.././index_decks.php:36
 msgid "index.decks.upload.file.upload"
@@ -348,7 +349,9 @@ msgstr "Envoyer"
 
 #: ../../.././index_decks.php:40
 msgid "index.decks.download.title"
-msgstr "Un deck hébergé sur un site web, coller le lien 'export MWS' d'un deck sur mtgtop8.com par exemple"
+msgstr ""
+"Un deck hébergé sur un site web, coller le lien 'export MWS' d'un deck sur "
+"mtgtop8.com par exemple"
 
 #: ../../.././index_decks.php:41
 msgid "index.decks.download"
@@ -378,23 +381,19 @@ msgstr "Rejoindre"
 msgid "index.duels.id"
 msgstr "ID"
 
-#: ../../.././index_duels.php:9
-#: ../../.././index_duels.php:43
+#: ../../.././index_duels.php:9 ../../.././index_duels.php:43
 msgid "index.duels.name"
 msgstr "Nom"
 
-#: ../../.././index_duels.php:10
-#: ../../.././index_duels.php:44
+#: ../../.././index_duels.php:10 ../../.././index_duels.php:44
 msgid "index.duels.creator"
 msgstr "Créateur"
 
-#: ../../.././index_duels.php:11
-#: ../../.././index_duels.php:47
+#: ../../.././index_duels.php:11 ../../.././index_duels.php:47
 msgid "index.duels.age"
 msgstr "Age"
 
-#: ../../.././index_duels.php:12
-#: ../../.././index_duels.php:48
+#: ../../.././index_duels.php:12 ../../.././index_duels.php:48
 msgid "index.duels.inactivity"
 msgstr "Inactivité"
 
@@ -424,7 +423,9 @@ msgstr "Nom du duel"
 
 #: ../../.././index_duels.php:34
 msgid "index.duels.create.name.title"
-msgstr "Spécifiez le type de partie que vous voulez, l'utilisation du side, la nombre de parties, etc."
+msgstr ""
+"Spécifiez le type de partie que vous voulez, l'utilisation du side, la "
+"nombre de parties, etc."
 
 #: ../../.././index_duels.php:35
 msgid "index.duels.create.create"
@@ -440,19 +441,19 @@ msgstr "Voir"
 
 #: ../../.././index_duels.php:45
 msgid "index.duels.score"
-msgstr "Créer"
+msgstr "Score"
 
 #: ../../.././index_duels.php:46
 msgid "index.duels.joiner"
-msgstr "Rejoindre"
+msgstr "Adversaire"
 
 #: ../../.././index_duels.php:53
 msgid "index.duels.view.no"
-msgstr "Pas de tournois en cours"
+msgstr "Pas de duel en cours"
 
 #: ../../.././index_duels.php:58
 msgid "index.duels.waiting"
-msgstr "En attente de la liste des tournois en cours"
+msgstr "En attente de la liste des duels en cours"
 
 #: ../../.././includes/lib.php:194
 msgid "menu.main.title"
@@ -465,4 +466,3 @@ msgstr "Accueil"
 #: ../../.././includes/lib.php:202
 msgid "menu.identity_shower.title"
 msgstr "Changer de pseudonyme, d'avatar, et modifier les options"
-
