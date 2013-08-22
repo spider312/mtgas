@@ -34,9 +34,9 @@ if ( array_key_exists('id_from', $_GET) && array_key_exists('id_to', $_GET) ) {
 			query("UPDATE `registration` SET `player_id` = '$to' WHERE `player_id` = '$from' ; ") ;
 			echo '<li>'.mysql_affected_rows().' registrations updated</li>' ;
 			// Games
-			query("UPDATE `round` SET `creator_id` = '$to' WHERE `creator_id` = '$from' ; ") ;
+			query("UPDATE `round` SET `last_update_date` = `last_update_date`, `creator_id` = '$to' WHERE `creator_id` = '$from' ; ") ;
 			$i = mysql_affected_rows() ;
-			query("UPDATE `round` SET `joiner_id` = '$to' WHERE `joiner_id` = '$from' ; ") ;
+			query("UPDATE `round` SET `last_update_date` = `last_update_date`, `joiner_id` = '$to' WHERE `joiner_id` = '$from' ; ") ;
 			echo '<li>'.($i+mysql_affected_rows()).' games updated</li>' ;
 			// Actions
 			query("UPDATE `action` SET `sender` = '$to' WHERE `sender` = '$from' ; ") ;
@@ -48,9 +48,9 @@ if ( array_key_exists('id_from', $_GET) && array_key_exists('id_to', $_GET) ) {
 if ( array_key_exists('clean_id', $_GET) && array_key_exists('nick', $_GET) ) {
 	$from = $_GET['clean_id'] ;
 	$to = $_GET['nick'] ;
-	query("UPDATE `round` SET `creator_nick` = '$to' WHERE `creator_id` = '$from' AND `creator_nick` = 'Nickname' ; ") ;
+	query("UPDATE `round` SET `last_update_date` = `last_update_date`, `creator_nick` = '$to' WHERE `creator_id` = '$from' AND `creator_nick` = 'Nickname' ; ") ;
 	$i = mysql_affected_rows() ;
-	query("UPDATE `round` SET `joiner_nick` = '$to' WHERE `joiner_id` = '$from' AND `joiner_nick` = 'Nickname' ; ") ;
+	query("UPDATE `round` SET `last_update_date` = `last_update_date`, `joiner_nick` = '$to' WHERE `joiner_id` = '$from' AND `joiner_nick` = 'Nickname' ; ") ;
 	echo ($i+mysql_affected_rows()).' games updated' ;
 	$ret = true ;
 }
