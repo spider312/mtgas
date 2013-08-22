@@ -4,7 +4,7 @@ include 'includes/db.php' ;
 include 'includes/ranking.php' ;
 $period = param($_GET, 'p', '') ;
 function disp_ranking($players, $nb, $caption, $legend) {
-	global $player_id ;
+	global $player_id, $default_avatar ;
 	echo '  <table title="'.$legend.'">
    <caption>'.$caption.'</caption>
    <tr>
