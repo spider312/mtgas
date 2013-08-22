@@ -413,7 +413,7 @@ function Options(check_id) {
 	// Data
 		// Identity
 	this.add('Identity', 'profile_nick', 'Nickname', 'A nickname identifying you in game interface and chat', 'Nickname') ; 
-	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', 'img/avatar/kuser.png') ;
+	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', default_avatar) ;
 		// Options
 			// Appearence
 //function save_restore_options() { // Previous options management had a way for user to define card images URL (not choosing in a list) :

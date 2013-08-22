@@ -12,6 +12,7 @@ $cardimages_choice = Array(
 	'French, low quality' => 'http://img.mogg.fr/FR_LQ/',
 	'Custom' => ''
 ) ;
+$default_avatar = 'img/avatar/kuser.png' ;
 $timeout = 60 ; // Time in secs without refresh from creator before ending a created game without an opponent
 $daemon_delay = 1 ; // Time in secs between daemon iterations
 $log = false ; // Daemon returning data
