@@ -47,6 +47,7 @@ function disp_ranking($players, $nb, $caption, $legend) {
 }
 function disp_rankings($period, $nb) {
 	echo '<h2>'.$period.'</h2>' ;
+	echo '<p>Players having more than '.mingames_by_period($period).' games</p>' ;
 	$filename = $period.'.json' ;
 	$players = (array)json_decode(file_get_contents('ranking/'.$filename)) ;
 	uasort($players, 'sort_matches') ;

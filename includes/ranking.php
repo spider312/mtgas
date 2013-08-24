@@ -7,6 +7,19 @@ function ranking_to_file($file='ranking/week.json', $period='WEEK', $plength=1) 
 	fwrite($fh, json_encode($players));
 	fclose($fh);
 }
+function mingames_by_period($period='') {
+	$period = strtoupper($period) ;
+	switch ( $period ) {
+		case 'WEEK' :
+			return 2 ;
+		case 'MONTH' :
+			return 10 ;
+		case 'YEAR' :
+			return 50 ;
+		default :
+			return 0 ;
+	}
+}
 function ranking($period='WEEK', $plength=1) {
 	$players = array() ;
 	$r = query_as_array("SELECT
@@ -22,19 +35,7 @@ function ranking($period='WEEK', $plength=1) {
 		manage_round($players, $round, 'creator', 'joiner') ;
 		manage_round($players, $round, 'joiner', 'creator') ;
 	}
-	$min_games = 0 ;
-	switch ( $period ) {
-		case 'WEEK' :
-			$min_games = 2 ;
-			break ;
-		case 'MONTH' :
-			$min_games = 10 ;
-			break ;
-		case 'YEAR' :
-			$min_games = 20 ;
-			break ;
-		default :
-	}
+	$min_games = mingames_by_period($period) ;
 	$players_e = array() ;
 	foreach ( $players as $key => $player ) {
 		if ( $player->matches > $min_games )
