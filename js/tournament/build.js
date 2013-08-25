@@ -86,7 +86,6 @@ function init() {
 		clear_button.addEventListener('click', function(ev) {
 			poolcards.side = poolcards.side.concat(poolcards.main) ;
 			poolcards.main = [] ;
-			// Refresh displays
 			disp_side(poolcards.side, pool) ;
 			disp_side(poolcards.main, deck) ;
 			silent_save() ;

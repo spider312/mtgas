@@ -104,11 +104,12 @@ if ( $id > 0 ) {
   </div>
 
   <div id="stats" class="section">
+   <h2>Actions</h2>
+   <button id="clear_button" title="Send all cards from deck to sideboard" disabled>Clear deck</button>
    <h2>Stats</h2>
    <div id="stats_color"></div>
    <div id="stats_cost"></div>
    <div id="stats_type"></div>
-   <button id="clear_button" title="Send all cards from deck to sideboard" disabled>Clear deck</button>
   </div>
 
   <div class="section group overscroll">
