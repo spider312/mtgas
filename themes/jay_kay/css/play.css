@@ -241,6 +241,9 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	background-color: darkgray ;
 	color: white ;
 }
+#chatbox .side	{
+	background-color: lightblue ;
+}
 #chatbox .life	{
 	color: red ;
 }
