@@ -174,7 +174,7 @@ function Selection() {
 			this.add_counter_recieve(attrs.counter) ;
 		// Revealed from hand
 		if ( isb(attrs.revealed) )
-			this.reveal_from_hand_recieve(attrs.revealed) ;
+			this.reveal_from_hand_recieve(attrs.revealed, attrs.type) ;
 	}
 	// Actions
 		// Pow / Tou
@@ -342,11 +342,14 @@ function Selection() {
 	this.toggle_reveal_from_hand = function(card) {
 		this.reveal_from_hand(!card.attrs.visible) ; // Selection visibility becomes opposite of card visibility
 	}
-	this.reveal_from_hand = function(b) {
-		if ( this.reveal_from_hand_recieve(b) )
-			this.sync({'revealed': b}) ;
+	this.reveal_from_hand = function(b, type) {
+		var attrs = {'revealed': b}
+		if ( isb(type) && type )
+			attrs.type = 'rand' ;
+		if ( this.reveal_from_hand_recieve(b, attrs.type) )
+			this.sync(attrs) ;
 	}
-	this.reveal_from_hand_recieve = function(b) {
+	this.reveal_from_hand_recieve = function(b, type) {
 		if ( ! isb(b) )
 			b = false ;
 		var result = false ; // By default, consider this method has done nothing and won't sync
@@ -363,10 +366,14 @@ function Selection() {
 				result = true ; // At least one card revealed, will sync
 			}
 		}
-		if ( ! b )
-			message(active_player.name+' hides from hand : '+cardnames, 'note') ;
+		if ( iss(type) && ( type == 'rand' ) )
+			var msg = ' randomly' ;
 		else
-			message(active_player.name+' reveals from hand : '+this.cards_names(), 'note') ;
+			var msg = '' ;
+		if ( ! b )
+			message(active_player.name+msg+' hides from hand : '+cardnames, 'note') ;
+		else
+			message(active_player.name+msg+' reveals from hand : '+this.cards_names(), 'note') ;
 		return result ;
 	}
 		// Zone

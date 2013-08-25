@@ -35,7 +35,7 @@ function Zone(player, type) {
 		(new Selection(this.cards.slice(from-nb, from).reverse())).changezone(dest_zone, null, to) ;
 	}
 	this.rand_changezone = function(dest_zone) { // Same as changezone, with "from" randomly defined
-		var nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type, 1) ; // this.cards.length
+		var nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type+' ?', 1) ;
 		if ( isn(nb) && ( nb > 0 ) ) {
 			var cards = clone(this.cards) ; // Work on a copy of array as we will splice cards in order not to discard 2 times the same card
 			var sel = new Selection() ;
@@ -45,6 +45,18 @@ function Zone(player, type) {
 			sel.changezone(dest_zone) ;
 		}
 	}
+	this.rand_reveal = function() {
+		var nb = prompt_int('How many cards to reveal from your '+this.type+' ?', 1) ; // this.cards.length
+		if ( isn(nb) && ( nb > 0 ) ) {
+			var cards = clone(this.cards) ; // Work on a copy of array as we will splice cards in order not to discard 2 times the same card
+			var sel = new Selection() ;
+			sel.settype('rand') ;
+			for ( var i = 0 ; i < nb ; i++ ) // The number of times user choosed
+				sel.add(cards.splice(rand(cards.length), 1)[0]) ; // Remove a random card from clone and add it to selection
+			sel.reveal_from_hand(true, true) ;
+		}
+	}
+
 	this.get_card = function(id) { // duplicated here for cardlisteditor that can't use globals, as it's based on another window object
 		for ( var j = 0 ; j < this.cards.length ; j++ )
 			if ( this.cards[j].id == id )
@@ -672,7 +684,10 @@ function hand(player) {
 				menu.addline('Reveal hand', this.reveal, true) ;
 			if ( ! all_hidden )
 				menu.addline('Hide hand', this.reveal, false) ;
-			menu.addline('Discard randomly ...', 	this.rand_changezone, this.player.graveyard) ;
+			var rand_menu = new menu_init(this) ;
+			rand_menu.addline('Discard ...', 	this.rand_changezone, this.player.graveyard) ;
+			rand_menu.addline('Reveal ...', 	this.rand_reveal) ;
+			menu.addline('Randomly', rand_menu) ;
 		} else
 			menu.addline('Hand') ;
 		return menu.start(ev) ;
