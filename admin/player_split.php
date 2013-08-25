@@ -33,8 +33,8 @@ if ( isset($_GET['nick']) ) {
 SELECT id, tournament
 FROM `round`
 WHERE
-	( `creator_id` = '$player_id' OR `joiner_id` = '$player_id' )
-	AND ( `creator_nick` = '$nick' OR `joiner_id` = '$nick' )
+	( `creator_id` = '$player_id' AND `creator_nick` = '$nick' )
+	OR ( `joiner_id` = '$player_id' AND `joiner_nick` = '$nick' )
 ") ;
 	$updated = array('tour' => 0, 'notour' => 0, 'registrations' => 0, 'games' => 0, 'actions' => 0, 'tournament_log' => 0) ;
 	foreach ( $rounds as $round ) {
