@@ -34,14 +34,20 @@ function rand(n) {
 function pad(n){return n<10 ? '0'+n : n}
 	// round alias with decimality
 function round(nb, exp) {
+	if ( ! isn(exp) )
+		exp = 1 ;
 	var precision = Math.pow(10, exp) ;
 	return Math.round(precision * nb) / precision ;
 }
 function floor(num, exp) {
+	if ( ! isn(exp) )
+		exp = 1 ;
 	var precision = Math.pow(10, exp) ;
 	return Math.floor(precision * nb) / precision ;
 }
 function ceil(num, exp) {
+	if ( ! isn(exp) )
+		exp = 1 ;
 	var precision = Math.pow(10, exp) ;
 	return Math.ceil(precision * nb) / precision ;
 }
