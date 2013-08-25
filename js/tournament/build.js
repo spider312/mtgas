@@ -43,6 +43,7 @@ function start_tournament(id) { // Start all that is only related to current tou
 			}
 		timer(id, false) ;
 	}) ;
+	clear_button.disabled = false ;
 }
 function start_standalone(deckname, deckcontent) {
 	init() ;
@@ -58,6 +59,7 @@ function start_standalone(deckname, deckcontent) {
 		disp_side(obj.main, deck) ;
 		poolcards = obj ;
 	}, 'json') ;
+	clear_button.disabled = false ;
 }
 function init() {
 	// Initialisations
@@ -79,6 +81,16 @@ function init() {
 	ajax_error_management() ;
 	poolcards = null ;
 	spectactor = true ;
+	clear_button = document.getElementById('clear_button') ;
+	if ( clear_button != null )
+		clear_button.addEventListener('click', function(ev) {
+			poolcards.side = poolcards.side.concat(poolcards.main) ;
+			poolcards.main = [] ;
+			// Refresh displays
+			disp_side(poolcards.side, pool) ;
+			disp_side(poolcards.main, deck) ;
+			silent_save() ;
+		}, false)
 	// Link between mana colors array and mana color checks
 	manacolors = ['X', 'W', 'U', 'B', 'R', 'G'] ;
 	active_color = {} ;

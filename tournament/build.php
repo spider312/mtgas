@@ -108,6 +108,7 @@ if ( $id > 0 ) {
    <div id="stats_color"></div>
    <div id="stats_cost"></div>
    <div id="stats_type"></div>
+   <button id="clear_button" title="Send all cards from deck to sideboard" disabled>Clear deck</button>
   </div>
 
   <div class="section group overscroll">
