@@ -88,9 +88,18 @@ function deck_stats_cc(cards) {
 	});
 		// Mana curve
 	if ( data_cost.length > 0 ) {
+		var sum = 0 ;
+		var nb = 0 ;
+		for ( var i = 1 ; i < data_cost.length ; i++ ) {
+			var c = data_cost[i] ;
+			if ( isn(c[1]) ) {
+				sum += c[0] * c[1] ;
+				nb += c[1] ;
+			}
+		}
 		var div = document.getElementById('stats_cost') ;
 		node_empty(div) ;
-		div.appendChild(create_div('Mana curve')) ;
+		div.appendChild(create_div('Mana curve (mean = '+Math.round(100*sum/nb)/100+')')) ;
 		var content = create_div() ;
 		content.style.height = '100px' ;
 		div.appendChild(content) ;
