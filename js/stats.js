@@ -1,6 +1,10 @@
 function deck_stats_cc(cards) {
-	if ( cards.length <= 0 )
+	if ( cards.length <= 0 ) {
+		node_empty(document.getElementById('stats_color')) ;
+		node_empty(document.getElementById('stats_cost')) ;
+		node_empty(document.getElementById('stats_type')) ;
 		return false ;
+	}
 	// Data computing
 		// Raw
 	var raw_color = {} ;
