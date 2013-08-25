@@ -33,15 +33,15 @@ function rand(n) {
 }
 function pad(n){return n<10 ? '0'+n : n}
 	// round alias with decimality
-function round(nb, exp=1) {
+function round(nb, exp) {
 	var precision = Math.pow(10, exp) ;
 	return Math.round(precision * nb) / precision ;
 }
-function floor(num, exp=1) {
+function floor(num, exp) {
 	var precision = Math.pow(10, exp) ;
 	return Math.floor(precision * nb) / precision ;
 }
-function ceil(num, exp=1) {
+function ceil(num, exp) {
 	var precision = Math.pow(10, exp) ;
 	return Math.ceil(precision * nb) / precision ;
 }
