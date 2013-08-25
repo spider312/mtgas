@@ -28,13 +28,23 @@ function between(val, fl, ce, exc) {
 	else
 		return ( ( val >= fl ) && ( val <= ce) ) ;
 }
-function floor(num, siz) {
-	return ( Math.floor( num / siz  ) * siz ) ;
-}
 function rand(n) {
 	return Math.floor( Math.random() * n ) ;
 }
 function pad(n){return n<10 ? '0'+n : n}
+	// round alias with decimality
+function round(nb, exp=1) {
+	var precision = Math.pow(10, exp) ;
+	return Math.round(precision * nb) / precision ;
+}
+function floor(num, exp=1) {
+	var precision = Math.pow(10, exp) ;
+	return Math.floor(precision * nb) / precision ;
+}
+function ceil(num, exp=1) {
+	var precision = Math.pow(10, exp) ;
+	return Math.ceil(precision * nb) / precision ;
+}
 // Geometry
 function dot_in_rect(dot, rect) {
 	result = ( dot.x > rect.x ) ;

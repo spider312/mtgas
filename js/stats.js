@@ -99,7 +99,7 @@ function deck_stats_cc(cards) {
 		}
 		var div = document.getElementById('stats_cost') ;
 		node_empty(div) ;
-		div.appendChild(create_div('Mana curve (mean = '+Math.round(100*sum/nb)/100+')')) ;
+		div.appendChild(create_div('Mana curve (mean = '+round(sum/nb, 2)+')')) ;
 		var content = create_div() ;
 		content.style.height = '100px' ;
 		div.appendChild(content) ;
