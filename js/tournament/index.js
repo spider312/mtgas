@@ -28,6 +28,7 @@ function update(g, l) { // Update global fields with local values
 function timer(tournament_id, player_id, data, last_id, firsttime) {
 	var param = {'id': tournament_id, 'last_id': last_id, 'firsttime': firsttime} ;
 	$.getJSON('json/tournament.php', param, function(rdata) { // Get time left
+		var game = window.game ;
 		if ( iss(rdata.msg) )
 			alert(rdata.msg) ;
 		if ( iss(rdata.data) )

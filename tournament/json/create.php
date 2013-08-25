@@ -16,14 +16,13 @@ $boosters = param_or_die($source, 'boosters', '') ;
 $rounds_number = param_or_die($source, 'rounds_number', '') ;
 $rounds_duration = param_or_die($source, 'rounds_duration', '') ;
 $clone_sealed = param($source, 'clone_sealed', '') ;
-
-$tournament = new simple_object() ;
-$options = new simple_object() ;
+// Creation params : options
+$options = object() ;
 $options->rounds_number = $rounds_number ;
 $options->rounds_duration = $rounds_duration ;
 $options->clone_sealed = $clone_sealed == 'true' ;
-//die('{\'msg\': \''.$clone_sealed.'\'}') ;
-
+// Action && result
+$tournament = object() ;
 list($tournament->id, $tournament->msg) = tournament_create($type, $name, $players, $boosters, $options) ;
 if ( $tournament->id > -1 )
 	$tournament->msg .= tournament_register($tournament->id, $nick, $avatar, $deck) ;

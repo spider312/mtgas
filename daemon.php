@@ -2,6 +2,8 @@
 include 'lib.php' ;
 include 'includes/db.php' ;
 include 'tournament/lib.php' ;
+include 'tournament/tournament.php' ;
+include 'tournament/limited.php' ;
 include $dir.'/includes/deck.php' ;
 include $dir.'/includes/card.php' ;
 include 'includes/ranking.php' ;
@@ -67,14 +69,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 	}
 
 	// Remove unplayered tournaments
-	$query = query("
-	SELECT
-		`tournament`.`id`
-	FROM
-		`tournament`
-	WHERE
-		`tournament`.`status` = '1'
-	;") ;
+	$query = query("SELECT `tournament`.`id` FROM `tournament` WHERE `tournament`.`status` = '1' ;") ;
 	while ( $tournament = mysql_fetch_object($query) ) {
 		$registrated = query("SELECT * FROM `registration` WHERE `tournament_id` = '".$tournament->id."' ; ") ;
 		if ( mysql_num_rows($registrated) == 0 )
@@ -128,13 +123,13 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		$cid = ts3_chan('Tournament '.$tournament->id, $tournament->name) ; // Create chan
 		ts3_invite($players, $cid) ; // Move each tournament's player to chan
 		ts3_disco() ;
-		// Unicity initialization
-		$cards = null ; // No unicity by default
+		// Unicity initialization : get extension info from DB
+		$exts = array() ;
 		if ( ( property_exists($data, 'boosters') ) && count($data->boosters) > 0 ) {
-			$uniqs = array('OMC', 'CUB', 'CUBL', 'CUBS') ; // Extensions that will trigger unicity (move inside booster creation func ?)
-			foreach ( $uniqs as $uniq )
-				if ( in_array($uniq, $data->boosters) )
-					$cards = array() ;
+			$q = query("SELECT * FROM `extension` WHERE  `se` in ('".implode("', '", array_unique($data->boosters))."')", 'u' , $card_connection) ;
+			while ( $ext = mysql_fetch_object($q) )
+				$exts[$ext->se] = $ext ;
+			$upool = array() ; // All cards in current tournament's players pools that comes from a "uniq" extension
 		}
 		// Start first stage for tournament depending on type
 		switch ( $tournament->type ) {
@@ -144,12 +139,11 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				$nb = mysql_matched_rows() ;
 				if ( $nb != 1 )
 					echo "$nb boosters cleaned during draft #".$tournament->id."'s initialisation \n" ;
-				$tournament->round = 1 ;
 				$number = 0 ;
 				foreach ( $data->boosters as $booster ) {
-					$number++ ;
+					$number++ ; // Number of current booster in draft for player
 					foreach ( $players as $player ) {
-						$content = booster_as_array_with_ext($booster, $cards) ;
+						$content = booster_as_array_with_ext($exts[$booster], $upool) ;
 						$object = new simple_object() ;
 						$object->ext = $content->ext ;
 						$object->cards = array() ;
@@ -165,7 +159,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				}
 				query("UPDATE `tournament` SET
 					`status` = '3',
-					`round` = '".$tournament->round."',
+					`round` = '1',
 					`update_date` = NOW(),
 					`due_time` = TIMESTAMPADD(SECOND, ".draft_time().", NOW()),
 					`data` = '".mysql_real_escape_string(json_encode($data))."'
@@ -176,7 +170,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 				if ( $data->clone_sealed ) { // Each player has the same deck
 					query("UPDATE `registration`
 						SET
-							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $cards)."' 
+							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $upool, $exts)."' 
 						WHERE
 							`tournament_id` = '".$tournament->id."'
 						;") ;
@@ -185,7 +179,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 						query("UPDATE `registration`
 							SET
 							
-							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $cards)."' 
+							`deck` = '".pool_open($data->boosters, mysql_real_escape_string($tournament->name), $upool, $exts)."' 
 							WHERE
 								`tournament_id` = '".$tournament->id."'
 								AND `player_id` = '".$player->player_id."'
@@ -352,5 +346,4 @@ while ( sleep($daemon_delay) !== FALSE ) {
 			round_start($tournament) ;
 	}
 }
-/**/
 ?>

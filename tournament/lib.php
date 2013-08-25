@@ -1,19 +1,10 @@
-<?php
-function rounds_number($players_nb) {
-	for ( $rounds_nb = 1 ; $rounds_nb < 12 ; $rounds_nb++ ) {
-		$min = pow( 2, ( $rounds_nb - 1 ) ) + 1 ;
-		$max = pow( 2, $rounds_nb ) ;
-		if ( ( $players_nb >= $min ) && ( $players_nb <= $max ) )
-			return $rounds_nb ;
-	}
-	return 0 ;
-}
+<?php // Include file for common code in daemon and JSON calls
 function tournament_log($id, $player_id, $type='none', $value='') {
 	query("INSERT INTO `tournament_log` (`tournament_id` ,`sender` ,`type` ,`value`)
 		VALUES ('$id', '$player_id', '$type', '$value') ; ") ;
 	return mysql_affected_rows() ;
 }
-function tournament_create($type='none', $name='PHP default name', $players=8, $boosters='', $data = null) {
+function tournament_create($type='none', $name='PHP default name', $players=8, $boosters='', $data=null) {
 	$msg = '' ;
 	if ( $data == null )
 		$data = object() ;
@@ -58,12 +49,12 @@ function tournament_create($type='none', $name='PHP default name', $players=8, $
 	global $mysql_connection ;
 	query("INSERT INTO `tournament` ( `type`, `name`, `min_players`, `status`, `data` ) VALUES ( '$type', '".addslashes($name)."', $players, 1, '".mysql_real_escape_string(json_encode($data))."' );", 'Tournament creation', $mysql_connection) ;
 	$id = mysql_insert_id($mysql_connection) ;
-	global $player_id ;
-	tournament_log($id, $player_id, 'create', '') ;
+	global $player_id, $nick ;
+	tournament_log($id, $player_id, 'create', $nick) ;
 	// Result
 	return array($id, $msg) ;
 }
-function tournament_register($id, $nick, $avatar, $deck='') {
+function tournament_register($id, $nick, $avatar, $deck='') { // Register player if unregistered, unregistering from all other pending tournaments, unregister if already registered to current
 	global $player_id ;
 	$register = true ;
 	$result = '' ;
@@ -89,32 +80,31 @@ function tournament_register($id, $nick, $avatar, $deck='') {
 		`registration`.`tournament_id` = `tournament`.`id` AND 
 		`tournament`.`status` = 1 ;") ; // Only pending tournaments
 	while ( $row = mysql_fetch_object($query) ) {
+		tournament_log($row->id, $player_id, 'unregister', $nick) ;
 		if ( $row->id == $id ) { // Current tournament in list
 			query("DELETE FROM `registration` WHERE `tournament_id`='$id' AND `player_id`='$player_id' ;") ; //Unregister
 			$result .= 'Unsuscribed from tournament #'.$id."\n" ;
-			$register = false ;
+			return $result ;
 		} else {
 			query("DELETE FROM `registration` WHERE `tournament_id`='".$row->id."' AND `player_id`='$player_id'") ;
 			$result .= 'Unregistered from pending tournament #'.$row->id." (you can only be registered to 1 tournament)\n" ; 
 		}
 	}
-	if ( $register ) {
-		// Compare with already registered players
-		$players = tournament_playing_players($tournament) ;
-		foreach ( $players as $player) {
-			if ( $player->player_id == $player_id )
-				return 'There is already a registered player with ID '.$player_id ;
-			if ( $player->nick == $nick )
-				return 'There is already a registered player with nick '.$nick ;
-			if ( $player->avatar == $avatar )
-				return 'There is already a registered player with avatar '.$avatar ;
-		}
-		if ( ( $tournament->type == 'draft' ) || ( $tournament->type == 'sealed' ) )
-			$deck = '' ;
-		query("INSERT INTO `registration` ( `tournament_id`, `player_id`, `nick`, `update`, `avatar`, `deck` )
-					VALUES ( '$id', '$player_id', '$nick', NOW(), '$avatar', '".addslashes($deck)."' );") ;
-		tournament_log($id, $player_id, 'register', '') ;
+	// Compare with already registered players
+	$players = tournament_playing_players($tournament) ;
+	foreach ( $players as $player) {
+		if ( $player->player_id == $player_id )
+			return 'There is already a registered player with ID '.$player_id ;
+		if ( $player->nick == $nick )
+			return 'There is already a registered player with nick '.$nick ;
+		if ( $player->avatar == $avatar )
+			return 'There is already a registered player with avatar '.$avatar ;
 	}
+	if ( ( $tournament->type == 'draft' ) || ( $tournament->type == 'sealed' ) )
+		$deck = '' ;
+	query("INSERT INTO `registration` ( `tournament_id`, `player_id`, `nick`, `update`, `avatar`, `deck` )
+				VALUES ( '$id', '$player_id', '$nick', NOW(), '$avatar', '".addslashes($deck)."' );") ;
+	tournament_log($id, $player_id, 'register', $nick) ;
 	return $result ;
 }
 function registration_get($id=0, $player_id='') {
@@ -124,194 +114,6 @@ function registration_get($id=0, $player_id='') {
 		return $row ;
 	else
 		return $player_id ;
-}
-function tournament_start($tournament) {
-	$players = tournament_playing_players($tournament) ;
-	sleep(2) ; // "Not saved deck" bug resolution
-	$data = json_decode($tournament->data) ;
-	$duration = $data->rounds_duration ;
-	if ( ! is_numeric($data->rounds_number) )
-		$data->rounds_number = rounds_number(count($players)) ;
-	$data->rounds_number = max($data->rounds_number, rounds_number(count($players))) ; // Set at least the number of rounds implied by players
-	// Update tournament
-	$tournament->status = 5 ;
-	$tournament->round = 1 ;
-	query("UPDATE `tournament` SET
-		`status` = '".$tournament->status."',
-		`round` = '".$tournament->round."',
-		`update_date` = NOW(),
-		`due_time` = TIMESTAMPADD(MINUTE, $duration, NOW()),
-		`data` = '".mysql_real_escape_string(json_encode($data))."'
-	WHERE `id` = '".$tournament->id."' ; ") ;
-	// Update registrations
-	query("UPDATE `registration` SET `ready` = '0' WHERE `tournament_id` = '".$tournament->id."' ; ") ; // Unmark as "finished"
-	tournament_log($tournament->id, '', 'start', '') ;
-	// Start first round
-	shuffle($players) ;
-	round_start_games($tournament, $players) ;
-	return $tournament ;
-}
-function round_start($tournament) { // Called on round end, first round is in tournament_start
-	// Update results cache
-	$data = json_decode($tournament->data) ;
-	$duration = $data->rounds_duration ;
-	$round = $tournament->round ;
-	$data->results->$round = query_as_array("SELECT `id`, `creator_id`, `creator_score`, `joiner_id`, `joiner_score` FROM `round`
-		WHERE `tournament` = '".$tournament->id."' AND `round` = '".$tournament->round."' ; ") ;
-	// End games linked to this round
-	query("UPDATE `round` SET `status` = '7' WHERE `tournament` = '".$tournament->id."' AND `round` = '".$tournament->round."' ; ") ;
-	// Define players scores and tie breakers
-	$players = tournament_all_players($tournament) ;
-	foreach ( $players as $player ) { // First loop to update all players scores
-		$player->score = player_score($data->results, $player) ;
-		$player_id = $player->player_id ;
-		$data->score->$player_id = $player->score ; // Update score cache
-	}
-	foreach ( $players as $player ) // Players scores are up to date, update opponent's scores (tie breakers)
-		opponent_match_win($data->results, $player, $players, $data->score) ;
-	// Rank players
-	usort($players, 'players_end_compare') ;
-	// Update rank cache
-	foreach ( $players as $i => $player ) {
-		$id = $player->player_id ;
-		$data->score->$id->rank = $i+1 ;
-	}
-	$tournament->data = $data ;
-	// Update incremented round
-	$tournament->round++ ;
-	if ( $tournament->round > $data->rounds_number ) { // All rounds played, end tourament
-		$duration = 0 ;
-		$tournament->status = 6 ;
-		query("UPDATE `registration` SET `status` = '5' WHERE `tournament_id` = '".$tournament->id."' AND `status` < 7 ; ") ; // End registrations
-		tournament_log($tournament->id, $players[0]->player_id, 'end') ;
-	} else {
-		// Change registrations status for redirection
-		query("UPDATE `registration` SET `status` = '1', `ready` = '0' WHERE `tournament_id` = '".$tournament->id."' AND `status` < 7 ; ") ; 
-		tournament_log($tournament->id, '', 'round', $tournament->round) ;
-	}
-	query("UPDATE `tournament` SET
-		`status` = '".$tournament->status."',
-		`round` = '".$tournament->round."',
-		`update_date` = NOW(),
-		`due_time` = TIMESTAMPADD(MINUTE, $duration, NOW()),
-		`data` = '".mysql_real_escape_string(json_encode($tournament->data))."'
-	WHERE `id` = '".$tournament->id."' ; ") ;
-	if ( $tournament->status == 5 ) { // Start games for new round
-		$i = 0 ; // Security in case no solution can be found in 100 random tries
-		$nb = pow(count($players), 2) ;
-		global $matchset ;
-		$matchset = '' ;
-		do {
-			shuffle($players) ; // Randomize a bit
-			usort($players, 'players_score_compare') ; // Sort players by score, players with the same score will encounter
-			$matchset .= "Try $i : " ;
-			foreach ( $players as $player )
-				$matchset .= ' '.$player->nick.' ('.$player->score->matchpoints.') ' ;
-			$matchset .= "\n" ;
-		} while ( ( ++$i < $nb ) && ( ! round_create_matches($tournament, $players) )  ) ;
-		$matchset .= "Validated matchset : " ;
-		foreach ( $players as $player )
-			$matchset .= ' '.$player->nick.' ('.$player->score->matchpoints.')' ;
-		$matchset .= "\n" ;
-		round_start_games($tournament, $players) ; // Create games
-		if ( $i >= $nb )
-			die($matchset.'Tournament '.$tournament->id.' : no matchset found after '.$i.' tries'."\n") ; // Debug sent by mail
-	} else
-		ranking_to_file('ranking/week.json', 'WEEK') ;
-	return $tournament ;
-}
-function round_same_previous($tournament, $players) { // Verifies all future round's matches are all different from all previous matches
-	global $matchset ;
-	$my_players = array_merge($players) ; // Clone players, in order to pop them from clone
-	while ( count($my_players) > 1 ) {
-		$creator = array_shift($my_players) ;
-		$joiner = array_shift($my_players) ;
-		if ( game_same_previous($creator, $joiner, $tournament->data->results) )
-			return true ;
-	}
-	return false ; // No same matches
-}
-function game_same_previous($creator, $joiner, $results) {
-	global $matchset ;
-	foreach ( $results as $round_nb => $round ) { // Each past rounds
-		foreach ( $round as $table_nb => $match ) { // Each matches from round
-			if (
-				( ( $match->creator_id == $creator->player_id ) && ( $match->joiner_id == $joiner->player_id ) ) // Same match
-				|| ( ( $match->creator_id == $joiner->player_id ) && ( $match->joiner_id == $creator->player_id ) ) // Reversed match
-			) {
-				$matchset .= $creator->nick." already encountered ".$joiner->nick." during round $round_nb (table $table_nb)\n" ;
-				return true ; // One same match encountered, stop search
-			}
-		}
-	}
-	$matchset .= ' - '.$creator->nick." Vs ".$joiner->nick."\n" ;
-}
-function round_create_matches($tournament, &$players) { // Modifies players list in order to avoid 2 consecutives players to have already encountered each other during previous round. Returns if it succed
-	global $matchset ;
-	$my_players = array_merge($players) ; // Clone players, in order to pop them from clone
-	$new_players = array() ; // Will replace $players
-	while ( count($my_players) > 0 ) {
-		$creator = array_shift($my_players) ;
-		$joiner = null ;
-		if ( count($my_players) == 0 ) { // 1 Player left : bye
-			$new_players[] = $creator ;
-			$players = $new_players ; // Override players list with new one in right order
-			return true ;
-		}
-		foreach ( $my_players as $i => $player )
-			if ( ! game_same_previous($creator, $player, $tournament->data->results) ) {
-				$spl = array_splice($my_players, $i, 1) ;
-				$joiner = $spl[0] ;
-				$new_players[] = $creator ;
-				$new_players[] = $joiner ;
-				//$matchset .= ' - '.$creator->nick." Vs ".$joiner->nick."\n" ;
-				break ; // Joiner found, stop browsing players left
-			}// else
-				//$matchset .= ' - '.$creator->nick." Already encountered ".$player->nick."\n" ;
-		if ( $joiner == null ) {
-			$matchset .= $creator->nick." can't find an opponent\n" ;
-			return false ; // It fails to find 
-		}
-	}
-	$players = $new_players ; // Override players list with new one in right order
-	return true ;
-}
-function round_start_games($tournament, $players) {
-	$table = 0 ;
-	// TS3
-	ts3_co() ;
-	$cid = ts3_chan('Tournament '.$tournament->id, $tournament->name) ; // Get tournament channel
-	$crid = 0 ; // By default, don't create round channel (in case there are no players)
-	while ( count($players) > 1 ) {
-		$creator = array_shift($players) ;
-		$joiner = array_shift($players) ;
-		$id = game_create($tournament->type.' '.addslashes($tournament->name).' : Round '.$tournament->round.' Table '.++$table
-			, $creator->nick, $creator->player_id, $creator->avatar, addslashes($creator->deck)
-			, $joiner->nick, $joiner->player_id, $joiner->avatar, addslashes($joiner->deck)
-			, $tournament->id, $tournament->round) ;
-		// TS3
-		if ( $crid == 0 ) // Create round channel
-			$crid = ts3_chan('Round '.$tournament->round, $tournament->name, $cid) ;
-		$ctid = ts3_chan('Table '.$table, $tournament->name, $crid) ; // Create table subchannel
-		ts3_invite(array($creator, $joiner), $ctid, true) ;
-	}
-	// Bye if needed
-	if ( count($players) == 1 ) {
-		$bye = array_shift($players) ;
-		$id = game_create($tournament->type.' '.addslashes($tournament->name).' : Round '.$tournament->round.' Bye'
-			, $bye->nick, $bye->player_id, $bye->avatar, addslashes($bye->deck)
-			, 'BYE', '', '', '',
-			$tournament->id, $tournament->round) ;
-		query("UPDATE `round` SET `creator_score` = 2 WHERE `id` = '$id' ; ") ; // Game won
-		query("UPDATE `registration` SET 
-			`status` = '6', 
-			`ready` = '1'
-		WHERE
-			`tournament_id` = '".$tournament->id."'
-			AND `player_id` = '".$bye->player_id."' ") ; // Player BYing
-		ts3_invite(array($bye), $cid) ;
-	}
-	ts3_disco() ;
 }
 function tournament_playing_players($tournament) {
 	$players = array() ;
@@ -335,339 +137,5 @@ function tournament_all_players($tournament) {
 	while ( $row = mysql_fetch_object($players_query) )
 		$players[] = $row ;
 	return $players ;
-}
-// Scoring (Cf http://community.wizards.com/wiki/Tournament_Organizer's_Handbook:_Section_C )
-function players_score_compare($player1, $player2) { // Sent to usort to compare scores from 2 players, for pairings (no tie breakers)
-	return $player2->score->matchpoints - $player1->score->matchpoints ;
-}
-function players_end_compare($player1, $player2) { // Sent to usort to compare scores from 2 players, for ranking (with tie breakers)
-	$result = 0 ;
-	// Tie breakers
-	if ( $player1->score->matchpoints != $player2->score->matchpoints )
-		$result = $player2->score->matchpoints - $player1->score->matchpoints ;
-	else {
-		if ( 
-			! property_exists($player1->score, 'opponentmatchwinpct')
-			|| ! property_exists($player2->score, 'opponentmatchwinpct')
-			|| ! property_exists($player1->score, 'opponentgamewinpct')
-			|| ! property_exists($player2->score, 'opponentgamewinpct')
-		)
-			return 0 ; // Computed after each round, may crash if called before first round end
-		if ( $player1->score->opponentmatchwinpct != $player2->score->opponentmatchwinpct )
-			$result = $player2->score->opponentmatchwinpct - $player1->score->opponentmatchwinpct ;
-		else
-			$result = $player2->score->opponentgamewinpct - $player1->score->opponentgamewinpct ;
-	}
-	if ( $result != 0 )
-		$result = $result / abs($result) ; // Return -1, 0 or 1
-	return $result ;
-}
-function player_score($results, $player) { // Compute score for that player
-	$score = object() ;
-	$score->matchplayed = 0 ;
-	$score->matchpoints = 0 ;
-	$score->gameplayed = 0 ;
-	$score->gamepoints = 0 ;
-	foreach ( $results as $round ) {
-		foreach ( $round as $match ) {
-			if ( $player->player_id == $match->creator_id ){ // If player was 'creator'
-				$player_score = $match->creator_score ;
-				$opponent_score = $match->joiner_score ;
-			} else if ($player->player_id == $match->joiner_id ) { // If player was 'joiner'
-				$player_score = $match->joiner_score ;
-				$opponent_score = $match->creator_score ;
-			} else // Player didn't participate in this match
-				continue ; // Go next match
-			// Match wins
-			$score->matchplayed++ ;
-			if ( $player_score > $opponent_score ) // Player won
-				$score->matchpoints += 3 ;
-			else if ( $player_score == $opponent_score ) // Player tied
-				$score->matchpoints += 1 ;
-			// Game wins
-			if ( $player_score + $opponent_score > 0 )
-				$score->gameplayed += $player_score + $opponent_score ;
-			else
-				$score->gameplayed++ ; // At least 1 game per round
-			$score->gamepoints += 3 * $player_score ; // No management for game draw
-		}
-	}
-	// Percentages
-		// Match win
-	if ( $score->matchplayed == 0 )
-		$score->matchwinpct = 0 ;
-	else
-		$score->matchwinpct = max(1/3, $score->matchpoints/(3*$score->matchplayed)) ;
-		// Game win
-	if ( $score->gameplayed == 0 )
-		$score->gamewinpct = 0 ;
-	else
-		$score->gamewinpct = max(1/3, $score->gamepoints/(3*$score->gameplayed)) ;
-	return $score ;
-}
-function opponent_match_win($results, $player, $players, $scores) {
-	$player_id = $player->player_id ;
-	$score = $scores->$player_id ;
-	// Get a list of player's opponents
-	$opponents = array() ;
-	foreach ( $results as $round_nb => $round )
-		foreach ( $round as $match )
-			if ( $match->joiner_id != '' ) { // If match isn't player's bye
-				if ( $player_id == $match->creator_id ) // If player was 'creator'
-					$opponents[$round_nb] = $match->joiner_id ; // 'joiner' was its opponent
-				else if ( $player_id == $match->joiner_id) // If player was 'joiner'
-					$opponents[$round_nb] = $match->creator_id ; // 'creator' was its opponent
-			}
-	$matchwin = 0 ;
-	$gamewin = 0 ;
-	$nb = 0 ;
-	foreach ( $players as $player )
-		if ( in_array($player->player_id, $opponents) ) {
-			$nb++ ;
-			$matchwin += $player->score->matchwinpct ;
-			$gamewin += $player->score->gamewinpct ;
-		}
-	if ( $nb != 0 ) {
-		$score->opponentmatchwinpct = $matchwin / $nb ;
-		$score->opponentgamewinpct = $gamewin / $nb ;
-		// Copy data from scores to players cuz they're needed for players_end_compare
-		$player->opponentmatchwinpct = $score->opponentmatchwinpct ;
-		$player->opponentgamewinpct = $score->opponentgamewinpct ;
-	}
-	return $score ;
-}
-// === [ LIMITED ] =============================================================
-function booster_as_mwdeck($ext='', &$cards=null/*, $sb=true*/) {
-	//if ( $sb )
-		$margin = 'SB:' ;
-	//else
-		//$margin = '   ' ;
-	$booster = booster_as_array_with_ext($ext, &$cards) ;
-	$result = '' ;
-	foreach ( $booster->cards as $card ) {
-		if ( isset($card->ext) )
-			$xt = $card->ext ;
-		else {
-			echo "Card has no ext (ext = $ext)\n" ;
-			$xt = 'EXT' ;
-		}
-		if ( isset($card->name) )
-			$name = $card->name ;
-		else {
-			echo "Card has no name (ext = $ext)\n" ;
-			$name = 'Unknown card name' ;
-		}
-		$result .= $margin.' 1 ['.$xt.'] '.$name."\n" ;
-	}
-	return $result ;
-}
-function booster_r_or_m($cards) {
-	global $proba_m ;
-	if ( ! array_key_exists('M', $cards) || count($cards['M']) == 0 ) { // No mythics
-		if ( ( ! array_key_exists('R', $cards) ) || ( count($cards['R']) == 0 ) ) // And no rares
-			return 'S' ; // TSB
-		else
-			return 'R' ;
-	}
-	if ( ! array_key_exists('R', $cards) || count($cards['R']) == 0 ) // No rares
-		return 'M' ;
-	// Rares and Mythics
-	if ( rand(1, $proba_m) == 1 )
-		return 'M' ;
-	return 'R' ;
-}
-function booster_as_array_with_ext($ext='', &$ext_cards=null) {
-	$object = new simple_object() ;
-	$object->ext = $ext ;
-	$result = array() ;
-	global $nb_c, $nb_u, $nb_r, $nb_l, $proba_foil ;
-	$c = $nb_c ; // Local copy of this value as it will be changed by foil &/| transform presence
-	$tr_ext = ( $ext == 'ISD' ) ||  ( $ext == 'DKA' ) ; // Virtual extensions (CUB, ALL) doesn't want 1 transform per booster, just DKA & ISD
-	$cards = array() ; // Array of rarity, each rarity being an array of cards
-	$cardsf = array() ; // Array of all extension's cards, for foils
-	$cardst = array() ; // Array of all transformed cards
-	// Get possible cards list
-	$common_query = '	SELECT
-		`card`.`name`,
-		`card`.`attrs`,
-		`card_ext`.`nbpics`,
-		`card_ext`.`rarity`,
-		`extension`.`se`
-	FROM
-		`card`,
-		`card_ext`,
-		`extension`
-	WHERE
-		`card`.`id` = `card_ext`.`card`
-		AND `extension`.`id` = `card_ext`.`ext`
-	' ; // Part of the query in common in each case (tables, fields, join)
-	$card_connection = card_connect() ;
-	if ( $ext == 'ALL' ) // All cards from all ext that are core set or blocs (no special cards such as ung, promo, dual deck, FTV)
-		$query = query($common_query.'AND `extension`.`bloc` >= 0 ; ', 'Get all cards', $card_connection) ;
-	else // All cards in extension in param
-		$query = query($common_query."AND `extension`.`se` = '$ext' ; ", 'Get cards in extension', $card_connection) ;
-	if ( mysql_num_rows($query) < 1 ) {
-		echo 'No card found in '.$ext ;
-		return null ;
-	}
-	// Dispatch those cards in various list (rarity filtered, foils, transforms)
-	while ( $row = mysql_fetch_object($query) ) {
-		$attrs = json_decode($row->attrs) ;
-		if ( isset($attrs->transformed_attrs) && $tr_ext )
-			$a =& $cardst ;
-		else
-			$a =& $cards ;
-		if ( ! array_key_exists($row->rarity, $a) )
-			$a[$row->rarity] = array() ;
-		$a[$row->rarity][] = $row ;
-		$cardsf[] = $row ;
-	}
-	// Commons are managed at the end, as foils, timeshifted and transform must be managed before
-	// uncommons
-	if ( array_key_exists('U', $cards) ) {
-		for ( $i = 0 ; $i < $nb_u ; $i++ )
-			$result[] = rand_card($cards['U'], $ext_cards) ;
-	} else
-		$c += $nb_u ;
-	// rare or mythic
-	if ( array_key_exists('R', $cards) ) {
-		for ( $i = 0 ; $i < $nb_r ; $i++ )
-			$result[] = rand_card($cards[booster_r_or_m($cards)], $ext_cards) ;
-	} else
-		$c += $nb_r ;
-	// 1 timeshifted (for TSP)
-	if ( ( $ext == 'TSP') && ( array_key_exists('S', $cards) ) ) {
-		$c-- ;
-		$card = rand_card($cards['S'], $ext_cards) ;
-		$card->ext = 'TSB' ;
-		$result[] = $card ;
-	} 
-	// 1 transformable (for ISD/DKA)
-	if ( $tr_ext ) {
-		$c-- ;
-		$r = '' ;
-		$n = rand(1, 14) ; // Transform rarity
-		if ( $n > 13 ) // Rare or Mythic
-			$r = booster_r_or_m($cardst) ;
-		elseif ( $n > 10 ) // Unco
-			$r = 'U' ;
-		else // Common
-			$r = 'C' ;
-		$result[] = rand_card($cardst[$r], $ext_cards) ;
-	}
-	// 0-1 foil
-	if ( ( rand(1, $proba_foil) == 1 ) && ( $ext_cards !== null ) ) { // CUB don't want foils, they break unicity
-		$c-- ;
-		$result[] = rand_card($cardsf, $ext_cards) ; // Uses it's own card list, so won't be removed from 'normal' cards lists
-	}
-	// land
-	if ( array_key_exists('L', $cards) ) // 2nd extension from block doesn't have lands
-		for ( $i = 0 ; $i < $nb_l ; $i++ )
-			$result[] = rand_card($cards['L'], $ext_cards) ;
-	// commons (after all other exceptions have been managed)
-	if ( array_key_exists('C', $cards) && ( count($cards['C']) >= $c ) )
-		for ( $i = 0 ; $i < $c ; $i++ )
-			array_unshift($result, rand_card($cards['C'], $ext_cards)) ; // put on begining of booster
-	else
-		echo 'Not enough commons leftin ext '.$ext." ($c/".count($cards['C']).")\n" ;
-	// Final copy
-	$object->cards = array() ;
-	foreach ( $result as $card )
-		$object->cards[] = $card ;
-	return $object ;
-}
-function in_obj_array_property($val, $arr, $prop) { // Search in an obj array if an object hase given value for given property
-	foreach ( $arr as $el )
-		if ( ( property_exists($el, $prop) ) && ( $el->$prop == $val ) )
-			return true ;
-	return false ;
-}
-function obj_implode($glue, $pieces, $prop) { // Implode an array property
-	$result = '' ;
-	foreach ( $pieces as $piece )
-		if ( property_exists($piece, $prop) ) {
-			if ( $result != '' )
-				$result .= $glue ;
-			$result .= $piece->$prop ;
-		}
-	return $result ;
-}
-function rand_card(&$arr, &$addto=null) { // param by adrress, returned card will be removed from cards list
-	if ( ! is_array($arr) ) {
-		echo "rand_card called without a card array\n" ;
-		return null ;
-	}
-	// Card search
-	do {
-		if ( count($arr) < 1 ) {
-			echo "No cards left in random array\n" ;
-			return null ;
-		}
-		$cards = array_splice($arr, mt_rand(0, count($arr)-1), 1) ;
-		$card = $cards[0] ;
-		if ( $addto === null ) // No unicity
-			break ; // End of search
-		else { // Unicity
-			if ( ! in_array($card->name, $addto) ) {
-				array_push($addto, $card->name) ;
-				break ;
-			}
-		}
-	} while ( true ) ;
-	// Data preparation
-	$name = $card->name ;
-	if ( $card->nbpics > 1 ) // If multiple pics
-		$name .= ' ('.rand(1, $card->nbpics).')' ; // Random pic
-	$object = new simple_object() ; // Return as object
-	$object->name = $name ;
-	$object->ext = $card->se ;
-	return $object ;
-}
-function add_side_lands($ext='UNH', $nb=20) {
-	return "// Lands in side
-SB: $nb [$ext] Forest
-SB: $nb [$ext] Island
-SB: $nb [$ext] Mountain
-SB: $nb [$ext] Plains
-SB: $nb [$ext] Swamp" ;
-}
-function pool_open($boosters, $name='', &$cards=null) {
-	$pool = '// Sealed pool for tournament '.$name."\n" ;
-	foreach ( $boosters as $i => $booster )
-		$pool .= mysql_real_escape_string("// Cards from booster ".($i+1)." ($booster)\n".booster_as_mwdeck($booster, $cards)) ;
-	$pool .= add_side_lands() ;
-	return $pool ;
-}
-// Draft specific functions
-function draft_time($cards=15, $lastround=false) {
-	global $draft_base_time, $draft_time_per_card, $draft_lastpick_time ;
-	if ( ( $cards < 2 ) && ( ! $lastround ) ) // 1 card left and not last booster
-		$result = $draft_lastpick_time ; // lastpick_time applied
-	else
-		$result = $draft_base_time + ( $draft_time_per_card * $cards ) ;
-	return $result ;
-}
-function switch_booster($source, $dest, $tournament) {
-	$query = "UPDATE
-	`booster`
-SET
-	`player` = '$dest'
-WHERE
-	`tournament` = '".$tournament->id."'
-	AND `player` = '$source'
-	AND `number` = '".$tournament->round."'
-;" ;
-	query($query) ;
-	$nb = mysql_matched_rows() ;
-	if ( $nb != 1 )
-		echo "$nb results affected by query $query\n" ;
-}
-function mysql_matched_rows() {
-	$mi = mysql_info() ;
-	$words = explode(' ', $mi) ;
-	if ( count($words) > 3 )
-		return $words[2] ;
-	//echo "No row nb in mysql info : $mi\n" ;
-	return 1 ;
 }
 ?>

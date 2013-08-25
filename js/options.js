@@ -443,7 +443,7 @@ function Options(check_id) {
 	this.add('Behaviour', 'place_creatures', 'Place creature', 'Where to place creature cards by default (when double clicked) on battlefield', 'middle', positions) ; 
 	this.add('Behaviour', 'place_noncreatures', 'Place non-creature', 'Where to place non-creature cards by default (when double clicked) on battlefield', 'top', positions) ; 
 	this.add('Behaviour', 'place_lands', 'Place land', 'Where to place land cards by default (when double clicked) on battlefield', 'bottom', positions) ;
-	this.add('Behaviour', 'draft_auto_ready', 'Auto-mark as ready after picking', 'You will automatically be marked as ready after picking a card', true) ;
+	this.add('Behaviour', 'draft_auto_ready', 'Auto-mark as ready after picking', 'You will automatically be marked as ready after picking a card. If unchecked, you\'ll have to double click the card you want or check the "ready" box to mark as ready.', true) ;
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;

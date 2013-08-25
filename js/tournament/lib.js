@@ -155,10 +155,25 @@ function tournament_log_li(line, nick, players, spectactors) {
 	var msg = 'default message' ;
 	switch ( line.type ) {
 		case 'create' :
+			if ( iss(line.value) && ( line.value != '' ) )
+				nick = line.value ;
+			else
+				nick = '['+nick+']' ;
 			msg = 'Tournament created by '+nick ;
 			break ;
 		case 'register' :
+			if ( iss(line.value) && ( line.value != '' ) )
+				nick = line.value ;
+			else
+				nick = '['+nick+']' ;
 			msg = nick+' registered' ;
+			break ;
+		case 'unregister' :
+			if ( iss(line.value) && ( line.value != '' ) )
+				nick = line.value ;
+			else
+				nick = '['+nick+']' ;
+			msg = nick+' unregistered' ;
 			break ;
 		case 'players' :
 			msg = 'Tournament has enough players' ;
@@ -210,7 +225,7 @@ function tournament_log_li(line, nick, players, spectactors) {
 			break ;
 		case 'ready' :
 			if ( line.value == '1' )
-				msg = nick+' is ready (built in '+time_disp(Math.round((mysql2date(line.timestamp)-startdate)/1000))+')' ;
+				msg = nick+' is ready ('+time_disp(Math.round((mysql2date(line.timestamp)-startdate)/1000))+')' ;
 			else
 				msg = nick+' isn\'t ready anymore' ;
 			break ;
