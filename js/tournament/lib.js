@@ -147,6 +147,8 @@ function tournament_players_update(data) {
 			if ( isn(player.deck_obj.main.length) )
 				txt += ' : '+player.deck_obj.main.length
 			li.appendChild(document.createTextNode(txt)) ;
+			if ( player.player_id == player_id )
+				li.classList.add('self') ;
 			players_ul.appendChild(li) ;
 		}
 	}
