@@ -1,5 +1,6 @@
 <?php
 include_once 'lib.php' ;
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../../tournament/tournament.php' ;
 html_head(
 	'Admin > Tournament > Recompute',
 	array(
