@@ -126,7 +126,7 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		// Unicity initialization : get extension info from DB
 		$exts = array() ;
 		if ( ( property_exists($data, 'boosters') ) && count($data->boosters) > 0 ) {
-			$q = query("SELECT * FROM `extension` WHERE  `se` in ('".implode("', '", array_unique($data->boosters))."')", 'u' , $card_connection) ;
+			$q = query("SELECT * FROM `extension` WHERE  `se` in ('".implode("', '", array_unique($data->boosters))."')", 'get extension data (unicity, booster composition)' , $card_connection) ;
 			while ( $ext = mysql_fetch_object($q) )
 				$exts[$ext->se] = $ext ;
 			$upool = array() ; // All cards in current tournament's players pools that comes from a "uniq" extension
