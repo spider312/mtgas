@@ -85,30 +85,47 @@ function get_past_games() {
 function get_past_tournaments() {
 	var past_tournaments = document.getElementById('past_tournaments') ;
 	var no_past_tournaments = document.getElementById('no_past_tournaments') ;
-	$.getJSON('tournament/json/suscribed.php', {'player_id': player_id, 'tournaments_delay': tournaments_delay.value}, function(data) {
-		// Displays a list of past && current tournaments
-		node_empty(past_tournaments) ;
-		if ( data.suscribed_tournaments.length > 0 ) {
-			no_past_tournaments.style.display = 'none' ; // Hide table line "no past tournaments"
-			for ( var i = 0 ; i < data.suscribed_tournaments.length ; i++ ) {
-				var tournament = data.suscribed_tournaments[i] ;
-				var url = 'tournament/?id='+tournament.id ;
-				var tdata = JSON.parse(tournament.data) ;
-				if ( iso(tdata.score) && iso(tdata.score[player_id]) )
-					var rank = tdata.score[player_id].rank ;
-				else
-					var rank = 0 ;
-				var a_date = create_a(tournament.creation_date, url) ;
-				a_date.classList.add('nowrap') ;
-				create_tr(past_tournaments
-					, create_a(tournament.type, url)
-					, create_a(tournament.name, url)
-					, a_date
-					, create_a(rank+' / '+tournament.min_players, url)
-					, create_a(tournament_status(tournament.status), url)
-				) ;
-			}
-		} else
-			no_past_tournaments.style.display = '' ; // Show table line "no past tournaments"
-	}) ;
+	$.getJSON('tournament/json/suscribed.php',
+		{'player_id': player_id, 'tournaments_delay': tournaments_delay.value},
+		function(data) {
+			// Displays a list of past && current tournaments
+			node_empty(past_tournaments) ;
+			if ( data.suscribed_tournaments.length > 0 ) {
+				no_past_tournaments.style.display = 'none' ; // Hide table line "no past tournaments"
+				var ranks = [] ;
+				for ( var i = 0 ; i < data.suscribed_tournaments.length ; i++ ) {
+					var tournament = data.suscribed_tournaments[i] ;
+					var url = 'tournament/?id='+tournament.id ;
+					var tdata = JSON.parse(tournament.data) ;
+					if ( iso(tdata.score) && iso(tdata.score[player_id]) )
+						var rank = tdata.score[player_id].rank ;
+					else
+						var rank = 0 ;
+					var a_date = create_a(tournament.creation_date, url) ;
+					a_date.classList.add('nowrap') ;
+					create_tr(past_tournaments
+						, create_a(tournament.type, url)
+						, create_a(tournament.name, url)
+						, a_date
+						, create_a(rank+' / '+tournament.min_players, url)
+						, create_a(tournament_status(tournament.status), url)
+					) ;
+					if ( tournament.min_players > 1 ) {
+						if ( isn(ranks[rank]) )
+							ranks[rank]++ ;
+						else
+							ranks[rank] = 1 ;
+					}
+				}
+				var str = '' ;
+				for ( var i = 1 ; i < ranks.length ; i++ ) {
+					str += ranks[i]+' * '+getGetOrdinal(i) ;
+					if ( i != ranks.length - 1 )
+						str +=', ' ;
+				}
+				var td = create_td(create_tr(past_tournaments), data.suscribed_tournaments.length+' tournaments, '+str, 5) ;
+			} else
+				no_past_tournaments.style.display = '' ; // Show table line "no past tournaments"
+		}
+	) ;
 }
