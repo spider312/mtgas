@@ -1,7 +1,7 @@
 <?php
 include_once 'lib.php' ;
 include_once '../../includes/deck.php' ;
-$ddate = '2012-06-01' ;
+$ddate = '2013-01-29' ;
 $date = param($_GET, 'date', $ddate) ;
 if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = $ddate ;

@@ -24,8 +24,8 @@ html_menu() ;
     <li>
      <form action="tournament/sealed_parse.php">
       Update card inclusion statistics : 
-      <input type="date" name="date" placeholder="Starting date">
-      <input type="text" name="name" placeholder="Name mask">
+      <input type="date" name="date" placeholder="Starting date" value="2013-01-29">
+      <input type="text" name="name" placeholder="Name mask" value="-CUB">
       <input type="submit" value="Update">
      </form>
     </li>
