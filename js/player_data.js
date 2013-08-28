@@ -162,15 +162,25 @@ function get_past_tournaments() {
 				var resume = create_span(data.suscribed_tournaments.length+' tournaments : ') ;
 				var ul = create_ul() ;
 				resume.appendChild(ul) ;
+				if ( iso(ranks[1]) ) {
+					var nb = 0 ;
+					for ( var j = 1 ; j < ranks[1].length ; j++ ) {
+						nb += ranks[1][j] ;
+					}
+					ul.appendChild(create_li(nb+' alone')) ;
+				}
 				for ( var i = 2 ; i < ranks.length ; i++ ) { // For each number of players (>1)
+					if ( ! iso(ranks[i]) )
+						continue ;
 					var lranks = ranks[i] ;
 					var nb = 0 ;
 					var ulp = create_ul() ;
-					for ( var j = 1 ; j < lranks.length ; j++ ) {
-						var lip = create_li(lranks[j]+' times '+getGetOrdinal(j)) ;
-						ulp.appendChild(lip) ;
-						nb += lranks[j] ;
-					}
+					for ( var j = 1 ; j < lranks.length ; j++ )
+						if ( isn(lranks[j]) ) {
+							var lip = create_li(lranks[j]+' times '+getGetOrdinal(j)) ;
+							ulp.appendChild(lip) ;
+							nb += lranks[j] ;
+						}
 					var li = create_li(nb+' with '+i+' players') ;
 					li.appendChild(ulp) ;
 					ul.appendChild(li) ;
