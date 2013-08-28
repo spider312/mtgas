@@ -7,7 +7,18 @@ $data = new simple_object() ;
 
 // List registered tournaments
 $delay = param_or_die($_GET, 'tournaments_delay') ;
-$query = "SELECT * FROM `registration`, `tournament` WHERE
+$query = "
+SELECT
+	`tournament`.`id`, 
+	`tournament`.`data`,
+	`tournament`.`creation_date`,
+	`tournament`.`type`,
+	`tournament`.`name`,
+	`tournament`.`min_players`,
+	`tournament`.`status`
+FROM
+	`registration`, `tournament`
+WHERE
 	`registration`.`player_id` = '$player_id' AND
 	`registration`.`tournament_id` = `tournament`.`id`" ;
 if ( $delay != '' )

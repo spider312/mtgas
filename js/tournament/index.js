@@ -63,7 +63,7 @@ function timer(tournament_id, player_id, data, last_id, firsttime) {
 					me = player ;
 				}
 				create_td(tr, player.order) ;
-				var td = create_td(tr, create_a(player.nick, '../stats.php?id='+data.players[i].player_id)) ;
+				var td = create_td(tr, create_a(player.nick, '../player.php?id='+data.players[i].player_id)) ;
 				if ( player.avatar.substr(0, 4) == 'http' )
 					var img = create_img(player.avatar) ;
 				else

@@ -9,4 +9,15 @@ td a {
 #decks_table tbody tr:hover, #past_tournaments tr:hover {
 	background-color: #F4ECD2 ;
 }
-
+.win {
+	color: green ;
+}
+.draw {
+	color: yellow ;
+}
+.lose {
+	color: red ;
+}
+.noop {
+	color: darkgray ;
+}

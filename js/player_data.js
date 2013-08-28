@@ -101,6 +101,47 @@ function get_past_tournaments() {
 						var rank = tdata.score[player_id].rank ;
 					else
 						var rank = 0 ;
+					var players = create_span() ;
+					for ( var j in tdata.players ) { // Foreach player
+						var pid = tdata.players[j].player_id ;
+						if ( pid != player_id ) { // Foreach opponent
+							var classname = 'noop' ;
+							var nick = tdata.players[j].nick ;
+							for ( var k in tdata.results ) { // Search this opponent in matches against current player
+								for ( var l in tdata.results[k] ) {
+									var result = tdata.results[k][l] ;
+									if ( // Current player is creator
+										( result.creator_id == player_id )
+										&& ( result.joiner_id == pid )
+									) { 
+										if ( result.creator_score > result.joiner_score )
+											classname = 'win' ;
+										else if( result.creator_score == result.joiner_score )
+											classname = 'draw' ;
+										else
+											classname = 'lose' ;
+									}
+									if ( // Current player is joiner
+										( result.joiner_id == player_id )
+										&& ( result.creator_id == pid )
+									) { 
+										if ( result.creator_score < result.joiner_score )
+											classname = 'win' ;
+										else if( result.creator_score == result.joiner_score )
+											classname = 'draw' ;
+										else
+											classname = 'lose' ;
+									}
+
+								}
+							}
+							var span = create_span(nick) ;
+							span.classList.add(classname) ;
+							if ( players.childNodes.length > 0  )
+								players.appendChild(create_text(', ')) ;
+							players.appendChild(span) ;
+						}
+					}
 					var a_date = create_a(tournament.creation_date, url) ;
 					a_date.classList.add('nowrap') ;
 					create_tr(past_tournaments
@@ -109,21 +150,32 @@ function get_past_tournaments() {
 						, a_date
 						, create_a(rank+' / '+tournament.min_players, url)
 						, create_a(tournament_status(tournament.status), url)
+						, create_a(players, url)
 					) ;
-					if ( tournament.min_players > 1 ) {
-						if ( isn(ranks[rank]) )
-							ranks[rank]++ ;
-						else
-							ranks[rank] = 1 ;
+					if ( ! iso(ranks[tournament.min_players]) )
+						ranks[tournament.min_players] = [] ;
+					if ( isn(ranks[tournament.min_players][rank]) )
+						ranks[tournament.min_players][rank]++ ;
+					else
+						ranks[tournament.min_players][rank] = 1 ;
+				}
+				var resume = create_span(data.suscribed_tournaments.length+' tournaments : ') ;
+				var ul = create_ul() ;
+				resume.appendChild(ul) ;
+				for ( var i = 2 ; i < ranks.length ; i++ ) { // For each number of players (>1)
+					var lranks = ranks[i] ;
+					var nb = 0 ;
+					var ulp = create_ul() ;
+					for ( var j = 1 ; j < lranks.length ; j++ ) {
+						var lip = create_li(lranks[j]+' times '+getGetOrdinal(j)) ;
+						ulp.appendChild(lip) ;
+						nb += lranks[j] ;
 					}
+					var li = create_li(nb+' with '+i+' players') ;
+					li.appendChild(ulp) ;
+					ul.appendChild(li) ;
 				}
-				var str = '' ;
-				for ( var i = 1 ; i < ranks.length ; i++ ) {
-					str += ranks[i]+' * '+getGetOrdinal(i) ;
-					if ( i != ranks.length - 1 )
-						str +=', ' ;
-				}
-				var td = create_td(create_tr(past_tournaments), data.suscribed_tournaments.length+' tournaments, '+str, 5) ;
+				var td = create_td(create_tr(past_tournaments), resume, 6) ;
 			} else
 				no_past_tournaments.style.display = '' ; // Show table line "no past tournaments"
 		}

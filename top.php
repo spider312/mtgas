@@ -30,7 +30,7 @@ function disp_ranking($players, $nb, $caption, $legend) {
 		echo '   <tr class="'.$class.'">
     <td>'.$i.'</td>
     <td><img src="'.($player->avatar==''?$default_avatar:$player->avatar).'" height="30"></td>
-    <td><a href="stats.php?id='.$id.'">'.$player->nick.'</a></td>
+    <td><a href="player.php?id='.$id.'">'.$player->nick.'</a></td>
     <td>'.$player->matches.'</td>
     <td>'.$player->score.'</td>
     <td>'.round(($player->score/$player->matches), 2).'</td>

@@ -108,6 +108,7 @@ foreach ( $rounds as $round ) {
       <td>Date</td>
       <td>Rank</td>
       <td>Status</td>
+      <td><span class="noop">Players</span> / Opponents (<span class="win">win</span>, <span class="draw">draw</span>, <span class="lose">lose</span>)</td>
      </tr>
     </thead>
     <tbody id="past_tournaments">
