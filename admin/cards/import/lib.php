@@ -70,7 +70,7 @@ class ImportExtension {
 	}
 	function setext($code, $name, $cards) {
 		$this->code = $code ;
-		$this->dbcode = $code ;
+		$this->dbcode = strtoupper($code) ;
 		$this->name = $name ;
 		$this->nbcards = intval($cards) ;
 		echo 'Extension detected : <a href="'.$this->url.'" target="_blank">'."$code - $name</a>\n" ;
@@ -161,7 +161,7 @@ class ImportExtension {
 			} else {
 				$ext_id = $res->id ;
 				$code = $res->se ;
-				$this->dbcode = $code ;
+				$this->dbcode = strtoupper($code) ;
 				if ( $code != $res->sea )
 					$code .= '/'.$res->sea ;
 				echo 'Extension found : '.$code.' - '.$res->name."\n" ;
