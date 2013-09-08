@@ -216,7 +216,7 @@ class ImportExtension {
 			return false ;
 		$oldumask = umask(022) ;
 		// Card images
-		echo count($this->cards).' cards to download'."\n" ;
+		echo count($this->cards).' cards to download to '.$dir."\n" ;
 		foreach ( $this->cards as $card ) {
 			echo $card->name.' : ' ;
 			foreach ( $card->images as $i => $image ) {
@@ -226,7 +226,7 @@ class ImportExtension {
 			echo "\n" ;
 		}
 		// Token images
-		echo "\n".count($this->tokens).' tokens to download'."\n" ;
+		echo "\n".count($this->tokens).' tokens to download to '.$tkdir."\n" ;
 		foreach ( $this->tokens as $token ) {
 			echo $token['type'].' : ' ;
 			$name = $token['type'] ;
