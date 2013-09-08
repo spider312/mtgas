@@ -39,6 +39,9 @@ function setimage(src, backsrc) {
 		ci.style.height = this.height+'px' ;
 		ci.style.backgroundImage = 'url("'+src+'")' ;
 	}, false) ;
+	img.addEventListener('error', function(ev) {
+		alert('Error loading '+ev.target.src) ;
+	}, false) ;
 	img.src = src ;
 	if ( backsrc ) {
 		var img = new Image() ;
