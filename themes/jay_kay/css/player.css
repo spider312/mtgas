@@ -10,13 +10,13 @@ td a {
 	background-color: #F4ECD2 ;
 }
 .win {
-	color: green ;
+	color: darkgreen ;
 }
 .draw {
-	color: yellow ;
+	color: darkyellow ;
 }
 .lose {
-	color: red ;
+	color: darkred ;
 }
 .noop {
 	font-style: italic ;
