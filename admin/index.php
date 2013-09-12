@@ -66,6 +66,7 @@ foreach ( $t as $tournament )
     <input type="text" name="text" placeholder="Text">
     <input type="text" name="types" placeholder="Type">
     <input type="text" name="cost" placeholder="Cost">
+    <input type="text" name="attrs" placeholder="Compiled">
     <input type="submit" value="Search">
    </form>
 
