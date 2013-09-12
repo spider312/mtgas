@@ -701,9 +701,8 @@ function manage_text($name, $text, $target) {
 		}
 	}
 	// Distinct activated from static abilities
-	
-	//$parts = preg_split('/\s*:\s*/', $text) ;
-	/*if ( count($parts) == 2 ) {
+	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
+	if ( count($parts) == 2 ) {
 		$cost = $parts[0] ;
 		$text = $parts[1] ;
 		if ( ! isset($target->activated) )
@@ -711,18 +710,20 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .?)?(?<eot> until end of turn)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
 			$boost_bf = new simple_object() ;
+			// Main params : amount boosted
+			$boost_bf->pow = intval($match['pow']) ;
+			$boost_bf->tou = intval($match['tou']) ;
+			// Secondary params :boost self, boost only creatures controled by its controler
 			$boost_bf->self = ( $match['other'] != 'other ' );
-			//$boost_bf->control = ( $match['control'] == 'you control ' ) ; // Boolean version
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
 			if ( $match['control'] == 'you control ' ) // "New" boost way : only creatures you control
 				$boost_bf->control = 1 ;
 			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
 				$boost_bf->control = -1 ;
-			$boost_bf->pow = intval($match['pow']) ;
-			$boost_bf->tou = intval($match['tou']) ;
+			// Conditions (creature type, color ...)
 			if ( $match['token'] != '' )
 				$boost_bf->cond = 'class=token' ;
 			$cond = trim($match['cond']) ;
@@ -745,9 +746,12 @@ function manage_text($name, $text, $target) {
 				global $creat_attrs ;
 				foreach ( $creat_attrs as $creat_attr )
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
-				//msg($name.' : '.print_r($boost_bf, true)) ;
 			}
-			$target->boost_bf[] = $boost_bf ;
+			// Store into boost_bf or eot depending on text
+			if ( ( array_key_exists('eot', $match) ) && ( $match['eot'] != '' ) )
+				$target->boost_bf_eot[] = $boost_bf ;
+			else
+				$target->boost_bf[] = $boost_bf ;
 		}
 	}
 	// Animate
