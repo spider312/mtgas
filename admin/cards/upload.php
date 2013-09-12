@@ -66,10 +66,7 @@ if ( $res = mysql_fetch_object($query) ) {
    </tr>
 <?php
 for ( $i = 0 ; $i < count($cards) ; $i++ ) {
-	$name = trim($cards[$i]) ;
-	$name = str_replace('’', "'", $name) ;
-	$name = str_replace('//', " / ", $name) ;
-	$name = mysql_real_escape_string($name) ;
+	$name = mysql_real_escape_string(card_name_sanitize($cards[$i])) ;
 	$log = '<tr title="'.$name.'">' ;
 	$log = '<td>'.$name.'</td>' ;
 	$qs = query("SELECT id FROM card WHERE `name` = '$name'") ;
