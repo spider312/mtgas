@@ -680,23 +680,25 @@ function manage_text($name, $text, $target) {
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
-	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+) creature token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 		foreach ( $all_matches as $matches ) {
 			$token = new simple_object() ;
 			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
+			if ( $token->nb < 1 )
+				$token->nb = 1 ;
 			$token->attrs = new simple_object() ;
-			$token->attrs->types = array('creature') ;
-			$name = $matches['name'] ;
-			$pos = strpos($name, ' artifact') ;
-			if ( $pos > -1 ) {
-				$token->attrs->types[] = 'artifact' ;
-				$name = substr($name, 0, $pos) ;
-			}
-			$token->name = $name ;
+			// Token name -> types / subtypes -> name
+			$types = explode(' ', $matches['name']) ;
+			foreach ( $types as $type )
+				if ( array_search($type, $cardtypes) !== false )
+					$token->attrs->types[] = $type ;
+				else
+					$token->attrs->subtypes[] = $type ;
+			$token->name = implode($token->attrs->subtypes, ' ') ; // Recompose token name from its subtypes
+			// Other attrs
 			$token->attrs->pow = text2number($matches['pow'], 0) ; // 0 for image
 			$token->attrs->thou = text2number($matches['tou'], 0) ;
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
-			$token->attrs->subtypes = explode(' ', strtolower($token->name)) ;
 			$target->tokens[] = $token ;
 		}
 	}
@@ -710,7 +712,7 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs> and .?)?(?<eot> until end of turn)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
 			$boost_bf = new simple_object() ;
 			// Main params : amount boosted
@@ -742,13 +744,15 @@ function manage_text($name, $text, $target) {
 					$boost_bf->cond = implode('|', $types) ;
 				}
 			}
+			$eot = false ;
 			if ( array_key_exists('attrs', $match) ) {
+				$eot = preg_match('/ until end of turn/', $match['attrs']) ;
 				global $creat_attrs ;
 				foreach ( $creat_attrs as $creat_attr )
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
 			}
 			// Store into boost_bf or eot depending on text
-			if ( ( array_key_exists('eot', $match) ) && ( $match['eot'] != '' ) )
+			if ( $eot )
 				$target->boost_bf_eot[] = $boost_bf ;
 			else
 				$target->boost_bf[] = $boost_bf ;
