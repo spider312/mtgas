@@ -4,7 +4,7 @@ $homedir = substr(`bash -c "echo ~"`, 0, -1) ;
 $base_image_dir = $homedir.'/img/' ;
 
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $cache_life=28800 /* 8 hours */) {
+function cache_get($url, $cache_file, $verbose = true, $cache_life=60/*28800 /* 8 hours */) {
 	$message = '' ;
 	clearstatcache() ;
 	rmkdir(dirname($cache_file)) ;

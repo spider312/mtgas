@@ -43,8 +43,9 @@ html_menu() ;
     <fieldset>
      <legend>From</legend>
      <label>Source : <select name="source">
-      <?=html_option('mci', 'MagicCardsInfo', $source) ; ?>
-      <?=html_option('mv', 'MagicVille', $source) ; ?>
+      <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
+      <?=html_option('mv', 'Magic Ville', $source) ; ?>
+      <?=html_option('mythicspoiler', 'Mythic Spoiler', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>

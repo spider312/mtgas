@@ -38,7 +38,8 @@ $html = cache_get($importer->url, 'cache/'.$source.'_'.$ext_source, $verbose) ;
 $nb = preg_match_all('#<title>(?<name>.*?) - magic-ville.com</title>.*<img src="graph/bigsetlogos/(?<code>.*?)\.(gif|png)">.*<div>(?<cards>\d*) cartes, sortie en (?<month>.*?) (?<year>\d*)</div>#s', $html, $matches_ext, PREG_SET_ORDER) ;
 if ( $nb != 1)
         die('URL '.$importer->url.' does not seem to be a valid MCI card list : '.count($matches_ext)) ;
-$importer->setext($matches_ext[0]['code'], $matches_ext[0]['name'], $matches_ext[0]['cards']) ;
+$extcode = $matches_ext[0]['code'] ;
+$importer->setext($extcode, $matches_ext[0]['name'], $matches_ext[0]['cards']) ;
 
 // Parse cards
 $nb = preg_match_all($list_regex, $html, $matches_list, PREG_SET_ORDER) ;
@@ -65,6 +66,7 @@ foreach ( $matches_list as $match ) { //
 .*?<div align=right class=G14 style="padding-right:\dpx;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>)?#s', $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
+		continue ;
 		return false ;
 	}
 
@@ -101,10 +103,19 @@ foreach ( $matches_list as $match ) { //
 					$rarity = 'L' ;
 				else
 					$rarity = 'C' ; // In doubt
-				echo 'Rarity icon not found : ['.$name."] (default applied : $rarity)\n" ;
+				$importer->errors['Rarity icon not found'][] = $url ;
 			}
 		}
-		$card = $importer->addcard($url, $rarity, $name, mv2cost($matches[0]['cost']), $type, $text, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+		// Image (scan-lowres / hires)
+		$img_url = card_image_url($mv_ext_name.'/'.$mv_card_id) ; // Default Hires but not always managed in early imports
+		/*
+		if ( preg_match('#<img src=..(?<img>/pics/big/.*?.jpg)>#', $html, $match_img) )
+			$img_url = 'http://www.magic-ville.com/'.$match_img['img'] ;
+		else {
+			if ( preg_match('#background:url\(scan\?(?<scan>.*)\)#', $html, $match_img) )
+				$img_url = 'http://www.magic-ville.com/fr/scan?'.$match_img['scan'] ;
+		}*/
+		$card = $importer->addcard($url, $rarity, $name, mv2cost($matches[0]['cost']), $type, $text, $img_url) ;
 	} else {
 		$pow = '' ;
 		$tou = '' ;
