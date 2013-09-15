@@ -751,11 +751,8 @@ function manage_text($name, $text, $target) {
 				foreach ( $creat_attrs as $creat_attr )
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
 			}
-			// Store into boost_bf or eot depending on text
-			if ( $eot )
-				$target->boost_bf_eot[] = $boost_bf ;
-			else
-				$target->boost_bf[] = $boost_bf ;
+			$boost_bf->eot = $eot ;
+			$target->boost_bf[] = $boost_bf ;
 		}
 	}
 	// Animate
