@@ -365,7 +365,7 @@ function text2number($text, $xval=0) { // By default, X worth 0 (like in CC) but
 	}
 }
 function manage_types($type, $target) {
-	global $cardtypes ;
+	global $cardtypes, $permtypes ;
 	$type = strtolower($type) ;
 	$target->types = array() ;
 	if ( preg_match('/(.*) - (.*)/', $type, $matches) ) {
@@ -373,10 +373,13 @@ function manage_types($type, $target) {
 		if ( count($matches[2]) > 0 )
 			$target->subtypes = explode(' ', $matches[2]) ;
 	}
+	$target->permanent = false ;
 	foreach ( explode(' ', $type) as $type ) {
-		if ( array_search($type, $cardtypes) !== false )
+		if ( array_search($type, $cardtypes) !== false ) {
 			$target->types[] = $type ;
-		else
+			if ( array_search($type, $permtypes) )
+				$target->permanent = true ;
+		} else
 			$target->supertypes[] = $type ;
 	}
 }
@@ -388,6 +391,8 @@ $colors = array('X' => 'colorless', 'W' => 'white', 'U' => 'blue', 'B' => 'black
 $colorscode = array_keys($colors) ; // For ordering
 $allcolorscode = array('', 'X', 'W', 'U', 'B', 'R', 'G', 'WU','WB','UB','UR','BR','BG','RG','RW','GW','GU','WUB','UBR','BRG','RGW','GWU','WBR','URG','BGW','RWU','GUB','WUBR','UBRG','BRGW','RGWU','GWUB','WUBRG') ;
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
+$permtypes = array('artifact', 'creature', 'enchantment', 'land', 'planeswalker') ;
+$spelltypes = array('instant', 'sorcery') ;
 $creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade', 'changeling');
 // General conditions considerations
 $conds = array() ; // List conditions
@@ -752,6 +757,11 @@ function manage_text($name, $text, $target) {
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
 			}
 			$boost_bf->eot = $eot ;
+			if ( !isset($target->permanent) // Not a card type : emblem (Elspeth, Sorin)
+				|| $target->permanent ) // On permanents, boost_bf_eot are activated (ex: Garruk)
+				$boost_bf->enabled = ! $boost_bf->eot ; // then should not been enabled by default
+			else // On spells (ex: Overrun)
+				$boost_bf->enabled = true ; // enabled by default
 			$target->boost_bf[] = $boost_bf ;
 		}
 	}
