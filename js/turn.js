@@ -410,6 +410,11 @@ function Turn(game) {
 					delete card.animated_attrs ;
 					card.refreshpowthou() ;
 				}
+				// Boost_bf_eot
+				if ( iso(card.attrs.boost_bf) )
+					for ( var j in card.attrs.boost_bf )
+						if ( card.attrs.boost_bf[j].enabled && card.attrs.boost_bf[j].eot )
+							card.boost_bf_enable(card.attrs.boost_bf[j]) ;
 			}
 		}
 		// Targets
