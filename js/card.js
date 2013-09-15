@@ -43,9 +43,6 @@ function card_prototype() {
 			var attrs = attributes ;
 		else
 			var attrs = {} ;
-		if ( iso(attrs.boost_bf) )
-			for ( var i = 0 ; i < attrs.boost_bf.length ; i++ )
-				attrs.boost_bf[i].enabled = ! attrs.boost_bf[i].eot ;
 		this.prev_visible = null ;
 		this.init_attrs(attrs) ;
 		// Expected and no need to sync
@@ -58,9 +55,9 @@ function card_prototype() {
 		if ( this.transformed_attrs)
 			attrs.transformed = false ;
 		// / Attributes
-		this.orig_attrs = attrs ;
-		this.attrs = clone(this.orig_attrs) ;
-		this.sync_attrs = clone(this.attrs) ; // Track changes
+		this.orig_attrs = clone(attrs, true) ;
+		this.attrs = clone(this.orig_attrs, true) ;
+		this.sync_attrs = clone(this.attrs, true) ; // Track changes
 		// Watching in list
 		this.watching = false ; // Nobody watches it
 		return this ;
@@ -1138,7 +1135,7 @@ function card_prototype() {
 		} else {
 			if ( ( oldzone.type != 'battlefield' ) || ( this.zone.type != 'battlefield' ) ) { // Don't reinit if going from a BF to a BF
 				var vi = this.attrs.visible ;
-				this.attrs = clone(this.orig_attrs) ; // Resync with creation attrs, because they will change afterward
+				this.attrs = clone(this.orig_attrs, true) ; // Resync with creation attrs, because they will change afterward
 				this.attrs.visible = vi ;
 				delete this.animated_attrs ;
 			}
@@ -1311,8 +1308,7 @@ function card_prototype() {
 		if ( result ) { // There is no card on destination : move
 			if ( this.get_attachedto() != null ) {
 				this.detach() ;
-				//this.sync() ;
-				this.sync_attrs = clone(this.attrs) ;
+				this.sync_attrs = clone(this.attrs, true) ;
 			} else
 				this.clean_battlefield() ;
 			this.set_grid(xdest, ydest) ;
@@ -1367,7 +1363,7 @@ function card_prototype() {
 		}
 		// Reclone for next synch
 		if ( result ) {
-			this.sync_attrs = clone(this.attrs) ;
+			this.sync_attrs = clone(this.attrs, true) ;
 			action_send('attrs', {'card': this.id, 'attrs': attrs}) ; // this.attrs for full sync, attrs for diff sync
 		}
 		return attrs ;
@@ -1499,7 +1495,7 @@ function card_prototype() {
 				if ( attachedto != null )
 					attachedto.attach_recieve(this) ;
 		}
-		this.sync_attrs = clone(this.attrs) ;
+		this.sync_attrs = clone(this.attrs, true) ;
 	}
 	this.has_attr = function(attr) {
 		if ( this.attrs[attr] == true )
@@ -1538,9 +1534,9 @@ function card_prototype() {
 		message(active_player.name+' flips '+this.get_name()) ;
 		var flipped = ! this.attrs.flipped ;
 		if ( flipped )
-			this.attrs = this.flip_attrs ;
+			this.attrs = clone(this.flip_attrs, true) ;
 		else
-			this.attrs = this.orig_attrs ;
+			this.attrs = clone(this.orig_attrs) ;
 		this.attrs.flipped = flipped ; // Must be done after attrs overwriting
 		this.refreshpowthou() ;
 		this.zone.refresh_pt() ;
@@ -1583,7 +1579,7 @@ function card_prototype() {
 			this.set_powthou(this.transformed_attrs.pow - mpow, this.transformed_attrs.thou - mthou) ;
 		}
 		this.transform_attrs(this.transformed_attrs) ; // Replace attrs by transformed ones, in case they differ
-		this.sync_attrs = clone(this.attrs) ; // Only sync 'transformed' status, other attrs change will be done client-side
+		this.sync_attrs = clone(this.attrs, true) ; // Only sync 'transformed' status, other attrs change will be done client-side
 		this.sync_attrs.transformed = false ;
 		this.refreshpowthou() ;
 		this.zone.refresh_pt(iso(this.attrs.boost_bf)||iso(this.orig_attrs.boost_bf)) ;
@@ -1617,7 +1613,7 @@ function card_prototype() {
 			this.set_powthou(this.orig_attrs.pow - mpow, this.orig_attrs.thou - mthou) ;
 		}
 		this.transform_attrs(this.orig_attrs) ; // Restore original attrs, in case they differ from transformed
-		this.sync_attrs = clone(this.attrs) ; // Only sync 'transformed' status, other attrs change will be done client-side
+		this.sync_attrs = clone(this.attrs, true) ; // Only sync 'transformed' status, other attrs change will be done client-side
 		this.sync_attrs.transformed = true ;
 		this.refreshpowthou() ;
 		this.zone.refresh_pt(iso(this.attrs.boost_bf)||iso(this.transformed_attrs.boost_bf)) ;
@@ -2205,7 +2201,7 @@ function card_prototype() {
 			log('Can\'t face up a visible card') ;
 			return false ;
 		}
-		this.attrs = clone(this.orig_attrs) ; // Resync with creation attrs
+		this.attrs = clone(this.orig_attrs, true) ; // Resync with creation attrs
 		this.set_visible(null) ; // Return to default behaviour : display depending zone
 		this.load_image() ;
 		this.refreshpowthou() ;
@@ -2232,7 +2228,7 @@ function card_prototype() {
 		return true ;
 	}
 	this.on_face_down = function() {
-		var prev_attrs = clone(this.attrs) ;
+		var prev_attrs = clone(this.attrs, true) ;
 		this.attrs = {} ;
 		this.init_attrs() ;
 		this.attrs.visible = prev_attrs.visible ; // Its attributes have to be managed individually from faced-up card, except the visible value that will be saved before beeing set
@@ -2306,7 +2302,7 @@ function card_prototype() {
 		}) ;
 	}
 	this.duplicate_recieve = function(id) {
-		var attrs = clone(this.attrs) ;
+		var attrs = clone(this.attrs, true) ;
 		this.duplicate_attrs('transformed_attrs', attrs) ;
 		var duplicate = new Token(id, this.ext, this.name, this.zone, attrs, this.imgurl_relative()) ;
 		duplicate.get_name = function() {
@@ -2330,7 +2326,7 @@ function card_prototype() {
 			return false ;
 		}
 		message(this.get_name()+' becomes a copy of '+card.get_name()) ; // get it without "copy of ..." suffix
-		this.attrs = clone(card.orig_attrs) ;
+		this.attrs = clone(card.orig_attrs, true) ;
 		this.attrs.copy = card ;
 		// Refresh data linked to attrs
 		this.refreshpowthou() ; // Own
@@ -2348,7 +2344,7 @@ function card_prototype() {
 	this.uncopy_recieve = function() {
 		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) ) {
 			var copy = this.attrs.copy ;
-			this.attrs = clone(this.orig_attrs) ;
+			this.attrs = clone(this.orig_attrs, true) ;
 			this.attrs.copy = null ;
 			// Refresh data linked to attrs
 			this.refreshpowthou() ; // Own
