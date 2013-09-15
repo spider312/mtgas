@@ -293,7 +293,7 @@ function fixlength(str,length) {
  * @author Keith Devens
  * @see http://keithdevens.com/weblog/archive/2007/Jun/07/javascript.clone
  */
-function clone(srcInstance) {
+function clone(srcInstance, recursive) {
 	if( typeof(srcInstance) != 'object' || srcInstance == null ) // Only clone non-null objects, other vars are passed by value
 		return srcInstance ;
 	var newInstance = new srcInstance.constructor() ;
@@ -301,8 +301,10 @@ function clone(srcInstance) {
 		if ( srcInstance[i] === srcInstance ) // Property is a self reference, change it for a reference to new instance
 			newInstance[i] = newInstance ;
 		else // Not a self reference, copy address/value
-			//newInstance[i] = clone(srcInstance[i]) ; // srcInstance[i]
-			newInstance[i] = srcInstance[i] ;
+			if ( recursive )
+				newInstance[i] = clone(srcInstance[i], recursive) ;
+			else
+				newInstance[i] = srcInstance[i] ;
 	return newInstance;
 }
 // Card sorting (for lists)
