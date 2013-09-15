@@ -43,6 +43,9 @@ function card_prototype() {
 			var attrs = attributes ;
 		else
 			var attrs = {} ;
+		if ( iso(attrs.boost_bf) )
+			for ( var i = 0 ; i < attrs.boost_bf.length ; i++ )
+				attrs.boost_bf[i].enabled = ! attrs.boost_bf[i].eot ;
 		this.prev_visible = null ;
 		this.init_attrs(attrs) ;
 		// Expected and no need to sync
@@ -746,6 +749,21 @@ function card_prototype() {
 		}
 	}
 // === [ MENU ] ================================================================
+	this.boost_bf = function() {
+		var result = [] ;
+		if ( iso(this.attrs.boost_bf) )
+			result = result.concat(this.attrs.boost_bf) ;
+		return result ;
+	}
+	this.boost_bf_enable = function(line) {
+		this.boost_bf_enable_recieve(line) ;
+		this.sync() ;
+	}
+	this.boost_bf_enable_recieve = function(line) {
+		line.enabled = ! line.enabled ;
+		game.player.battlefield.refresh_pt() ;
+		game.opponent.battlefield.refresh_pt() ;
+	}
 	this.menu = function(ev) {
 		var card = this ;
 		switch ( card.zone.type ) {
@@ -819,8 +837,30 @@ function card_prototype() {
 							}
 						}
 						// Cascade
-						if ( this.attrs.cascade)
+						if ( this.attrs.cascade )
 							cardmenu.addline('Cascade', this.cascade) ;
+						// Boost BF
+						var boost_bf = this.boost_bf() ;
+						if ( boost_bf.length > 0 ) {
+							for ( var i = 0 ; i < boost_bf.length ; i++ ) {
+								var str = '' ;
+								if ( ! boost_bf[i].self )
+									str += 'Other ' ;
+								if ( iss(boost_bf[i].cond) )
+									str += boost_bf[i].cond+' ' ;
+								else
+									str += 'Creat ' ;
+								if ( boost_bf[i].control == -1 )
+									str += 'opponent control ' ;
+								else if ( boost_bf[i].control == 1 )
+									str += 'you control ' ;
+								str += 'get '+disp_int(boost_bf[i].pow)+'/'+disp_int(boost_bf[i].tou) ;
+								if ( boost_bf[i].eot )
+									str += ' until end of turn' ;
+								var l = cardmenu.addline(str, this.boost_bf_enable, boost_bf[i]) ;
+								l.checked = boost_bf[i].enabled ;
+							}
+						}
 					}
 					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
@@ -1314,12 +1354,12 @@ function card_prototype() {
 		// Send only difference between last synched attrs and current attrs
 		var attrs = {} ;
 		for ( i in this.attrs ) {
-			if ( this.attrs[i] != this.sync_attrs[i] ) {
-				if ( ( i == 'tapped' ) || ( i == 'attacking' ) || ( i == 'revealed' ) ) // Sync is in progress via selection
-					continue ;
-				// Workaround for the loop of siding synchronisation
-				if ( ( i == 'siding' ) && ( this != game.player ) ) // I am the lone who can change my siding status
-					continue ;
+			if ( ( i == 'tapped' ) || ( i == 'attacking' ) || ( i == 'revealed' ) ) // Sync is in progress via selection
+				continue ;
+			// Workaround for the loop of siding synchronisation
+			if ( ( i == 'siding' ) && ( this != game.player ) ) // I am the lone who can change my siding status
+				continue ;
+			if ( JSON.stringify(this.attrs[i]) != JSON.stringify(this.sync_attrs[i]) ) { // Compare JSON for objects/arrays
 				attrs[i] = this.attrs[i] ;
 				if ( ! result ) 
 					result = true ; // At least one attribute will be sync
@@ -1446,6 +1486,12 @@ function card_prototype() {
 				} else
 					this.uncopy_recieve() ;
 			}
+		var boost = false ;
+		if ( typeof attrs.boost_bf != 'undefined' ) {
+			this.attrs.boost_bf = attrs.boost_bf ;
+			game.player.battlefield.refresh_pt() ;
+			game.opponent.battlefield.refresh_pt() ;
+		}
 		/* Legacy ones, currently managed by another way */
 		if ( typeof attrs.attachedto != 'undefined' ) {
 			var attachedto = get_card(attrs.attachedto) ;
@@ -1467,21 +1513,18 @@ function card_prototype() {
 		// this.apply_boost : 
 		var cards = this.zone.cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
-			var card = cards[i] ;
-			if ( iso(card.attrs.boost_bf) ) {
-				for ( var j = 0 ; j < card.attrs.boost_bf.length ; j++ ) {
-					var boost = card.attrs.boost_bf[j] ;
-					if ( ( ! boost.self ) && ( this == card ) ) // Boost doesn't work on self
-						continue ;
-					if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
-						continue ;
-					if ( boost[attr] == true ) {
-						return true ;
-					}
+			var boost_bf = cards[i].boost_bf() ;
+			for ( var j = 0 ; j < boost_bf.length ; j++ ) {
+				var boost = boost_bf[j] ;
+				if ( ( ! boost.self ) && ( this == cards[i] ) ) // Boost doesn't work on self
+					continue ;
+				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
+					continue ;
+				if ( boost[attr] == true ) {
+					return true ;
 				}
 			}
 		}
-
 		return false ;
 	}
 	// Flip
@@ -1883,34 +1926,34 @@ function card_prototype() {
 		var result = 0 ;
 		var cards = this.zone.cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
-			var card = cards[i] ;
-			if ( iso(card.attrs.boost_bf) ) {
-				for ( var j = 0 ; j < card.attrs.boost_bf.length ; j++ ) {
-					var boost = card.attrs.boost_bf[j] ;
-					if ( ( ! boost.self ) && ( this == card ) ) // Boost doesn't work on self
-						continue ;
-					if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
-						continue ;
-					if ( boost.control < 0 )
-						continue ;
-					result += boost[type] ;
-				}
+			var boost_bf = cards[i].boost_bf() ;
+			for ( var j = 0 ; j < boost_bf.length ; j++ ) {
+				var boost = boost_bf[j] ;
+				if ( ! boost.enabled )
+					continue ;
+				if ( ( ! boost.self ) && ( this == cards[i] ) ) // Boost doesn't work on self
+					continue ;
+				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
+					continue ;
+				if ( boost.control < 0 )
+					continue ;
+				result += boost[type] ;
 			}
 		}
 		var cards = this.controler.opponent[this.zone.type].cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
-			var card = cards[i] ;
-			if ( iso(card.attrs.boost_bf) ) {
-				for ( var j = 0 ; j < card.attrs.boost_bf.length ; j++ ) {
-					var boost = card.attrs.boost_bf[j] ;
-					if ( ( ! boost.self ) && ( this == card ) ) // Boost doesn't work on self
-						continue ;
-					if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
-						continue ;
-					if ( boost.control > 0 )
-						continue ;
-					result += boost[type] ;
-				}
+			var boost_bf = cards[i].boost_bf() ;
+			for ( var j = 0 ; j < boost_bf.length ; j++ ) {
+				var boost = boost_bf[j] ;
+				if ( ! boost.enabled )
+					continue ;
+				if ( ( ! boost.self ) && ( this == cards[i] ) ) // Boost doesn't work on self
+					continue ;
+				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
+					continue ;
+				if ( boost.control > 0 )
+					continue ;
+				result += boost[type] ;
 			}
 		}
 
