@@ -301,7 +301,7 @@ function clone(srcInstance) {
 		if ( srcInstance[i] === srcInstance ) // Property is a self reference, change it for a reference to new instance
 			newInstance[i] = newInstance ;
 		else // Not a self reference, copy address/value
-			newInstance[i] = srcInstance[i] ; // clone(srcInstance[i]) ;
+			newInstance[i] = clone(srcInstance[i]) ; // srcInstance[i]
 	return newInstance;
 }
 // Card sorting (for lists)
