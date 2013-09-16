@@ -28,16 +28,20 @@ $server->registerApplication('server', \WebSocket\Application\Mogg::getInstance(
 $server->run() ;
 */
 
-//$seed = hexdec(substr( md5( microtime() ), -8 ) ) & 0x7fffffff ; // Hexmaster
-$seed = (double)microtime()*1000000  ; // PHP comments
-mt_srand($seed) ;
 
 $card_connection = card_connect() ;
 
 $day = 0 ;
 
 while ( sleep($daemon_delay) !== FALSE ) {
-	if ( $day != date('j') ) { // Day change
+
+	// Random seeder
+	//$seed = hexdec(substr( md5( microtime() ), -8 ) ) & 0x7fffffff ; // Hexmaster
+	$seed = (double)microtime()*1000000  ; // PHP comments
+	mt_srand($seed) ;
+
+	// Day change : stats
+	if ( $day != date('j') ) {
 		ranking_to_file('ranking/week.json', 'WEEK') ;
 		ranking_to_file('ranking/month.json', 'MONTH') ;
 		ranking_to_file('ranking/year.json', 'YEAR') ;
