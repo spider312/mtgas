@@ -209,7 +209,7 @@ function tournament_log_li(line, nick, players, spectactors) {
 					li.appendChild(span) ;
 				}
 			}
-			return li ;
+			//return li ;
 			break ;
 		case 'allow' :
 			var s = spectactors.get(line.value) ;
@@ -253,7 +253,8 @@ function tournament_log_li(line, nick, players, spectactors) {
 		default :
 			msg = line.type+' : '+line.value+' (raw)' ;
 	}
-	var li = create_li(msg) ;
+	if ( ! li )
+		var li = create_li(msg) ;
 	li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
 	return li ;
 
