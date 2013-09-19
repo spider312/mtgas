@@ -7,6 +7,7 @@ $order = param($_GET, 'order', 'sealed_score_ratio') ;
 $ext = param($_GET, 'ext', 'CUB') ;
 $type = param($_GET, 'type', '') ;
 $color = param($_GET, 'color', '') ;
+$rarity = param($_GET, 'rarity', '') ;
 function option_value($value, $default) {
 	echo 'value="'.$value.'"' ;
 	if ( $value == $default )
@@ -46,6 +47,14 @@ function option_value($value, $default) {
   <option <?php option_value("R", $color) ; ?>>Red</option>
   <option <?php option_value("G", $color) ; ?>>Green</option>
  </select>
+ <select name="rarity">
+  <option <?php option_value("", $rarity) ; ?>>All rarities</option>
+  <option <?php option_value("M", $rarity) ; ?>>Mythics</option>
+  <option <?php option_value("R", $rarity) ; ?>>Rares</option>
+  <option <?php option_value("U", $rarity) ; ?>>Uncos</option>
+  <option <?php option_value("C", $rarity) ; ?>>Commons</option>
+  <option <?php option_value("S", $rarity) ; ?>>Specials</option>
+ </select>
  <input type="submit">
 </form>
 <table>
@@ -80,7 +89,8 @@ $p = query_as_array("
 		`pick`.`sealed_score` / `pick`.`sealed_open` as `sealed_score_ratio`,
 		`pick`.`sealed_score` / `pick`.`sealed_play` as `sealed_play_score_ratio`,
 		`card`.`name`,
-		`card`.`attrs`
+		`card`.`attrs`, 
+		`card_ext`.`rarity`
 $fromwhere
 	ORDER BY
 		`$order` DESC
@@ -100,6 +110,8 @@ $fromwhere
 <?php
 $nb = 0 ;
 foreach ( $p as $i => $c ) {
+	if ( ( $rarity != '' ) && ( $c->rarity != $rarity ) )
+		continue ;
 	$d = json_decode($c->attrs) ;
 	//echo '<pre>' ; print_r($d) ; echo '</pre>' ;
 	if ( ( $color != '' ) && is_string($d->color) && ( strpos($d->color, $color) === false ) )
