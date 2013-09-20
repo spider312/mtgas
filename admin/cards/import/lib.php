@@ -224,6 +224,16 @@ class ImportExtension {
 				cache_get($image, $path, true) ;
 			}
 			echo "\n" ;
+			// Languages
+			foreach ( $card->langs as $lang => $images ) {
+				$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
+				foreach ( $images['images'] as $i => $image ) {
+					$path = $langdir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
+					echo " - $lang : " ;
+					cache_get($image, $path, true) ;
+				}
+				echo "\n" ;
+			}
 		}
 		// Token images
 		echo "\n".count($this->tokens).' tokens to download to '.$tkdir."\n" ;
@@ -311,8 +321,11 @@ class ImportCard {
 	function addtext($add) { // For all multiple cards (split, flip, double face)
 		$this->text .= "\n".card_text_sanitize($add) ;
 	}
-	function setlang($code, $name, $url) {
+	function setlang($code, $name, $url) { // Add language data for current card, overwriting all data for that card/lang
 		$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
+	}
+	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
+		$this->langs[$code] = array('images' => array($url)) ;
 	}
 	function addlang($code, $name, $url=null) {
 		if ( isset($this->langs[$code]) ) {

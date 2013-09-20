@@ -112,11 +112,11 @@ foreach ( $matches as $match ) {
 	}
 	// Lang
 	$nb = preg_match_all($lang_regex, $html, $matches_lang, PREG_SET_ORDER) ;
-	foreach ( $matches_lang as $lang )
+	foreach ( $matches_lang as $lang ) {
+		$code = $lang['code'] ;
+		$url = card_image_url($match, $code) ;
 		if ( array_search($lang['code'], array('de', 'fr', 'it', 'es', 'pt')) !== false ) { // Expected charset
-			$code = $lang['code'] ;
 			$lname = $lang['name'] ;
-			$url = card_image_url($match, $code) ;
 			if ( ! $secondpart )
 				$lastcard->setlang($code, $lname, $url) ;
 			else {
@@ -124,6 +124,8 @@ foreach ( $matches as $match ) {
 					$url = null ;
 				$lastcard->addlang($code, $lname, $url) ;
 			}
-		}
+		} else
+			$lastcard->addlangimg($code, $url) ;
+	}
 }
 ?>
