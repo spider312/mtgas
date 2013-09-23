@@ -23,7 +23,7 @@ while ( $row = mysql_fetch_object($query) ) {
 	$players_names = array() ;
 	if ( count($players) > 0 )
 		foreach ( $players as $player )
-			$players_names[] = $player->nick.' ' ;
+			$players_names[] = $player->nick ;
 	else
 		$players_names[] = 'nobody' ;
 	// Display item
