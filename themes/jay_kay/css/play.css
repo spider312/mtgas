@@ -11,7 +11,9 @@ label	{
 	cursor: pointer ;
 }
 #paper {
-	background: darkgreen url('../Background.jpg') repeat fixed left top ;
+	/*background: darkgreen url('../Background.jpg') repeat fixed left top ;*/
+	background: darkgreen url('../THS_BackgroundTexture_01.jpg') repeat fixed left top ;
+	background-size: 100% 100% ;
 	float: left ; /* Canvas "margin" (whitespace) */
 }
 /* ========== "Boxes" right side of game table ========== */
