@@ -9,7 +9,7 @@ if ( array_key_exists('name', $_GET) ) {
 		$id = $card->id ;
 	else
 		die('{}') ;
-	$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics FROM card_ext, extension WHERE card_ext.card = '$id' AND card_ext.ext = extension.id ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
+	$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics FROM card_ext, extension WHERE card_ext.card = '$id' AND card_ext.ext = extension.id AND card_ext.nbpics > 0 ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
 	$ext = array() ;
 	while ( $obj = mysql_fetch_object($query) )
 		$ext[] = $obj ;
