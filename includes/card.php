@@ -694,12 +694,15 @@ function manage_text($name, $text, $target) {
 			$token->attrs = new simple_object() ;
 			// Token name -> types / subtypes -> name
 			$types = explode(' ', $matches['name']) ;
+			$nameparts = array() ;
 			foreach ( $types as $type )
 				if ( array_search($type, $cardtypes) !== false )
-					$token->attrs->types[] = $type ;
-				else
-					$token->attrs->subtypes[] = $type ;
-			$token->name = implode($token->attrs->subtypes, ' ') ; // Recompose token name from its subtypes
+					$token->attrs->types[] = strtolower($type) ;
+				else {
+					$token->attrs->subtypes[] = strtolower($type) ;
+					$nameparts[] = $type ;
+				}
+			$token->name = implode($nameparts, ' ') ; // Recompose token name from its subtypes
 			// Other attrs
 			$token->attrs->pow = text2number($matches['pow'], 0) ; // 0 for image
 			$token->attrs->thou = text2number($matches['tou'], 0) ;
