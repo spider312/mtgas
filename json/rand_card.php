@@ -33,28 +33,31 @@ while ( true ) {
 	$card = query_oneshot("SELECT id, name, cost, types, attrs, fixed_attrs FROM card WHERE ".implode('AND ', $where)." ORDER BY RAND() LIMIT 1 ", 'Card search', $connec) ;
 	if ( ! $card )
 		send_msg('No card found with CC='.$cc, true) ;
+	$card->attrs = json_decode($card->attrs) ;
+	$card->fixed_attrs = json_decode($card->fixed_attrs) ;
 	$ext = query_as_array("
-		SELECT extension.se
+		SELECT extension.se, card_ext.nbpics
 		FROM card_ext, extension
 		WHERE
 			card_ext.card = '".$card->id."'
 			AND card_ext.ext = extension.id
-			AND card_ext.nbpics > 0
+			AND card_ext.nbpics > 1
 		ORDER BY RAND()
 	", 'Card\' extension', $connec) ;
 	if ( count($ext) > 0 ) {
 		if ( ( $ext[0]->se == 'UG' ) || ( $ext[0]->se == 'UNH' ) )
 			continue ;
+		$nbpics = intval($ext[0]->nbpics) ;
+		if ( $nbpics > 1 ) {
+			$card->attrs->nb = rand(1, $nbpics) ;
+			send_msg($card->attrs->nb.' / '.$nbpics, false) ;
+		}
 		$card->ext = $ext[0]->se ;
 		$card->zone = $zone ;
 		break ;
-	} else {
-		send_msg('Can\'t send '.$card->name, false) ;
-		d($ext) ;
-	}
+	} else
+		send_msg('No extension found for '.$card->name, false) ;
 }
-$card->attrs = json_decode($card->attrs) ;
-$card->fixed_attrs = json_decode($card->fixed_attrs) ;
 
 $escaped = addcslashes(json_encode($card), "'\"") ;
 query("INSERT INTO `action` (
