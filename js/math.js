@@ -39,13 +39,13 @@ function round(nb, exp) {
 	var precision = Math.pow(10, exp) ;
 	return Math.round(precision * nb) / precision ;
 }
-function floor(num, exp) {
+function floor(nb, exp) {
 	if ( ! isn(exp) )
 		exp = 1 ;
 	var precision = Math.pow(10, exp) ;
 	return Math.floor(precision * nb) / precision ;
 }
-function ceil(num, exp) {
+function ceil(nb, exp) {
 	if ( ! isn(exp) )
 		exp = 1 ;
 	var precision = Math.pow(10, exp) ;
