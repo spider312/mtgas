@@ -48,7 +48,6 @@ switch ( $avatar ) {
 		for ( $i = 0 ; $i <= $cc ; $i++ )
 			$where2[] = "`attrs` LIKE '%\"converted_cost\":$i,%'" ;
 		$where[] = '( '.implode(' OR ', $where2).') ' ;
-		send_msg($where[count($where)-1]) ;
 		break ;
 	case 'nokiou' : 
 		$where[] = "`types` NOT LIKE '%Instant%'" ;
