@@ -801,6 +801,16 @@ function hand(player) {
 function battlefield(player) {
 	var mybf = new VisibleZone(player, 'battlefield') ;
 	selzone(mybf) ;
+	// Getters
+	mybf.untaped_lands = function() {
+		var result = 0 ;
+		for ( var i = 0 ; i < this.cards.length ; i++ ) {
+			var card = this.cards[i] ;
+			if ( card.is_land() && ! card.tapped )
+				result++ ;
+		}
+		return result ;
+	}
 	// Events
 	mybf.parent_mouseup = mybf.mouseup ;
 	mybf.mouseup = function(ev) {
@@ -838,11 +848,25 @@ function battlefield(player) {
 			submenu.addline('Type number of faces',     rolldice) ;
 			menu.addline('Roll a dice',	submenu) ;
 			menu.addline('Flip a coin',	flip_coin) ;
-			menu.addline('Momir ...', 	function() {
-				cc = prompt_int('Converted cost', ceil((game.turn.num+1)/2, 0)) ;
+			var mojosto = new menu_init(mybf) ;
+			def = this.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
+			mojosto.addline('Momir ...', 	function() { // momir jhoira stonehewer nokiou
+				cc = prompt_int('Converted cost', def) ;
 				if ( cc != null )
-					$.get('json/rand_card.php', {'game':game.id, 'cc': cc}) ;
-			})
+					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'momir', 'cc': cc}) ;
+			}) ;
+			mojosto.addline('Jhoira (instants)',    function() {
+				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-instant'}) ;
+			}) ;
+			mojosto.addline('Jhoira (sorceries)',    function() {
+				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-sorcery'}) ;
+			}) ;
+			mojosto.addline('Nonland, noncreature permanent ...',    function() {
+				cc = prompt_int('Converted cost', def) ;
+				if ( cc != null )
+					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+			}) ;
+			menu.addline('MoJoSto', mojosto) ;
 		} else
 			menu.addline('Battlefield') ;
 		return menu.start(ev) ;

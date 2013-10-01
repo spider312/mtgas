@@ -279,6 +279,14 @@ function manage_action(action) {
 		case 'card' :
 			new Card(id, param.ext, param.name, param.zone, param.attrs) ;
 			break ;
+		case 'mojosto' :
+			var url = card_image_url(param.ext, param.name, param.attrs)
+			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs, url) ;
+			tk.place(0, tk.place_row()) ;
+			tk.mojosto = true ;
+			if ( iss(param.target) )
+				get_card(param.target).attach(tk) ;
+			break ;
 		case 'token' :
 			create_token_recieve(id, param.ext, param.name, param.zone, JSON_parse(param.attrs)) ;
 			break ;

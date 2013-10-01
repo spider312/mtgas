@@ -777,6 +777,10 @@ function card_prototype() {
 					// Card specific submenu
 					var cardmenu = new menu_init(selected) ;
 					if ( card.controler.access() ) {
+						if ( card.mojosto )
+							cardmenu.addline('stonehewer', function() {
+								$.get('json/rand_card.php', {'game':game.id, 'avatar': 'stonehewer', 'cc': card.attrs.converted_cost, 'target': this+''}, function(pwet) {}) ;
+							}) ;
 						// Morph
 						if ( card.owner.me && iss(card.attrs.morph) )
 							if ( card.attrs.visible == false) {
