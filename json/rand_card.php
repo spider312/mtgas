@@ -41,7 +41,7 @@ while ( true ) {
 		WHERE
 			card_ext.card = '".$card->id."'
 			AND card_ext.ext = extension.id
-			AND card_ext.nbpics > 1
+			AND card_ext.nbpics > 0
 		ORDER BY RAND()
 	", 'Card\' extension', $connec) ;
 	if ( count($ext) > 0 ) {
