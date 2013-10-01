@@ -839,9 +839,9 @@ function battlefield(player) {
 			menu.addline('Roll a dice',	submenu) ;
 			menu.addline('Flip a coin',	flip_coin) ;
 			menu.addline('Momir ...', 	function() {
-				def = game.turn.num / 2 ;
-				cc = prompt_int('Converted cost', ceil(def, 0)) ;
-				$.get('json/rand_card.php', {'game':game.id, 'cc': cc}) ;
+				cc = prompt_int('Converted cost', ceil((game.turn.num+1)/2, 0)) ;
+				if ( cc != null )
+					$.get('json/rand_card.php', {'game':game.id, 'cc': cc}) ;
 			})
 		} else
 			menu.addline('Battlefield') ;
