@@ -838,6 +838,11 @@ function battlefield(player) {
 			submenu.addline('Type number of faces',     rolldice) ;
 			menu.addline('Roll a dice',	submenu) ;
 			menu.addline('Flip a coin',	flip_coin) ;
+			menu.addline('Momir ...', 	function() {
+				def = game.turn.num / 2 ;
+				cc = prompt_int('Converted cost', ceil(def, 0)) ;
+				$.get('json/rand_card.php', {'game':game.id, 'cc': cc}) ;
+			})
 		} else
 			menu.addline('Battlefield') ;
 		return menu.start(ev) ;
