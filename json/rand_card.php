@@ -45,7 +45,7 @@ switch ( $avatar ) {
 	case 'stonehewer' : 
 		$where[] = "`types` LIKE '%Equipment%'" ;
 		$where2 = array() ;
-		for ( $i = 0 ; $i <= $cc ; $i++ )
+		for ( $i = 0 ; $i < $cc ; $i++ )
 			$where2[] = "`attrs` LIKE '%\"converted_cost\":$i,%'" ;
 		$where[] = '( '.implode(' OR ', $where2).') ' ;
 		break ;
