@@ -136,7 +136,7 @@ foreach ( $p as $i => $c ) {
 		continue ;
 	$colors = '' ;
 	for ( $i = 0 ; $i < strlen($d->color) ; $i++ ) 
-		$colors .= '<span class="bg_c_'.substr($d->color, $i, 1).'">'.$d->color.'</span>' ;
+		$colors .= '<span class="bg_c_'.substr($d->color, $i, 1).'">'.substr($d->color, $i, 1).'</span>' ;
 	echo '    <tr title="'.$c->text.'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$c->rarity.'">'.$c->rarity.'</td>
