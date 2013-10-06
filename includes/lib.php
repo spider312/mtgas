@@ -277,4 +277,9 @@ function escapeJsonString($value) { # list from www.json.org: (\b backspace, \f 
 	$result = str_replace($escapers, $replacements, $value) ;
 	return $result ;
 }
+// Theme
+function theme_image($name) {
+	global $theme ;
+	return '/themes/'.$theme.'/'.$name ;
+}
 ?>
