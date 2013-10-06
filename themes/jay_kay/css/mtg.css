@@ -1,0 +1,132 @@
+/* MTG specific class */
+
+/* Color class */
+/* Foreground : fg_c_[WUBRGX] */
+/* Background : bg_c_[WUBRGX] */
+/* Border : bd_c_[WUBRGX] */
+
+/* Rarities class */
+/* Foreground : fg_r_[LCURMS] */
+/* Background : bg_r_[LCURMS] */
+/* Border : bd_r_[LCURMS] */
+
+/* Color class*/
+
+/* Foreground */
+.fg_c_W {
+	color: white !important ;
+}
+.fg_c_U {
+	color: blue !important ;
+}
+.fg_c_B {
+	color: black !important ;
+}
+.fg_c_R {
+	color: red !important ;
+}
+.fg_c_G {
+	color: green !important ;
+}
+.fg_c_X {
+	color: grey !important ;
+}
+/* Background */
+.bg_c_W {
+	background-color: white !important ;
+}
+.bg_c_U {
+	background-color: blue !important ;
+}
+.bg_c_B {
+	background-color: black !important ;
+	color: white ;
+}
+.bg_c_R {
+	background-color: red !important ;
+}
+.bg_c_G {
+	background-color: green !important ;
+}
+.bg_c_X {
+	background-color: grey !important ;
+}
+/* Border */
+.bd_c_W {
+	border-color: white !important ;
+}
+.bd_c_U {
+	border-color: blue !important ;
+}
+.bd_c_B {
+	border-color: black !important ;
+}
+.bd_c_R {
+	border-color: red !important ;
+}
+.bd_c_G {
+	border-color: green !important ;
+}
+.bd_c_X {
+	border-color: grey !important ;
+}
+
+/* Rarities class */
+/* Foreground */
+.fg_r_L {
+	color: sienna !important ;
+}
+.fg_r_C {
+	color: black !important ;
+}
+.fg_r_U {
+	color: darkgray !important ;
+}
+.fg_r_R {
+	color: GoldenRod !important ;
+}
+.fg_r_M {
+	color: OrangeRed !important ;
+}
+.fg_r_S {
+	color: purple !important ;
+}
+/* Background */
+.bg_r_L {
+	background-color: sienna !important ;
+}
+.bg_r_C {
+	background-color: black !important ;
+	color: white ;
+}
+.bg_r_U {
+	background-color: lightgray !important ;
+}
+.bg_r_R {
+	background-color: GoldenRod !important ;
+}
+.bg_r_M {
+	background-color: OrangeRed !important ;
+}
+.bg_r_S {
+	background-color: purple !important ;
+}
+/* Border */
+.bd_r_L {
+	border-color: sienna !important ;
+}
+.bd_r_C {
+	border-color: black !important ;
+}
+.bd_r_U {
+	border-color: darkgray !important ;
+}
+.bd_r_R {
+	border-color: GoldenRod !important ;
+}
+.bd_r_M {
+	border-color: OrangeRed !important ;
+}
+.bd_r_S {
+	border-color: purple !important ;
+}
