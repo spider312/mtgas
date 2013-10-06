@@ -83,6 +83,7 @@ if ( $ext == '' ) {
 		`card`.`id` = `pick`.`card_id`" ;
 } else {
 	$fromwhere = "
+		, `card_ext`.`rarity`
 	FROM
 		`pick`,
 		`card`,
@@ -104,8 +105,7 @@ $p = query_as_array("
 		`pick`.`sealed_score` / `pick`.`sealed_play` as `sealed_play_score_ratio`,
 		`card`.`name`,
 		`card`.`attrs`, 
-		`card`.`text`, 
-		`card_ext`.`rarity`
+		`card`.`text`
 $fromwhere
 	ORDER BY
 		`$order` DESC
