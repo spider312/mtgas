@@ -134,9 +134,20 @@ foreach ( $p as $i => $c ) {
 		continue ;
 	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
 		continue ;
+	/*
+	$manas = array() ;
+	foreach ( $d->manas as $mana ) {
+		if ( is_numeric($mana) || (  $mana == 'X' ))
+			continue ;
+		if ( array_search($mana, $manas) === false )
+			$manas[] = $mana ;
+	}
+	if ( count($manas) == 0 )
+		$manas[] = 'X' ;
+	*/
 	$colors = '' ;
-	for ( $i = 0 ; $i < strlen($d->color) ; $i++ ) 
-		$colors .= '<span class="bg_c_'.substr($d->color, $i, 1).'">'.substr($d->color, $i, 1).'</span>' ;
+	foreach ( $d->manas as $mana )
+		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'">' ;
 	echo '    <tr title="'.$c->text.'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$c->rarity.'">'.$c->rarity.'</td>
