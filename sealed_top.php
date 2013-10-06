@@ -134,7 +134,6 @@ foreach ( $p as $i => $c ) {
 		continue ;
 	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
 		continue ;
-	/*
 	$manas = array() ;
 	foreach ( $d->manas as $mana ) {
 		if ( is_numeric($mana) || (  $mana == 'X' ))
@@ -144,13 +143,13 @@ foreach ( $p as $i => $c ) {
 	}
 	if ( count($manas) == 0 )
 		$manas[] = 'X' ;
-	*/
+	
 	$colors = '' ;
-	foreach ( $d->manas as $mana )
+	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'">' ;
 	echo '    <tr title="'.$c->text.'">
      <td>'.$nb++.'/'.$i.'</td>
-     <td class="bg_r_'.$c->rarity.'">'.$c->rarity.'</td>
+     <td class="bg_r_'.(isset($c->rarity)?'':$c->rarity).'">'.$c->rarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
      <td>'.$colors.'</td>
      <td>'.$c->sealed_open.'</td>
