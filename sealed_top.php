@@ -134,11 +134,14 @@ foreach ( $p as $i => $c ) {
 		continue ;
 	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
 		continue ;
+	$color = '' ;
+	for ( $i = 0 ; $i < strlen($d->color) ; $i++ ) 
+		$color .= '<span class="bg_c_'.substr($d->color, $i, 1).'">'.$d->color.'</span>' ;
 	echo '    <tr title="'.$c->text.'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$c->rarity.'">'.$c->rarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
-     <td class="bg_c_'.$d->color.'">'.$d->color.'</td>
+     <td>'.$color.'</td>
      <td>'.$c->sealed_open.'</td>
      <td>'.$c->sealed_play.'</td>
      <td>'.$c->sealed_score.'</td>
