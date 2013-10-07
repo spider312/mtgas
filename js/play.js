@@ -227,9 +227,9 @@ function manage_action(action) {
 				var my = 0
 				for ( var i in avatars ) {
 					var avatar = avatars[i] ;
-					var tk = new Token(id, '', avatar, game.player.battlefield, {'types':['avatar'], 'avatar': i}
-						, '../VOA/'+avatar+'.full.jpg') ;
-					tk.place(22+my++, 0) ;
+					var tk = new Token(my, '', avatar, game.player.battlefield, {'types':['avatar'], 'avatar': i}
+						, '../VOA/'+avatar+'.full.jpg', false) ;
+					tk.place_recieve(22+my++, 0) ;
 				}
 			}
 			message(param.player.name+' won the toss', 'win') ;

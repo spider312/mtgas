@@ -1,6 +1,6 @@
 // token.js
 // Classes for tokens and card duplicates, extends classes 'card' defined in card.js
-function Token(id, extension, name, zone, attrs, img_url) {
+function Token(id, extension, name, zone, attrs, img_url, register) {
 	Widget(this) ;
 	this.type = 'token' ; // Used in right DND
 	if ( ! iso(attrs.types) ) {
@@ -14,7 +14,10 @@ function Token(id, extension, name, zone, attrs, img_url) {
 	this.bordercolor = 'SlateGray' ;
 	this.setzone(zone) ;
 	this.zone.refresh_pt(iso(this.attrs.boost_bf)) ; // Boost_bf is applied on changezone, apply it there
-	game.tokens.push(this) ; // Register it in order to delete on game end
+	if ( ! isb(register) )
+		register = true ;
+	if ( register )
+		game.tokens.push(this) ; // Register it in order to delete on game end
 	this.get_name = function() {
 		return 'token '+this.name ; // Defaults to token, overridden by duplicate
 	}
