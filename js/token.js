@@ -27,7 +27,6 @@ function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // 
 			var tk = create_token_recieve(data.id, data.param.ext, data.param.name, eval(data.param.zone), JSON_parse(data.param.attrs)) ;
 			if ( typeof oncreate == 'function' )
 				oncreate(tk, oncreateparam) ; // ATM : Living weapon
-			tk.place(0, tk.place_row()) ; // Place after equipping for living weapon
 		}) ;
 	}
 }
