@@ -702,6 +702,7 @@ function card_prototype() {
 				// Create living weapon token
 				if ( this.attrs.living_weapon )
 					this.living_weapon() ;
+				this.stonehewer_giant() ;
 				break ;
 			default :
 				log('Impossible to dbclick a card in '+this.zone.type) ;
@@ -777,10 +778,45 @@ function card_prototype() {
 					// Card specific submenu
 					var cardmenu = new menu_init(selected) ;
 					if ( card.controler.access() ) {
-						if ( card.mojosto )
-							cardmenu.addline('stonehewer', function() {
-								$.get('json/rand_card.php', {'game':game.id, 'avatar': 'stonehewer', 'cc': card.attrs.converted_cost, 'target': this+''}, function(pwet) {}) ;
-							}) ;
+						if ( iss(card.attrs.avatar) ) {
+							def = this.zone.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
+							switch ( card.attrs.avatar ) {
+								case 'momir' :
+									cardmenu.addline('Creature ...', function() {
+										cc = prompt_int('Converted cost', def) ;
+										if ( cc != null ) {
+											$.get('json/rand_card.php', {'game':game.id, 'avatar': 'momir', 'cc': cc}) ;
+											if ( game.nokiou )
+												$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+										}
+									}) ;
+									cardmenu.addline('Nonland, noncreature permanent ...',    function() {
+										cc = prompt_int('Converted cost', def) ;
+										if ( cc != null )
+											$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+									}) ;
+									cardmenu.addline('Momir also puts a noncreature permanent',    function() {
+										game.nokiou = ! game.nokiou ;
+									}).checked = game.nokiou ;
+
+									break ;
+								case 'jhoira' :
+									cardmenu.addline('Instants', function() {
+										$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-instant'}) ;
+									}) ;
+									cardmenu.addline('Sorceries', function() {
+										$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-sorcery'}) ;
+									}) ;
+									break ;
+								case 'stonehewer' :
+									cardmenu.addline('Activated', function() {
+										game.stonehewer = ! game.stonehewer ;
+									}).checked = game.stonehewer ;
+									break ;
+								default :
+									log('Avatar '+card.attrs.avatar+' no exist') ;
+							}
+						}
 						// Morph
 						if ( card.owner.me && iss(card.attrs.morph) )
 							if ( card.attrs.visible == false) {
@@ -1156,6 +1192,10 @@ function card_prototype() {
 				this.attacking = false ;
 				this.attrs.damages = 0 ;
 				// Force xdest,ydest to enter in grid, as when moving to extremes, system may be thinking we are moving outside
+				if ( ! isn(xzone) )
+					xzone = 0 ;
+				if ( ! isn(yzone) )
+					yzone = this.place_row() ;
 				xzone = max(xzone, 0) ;
 				xzone = min(xzone, bfcols-1) ;
 				yzone = max(yzone, 0) ;
@@ -2312,7 +2352,7 @@ function card_prototype() {
 		duplicate.get_name = function() {
 			return 'copy of '+this.name ; // Default is token, overriding
 		}
-		duplicate.place(0, duplicate.place_row()) ;
+		//duplicate.place(0, duplicate.place_row()) ;
 		message(active_player.name+' duplicates '+this.get_name(), 'zone') ;
 	}
 	// Copy (cloning effect)
@@ -2446,6 +2486,10 @@ function card_prototype() {
 		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
 			tk.attach(lw) ;
 		}, this) ;
+	}
+	this.stonehewer_giant = function() {
+		if ( game.stonehewer && this.is_creature() )
+			$.get('json/rand_card.php', {'game':game.id, 'avatar': 'stonehewer', 'cc': this.attrs.converted_cost, 'target': this+''}, function(pwet) {}) ;
 	}
 }
 function refresh_cards_in_zone(zone) {

@@ -850,22 +850,34 @@ function battlefield(player) {
 			menu.addline('Flip a coin',	flip_coin) ;
 			var mojosto = new menu_init(mybf) ;
 			def = this.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
-			mojosto.addline('Momir ...', 	function() { // momir jhoira stonehewer nokiou
+			mojosto.addline('Momir ...', function() { // momir jhoira stonehewer nokiou
 				cc = prompt_int('Converted cost', def) ;
-				if ( cc != null )
+				if ( cc != null ) {
 					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'momir', 'cc': cc}) ;
-			}) ;
-			mojosto.addline('Jhoira (instants)',    function() {
+					if ( game.nokiou )
+						$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+				}
+			}).moimg = 'http://img.mogg.fr/VOA/Momir Vig, Simic Visionary.full.jpg' ;
+			var j = 'http://img.mogg.fr/VOA/Jhoira of the Ghitu.full.jpg' ;
+			mojosto.addline('Jhoira (instants)', function() {
 				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-instant'}) ;
-			}) ;
-			mojosto.addline('Jhoira (sorceries)',    function() {
+			}).moimg = j ;
+			mojosto.addline('Jhoira (sorceries)', function() {
 				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-sorcery'}) ;
+			}).moimg = j ;
+			var sg = mojosto.addline('Stonehewer giant', function() {
+				game.stonehewer = ! game.stonehewer ;
 			}) ;
+			sg.checked = game.stonehewer ;
+			sg.moimg = 'http://img.mogg.fr/VOA/Stonehewer Giant.full.jpg' ;
 			mojosto.addline('Nonland, noncreature permanent ...',    function() {
 				cc = prompt_int('Converted cost', def) ;
 				if ( cc != null )
 					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
 			}) ;
+			mojosto.addline('Momir also puts a noncreature permanent',    function() {
+				game.nokiou = ! game.nokiou ;
+			}).checked = game.nokiou ;
 			menu.addline('MoJoSto', mojosto) ;
 		} else
 			menu.addline('Battlefield') ;

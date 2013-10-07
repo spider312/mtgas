@@ -218,6 +218,20 @@ function manage_action(action) {
 			break ;
 			// Begin
 		case 'toss' :
+			if ( game.stonehewer ) {
+				var avatars = {
+					'momir': 'Momir Vig, Simic Visionary',
+					'jhoira': 'Jhoira of the Ghitu',
+					'stonehewer': 'Stonehewer Giant'
+				}
+				var my = 0
+				for ( var i in avatars ) {
+					var avatar = avatars[i] ;
+					var tk = new Token(id, '', avatar, game.player.battlefield, {'types':['avatar'], 'avatar': i}
+						, '../VOA/'+avatar+'.full.jpg') ;
+					tk.place(22+my++, 0) ;
+				}
+			}
 			message(param.player.name+' won the toss', 'win') ;
 			if ( action.recieved == '0' ) { // Only ask if not previously managed
 				if ( ( ! spectactor ) && ask_for_start(param.player.opponent) ) // Only player who won the toss will enter that if
@@ -277,15 +291,19 @@ function manage_action(action) {
 			break ;
 		// Card actions
 		case 'card' :
-			new Card(id, param.ext, param.name, param.zone, param.attrs) ;
+			var card = new Card(id, param.ext, param.name, param.zone, param.attrs) ;
+			if ( ( param.zone.player == game.player ) && ( game.stonehewer && ! card.is_land() ) )
+				game.stonehewer = false ;
 			break ;
 		case 'mojosto' :
 			var url = card_image_url(param.ext, param.name, param.attrs)
 			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs, url) ;
-			tk.place(0, tk.place_row()) ;
-			tk.mojosto = true ;
-			if ( iss(param.target) )
-				get_card(param.target).attach(tk) ;
+			if ( action.recieved == '0' ) { // Unmanaged
+				$.getJSON('json/action_recieve.php', {action: action.id}) ; // Mark as managed
+				tk.stonehewer_giant() ;
+				if ( iss(param.target) )
+					get_card(param.target).attach(tk) ;
+			}
 			break ;
 		case 'token' :
 			create_token_recieve(id, param.ext, param.name, param.zone, JSON_parse(param.attrs)) ;

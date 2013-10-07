@@ -96,6 +96,8 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 			game.turn.steps[i].refresh() ;
 		resize_window() ;
 	}) ;
+	this.stonehewer = true ;
+	this.nokiou = false ;
 }
 function Player(game, is_top, id, name, avatar, score) { // game as a param as it's not already a global
 	// Methods
