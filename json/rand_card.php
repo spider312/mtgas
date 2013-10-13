@@ -94,6 +94,7 @@ while ( $nb > 0 ) {
 		$card->zone = $zone ;
 		if ( ( $avatar == 'stonehewer' ) && ( $target != null ) )
 			$card->target = $target ;
+		$card->sender = $player_id ;
 		$escaped = addcslashes(json_encode($card), "'\"") ;
 		query("INSERT INTO `action` ( `game`, `sender`, `local_index`, `recieved`, `type`, `param`)
 			VALUES ( '$game', '', ".time().", '0', 'mojosto', '$escaped' );") ;

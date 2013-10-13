@@ -298,7 +298,7 @@ function manage_action(action) {
 		case 'mojosto' :
 			var url = card_image_url(param.ext, param.name, param.attrs)
 			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs, url) ;
-			if ( action.recieved == '0' ) { // Unmanaged
+			if ( ( action.recieved == '0' ) && ( param.sender == player_id ) ) { // Unmanaged
 				$.getJSON('json/action_recieve.php', {action: action.id}) ; // Mark as managed
 				tk.stonehewer_giant() ;
 				if ( iss(param.target) )
