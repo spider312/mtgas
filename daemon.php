@@ -204,6 +204,12 @@ while ( sleep($daemon_delay) !== FALSE ) {
 		}
 	}
 
+	// Tournament don't get too long in "waiting players" mode
+	query("UPDATE `tournament` SET `status` = '0' WHERE `status` = '2' AND TIMESTAMPDIFF(SECOND, `update_date`, NOW()) > $redirect_timeout") ;
+	if ( $log && ( mysql_affected_rows() > 0 ) )
+		echo mysql_affected_rows().' pending games canceled for timeout ('.$redirect_timeout."s)\n" ;
+
+
 	// Do all drafting user checked "ready" ?
 	$query = query("SELECT * FROM `tournament` WHERE `status` = '3' AND `due_time` > NOW() ; ") ;
 	while ( $tournament = mysql_fetch_object($query) ) {
