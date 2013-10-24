@@ -2,29 +2,7 @@
 //ini_set('memory_limit','128M') ;
 include 'lib.php' ;
 include 'includes/db.php' ;
-html_head(
-	'Player data',
-	array(
-		'style.css',
-		'options.css',
-		'player.css'
-	),
-	array(
-		'lib/jquery.js',
-		'lib/jquery.cookie.js',
-		'../variables.js.php',
-		'html.js',
-		'math.js',
-		'image.js',
-		'tournament/lib.js',
-		'options.js',
-		'player_data.js'
-	)
-) ;
-?>
- <body>
-<?php
-html_menu() ;
+
 $get = '' ;
 $initial_player_id = $player_id ;
 if ( array_key_exists('id', $_GET) ) {
@@ -56,7 +34,28 @@ foreach ( $rounds as $round ) {
 	}
 }
 
+html_head(
+	'Player data',
+	array(
+		'style.css',
+		'options.css',
+		'player.css'
+	),
+	array(
+		'lib/jquery.js',
+		'lib/jquery.cookie.js',
+		'../variables.js.php',
+		'html.js',
+		'math.js',
+		'image.js',
+		'tournament/lib.js',
+		'options.js',
+		'player_data.js'
+	)
+) ;
 ?>
+ <body onload="start('<?=$player_id?>')">
+<?php html_menu() ; ?>
   <div class="section">
    <h1>Data for <?php echo join(', ', $self_nicks) ; ?></h1>
    <h2>Duels replay

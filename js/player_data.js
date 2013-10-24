@@ -1,5 +1,6 @@
-$(function() { // On page load
-	player_id = $.cookie(session_id) ;
+function start(pid) {
+	if ( iss(pid) )
+		player_id = pid ;
 	// Delays
 	games_delay = document.getElementById('past_games_delay') ;
 	games_delay.addEventListener('change', function(ev) {
@@ -15,7 +16,7 @@ $(function() { // On page load
 	get_past_games() ;
 	get_past_tournaments() ;
 	options = new Options(true) ;
-}) ;
+}
 function get_past_games() {
 	var past_games = document.getElementById('past_games') ;
 	var no_past_games = document.getElementById('no_past_games') ;
