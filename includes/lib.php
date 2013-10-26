@@ -19,10 +19,13 @@ function message($txt='no text to send') {
 }
 // Debug
 function l($obj) {
-	echo '<pre>'.print_r($obj, true).'</pre>' ;
+	echo '<pre>'.print_r($obj, true).'</pre>';
+}
+function p($obj) {
+	return l($obj);
 }
 function d($obj) {
-	die('<pre>'.print_r($obj, true).'</pre>') ;
+	die(l($obj));
 }
 // Object
 function object() {
