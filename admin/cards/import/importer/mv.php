@@ -103,7 +103,7 @@ foreach ( $matches_list as $match ) { //
 					$rarity = 'L' ;
 				else
 					$rarity = 'C' ; // In doubt
-				$importer->errors['Rarity icon not found'][] = $url ;
+				$importer->adderror('Rarity icon not found', $url) ;
 			}
 		}
 		// Image (scan-lowres / hires)

@@ -75,16 +75,18 @@ class ImportExtension {
 		$this->nbcards = intval($cards) ;
 		echo 'Extension detected : <a href="'.$this->url.'" target="_blank">'."$code - $name</a>\n" ;
 	}
+	function adderror($err, $url) {
+		$this->errors[$err][] = $url ;
+		return false ;
+	}
 	// Card/token parsing
 	function addcard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid='') {
 		// Name checking
 		$name = card_name_sanitize($name) ;
 		$text = card_text_sanitize($text) ;
 		$types = preg_replace('#\s+#', ' ', $types) ;
-		if ( $name == '' ) {
-			$this->errors['Empty name'][] = $card_url ;
-			return null ;
-		}
+		if ( $name == '' )
+			return $this->adderror('Empty name', $card_url) ;
 		// Searching in already imùported cards
 		foreach ( $this->cards as $card )
 			if ( $card->name == $name ) {
@@ -102,7 +104,7 @@ class ImportExtension {
 				return $card ;
 			}
 		// Else it's a new card
-		$card = new ImportCard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid) ;
+		$card = new ImportCard($this, $card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid) ;
 		$this->cards[] = $card ;
 		return $card ;
 	}
@@ -114,8 +116,15 @@ class ImportExtension {
 		// Errors
 		if ( count($this->errors) > 0 ) {
 			echo "Errors : \n" ;
-			foreach ( $this->errors as $i => $error )
-				echo ' - '.$i.' : '.count($error)."\n" ;
+			foreach ( $this->errors as $i => $error ) {
+				echo ' - '.$i.' : '.count($error).' : ' ;
+				foreach ( $error as $j => $url )
+					if ( is_string($url) )
+						echo '<a href="'.$url.'">'.$j.'</a> ' ;
+					else
+						echo '<a href="'.$url->url.'">'.$url->name.'</a> ' ;
+				echo "\n" ;
+			}
 		} else
 			echo "No errors during parsing\n" ;
 
@@ -263,6 +272,7 @@ class ImportExtension {
 	}
 }
 class ImportCard {
+	public $ext = null ;
 	public $url = 'Uninitialized' ;
 	public $urls = array() ;
 	public $rarity = 'N' ;
@@ -274,7 +284,8 @@ class ImportCard {
 	public $nbimages = 0 ; // Different images in current extension
 	public $images = array() ; // Each image in current extension
 	public $langs = array() ;
-	function __construct($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid=0) {
+	function __construct($ext, $card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid=0) {
+		$this->ext = $ext ;
 		$this->url = $card_url ;
 		$this->urls[] = $card_url ;
 		$this->rarity = $rarity ;
@@ -301,20 +312,16 @@ class ImportCard {
 	// Linked data
 	function addurl($url) {
 		foreach ( $this->urls as $card_url )
-			if ( $url == $card_url ) {
-				echo 'URL already added for '.$this->name."\n" ; // Triggered in MV for coloured artifacts, as they are in art + color
-				return false ;
-			}
+			if ( $url == $card_url )
+				return $this->ext->adderror('Empty name', $this) ; // Triggered in MV for coloured artifacts, as they are in art + color
 		$this->urls[] = $url ;
 		return true ;
 
 	}
 	function addimage($url) { // For double faced cards
 		foreach ( $this->images as $image )
-			if ( $url == $image ) {
-				echo 'Image already added for '.$this->name."\n" ; // Triggered in MV for coloured artifacts, as they are in art + color
-				return false ;
-			}
+			if ( $url == $image )
+				return $this->ext->adderror('Image already added', $this) ; // Triggered in MV for coloured artifacts, as they are in art + color
 		$this->images[] = $url ;
 		return true ;
 	}
