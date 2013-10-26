@@ -2,9 +2,8 @@
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 $homedir = substr(`bash -c "echo ~"`, 0, -1) ;
 $base_image_dir = $homedir.'/img/' ;
-
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $cache_life=3600) {
+function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=0/*43200/*12*3600*/) {
 	$message = '' ;
 	clearstatcache() ;
 	rmkdir(dirname($cache_file)) ;
@@ -13,7 +12,10 @@ function cache_get($url, $cache_file, $verbose = true, $cache_life=3600) {
 		$content = @file_get_contents($cache_file) ;
 	} else {
 		$message .= '[update cache : ' ;
-		if ( ( $content = @file_get_contents($url) ) !== FALSE ) {
+		if ( $update && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
+			$message .= 'cache file is already bigger' ;
+			$content = @file_get_contents($cache_file) ;
+		} else if ( ( $content = curl_download($url) ) !== FALSE ) { // @file_get_contents($url)
 			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
 				$message .= 'not updatable ('.$cache_file.')' ;
 			else
@@ -24,6 +26,50 @@ function cache_get($url, $cache_file, $verbose = true, $cache_life=3600) {
 	}
 	if ( $verbose )
 		echo $message ;
+	return $content ;
+}
+function curl_init_custom($url, $verbose = false) {
+	global $curl;
+	if ( isset($curl) ) {
+		if ( $verbose )
+			echo '[use curl instance]' ;
+		curl_setopt($curl, CURLOPT_URL, $url) ;
+	} else {
+		if ( $verbose )
+			echo '[create curl instance]' ;
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_USERAGENT, 'curl@mogg');
+	}
+	return $curl ;
+}
+function curl_get_file_size($url) {
+	// Assume failure.
+	$result = -1;
+	$curl = curl_init_custom($url);
+	// Issue a HEAD request and follow any redirects.
+	curl_setopt($curl, CURLOPT_NOBODY, true);
+	curl_setopt($curl, CURLOPT_HEADER, true);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+	$data = curl_exec($curl);
+	//curl_close($curl);
+	if( $data ) {
+		if( preg_match("/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches) ) {
+			$status = (int)$matches[1];
+			// http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+			if ( ( $status == 200 || ($status > 300 && $status <= 308) )
+			&& preg_match("/Content-Length: (\d+)/", $data, $matches) ) 
+				$result = (int)$matches[1];
+		}
+	}
+	curl_setopt($curl, CURLOPT_NOBODY, false);
+	curl_setopt($curl, CURLOPT_HEADER, false);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
+	return $result;
+}
+function curl_download($url) {
+	$curl = curl_init_custom($url);
+	$content = curl_exec($curl);
 	return $content ;
 }
 function rmkdir($dir) { // mkdir recursively without umask bug
@@ -87,7 +133,7 @@ class ImportExtension {
 		$types = preg_replace('#\s+#', ' ', $types) ;
 		if ( $name == '' )
 			return $this->adderror('Empty name', $card_url) ;
-		// Searching in already imùported cards
+		// Searching in already imported cards
 		foreach ( $this->cards as $card )
 			if ( $card->name == $name ) {
 				$log = '' ;
@@ -216,7 +262,8 @@ class ImportExtension {
 	}
 	function download() {
 		// Dirs
-		global $homedir, $base_image_dir ;
+		$begin = microtime(true) ;
+		global /*$homedir, */$base_image_dir ;
 		$dir = $base_image_dir.'HIRES/'.$this->dbcode.'/' ;
 		if ( ! rmkdir($dir) )
 			return false ;
@@ -230,7 +277,10 @@ class ImportExtension {
 			echo $card->name.' : ' ;
 			foreach ( $card->images as $i => $image ) {
 				$path = $dir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
-				cache_get($image, $path, true) ;
+				//if ( ( ! file_exists($path) ) || ( curl_get_file_size($image) > filesize($path) ) )
+					cache_get($image, $path, true, true) ;
+				//else
+					//echo "No update needed" ;
 			}
 			echo "\n" ;
 			// Languages
@@ -239,7 +289,10 @@ class ImportExtension {
 				foreach ( $images['images'] as $i => $image ) {
 					$path = $langdir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
 					echo " - $lang : " ;
-					cache_get($image, $path, true) ;
+					//if ( curl_get_file_size($image) > filesize($path) )
+						cache_get($image, $path, true, true) ;
+					//else
+						//echo "No update needed" ;
 				}
 				echo "\n" ;
 			}
@@ -256,7 +309,10 @@ class ImportExtension {
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 					}
 			$path = $tkdir.$name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-			cache_get($token['image_url'], $path, true) ;
+			if ( curl_get_file_size($image) > filesize($path) )
+				cache_get($token['image_url'], $path, true) ;
+			else
+				echo "No update needed" ;
 			echo "\n" ;
 		}
 		// Thumbnailing
@@ -267,7 +323,7 @@ class ImportExtension {
 		umask($oldumask) ;
 		*/
 		umask($oldumask) ;
-		echo "\n".'Finished (think about thumbnailing)' ;
+		echo "\n".'Finished in '.(microtime(true)-$begin).' (think about thumbnailing)' ;
 		return true ;
 	}
 }
@@ -309,6 +365,9 @@ class ImportCard {
 		$this->addtext("-----\n$name\n%$ci $types\n$text") ;
 		$this->addimage($url) ;
 	}
+	function addtext($add) {
+		$this->text .= "\n".card_text_sanitize($add) ;
+	}
 	// Linked data
 	function addurl($url) {
 		foreach ( $this->urls as $card_url )
@@ -324,9 +383,6 @@ class ImportCard {
 				return $this->ext->adderror('Image already added', $this) ; // Triggered in MV for coloured artifacts, as they are in art + color
 		$this->images[] = $url ;
 		return true ;
-	}
-	function addtext($add) { // For all multiple cards (split, flip, double face)
-		$this->text .= "\n".card_text_sanitize($add) ;
 	}
 	function setlang($code, $name, $url) { // Add language data for current card, overwriting all data for that card/lang
 		$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;

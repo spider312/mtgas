@@ -208,13 +208,15 @@ foreach ( $actions as $i => $action ) {
 		$names[] = $card->name ;
 	echo '<p title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
 }
-$_SESSION['importer'] = $importer ;
 ?>
 
   </div>
 
   <div class="section">
    <h2>Pics</h2>
+<?php
+$_SESSION['importer'] = $importer ; // May need to comment 'session_name()' in /lib.php
+?>
    <a href="images.php" target="img_dl">Download</a><br>
    <iframe name="img_dl" class="fullwidth">
    </iframe>
