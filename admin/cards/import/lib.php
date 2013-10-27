@@ -3,7 +3,7 @@ include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 $homedir = substr(`bash -c "echo ~"`, 0, -1) ;
 $base_image_dir = $homedir.'/img/' ;
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=0/*43200/*12*3600*/) {
+function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
 	clearstatcache() ;
 	rmkdir(dirname($cache_file)) ;
@@ -232,6 +232,9 @@ class ImportExtension {
 			echo "Changes won't be applied\n" ;
 		}
 		// Cards
+		$toupdate = array() ;
+		$toinsert = array() ;
+		$langok = array() ;
 		foreach ( $this->cards as $card ) {
 			$card = $card->import($apply) ;
 			$card['action'] = 'nothing' ;
@@ -257,7 +260,35 @@ class ImportExtension {
 					$card['action'] = 'to insert' ;
 			}
 			$result[] = $card ;
+			// Languages
+			foreach ( $card_obj->langs as $code => $lang ) {
+				if ( array_key_exists('name', $lang) )
+					$localname = $lang['name'] ;
+				else
+					continue ; // Un-expected charsets
+				$query = query("SELECT * FROM `cardname` WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
+				if ( $res = mysql_fetch_object($query) ) {
+					if ( $res->card_name != $localname )
+						$toupdate[] = $code.' : '.$res->card_name.' -> '.$localname ;
+					else
+						$langok[] = $code.' : '.$localname ;
+				} else {
+					$toinsert[] = $code.' : '.$localname ;
+					if ( $apply ) {
+						$query = query("INSERT INTO `mtg`.`cardname` (`card_id`, `lang` ,`card_name`) VALUES ('$card_id', '$code', '".mysql_real_escape_string($localname)."');") ;
+						if ( ! $query )
+							die('Lang not inserted') ;
+					}
+				}
+			}
 		}
+		echo "\n" ;
+		if ( count($langok) > 0 )
+			echo count($langok).' translations ok'."\n" ;
+		if ( count($toupdate) > 0 )
+			echo count($toupdate).' translations needs to be updated'."\n" ;
+		if ( count($toinsert) > 0 )
+			echo count($toinsert).' translations inserted'."\n" ;
 		return $result ;
 	}
 	function download() {

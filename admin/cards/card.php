@@ -140,6 +140,8 @@ while ( $arr_ext = mysql_fetch_array($query) ) {
 	}
 	$ext[$tmp['se']] = $tmp ;
 }
+// Languages
+$langs = query_as_array("SELECT * FROM cardname WHERE card_id = $id");
 ?>
   <a href="http://magiccards.info/query?q=!<?php echo $card_bdd['name'] ?>&v=card&s=cname">View on MCI</a>
   <table>
@@ -202,7 +204,17 @@ if ( isset($json->transformed_attrs) ) {
     <input type="hidden" name="card_id" value="<?php echo $card_bdd['id'] ; ?>">
     <tr>
      <th>Name</th>
-     <td><input type="text" name="card_name" size="80" value="<?php echo $card_bdd['name'] ; ?>"></td>
+     <td>
+      <input type="text" name="card_name" size="80" value="<?php echo $card_bdd['name'] ; ?>">
+<?php
+if ( count($langs) > 0 ) {
+	echo '      <ul>'."\n";
+	foreach ( $langs as $lang )
+		echo '       <li>'.$lang->lang.' : '.$lang->card_name.'</li>'."\n";
+	echo '      </ul>'."\n";
+}
+?>
+     </td>
     </tr>
     <tr>
      <th>Cost</th>
