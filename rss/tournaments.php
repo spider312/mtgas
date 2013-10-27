@@ -20,20 +20,21 @@ $query = query("SELECT id, name, type, creation_date FROM `tournament` WHERE `mi
 while ( $row = mysql_fetch_object($query) ) {
 	// List this tournament's registered players
 	$players = query_as_array("SELECT nick FROM `registration` WHERE `tournament_id`='".$row->id."' ; ") ;
-	$players_names = array() ;
-	if ( count($players) > 0 )
+	$with = '' ;
+	if ( count($players) > 0 ) {
+		$players_names = array() ;
 		foreach ( $players as $player )
 			$players_names[] = $player->nick ;
-	else
-		$players_names[] = 'nobody' ;
+		$with = ' with '.implode(', ',$players_names) ;
+	}
 	// Display item
 ?>
 		<item>
 			<guid><?php echo $row->id ; ?></guid>
 			<pubDate><?php echo date("D, d M Y H:i:s", strtotime($row->creation_date)); ?></pubDate>
-			<title><?php echo $row->type . ' ' . $row->name . ' with ' . implode(', ',$players_names) . ' (#' . $row->id . ')' ; ?></title>
+			<title><?php echo $row->type . ' ' . $row->name . $with . ' (#' . $row->id . ')' ; ?></title>
 			<link><?php echo $url . '/tournament/?id='.$row->id  ; ?></link>
-			<description><?php echo $row->type . ' ' . $row->name . ' with ' . implode(', ',$players_names) ; ?></description>
+			<description><?php echo $row->type . ' ' . $row->name . $with ; ?></description>
 		</item>
 <?php
 }
