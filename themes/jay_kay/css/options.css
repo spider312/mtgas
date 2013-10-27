@@ -49,11 +49,11 @@
 	padding: 1px ;
 	padding-right: 5px ;
 }
-#options_tabs li:not(.selected):hover {
+#options_tabs li:not(.option_selected):hover {
 	cursor: pointer ;
 	background-color: rgba(0, 0, 0, 0.2) ;
 }
-#options_tabs li.selected {
+#options_tabs li.option_selected {
 	cursor: default ;
 	background-color: rgba(0, 0, 0, 0.2) ;
 	font-weight: bold ;

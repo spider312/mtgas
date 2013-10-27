@@ -248,9 +248,9 @@ function Options(check_id) {
 		var lis = document.getElementById('options').firstElementChild.children ;
 		for ( var i = 0 ; i < lis.length ; i++ )
 			if ( lis[i].textContent == tab )
-				lis[i].classList.add('selected') ;
+				lis[i].classList.add('option_selected') ;
 			else
-				lis[i].classList.remove('selected') ;
+				lis[i].classList.remove('option_selected') ;
 		// Resize option window
 		this.resize() ;
 	}
