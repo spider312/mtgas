@@ -12,7 +12,7 @@ function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_lif
 		$content = @file_get_contents($cache_file) ;
 	} else {
 		$message .= '[update cache : ' ;
-		if ( $update && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
+		if ( $update && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
 			$message .= 'cache file is already bigger' ;
 			$content = @file_get_contents($cache_file) ;
 		} else if ( ( $content = curl_download($url) ) !== FALSE ) { // @file_get_contents($url)
@@ -276,23 +276,17 @@ class ImportExtension {
 		foreach ( $this->cards as $card ) {
 			echo $card->name.' : ' ;
 			foreach ( $card->images as $i => $image ) {
-				$path = $dir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
-				//if ( ( ! file_exists($path) ) || ( curl_get_file_size($image) > filesize($path) ) )
-					cache_get($image, $path, true, true) ;
-				//else
-					//echo "No update needed" ;
+				$path = $dir.card_img_by_name($card->name, $i+1, count($card->images)) ;
+				cache_get($image, $path, true, true) ;
 			}
 			echo "\n" ;
 			// Languages
 			foreach ( $card->langs as $lang => $images ) {
 				$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
+				echo " - $lang : " ;
 				foreach ( $images['images'] as $i => $image ) {
-					$path = $langdir.$card->name.((count($card->images) > 1)?($i+1):'').'.full.jpg' ;
-					echo " - $lang : " ;
-					//if ( curl_get_file_size($image) > filesize($path) )
-						cache_get($image, $path, true, true) ;
-					//else
-						//echo "No update needed" ;
+					$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
+					cache_get($image, $path, true, true) ;
 				}
 				echo "\n" ;
 			}
@@ -385,10 +379,11 @@ class ImportCard {
 		return true ;
 	}
 	function setlang($code, $name, $url) { // Add language data for current card, overwriting all data for that card/lang
-		$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
-	}
-	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
-		$this->langs[$code] = array('images' => array($url)) ;
+		if ( isset($this->langs[$code]) ) {
+			$this->langs[$code]['name'] = $name ;
+			$this->addlangimg($code, $url) ;
+		} else
+			$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
 	}
 	function addlang($code, $name, $url=null) {
 		if ( isset($this->langs[$code]) ) {
@@ -397,6 +392,12 @@ class ImportCard {
 				$this->langs[$code]['images'][] = $url ;
 		} else
 			$this->setlang($code, $name, $url) ;
+	}
+	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
+		if ( ! isset($this->langs[$code]) )
+			$this->langs[$code] = array('images' => array($url)) ;
+		else
+			$this->langs[$code]['images'][] = $url ;
 	}
 	function attrs() {
 		$arr = array('name' => $this->name, 'cost' => $this->cost, // Needed for attrs
