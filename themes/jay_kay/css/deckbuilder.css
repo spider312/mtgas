@@ -5,22 +5,95 @@
  | results | +---------+ |      | | stats |
  +---------+             +------+ +-------+
 */
+/* Onload animation */
+body.hideh1 h1.hideable {
+	transition: all 2s ;
+	height: 0 ;
+	margin: 0 ;
+	border-width: 0 ;
+	box-shadow: 0 0 0 0 transparent ;
+	font-size: 0 ;
+}
+td {
+	height: 20px ;
+	overflow: hidden ;
+	white-space:nowrap;
+}
+#decksection h1 {
+	transition-delay: 2s ;
+}
+#infos h1 {
+	transition-delay: 4s ;
+}
+#stats h1 {
+	transition-delay: 6s ;
+}
 /* Common */
-#search, #decksection, #infos {
-	top: 30px ;
-	width: 300px ;
-	height: 90% ;
+#search, #builder_buttons, #decksection, #infos, #stats, #log {
+	float: left;
 	margin: 20px ;
-	overflow: auto ;
+	margin-right: 0 ;
+	padding: 5px ;
+	overflow: hidden ;
 }
+#search, #decksection {
+	height: 90% ;
+}
+/* Search */
+#search {
+	width: 250px ;
+}
+#builder_buttons {
+	padding: 20px ;
+}
+/* Deck*/
 #decksection {
-	width: 350px ;
+	/*width: 350px ;*/
 }
+/* Infos */
+#infos {}
+/* Stats*/
+#stats {
+	width: 200px ;
+}
+
+/* Inside Search */
+#advanced_search {
+	width: 16px;
+	height: 16px;
+	background: url(../deckbuilder/layer_novisible.png) top left no-repeat ;
+	display: inline-block ;
+	cursor: help ;
+}
+#advanced_search.checked {
+	background: url(../deckbuilder/layer_visible.png) top left no-repeat ;
+}
+#search button {
+	padding: 0 ;
+}
+/* Inside Buttons */
+#builder_buttons button, #search input[type=submit] {
+	cursor: pointer ;
+}
+
+#builder_buttons>ul {
+	list-style-type: none;
+	padding: 0;
+}
+/* Inside Deck */
+#sideboard {
+	background-color: #8e7560 ;
+}
+/* Inside Infos */
+#zoom {
+	cursor:	zoom-in ;
+}
+/* Misc */
 .section table {
 	width: 98% ;
 	margin: 1% ;
 }
-.section tr {
+.section td {
 	cursor: pointer ; /* All table lines seems clickable*/
 }
 option {
@@ -32,23 +105,7 @@ option {
 tr:hover {
 	background-color: Tan ;
 }
-/* Search */
-#search {
-	position: absolute ;
-	left: 0 ;
-}
-#advanced_search {
-	width: 16px;
-	height: 16px;
-	background: url(../deckbuilder/layer_novisible.png) top left no-repeat ;
-	display: inline-block ;
-}
-#advanced_search.checked {
-	background: url(../deckbuilder/layer_visible.png) top left no-repeat ;
-}
-#search button {
-	padding: 0 ;
-}
+
 /* Buttons */
 .buttonlist {
 	text-align: right ;
@@ -75,18 +132,6 @@ td.buttonlist, td.nopadding {
 .buttonlist img:hover {
 	background-color: black ;
 }
-#builder_buttons {
-	position: fixed ;
-	left: 330px ;
-	top: 100px ;
-	width: 50px ;
-	padding: 20px ;
-}
-/* Deck*/
-#decksection {
-	position: absolute ;
-	left: 410px ;
-}
 .comment {
 	background-color: #907c6c ;
 	font-style: italic ;
@@ -95,31 +140,7 @@ td.buttonlist, td.nopadding {
 .selected {
 	box-shadow: 0px 0px 10px 1px red;
 }
-#sideboard {
-	background-color: #8e7560 ;
-}
-/* Infos */
-#infos {
-	position: absolute ;
-	left: 770px ;
-}
-#zoom {
-	width: 250px ;
-	margin-left: 25px ;
-}
-#stats_leftcol, #stats_rightcol {
-	padding: 0 ;
-	position: absolute ;
-	bottom: 0 ;
-	width: 145px ;
-}
-#stats_rightcol {
-	left: 150px ;
-}
 #log {
-	position: absolute ;
-	left: 1100px ;
-	top: 30px ;
 	width: 500px ;
 	height: 500px ;
 }

@@ -1,10 +1,50 @@
 function load(body, deckname) {
-	options = new Options(true) ;
+	// Init
 	selected = null ;
 	selected_deck = null ;
-	game = new Object() ;
+	game = {}
+	game.options = new Options(true) ;
 	game.image_cache = new image_cache() ;
-	if ( deckname != '' ) { // If a deck was passed in param, parse it and fill card list with its data
+	// Fill languages list
+	language = document.getElementById('language') ;
+	deck_language = document.getElementById('deck_language') ;
+	for ( i in langs ) {
+		var option = create_option(langs[i], i) ;
+		var deck_option = create_option(langs[i], i) ;
+		language.appendChild(option) ;
+		deck_language.appendChild(deck_option) ;
+		if ( i == game.options.get('lang') ) {
+			option.selected = true ;
+			deck_option.selected = true ;
+		}
+	}
+	deck_language.addEventListener('change', function(ev) {
+		var decklist = document.getElementById('maindeck') ;
+		for ( var i = 0 ; i < decklist.rows.length ; i++ ) { 
+			var row = decklist.rows[i] ;
+			if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
+				jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value}, function(data, b, c) {
+					var row = null
+					for ( var i = 0 ; i < decklist.rows.length ; i++ )
+						if ( decklist.rows[i].card == data.name )
+							row = decklist.rows[i] ;
+					if ( row == null )
+						return false ;
+					node_empty(row.cells[2]) ;
+					var name = data.name ;
+					if ( iss(data.card_name) ) {
+						name = data.card_name ;
+						row.card_name = data.card_name ;
+					} else 
+						delete row.card_name ;
+					row.cells[2].appendChild(document.createTextNode(name)) ;
+				}) ;
+			}
+		}
+
+	}, false)
+	// If a deck was passed in param, parse it and fill card list with its data
+	if ( deckname != '' ) {
 		var initial_deck_content = deck_get(deckname) ;
 		if ( initial_deck_content == '' )
 			initial_deck_content = '// NAME : '+deckname ;
@@ -41,6 +81,10 @@ function load(body, deckname) {
 	} else
 		deck_stats() ;
 	// Bind events to HTML
+	window.addEventListener('keyup', function(ev) {
+		if ( ( ev.keyCode == ev.DOM_VK_L ) && ev.ctrlKey )
+			document.getElementById('log').classList.toggle('hidden') ;
+	}, false) ;
 	window.addEventListener('beforeunload', function(ev) {
 		if ( changed ) {
 			ev.returnValue = 'Modifications have been to your deck since last save, are you sure you want to quit without saving ?' ;
@@ -69,8 +113,6 @@ function load(body, deckname) {
 			var item = ev.target.elements.item(i) ;
 			params[item.name] = item.value ;
 		}
-		for ( var i = 0 ; i < ev.target.page.length ; i++ )
-			log2(ev.target.page[i]) ;
 		search(params) ;
 		ev.preventDefault() ;
 	}, false) ;
@@ -90,7 +132,7 @@ function load(body, deckname) {
 			node = select_deck(add_card(selected.ext(), selected.card.name, selected.attrs.nb, 1)) ;
 		else 
 			if ( selected_deck != null )
-				node = select_deck(add_card(selected_deck.ext, selected_deck.card, null, 1)) ;
+				node = select_deck(add_card(selected_deck.ext(), selected_deck.card, null, 1)) ;
 			else
 				alert('Please select a card') ;
 		if ( ( node != null ) && ( sel != null ) )
@@ -103,7 +145,7 @@ function load(body, deckname) {
 			node = select_deck(add_card(selected.ext(), selected.card.name, selected.attrs.nb, 1, 'sideboard')) ;
 		else 
 			if ( selected_deck != null )
-				node = select_deck(add_card(selected_deck.ext, selected_deck.card, null, 1, 'sideboard')) ;
+				node = select_deck(add_card(selected_deck.ext(), selected_deck.card, null, 1, 'sideboard')) ;
 			else
 				alert('Please select a card') ;
 		if ( ( node != null ) && ( sel != null ) )
@@ -164,10 +206,40 @@ function load(body, deckname) {
 		sort_deck(document.getElementById('maindeck')) ;
 		sort_deck(document.getElementById('sideboard')) ;
 	}, false) ;
+	var zoom = document.getElementById('zoom')
+	zoom.width = 200 ;
+	zoom.addEventListener('contextmenu', eventStop, false) ;
+	zoom.addEventListener('mousedown', function(ev) {
+		switch ( ev.button ) {
+			case 0 : // Left click : zoom in
+				if ( this.width <= this.naturalWidth - 50 )
+					this.width += 50 ;
+				else
+					this.width = this.naturalWidth ;
+				break ;
+			case 2 : // Right click : zoom out
+				if ( this.width > 100 )
+					this.width -= 50 ;
+				else
+					this.width = 100 ;
+				break ;
+			case 1 : // Middle click : open on mci
+				if ( iss(this.card) )
+					window.open('http://magiccards.info/query?q=!'+this.card+'&v=card&s=cname') ;
+				break ;
+			default:
+				alert('Unknown button '+ev.button) ;
+		}
+		return eventStop(ev) ;
+	}, false) ;
 	// Ajax events
 	jQuery('#log').ajaxError(function(ev, req, options, error){
 		ev.target.value += req.responseText + '\n' ;
 	}) ;
+	// Delayed effect
+	/*setTimeout(function() {
+		document.body.classList.add('hideh1') ;
+	}, 1000) ;*/
 }
 function sort_deck(deck) {
 	var rows = [] ; // Work on a copy containing only cards
@@ -296,6 +368,8 @@ function zoom(ext, card, attrs) {
 	return game.image_cache.load(card_images(url), function(img, card) {
 		if ( zoom.card == card )
 			zoom.src = img.src ;
+		if ( zoom.width > img.naturalWidth )
+			zoom.width = img.naturalWidth ;
 		// Otherwise zoom has "timeout"
 	}, function(card, url) {
 		log(card+' : '+url) ;
@@ -358,10 +432,9 @@ function deck_stats() {
 				cards.push({'attrs' : row.rattrs}) ;
 		}
 	}
-	var tl = document.getElementById('stats_typelist') ;
-	node_empty(tl) ;
-	tl.appendChild(create_text(cards.length+' cards')) ;
 	deck_stats_cc(cards) ;
+	var tl = document.getElementById('stats_color') ;
+	tl.insertBefore(create_text(cards.length+' cards'), tl.firstChild) ;
 }
 function deck_loaded(table) {
 	var decklist = document.getElementById(table) ;
@@ -413,7 +486,7 @@ function extension_select(card, orig_ext, orig_attrs) {
 	}
 	switch ( pics.length ) { // Finding ext to display
 		case 0 :
-			log('Got 0 pics on ext request') ;
+			alert('Got 0 pics on ext request for '+card) ;
 			break ;
 		case 1 : // 1 ext, just display it
 			var ext = card.ext[0].se ;
@@ -448,6 +521,7 @@ function extension_select(card, orig_ext, orig_attrs) {
 				}, false) ;
 				ext.add(opt, null);
 			}
+			ext.title = ext[ext.selectedIndex].title ;
 	}
 	return ext ;
 }
@@ -522,10 +596,14 @@ function found(data) {
 		var card = cards[i] ;
 		var ext = extension_select(card) ; // Returns a string for one ext or a select for multiple exts
 		// Create line
-		row = create_tr(cardlist, ext, card.name) ;
-		if ( iss(ext) )
+		var name = card.name ;
+		if ( iss(card.card_name) )
+			name = card.card_name ;
+		row = create_tr(cardlist, ext, name) ;
+		if ( iss(ext) ) {
 			row.cells[0].classList.remove('nopadding') ;
-		else
+			row.cells[0].title = card.ext[0].name ;
+		} else
 			row.cells[0].classList.add('nopadding') ;
 		k++ ;
 		// Link card
@@ -647,7 +725,7 @@ function add_card(ext, name, num, nb, to) {
 	buttons.appendChild(img_button('button_cancel', 'Remove all', function(ev) { remove_card(row) ; })) ;
 	buttons.parentNode.classList.add('buttonlist') ;
 	// Ask server info about it
-	jQuery.getJSON('json/card.php', {'name': name}, function(data) {
+	jQuery.getJSON('json/card.php', {'name': name, 'lang': deck_language.value}, function(data) {
 		// Search given extension in list returned by server
 		var i = 0 ; // By default, take first extension in list if given extension doesn't exists for this card
 		if ( ! data.name )
@@ -664,6 +742,7 @@ function add_card(ext, name, num, nb, to) {
 				if ( iss(ext) ) {
 					row.cells[1].appendChild(document.createTextNode(ext)) ;
 					row.cells[1].classList.remove('nopadding') ;
+					row.cells[1].title = data.ext[0].name ;
 				} else {
 					row.cells[1].appendChild(ext) ;
 					row.cells[1].classList.add('nopadding') ;
@@ -671,7 +750,12 @@ function add_card(ext, name, num, nb, to) {
 				// Manage name (in case it's not exactly the same in deck file and in DB)
 				node_empty(row.cells[2]) ;
 				row.card = data.name ;
-				row.cells[2].appendChild(document.createTextNode(row.card)) ;
+				var name = data.name ;
+				if ( iss(data.card_name) ) {
+					name = data.card_name ;
+					row.card_name = data.card_name ;
+				}
+				row.cells[2].appendChild(document.createTextNode(name)) ;
 			}
 		}
 		if ( data.attrs ) {
@@ -680,8 +764,11 @@ function add_card(ext, name, num, nb, to) {
 		}
 	}) ;
 	row.search = function() {
-		search({'name': this.card}) ;
-		document.getElementById('cardname').value = this.card ;
+		var name = this.card ;
+		if ( iss(this.card_name) )
+			name = this.card_name ;
+		search({'name': name, 'lang': language.value}) ;
+		document.getElementById('cardname').value = name ;
 	}
 	// Events
 	row.addEventListener('mouseover', function(ev) {
@@ -696,11 +783,13 @@ function add_card(ext, name, num, nb, to) {
 			select_deck(ev.target) ;
 	}, false ) ;
 	row.addEventListener('dblclick', function(ev) {
-		node_parent_search(ev.target, 'TR').search() ;
+		//node_parent_search(ev.target, 'TR').search() ;
+		remove_card(this, -1) ;
 	}, false ) ;
 	row.addEventListener('contextmenu', function(ev) {
 		var menu = new menu_init(row) ;
-		menu.addline('Search (dblclick)', row.search) ;
+		menu.addline('Search', row.search) ;
+		menu.addline('Add one', remove_card, row, -1) ;
 		menu.addline('Remove one', remove_card, row, 1) ;
 		menu.addline('Remove all', remove_card, row) ;
 		if ( row.parentNode == document.getElementById('maindeck') )

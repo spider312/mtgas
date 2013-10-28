@@ -1,39 +1,62 @@
 <?php
 // === [ DATABASE ] ============================================================
 function card_search($get, $connec=null) {
+	$data = new simple_object() ;
 	if ( isset($get['page']) ) {
-		$page = intval($get['page']) ;
+		$data->page = intval($get['page']) ;
 		unset($get['page']) ;
 	} else
-		$page = 1 ;
+		$data->page = 1 ;
 	if ( isset($get['limit']) ) {
-		$limit = intval($get['limit']) ;
+		$data->limit = intval($get['limit']) ;
 		unset($get['limit']) ;
 	} else
-		$limit = 30 ;
-	$from = ($page-1)*$limit ;
-	$mode = 'exact' ;
+		$data->limit = 30 ;
+	$from = ($data->page-1)*$data->limit ;
 	$select = 'SELECT * FROM `card` ' ;
 	$order = ' ORDER BY `card`.`name`' ;
-	$result = query($select.get2where($get, 'LIKE', '', '').$order, 'Card listing', $connec) ; // First, search exactly
-	if ( mysql_num_rows($result) == 0 ) { // No results
-		$mode = 'begin' ;
-		$result = query($select.get2where($get, 'LIKE', '', '%').$order, 'Card listing', $connec) ; // Search by begin of word
-		if ( mysql_num_rows($result) == 0 ) { // No results
-			$mode = 'whole' ;
-			$result = query($select.get2where($get, 'LIKE', '%', '%').$order, 'Card listing', $connec) ; // Search part of word
+	$where = '' ;
+	if ( isset($get['lang']) ) {
+		if ( $get['lang'] == 'en' )
+			unset($get['lang']) ;
+		else {
+			$data->lang = $get['lang'] ;
+			$select = 'SELECT * FROM `card` LEFT JOIN `cardname`
+			ON `card`.`id` = `cardname`.`card_id`' ;
+			$order = ' ORDER BY `cardname`.`card_name`' ;
+			//$where = " AND ( `cardname`.`card_name` LIKE '%".mysql_real_escape_string($get['name'])."%' 
+			//OR `card`.`name` LIKE '%".mysql_real_escape_string($get['name'])."%')" ;
+			$get['card_name'] = $get['name'] ;
+			unset($get['name']) ;
 		}
 	}
-	$data = new simple_object() ;
-	$data->mode = $mode ;
+	// First, search exactly
+	//d($select.get2where($get, 'LIKE', '%', '%').$where.$order) ;
+	/*
+	$data->mode = 'exact' ;
+	$result = query($select.get2where($get, 'LIKE', '', '').$where.$order, 'Card listing', $connec) ;
+	if ( mysql_num_rows($result) == 0 ) { // No results
+		$data->mode = 'begin' ;
+		// Search by begin of word
+		$result = query($select.get2where($get, 'LIKE', '', '%').$where.$order, 'Card listing', $connec) ;
+		if ( mysql_num_rows($result) == 0 ) { // No results*/
+			$data->mode = 'whole' ;
+			// Search part of word
+			$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
+		/*
+	}*/
 	$data->num_rows = mysql_num_rows($result) ;
-	$data->page = $page ;
-	$data->limit = $limit ;
 	$data->cards = array() ;
 	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )
 		$from-- ;
-	while ( ( $obj = mysql_fetch_object($result) ) && ( count($data->cards) < $limit ) ) {
-		$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics FROM card_ext, extension WHERE card_ext.nbpics != 0 AND card_ext.card = '".$obj->id."' AND card_ext.ext = extension.id ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
+	while ( ( $obj = mysql_fetch_object($result) ) && ( count($data->cards) < $data->limit ) ) {
+		$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics
+				FROM card_ext, extension
+				WHERE
+					card_ext.nbpics != 0 AND
+					card_ext.card = '".$obj->id."' AND
+					card_ext.ext = extension.id
+				ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
 		$obj->ext = array() ;
 		while ( $obj_ext = mysql_fetch_object($query) )
 			$obj->ext[] = $obj_ext ;
@@ -87,14 +110,14 @@ function card_name_sanitize($name) {
 	$name = str_replace(chr(246), 'o', $name) ;
 	$name = str_replace(chr(251), 'u', $name) ; // û from Lim-Dul's Vault
 	// MCI
-	$name = str_replace('á', 'a', $name) ;
+	$name = str_replace(array('â', 'á'), 'a', $name) ;
 	$name = str_replace('é', 'e', $name) ;
 	$name = str_replace('í', 'i', $name) ;
 	$name = str_replace('ö', 'o', $name) ;
-	$name = str_replace('ú', 'u', $name) ;
-	$name = str_replace('û', 'u', $name) ;
+	$name = str_replace(array('ú', 'û'), 'u', $name) ;
 	$name = str_replace('Æ', 'AE', $name) ;
 	//$name = str_replace("'", '‘', $name) ;
+	$name = str_replace(array('“', '”'), '"', $name) ;
 	return $name ;
 }
 function card_text_sanitize($text) {
