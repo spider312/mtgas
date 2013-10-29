@@ -110,7 +110,7 @@ function card_name_sanitize($name) {
 	$name = str_replace(chr(246), 'o', $name) ;
 	$name = str_replace(chr(251), 'u', $name) ; // û from Lim-Dul's Vault
 	// MCI
-	$name = str_replace(array('â', 'á'), 'a', $name) ;
+	$name = str_replace(array('â', 'á', 'à'), 'a', $name) ;
 	$name = str_replace('é', 'e', $name) ;
 	$name = str_replace('í', 'i', $name) ;
 	$name = str_replace('ö', 'o', $name) ;

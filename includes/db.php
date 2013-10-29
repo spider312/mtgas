@@ -16,7 +16,6 @@ function query_oneshot($query, $name='Query', $conn=null) {
 		$nb = mysql_num_rows($result) ;
 	if ( $nb != 1 )
 		return null ;
-		//die("$name returned $nb rows") ;
 	if ( $row = mysql_fetch_object($result) )
 		return $row ;
 	else

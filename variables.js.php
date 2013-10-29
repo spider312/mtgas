@@ -38,31 +38,17 @@ if ( a_lang.length == 2 ) // fr-FR
 	var variant = a_lang[1].toLowerCase() ;*/
 ?>
 
-// Application languages
-applangs = {} ;
-<?php
-foreach ( scandir($localedir) as $dir )
-	if ( ( $dir != '.' ) && ( $dir != '..' ) )
-		echo "applangs['$dir'] = '$dir' ; \n" ;
-?>
-if ( applangs[lang] )
-	applang = lang ;
-else
-	applang = 'en' ;
-
 // Images languages
 langs = {} ;
 <?php
 foreach ( $langs as $code => $lang ) 
 	echo "langs['$code'] = '$lang' ; \n" ;
 ?>
-
 // Images default
 if ( ( lang != 'en' ) && ( langs[lang] ) ) // Browser's language exists in languages
 	cardimages_default_lang = 'http://img.mogg.fr/'+lang.toUpperCase()+'/'
 else
 	cardimages_default_lang = cardimages_default ;
-
 
 	// Card images
 cardimages_choice = {} ;
@@ -70,6 +56,19 @@ cardimages_choice = {} ;
 foreach ( $cardimages_choice as $choice_name => $choice_url ) 
 	echo "cardimages_choice['$choice_url'] = '$choice_name' ; \n" ;
 ?>
+
+// Application languages
+applangs = {} ;
+<?php
+foreach ( scandir($localedir) as $dir )
+	if ( ( $dir != '.' ) && ( $dir != '..' ) )
+		echo "applangs['$dir'] = langs['$dir'] ; \n" ;
+?>
+if ( applangs[lang] )
+	applang = lang ;
+else
+	applang = 'en' ;
+
 
 // Index
 draft_formats = <?php echo JSON_encode($suggest_draft) ; ?> ;
