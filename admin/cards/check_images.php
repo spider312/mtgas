@@ -5,9 +5,12 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
-	)
+	), 
+	array('html.js')
 ) ;
-$url = param($_GET, 'url', '/home/hosted/mogg/img/HIRES/') ;
+$baseimagedir = '/home/hosted/mogg/img/' ;
+$dir = param($_GET, 'dir', 'HIRES') ;
+$url = $baseimagedir.$dir.'/' ;
 $repair = param($_GET, 'repair', '') ;
 $base = intval(param($_GET, 'base', '0')) ;
 function scan($dir) {
@@ -34,7 +37,18 @@ html_menu() ;
    <h1>Comparison between cards images and database's ones</h1>
    <a href="../">Return to admin</a>
    <form>
-    <input type="text" name="url" value="<?php echo $url ; ?>">
+    <select name="dir" onchange="this.form.submit()">
+<?php
+foreach ( scandir($baseimagedir) as $rep )
+	if ( ( substr($rep, 0, 1) != '.' ) && ( array_search($rep, array('scrot', 'VOA')) === false ) ) {
+		if ( $dir == $rep )
+			$selected = 'selected="selected" ' ;
+		else
+			$selected = '' ;
+		echo '     <option value="'.$rep.'"'.$selected.'>'.$rep.'</option>'."\n" ;
+	}
+?>
+    </select>
     <label>
      <input type="checkbox" name="base" value="1" <?php if ( $base ) echo ' checked' ; ?>>
      Keep only base editions and extensions
@@ -48,7 +62,7 @@ html_menu() ;
      <th>Nb img</th>
      <th>Missing images</th>
      <th>Missing cards</th>
-     <th>Filder / mean size</th>
+     <th>Folder / mean size</th>
     </tr>
 <?
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
@@ -115,7 +129,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$mcicode = strtolower($mcicode) ;
 	echo '      <td><a href="http://magiccards.info/'.$mcicode.'/en.html">'.$arr['se'].'</a></td>'."\n" ;
 	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'">'.$nbcards.'</a></td>'."\n" ;
-	echo '      <td><a href="http://img.mogg.fr/MIDRES/'.$arr['se'].'">'.$nbimages.'</a></td>'."\n" ;
+	echo '      <td><a href="http://img.mogg.fr/'.$dir.'/'.$arr['se'].'">'.$nbimages.'</a></td>'."\n" ;
 	echo '      <td>'."\n" ;
 	if ( count($unimagedcards) > 0 ) {
 		echo '       <ul><a title="See folder" href="'.$url.'/'.$arr['se'].'">'."\n" ;

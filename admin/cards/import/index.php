@@ -91,7 +91,8 @@ if ( ! $importer->validate() ) {
       <th>Types</th>
       <th>Images</th>
       <th>URL</th>
-      <th>MultiverseID
+      <th>MultiverseID</th>
+      <th>Langs</th>
      </tr>
 <?php
 foreach ( $importer->cards as $i => $card ) {
@@ -110,6 +111,7 @@ foreach ( $importer->cards as $i => $card ) {
 		echo '<li><a href="'.$image.'" target="_blank">'.$image.'</a></li>' ;
 	echo '</td>
       <td>'.$card->multiverseid.'</td>
+      <td>'.count($card->langs).' : '.implode(', ', array_keys($card->langs)).'</td>
      </tr>
 ' ;
 }
@@ -172,9 +174,6 @@ foreach ( $import_log as $i => $log ) {
       <td>'.$log['found'].'</td>
       <td>' ;
 		foreach ( $log['updates'] as $field => $upd ) {
-			//echo $field.' : ['.$upd.'] -> ['.$card->{$field}.']' ;
-			//echo $field.'<textarea cols="50" rows="5">'.$upd.'</textarea>->' ;
-			//echo '<textarea cols="50" rows="5">'.$card->{$field}.'</textarea>' ;
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
 			echo '<strong>'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
 		}
@@ -200,16 +199,19 @@ foreach ( $import_log as $i => $log ) {
 if ( count($found) > 0 )
 	echo '<p title="'.implode(', ', $found).'">'.count($found).' cards found but not updated</p>' ;
 if ( count($notfound) > 0 )
-	echo '<p title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
+	echo '<p class="warn" title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
 echo 'Actions on links : ' ;
 foreach ( $actions as $i => $action ) {
 	$names = array() ;
 	foreach ( $action as $card )
 		$names[] = $card->name ;
-	echo '<p title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
+	if ( $i == 'to insert' )
+		$class = 'class="warn" ' ;
+	else
+		$class = '' ;
+	echo '<p '.$class.'title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
 }
 ?>
-
   </div>
 
   <div class="section">

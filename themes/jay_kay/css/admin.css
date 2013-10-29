@@ -23,3 +23,6 @@ del.diffdel, del.diffmod {
 del.diffdel {
 	color: red ;
 }
+.warn {
+	color: red ;
+}

@@ -16,6 +16,17 @@ function card_image_url($match, $code='en') {
 	global $ext_source ;
 	return 'http://magiccards.info/scans/'.$code.'/'.strtolower($ext_source).'/'.$match['id'].'.jpg' ;
 }
+function get_split($name) {
+	$split = false ;
+	if ( 	preg_match('/(?<splitname>.*) \((?<fullname>(\1)\/(?<otherpart>.*))\)/', $name, $name_matches)
+		|| preg_match('/(?<splitname>.*) \((?<fullname>(?<otherpart>.*)\/(\1))\)/', $name, $name_matches) ) {
+		$split = true ;
+		$name = $name_matches['splitname'] ;
+		//$name = $name_matches['fullname'] ;
+		//$name = $name_matches['splitname'].' / '.$name_matches['otherpart'] ; // IVG not having second lines for splits
+	}
+	return $split ;
+}
 
 // Get
 $html = cache_get($importer->url, 'cache/'.$source.'_'.$ext_source, $verbose) ;
@@ -40,20 +51,14 @@ foreach ( $matches as $match ) {
 	$nb = preg_match($card_regex, substr($html, 0, 10240), $card_matches) ;
 	// Base checks
 	if ( $nb < 1 ) {
-		echo 'Unparsable : <textarea>'.$html.'</textarea><br>' ;
+		echo '<a href="'.$card_url.'">Unparsable</a> : <textarea>'.$html.'</textarea><br>' ;
 		continue ;
 	}
 	// Name
 	$name = $match['name'] ;
 	// Double cards : recompute name, mark as being second part (in which case card will be added, not replaced)
 	$doubleface = false ;
-	$split = false ;
-	if ( 	preg_match('/(?<name>.*) \((\1)\/(.*)\)/', $name, $name_matches)
-		|| preg_match('/(?<name>.*) \((.*)\/(\1)\)/', $name, $name_matches) ) {
-		$split = true ;
-		//$name = $name_matches[2] . ' / ' . $name_matches[3] ;
-		$name = $name_matches['name'] ;
-	}
+	$split = get_split(&$name) ;
 	// Types / cost
 	$typescost = $card_matches['typescost'] ;
 	if ( preg_match('#(?<types>.*)(, \n(?<cost>.*))#', $typescost, $typescost_matches) ) {
@@ -117,12 +122,16 @@ foreach ( $matches as $match ) {
 		$url = card_image_url($match, $code) ;
 		if ( array_search($lang['code'], array('de', 'fr', 'it', 'es', 'pt')) !== false ) { // Expected charset
 			$lname = $lang['name'] ;
+			get_split(&$lname) ;
 			if ( ! $secondpart )
 				$lastcard->setlang($code, $lname, $url) ;
 			else {
 				if ( ! $doubleface )
 					$url = null ;
-				$lastcard->addlang($code, $lname, $url) ;
+				if ( $split )
+					$lastcard->addlang($code, $lname, $url) ;
+				else
+					$lastcard->addlangimg($code, $url) ;
 			}
 		} else
 			$lastcard->addlangimg($code, $url) ;

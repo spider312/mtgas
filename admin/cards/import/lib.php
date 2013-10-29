@@ -6,7 +6,6 @@ $base_image_dir = $homedir.'/img/' ;
 function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
 	clearstatcache() ;
-	rmkdir(dirname($cache_file)) ;
 	if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
 		$message .= '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
@@ -15,8 +14,9 @@ function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_lif
 		if ( $update && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
 			$message .= 'cache file is already bigger' ;
 			$content = @file_get_contents($cache_file) ;
-		} else if ( ( $content = curl_download($url) ) !== FALSE ) { // @file_get_contents($url)
-			if ( ( $size = @file_put_contents($cache_file, $content) ) === FALSE )
+		} else if ( ( $content = curl_download($url) ) !== false ) { // @file_get_contents($url)
+			rmkdir(dirname($cache_file)) ;
+			if ( ( $size = @file_put_contents($cache_file, $content) ) === false )
 				$message .= 'not updatable ('.$cache_file.')' ;
 			else
 				$message .= 'updated ('.human_filesize($size).')' ;
@@ -70,6 +70,9 @@ function curl_get_file_size($url) {
 function curl_download($url) {
 	$curl = curl_init_custom($url);
 	$content = curl_exec($curl);
+	$info = curl_getinfo($curl) ;
+	if ( $info['http_code'] >= 400 )
+		return false ;
 	return $content ;
 }
 function rmkdir($dir) { // mkdir recursively without umask bug
@@ -142,11 +145,13 @@ class ImportExtension {
 						$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
 						//$card->{$val} = $$val ;
 					}
-				if ( $log != '' ) // Shouldn't happen
-					echo 'Card already parsed with different data : '.$name."\n".$log."\n" ;
-				if ( $card->addimage($url) )
-					$card->nbimages++ ;
-				$card->addurl($card_url) ;
+				if ( $log != '' ) // For Planeshift from MCI, has 3 promos as "special" rarity in list
+					echo 'Card already parsed with different data (ignored) : '.$name."\n".$log."\n" ;
+				else {
+					if ( $card->addimage($url) )
+						$card->nbimages++ ;
+					$card->addurl($card_url) ;
+				}
 				return $card ;
 			}
 		// Else it's a new card
@@ -266,16 +271,27 @@ class ImportExtension {
 					$localname = $lang['name'] ;
 				else
 					continue ; // Un-expected charsets
-				$query = query("SELECT * FROM `cardname` WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
+				$query = query("SELECT *
+					FROM `cardname`
+					WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
 				if ( $res = mysql_fetch_object($query) ) {
-					if ( $res->card_name != $localname )
+					if ( $res->card_name != $localname ) {
 						$toupdate[] = $code.' : '.$res->card_name.' -> '.$localname ;
-					else
+						if ( $apply ) {
+							$query = query("UPDATE `mtg`.`cardname`
+							SET `card_name` = '".mysql_real_escape_string($localname)."'
+							WHERE `cardname`.`card_id` =$card_id AND `cardname`.`lang` = '$code';") ;
+							if ( ! $query )
+								die('Lang not inserted') ;
+						}
+					} else
 						$langok[] = $code.' : '.$localname ;
 				} else {
 					$toinsert[] = $code.' : '.$localname ;
 					if ( $apply ) {
-						$query = query("INSERT INTO `mtg`.`cardname` (`card_id`, `lang` ,`card_name`) VALUES ('$card_id', '$code', '".mysql_real_escape_string($localname)."');") ;
+						$query = query("INSERT INTO `mtg`.`cardname`
+							(`card_id`, `lang` ,`card_name`) VALUES
+							('$card_id', '$code', '".mysql_real_escape_string($localname)."');") ;
 						if ( ! $query )
 							die('Lang not inserted') ;
 					}
@@ -286,7 +302,7 @@ class ImportExtension {
 		if ( count($langok) > 0 )
 			echo count($langok).' translations ok'."\n" ;
 		if ( count($toupdate) > 0 )
-			echo count($toupdate).' translations needs to be updated'."\n" ;
+			echo count($toupdate).' translations needs to be updated : '."\n".implode("\n", $toupdate)."\n" ;
 		if ( count($toinsert) > 0 )
 			echo count($toinsert).' translations inserted'."\n" ;
 		return $result ;
@@ -306,20 +322,41 @@ class ImportExtension {
 		echo count($this->cards).' cards to download to '.$dir."\n" ;
 		foreach ( $this->cards as $card ) {
 			echo $card->name.' : ' ;
-			foreach ( $card->images as $i => $image ) {
-				$path = $dir.card_img_by_name($card->name, $i+1, count($card->images)) ;
-				cache_get($image, $path, true, true) ;
-			}
-			echo "\n" ;
-			// Languages
-			foreach ( $card->langs as $lang => $images ) {
-				$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
-				echo " - $lang : " ;
-				foreach ( $images['images'] as $i => $image ) {
-					$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
+			if ( $card->secondname != '' ) {
+				if ( count($card->images) != 2 )
+					die('2 images expected for tranfsorm') ;
+				$path = $dir.card_img_by_name($card->name, 1, 1) ;
+				cache_get($card->images[0], $path, true, true) ;
+				$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
+				cache_get($card->images[1], $path, true, true) ;
+				// Languages
+				foreach ( $card->langs as $lang => $images ) {
+					if ( count($images['images']) != 2 )
+						die('2 images expected for tranfsorm translation') ;
+					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
+					echo " - $lang : " ;
+					$path = $langdir.card_img_by_name($card->name, 1, 1) ;
+					cache_get($image, $path, true, true) ;
+					$path = $langdir.card_img_by_name($card->secondname, 1, 1) ;
+					cache_get($image, $path, true, true) ;
+					echo "\n" ;
+				}
+			} else {
+				foreach ( $card->images as $i => $image ) {
+					$path = $dir.card_img_by_name($card->name, $i+1, count($card->images)) ;
 					cache_get($image, $path, true, true) ;
 				}
 				echo "\n" ;
+				// Languages
+				foreach ( $card->langs as $lang => $images ) {
+					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
+					echo " - $lang : " ;
+					foreach ( $images['images'] as $i => $image ) {
+						$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
+						cache_get($image, $path, true, true) ;
+					}
+					echo "\n" ;
+				}
 			}
 		}
 		// Token images
@@ -365,6 +402,7 @@ class ImportCard {
 	public $nbimages = 0 ; // Different images in current extension
 	public $images = array() ; // Each image in current extension
 	public $langs = array() ;
+	public $secondname = '' ; // Second image name for transform
 	function __construct($ext, $card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid=0) {
 		$this->ext = $ext ;
 		$this->url = $card_url ;
@@ -387,6 +425,7 @@ class ImportCard {
 		$this->addtext("----\n$name\n$types\n$text") ;
 	}
 	function transform($name, $ci, $types, $text, $url) {
+		$this->secondname = $name ;
 		$this->addtext("-----\n$name\n%$ci $types\n$text") ;
 		$this->addimage($url) ;
 	}
@@ -418,7 +457,7 @@ class ImportCard {
 	}
 	function addlang($code, $name, $url=null) {
 		if ( isset($this->langs[$code]) ) {
-			$this->langs[$code]['name'] .= '/'.$name ;
+			$this->langs[$code]['name'] .= ' / '.$name ;
 			if ( $url != null )
 				$this->langs[$code]['images'][] = $url ;
 		} else
