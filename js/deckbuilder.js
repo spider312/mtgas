@@ -23,22 +23,28 @@ function load(body, deckname) {
 		for ( var i = 0 ; i < decklist.rows.length ; i++ ) { 
 			var row = decklist.rows[i] ;
 			if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
-				jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value}, function(data, b, c) {
-					var row = null
-					for ( var i = 0 ; i < decklist.rows.length ; i++ )
-						if ( decklist.rows[i].card == data.name )
-							row = decklist.rows[i] ;
-					if ( row == null )
-						return false ;
+				if ( deck_language.value == 'en' ) {
+					delete row.card_name
 					node_empty(row.cells[2]) ;
-					var name = data.name ;
-					if ( iss(data.card_name) ) {
-						name = data.card_name ;
-						row.card_name = data.card_name ;
-					} else 
-						delete row.card_name ;
-					row.cells[2].appendChild(document.createTextNode(name)) ;
-				}) ;
+					row.cells[2].appendChild(document.createTextNode(row.card)) ;
+				} else
+					jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
+					function(data, b, c) {
+						var row = null
+						for ( var i = 0 ; i < decklist.rows.length ; i++ )
+							if ( decklist.rows[i].card == data.name )
+								row = decklist.rows[i] ;
+						if ( row == null )
+							return false ;
+						node_empty(row.cells[2]) ;
+						var name = data.name ;
+						if ( iss(data.card_name) ) {
+							name = data.card_name ;
+							row.card_name = data.card_name ;
+						} else 
+							delete row.card_name ;
+						row.cells[2].appendChild(document.createTextNode(name)) ;
+					}) ;
 			}
 		}
 
