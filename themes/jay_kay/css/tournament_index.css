@@ -12,7 +12,7 @@
 #log_ul li:hover {
 	background-color: #F4ECD2 ;
 }
-#log_ul span {
+#log_ul .linetime {
 	display: inline ;
 	float: right ;
 	font-style: normal ;

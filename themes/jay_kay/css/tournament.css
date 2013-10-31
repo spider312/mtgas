@@ -105,6 +105,6 @@ ease-in-out : Le départ et la fin sont lents.
 #log_ul li.chat {
 	font-style: normal ;
 }
-#log_ul span {
+#log_ul .linetime {
 	display: none ;
 }

@@ -257,7 +257,9 @@ function tournament_log_li(line, nick, players, spectactors) {
 	}
 	if ( ! li )
 		var li = create_li(msg, className) ;
-	li.appendChild(create_span(timeWithDays(mysql2date(line.timestamp)))) ;
+	var span = create_span(timeWithDays(mysql2date(line.timestamp))) ;
+	span.classList.add('linetime') ;
+	li.appendChild(span) ;
 	//li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
 	return li ;
 
