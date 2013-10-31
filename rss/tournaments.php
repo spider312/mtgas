@@ -2,8 +2,8 @@
 include '../lib.php' ;
 include '../includes/db.php' ;
 $status = param($_GET, 'status', '') ;
-header('Content-Type: text/xml; charset=iso-8859-1');
-echo '<?xml version="1.0" encoding="iso-8859-1" ?>' ;
+header('Content-Type: text/xml; charset=UTF-8');
+echo '<?xml version="1.0" encoding="UTF-8" ?>' ;
 ?>
 <rss version="2.0">
 	<channel>

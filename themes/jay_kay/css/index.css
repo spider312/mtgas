@@ -20,10 +20,12 @@ td.nowrap {
 }
 /* Shoutbox */
 #shoutbox {
-	/*margin-left: 2% ;
-	margin-right: 2% ;*/
 	margin-top: 25px ;
 	margin-bottom: 0;
+}
+#shoutbox input[type=text] {
+	-moz-box-sizing: border-box ;
+	width: 80% ;
 }
 #shouts {
 	list-style-type: none ;
