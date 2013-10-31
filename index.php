@@ -46,8 +46,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
    <h1>Shoutbox</h1>
    <ul id="shouts"></ul>
    <form id="shout" action="json/shout.php" autocomplete="off">
-    <input type="text" name="text" placeholder="Shout something">
-    <input type="submit" value="Send">
+    <input type="text" name="text" placeholder="Shout something"><input type="submit" value="Send">
    </form>
   </div>
 

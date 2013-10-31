@@ -23,9 +23,13 @@ td.nowrap {
 	margin-top: 25px ;
 	margin-bottom: 0;
 }
+#shoutbox input[type=submit] {
+	-moz-box-sizing: border-box ;
+	width: 10% ;
+}
 #shoutbox input[type=text] {
 	-moz-box-sizing: border-box ;
-	width: 80% ;
+	width: 90% ;
 }
 #shouts {
 	list-style-type: none ;

@@ -24,19 +24,10 @@ $(function() { // On page load
 			$.getJSON(this.action,
 				{'nick': game.options.get('profile_nick'),'message': field.value, 'from': last_shout_id}) ;
 			field.value = '' ;
+			field.focus() ;
 		}
 		return eventStop(ev) ;
 	}, false) ;
-	/*
-	var shouts = document.getElementById('shouts')
-	shoutsheight = shouts.clientHeight ;
-	shouts.addEventListener('scroll', function(ev) {
-		if ( shouts.clientHeight != shoutsheight ) {
-			shoutsheight = shouts.clientHeight ;
-			shouts.scrollTop = shouts.scrollHeight ;
-		}
-	}, false) ;
-	*/
 	// Form adapting to user selections
 		// Boosters
 	document.getElementById('tournament_type').addEventListener('change', function(ev) {
