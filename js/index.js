@@ -15,7 +15,28 @@ $(function() { // On page load
 	}) ;
 	save_restore('draft_boosters') ; // hidden for saving
 	save_restore('sealed_boosters') ;
+	last_shout_id = 0 ;
 // === [ EVENTS ] ==============================================================
+	// Shoutbox
+	document.getElementById('shout').addEventListener('submit', function(ev) {
+		var field = this[0] ;
+		if ( field.value != '' ) {
+			$.getJSON(this.action,
+				{'nick': game.options.get('profile_nick'),'message': field.value, 'from': last_shout_id}) ;
+			field.value = '' ;
+		}
+		return eventStop(ev) ;
+	}, false) ;
+	/*
+	var shouts = document.getElementById('shouts')
+	shoutsheight = shouts.clientHeight ;
+	shouts.addEventListener('scroll', function(ev) {
+		if ( shouts.clientHeight != shoutsheight ) {
+			shoutsheight = shouts.clientHeight ;
+			shouts.scrollTop = shouts.scrollHeight ;
+		}
+	}, false) ;
+	*/
 	// Form adapting to user selections
 		// Boosters
 	document.getElementById('tournament_type').addEventListener('change', function(ev) {
@@ -175,14 +196,31 @@ $(function() { // On page load
 	decks_list() ;
 	get_extensions() ;
 	// Start to display and regulary update games list
+	shout_timer(document.getElementById('shouts')) ;
 	games_timer(document.getElementById('pending_games'), document.getElementById('cell_no')
 		, document.getElementById('running_games'), document.getElementById('running_games_no')) ;
 	tournaments_timer(document.getElementById('pending_tournaments'), document.getElementById('tournament_no')
 		, document.getElementById('running_tournaments'), document.getElementById('running_tournament_no')) ;
 }) ;
 // === [ TIMERS ] ==============================================================
-function games_timer(pending_games, cell_no, running_games, running_games_no) {
+function shout_timer(ul) {
+	$.getJSON('json/shout.php', {'from': last_shout_id}, function(shouts) {
+		if ( shouts.length > 0 ) {
+			for ( var i in shouts ) {
+				var id = parseInt(shouts[i].id) ;
+				if ( id > last_shout_id )
+					last_shout_id = id ;
+				var li = create_li('<'+shouts[i].sender_nick+'> '+shouts[i].message)
+				li.title = shouts[i].time
+				ul.appendChild(li) ;
+			}
+			ul.scrollTop = ul.scrollHeight ;
+		}
+		window.setTimeout(shout_timer, game_list_timer, ul) ;
+	}) ;
+}
 // Requests from server a list of pending games, and display them in prepared tables
+function games_timer(pending_games, cell_no, running_games, running_games_no) {
 	$.getJSON('json/pending_games.php', {'player_id': player_id}, function(data) {
 		// Redirect to joined game/tournament
 		if ( data.game_redirect ) {

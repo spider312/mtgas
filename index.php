@@ -42,6 +42,15 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
   <div id="left_col"><!-- ---------- LEFT COLUMN ---------- -->
 
+  <div id="shoutbox" class="section" onresize="alert('plop');">
+   <h1>Shoutbox</h1>
+   <ul id="shouts"></ul>
+   <form id="shout" action="json/shout.php">
+    <input type="text" name="text">
+    <input type="submit" value="Send">
+   </form>
+  </div>
+
 <?php include 'index_tournaments.php' ; ?>
 
   </div><!-- id="left_col" --><!-- ---------- / LEFT COLUMN ---------- -->

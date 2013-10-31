@@ -18,6 +18,22 @@ td.nowrap {
 	margin: 0 ;
 	white-space: nowrap;
 }
+/* Shoutbox */
+#shoutbox {
+	/*margin-left: 2% ;
+	margin-right: 2% ;*/
+	margin-top: 25px ;
+	margin-bottom: 0;
+}
+#shouts {
+	list-style-type: none ;
+	padding: 0 ;
+	height: 100px ;
+	overflow-y: scroll ;
+	resize: vertical;
+	min-height: 50px ;
+	max-height: 200px ;
+}
 /* Index is divided in 2 columns */
 #left_col, #right_col {
 	float: left ;
