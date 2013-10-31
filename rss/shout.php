@@ -18,7 +18,7 @@ foreach ( $shouts as $shout ) {
 			<guid><?=$shout->id;?></guid>
 			<pubDate><?php echo date("D, d M Y H:i:s", strtotime($shout->time)); ?></pubDate>
 			<title><?php echo $shout->sender_nick.' : '.$shout->message ; ?></title>
-			<link><?=$url;?></link>
+			<link></link>
 			<description><?php echo $shout->sender_nick.' : '.$shout->message ; ?></description>
 		</item>
 <?php
