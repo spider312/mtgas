@@ -77,7 +77,7 @@ ease-in-out : Le départ et la fin sont lents.
 #tournament {
 	right: -230px ;
 }
-#tournament:hover { /* It's hidden, let's show it */
+#tournament:hover, #tournament.highlight { /* It's hidden, let's show it */
 	right: -1px ;
 }
 #tournament ul {
@@ -89,10 +89,6 @@ ease-in-out : Le départ et la fin sont lents.
 #tournament form {
 	position: absolute ;
 	bottom: 0 ;
-}
-#tournament.highlight {
-	border-color: red ;
-	border-width: 5px ;
 }
 #log_ul {
 	overflow-y: auto ;

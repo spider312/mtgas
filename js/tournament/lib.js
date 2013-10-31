@@ -109,6 +109,24 @@ function tournament_init(id) {
 	}, false) ;
 	tournament_log_init(id) ;
 }
+function tournament_players_update(data) {
+	if ( iso(data.players)) {
+		node_empty(players_ul) ;
+		for ( var i = 0 ; i < data.players.length ; i++ ) {
+			var player = data.players[i] ;
+			var cb = create_checkbox('', player.ready != '0') ;
+			cb.disabled = true ;
+			var li = create_li(cb) ;
+			var txt = player.nick ;
+			if ( isn(player.deck_obj.main.length) )
+				txt += ' : '+player.deck_obj.main.length
+			li.appendChild(document.createTextNode(txt)) ;
+			if ( player.player_id == player_id )
+				li.classList.add('self') ;
+			players_ul.appendChild(li) ;
+		}
+	}
+}
 tid = 0 ;
 function tournament_log_init(id) {
 	tid = id ;
@@ -133,24 +151,6 @@ function tournament_log_update(data) {
 		loglength = data.log.length ;
 		tournament_spectactors(data.log, spectactors) ; // Populate from log
 		tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
-	}
-}
-function tournament_players_update(data) {
-	if ( iso(data.players)) {
-		node_empty(players_ul) ;
-		for ( var i = 0 ; i < data.players.length ; i++ ) {
-			var player = data.players[i] ;
-			var cb = create_checkbox('', player.ready != '0') ;
-			cb.disabled = true ;
-			var li = create_li(cb) ;
-			var txt = player.nick ;
-			if ( isn(player.deck_obj.main.length) )
-				txt += ' : '+player.deck_obj.main.length
-			li.appendChild(document.createTextNode(txt)) ;
-			if ( player.player_id == player_id )
-				li.classList.add('self') ;
-			players_ul.appendChild(li) ;
-		}
 	}
 }
 function tournament_log_li(line, nick, players, spectactors) {
@@ -302,7 +302,6 @@ function tournament_spectactors(log, spectactors) {
 			var s = spectactors.get(line.value) ;
 			s.allow(line.sender) ;
 		}
-
 	}
 }
 function player_get(players, id) {
