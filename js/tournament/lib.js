@@ -155,6 +155,7 @@ function tournament_players_update(data) {
 }
 function tournament_log_li(line, nick, players, spectactors) {
 	var msg = 'default message' ;
+	var className = null ;
 	switch ( line.type ) {
 		case 'create' :
 			if ( iss(line.value) && ( line.value != '' ) )
@@ -248,14 +249,16 @@ function tournament_log_li(line, nick, players, spectactors) {
 				msg += ', can\'t fnid a winner' ;
 			break ;
 		case 'msg' :
-			msg = '<'+nick+'> '+line.value ;
+			msg = nick+': '+line.value ;
+			className = 'chat' ;
 			break ;
 		default :
 			msg = line.type+' : '+line.value+' (raw)' ;
 	}
 	if ( ! li )
-		var li = create_li(msg) ;
-	li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
+		var li = create_li(msg, className) ;
+	li.appendChild(create_span(timeWithDays(mysql2date(line.timestamp)))) ;
+	//li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
 	return li ;
 
 }

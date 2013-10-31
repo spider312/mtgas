@@ -40,6 +40,16 @@ td.nowrap {
 	min-height: 50px ;
 	max-height: 200px ;
 }
+#shouts span {
+	float: right ;
+	color: #907C6C ;
+}
+#shouts li:hover span {
+	color: black ;
+}
+#shouts li:hover {
+	background-color: #F4ECD2 ;
+}
 /* Index is divided in 2 columns */
 #left_col, #right_col {
 	float: left ;

@@ -97,4 +97,14 @@ ease-in-out : Le départ et la fin sont lents.
 #log_ul {
 	overflow-y: auto ;
 	height: 70% ;
+	padding: 0;
+	margin: 0;
+	list-style-type: none ;
+	font-style: italic ;
+}
+#log_ul li.chat {
+	font-style: normal ;
+}
+#log_ul span {
+	display: none ;
 }

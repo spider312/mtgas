@@ -27,6 +27,7 @@ html_head('Tournament '.$tournament->name,
 	array(
 		'style.css', 
 		'tournament.css', 
+		'tournament_index.css', 
 		'options.css'
 	), 
 	array(

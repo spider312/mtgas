@@ -200,6 +200,14 @@ function bench() {
 function mysql2date(mysqldate) {
 	return new Date(mysqldate.replace(' ', 'T')) ;
 }
+function timeWithDays(msgdate) {
+	var date = new Date() ;
+	var time = msgdate.toLocaleTimeString() ;
+	if ( date.toDateString() != msgdate.toDateString() )
+		time = ceil((date-msgdate)/(1000*60*60*24), 0) + 'd ago ' + time ;
+	return time ;
+}
+
 // Types ( https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/typeof )
 function isset(val) {
 	return ( typeof val != 'undefined' ) ;

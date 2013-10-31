@@ -1,6 +1,7 @@
 // index.js : Management of MTGAS index (games list, preloaded decks ...)
 $(function() { // On page load
-	document.getElementById('game_name').select() ; // Give focus on page load
+	//document.getElementById('game_name').select() ; // Give focus on page load
+	document.getElementById('shout')[0].focus() ;
 	ajax_error_management() ;
 	player_id = $.cookie(session_id) ;
 	game = {}
@@ -24,8 +25,8 @@ $(function() { // On page load
 			$.getJSON(this.action,
 				{'nick': game.options.get('profile_nick'),'message': field.value, 'from': last_shout_id}) ;
 			field.value = '' ;
-			field.focus() ;
 		}
+		field.focus() ;
 		return eventStop(ev) ;
 	}, false) ;
 	// Form adapting to user selections
@@ -201,8 +202,8 @@ function shout_timer(ul) {
 				var id = parseInt(shouts[i].id) ;
 				if ( id > last_shout_id )
 					last_shout_id = id ;
-				var li = create_li('<'+shouts[i].sender_nick+'> '+shouts[i].message)
-				li.title = shouts[i].time
+				var li = create_li(shouts[i].sender_nick+': '+shouts[i].message) ;
+				li.appendChild(create_span(timeWithDays(mysql2date(shouts[i].time)))) ;
 				ul.appendChild(li) ;
 			}
 			ul.scrollTop = ul.scrollHeight ;

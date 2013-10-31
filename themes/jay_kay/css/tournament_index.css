@@ -1,0 +1,23 @@
+#log_ul {
+	overflow-y: auto ;
+	height: 70% ;
+	padding: 0;
+	margin: 0;
+	list-style-type: none ;
+	font-style: italic ;
+}
+#log_ul li.chat {
+	font-style: normal ;
+}
+#log_ul li:hover {
+	background-color: #F4ECD2 ;
+}
+#log_ul span {
+	display: inline ;
+	float: right ;
+	font-style: normal ;
+	color: #907C6C ;
+}
+#log_ul li:hover span {
+	color: black ;
+}
