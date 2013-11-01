@@ -17,7 +17,7 @@ if ( $status != '' )
 	$q_status = "AND `status` = '$status'" ;
 else
 	$q_status = '' ;
-$query = query("SELECT id, name, type, creation_date FROM `tournament` WHERE `min_players` > 1 $q_status ORDER BY `id` DESC LIMIT 0, 10") ;
+$query = query("SELECT id, name, type, creation_date, status FROM `tournament` WHERE `min_players` > 1 $q_status ORDER BY `id` DESC LIMIT 0, 10") ;
 while ( $row = mysql_fetch_object($query) ) {
 	// List this tournament's registered players
 	$players = query_as_array("SELECT nick FROM `registration` WHERE `tournament_id`='".$row->id."' ; ") ;
@@ -28,13 +28,16 @@ while ( $row = mysql_fetch_object($query) ) {
 			$players_names[] = $player->nick ;
 		$with = ' with '.implode(', ',$players_names) ;
 	}
+	$link = '' ;
+	if ( ( $row->status != '0' ) && ( $row->status != '6' ) )
+		$link = $url . '/tournament/?id='.$row->id ;
 	// Display item
 ?>
 		<item>
 			<guid><?php echo $row->id ; ?></guid>
 			<pubDate><?php echo date("D, d M Y H:i:s", strtotime($row->creation_date)); ?></pubDate>
 			<title><?php echo $row->type . ' ' . $row->name . $with . ' (#' . $row->id . ')' ; ?></title>
-			<link><?php echo $url . '/tournament/?id='.$row->id  ; ?></link>
+			<link><?php echo $link ; ?></link>
 			<description><?php echo $row->type . ' ' . $row->name . $with ; ?></description>
 		</item>
 <?php
