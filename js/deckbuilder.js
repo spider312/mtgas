@@ -26,7 +26,7 @@ function load(body, deckname) {
 				if ( deck_language.value == 'en' ) {
 					delete row.card_name
 					node_empty(row.cells[2]) ;
-					row.cells[2].appendChild(document.createTextNode(row.card)) ;
+					row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
 				} else
 					jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
 					function(data, b, c) {
@@ -43,7 +43,7 @@ function load(body, deckname) {
 							row.card_name = data.card_name ;
 						} else 
 							delete row.card_name ;
-						row.cells[2].appendChild(document.createTextNode(name)) ;
+						row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
 					}) ;
 			}
 		}
@@ -56,7 +56,7 @@ function load(body, deckname) {
 			initial_deck_content = '// NAME : '+deckname ;
 		var lines = deck_parse(initial_deck_content) ;
 		var to = 'maindeck' ;
-		var noext = true ;
+		var savext = false ;
 		for ( var i = 0 ; i < lines.length ; i++ ) {
 			var line = lines[i] ;
 			switch ( typeof line ) {
@@ -75,7 +75,7 @@ function load(body, deckname) {
 					else
 						to = 'maindeck' ;
 					if ( lines[i][1] != '' ) // One extension is found in deckfile
-						noext = false ; // Save with extensions
+						savext = true ; // Save with extensions
 					var row = add_card(lines[i][1], lines[i][2], lines[i][3], lines[i][0], to) ;
 					break ;
 				default : 
@@ -83,13 +83,15 @@ function load(body, deckname) {
 			}
 		}
 		changed = false ;
-		document.getElementById('noextensions').checked = noext ;
+		document.getElementById('savextensions').checked = savext ;
 	} else
 		deck_stats() ;
 	// Bind events to HTML
-	window.addEventListener('keyup', function(ev) {
-		if ( ( ev.keyCode == ev.DOM_VK_L ) && ev.ctrlKey )
+	window.addEventListener('keydown', function(ev) {
+		if ( ( ev.keyCode == ev.DOM_VK_L ) && ev.ctrlKey ) {
 			document.getElementById('log').classList.toggle('hidden') ;
+			return eventStop(ev) ;
+		}
 	}, false) ;
 	window.addEventListener('beforeunload', function(ev) {
 		if ( changed ) {
@@ -335,14 +337,14 @@ function log(msg) {
 function deck_content() {
 	var content = '' ;
 	var deck = document.getElementById('maindeck') ;
-	var noext = document.getElementById('noextensions').checked ;
+	var savext = document.getElementById('savextensions').checked ;
 	for ( var i = 0 ; i < deck.rows.length ; i++ ) {
 		var row = deck.rows[i] ;
 		if ( row.className == 'comment' )
 			content += '// '+row.cells[0].textContent+'\n' ;
 		else {
 			content += '    '+row.cells[0].textContent+' ' ; // Number of cards
-			if ( ! noext )
+			if ( savext )
 				content += '['+row.ext()+']' ; // Extension
 			content += row.card ; // Name
 			if ( isn(row.attrs.nb) )
@@ -357,7 +359,7 @@ function deck_content() {
 			content += '//'+row.cells[0].textContent+'\n' ;
 		else {
 			content += 'SB: '+row.cells[0].textContent+' ' ; // Number of cards
-			if ( ! noext )
+			if ( savext )
 				content += '['+row.ext()+']' ; // Extension
 			content += row.cells[2].textContent ; // Name
 			if ( isn(row.attrs.nb) )
@@ -605,7 +607,7 @@ function found(data) {
 		var name = card.name ;
 		if ( iss(card.card_name) )
 			name = card.card_name ;
-		row = create_tr(cardlist, ext, name) ;
+		row = create_tr(cardlist, ext, string_limit(name, 25)) ;
 		if ( iss(ext) ) {
 			row.cells[0].classList.remove('nopadding') ;
 			row.cells[0].title = card.ext[0].name ;
@@ -761,7 +763,7 @@ function add_card(ext, name, num, nb, to) {
 					name = data.card_name ;
 					row.card_name = data.card_name ;
 				}
-				row.cells[2].appendChild(document.createTextNode(name)) ;
+				row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
 			}
 		}
 		if ( data.attrs ) {

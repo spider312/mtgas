@@ -1,60 +1,49 @@
-/*
- +---------+             +------+ +-------+
- | Search  | +---------+ | Deck | | Infos |
- | form    | | Buttons | |      | | zoom  |
- | results | +---------+ |      | | stats |
- +---------+             +------+ +-------+
-*/
-/* Onload animation */
-body.hideh1 h1.hideable {
-	transition: all 2s ;
-	height: 0 ;
-	margin: 0 ;
-	border-width: 0 ;
-	box-shadow: 0 0 0 0 transparent ;
-	font-size: 0 ;
-}
-td {
-	height: 20px ;
-	overflow: hidden ;
-	white-space:nowrap;
-}
-#decksection h1 {
-	transition-delay: 2s ;
-}
-#infos h1 {
-	transition-delay: 4s ;
-}
-#stats h1 {
-	transition-delay: 6s ;
-}
 /* Common */
-#search, #builder_buttons, #decksection, #infos, #stats, #log {
-	float: left;
-	margin: 20px ;
-	margin-right: 0 ;
+#search, #decksection, #infos {
+	top: 70px ;
+}
+#search, #decksection, #zoombox, #stats {
 	padding: 5px ;
-	overflow: hidden ;
 }
 #search, #decksection {
-	height: 90% ;
+	position: absolute ;
+}
+#builder_buttons, #infos {
+	position: fixed ;
 }
 /* Search */
 #search {
 	width: 250px ;
+	left: 20px ;
 }
+/* Buttons */
 #builder_buttons {
+	top: 90px ;
+	left: 302px ;
 	padding: 20px ;
 }
 /* Deck*/
 #decksection {
-	/*width: 350px ;*/
+	left: 420px ;
+	width: 350px ;
 }
 /* Infos */
-#infos {}
-/* Stats*/
+#infos {
+	top: 70px ;
+	left: 800px ;
+}
+#zoombox, #stats, #log {
+	float: left ;
+	margin-right: 20px ;
+	margin-bottom: 20px ;
+}
 #stats {
+	left: 1000px ;
 	width: 200px ;
+}
+#log {
+	width: 500px ;
+	height: 500px ;
 }
 
 /* Inside Search */
@@ -75,7 +64,6 @@ td {
 #builder_buttons button, #search input[type=submit] {
 	cursor: pointer ;
 }
-
 #builder_buttons>ul {
 	list-style-type: none;
 	padding: 0;
@@ -92,15 +80,13 @@ td {
 .section table {
 	width: 98% ;
 	margin: 1% ;
+	white-space:nowrap;
 }
 .section td {
 	cursor: pointer ; /* All table lines seems clickable*/
 }
 option {
 	cursor: help ;
-}
-.hidden {
-	display: none ;
 }
 tr:hover {
 	background-color: Tan ;
@@ -140,7 +126,7 @@ td.buttonlist, td.nopadding {
 .selected {
 	box-shadow: 0px 0px 10px 1px red;
 }
-#log {
-	width: 500px ;
-	height: 500px ;
+.hidden {
+	display: none ;
 }
+

@@ -50,7 +50,7 @@ html_menu() ;
     <div id="pagination"></div>
    </form>
 
-   <!-- List of all cards found under search form -->
+   <!-- Cards found -->
    <table id="cardlist">
     <thead>
      <tr>
@@ -63,31 +63,52 @@ html_menu() ;
    </table>
   </div>
 
-  <!-- Buttons, between search form's results and deck -->
+  <!-- Buttons -->
   <div id="builder_buttons" class="section">
    <ul>
-    <li><button id="add_md" accesskey="a" title="Add card to deck"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1rightarrow.png" alt="=&gt;"></button></li>
-    <li><button id="add_sb" accesskey="b" title="Add card to sideboard"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/2rightarrow.png" alt="&gt;&gt;"></button>
-    <li><button id="del" accesskey="d" title="Remove card from deck / sideboard"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1leftarrow.png" alt="&lt;="></button>
+    <li><button id="add_md" accesskey="a" title="Add card to deck">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1rightarrow.png" alt="=&gt;">
+    </button></li>
+    <li><button id="add_sb" accesskey="b" title="Add card to sideboard">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/2rightarrow.png" alt="&gt;&gt;">
+    </button></li>
+    <li><button id="del" accesskey="d" title="Remove card from deck / sideboard">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1leftarrow.png" alt="&lt;=">
+    </button></li>
     <li><hr>
-    <li><button id="up" accesskey="u" title="up card"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1uparrow.png" alt="&gt;&gt;"></button>
-    <li><button id="down" accesskey="j" title="down card"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/1downarrow.png" alt="&lt;="></button>
+    <li><button id="up" accesskey="u" title="up card">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1uparrow.png" alt="&gt;&gt;">
+    </button></li>
+    <li><button id="down" accesskey="j" title="down card">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1downarrow.png" alt="&lt;=">
+    </button></li>
     <li><hr>
-    <li><button id="comment" accesskey="c" title="Add a comment over selected line"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/edit.png" alt="comment"></button>
+    <li><button id="comment" accesskey="c" title="Add a comment over selected line">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/edit.png" alt="comment">
+    </button></li>
     <li><hr>
-    <li><button id="save" accesskey="s" title="Save deck"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesave.png" alt="save"></button>
-    <li><button id="saveas" accesskey="v" title="Save deck giving it another name"><img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesaveas.png" alt="save"></button>
+    <li><button id="save" accesskey="s" title="Save deck">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesave.png" alt="save">
+    </button></li>
+    <li><button id="saveas" accesskey="v" title="Save deck giving it another name">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesaveas.png" alt="save">
+    </button></li>
    </ul>
   </div>
 
-  <!-- List of cards in current deck, middle of the page -->
+  <!-- List of cards in current deck -->
   <div id="decksection" class="section">
    <h1 class="hideable">Deck</h1>
+   <div title="Language for card names in deck list">Card names in <select id="deck_language" name="lang"></select></div>
    <div>
     <button id="sort" title="Sort deck by type, then converted cost">Sort</button>
-    <label title="Add comments to separate each group of type"><input id="sort_comments" type="checkbox" checked="checked">Add types</label>
+    <label title="Add comments to separate each group of type">
+     <input id="sort_comments" type="checkbox" checked="checked">Add type comments
+    </label>
    </div>
-   <select id="deck_language" name="lang"></select>
+   <label title="If unchecked, extensions won't be saved, and a default one will be defined on next deck loading">
+    <input id="savextensions" type="checkbox">Save selected extension
+   </label>
    <table id="deck">
     <thead>
      <tr>
@@ -102,26 +123,28 @@ html_menu() ;
     <tbody id="sideboard">
     </tbody>
    </table>
-   <label title="Save as .dec, meaning no extension information is saved"><input id="noextensions" type="checkbox">Don't save chosen extension</label>
   </div>
 
-  <!-- Zoom image on center right of the page -->
-  <div id="infos" class="section">
-   <h1 class="hideable">Infos</h1>
-   <img id="zoom" src="<?php echo $cardimages_default ; ?>back.jpg" title="Left click : zoom in, Right click : zoom out, middle click : open on MCI">
-  </div>
+  <div id="infos">
+   <!-- Zoom image -->
+   <div id="zoombox" class="section">
+    <h1 class="hideable">Zoom</h1>
+    <img id="zoom" src="<?php echo $cardimages_default ; ?>back.jpg" title="Left click : zoom in, Right click : zoom out, middle click : open on MCI">
+   </div>
 
-   <!-- Deck stats on right -->
-  <div id="stats" class="section">
-   <h1 class="hideable">Stats</h1>
-   <div id="stats_color"></div>
-   <div id="stats_cost"></div>
-   <div id="stats_typelist"></div>
-   <div id="stats_type"></div>
-  </div>
+   <!-- Deck stats -->
+   <div id="stats" class="section">
+    <h1 class="hideable">Stats</h1>
+    <div id="stats_color"></div>
+    <div id="stats_cost"></div>
+    <div id="stats_typelist"></div>
+    <div id="stats_type"></div>
+   </div>
 
   <!-- Logs -->
   <textarea id="log" class="hidden"></textarea>
+
+  </div>
 
 <?php
 if ( is_file('footer.php') )

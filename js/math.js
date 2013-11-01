@@ -142,7 +142,7 @@ function string_limit(txt, limit, prepend) {
 	if ( ! isn(limit) )
 		limit = 10 ;
 	if ( ! iss(prepend) )
-		prepend = '...' ;
+		prepend = '…' ;
 	if ( txt.length > limit )
 		return txt.substr(0, limit-prepend.length)+prepend ;
 	else
