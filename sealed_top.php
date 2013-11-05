@@ -3,18 +3,13 @@ include 'lib.php' ;
 include 'includes/db.php' ;
 include 'includes/card.php' ;
 include 'includes/deck.php' ;
-$order = param($_GET, 'order', 'sealed_score_ratio') ;
-$ext = param($_GET, 'ext', 'CUB') ;
+$order = param($_GET, 'order', 'score_ratio') ;
+$report = param($_GET, 'report', '') ;
 $type = param($_GET, 'type', '') ;
 $color = param($_GET, 'color', '') ;
 $rarity = param($_GET, 'rarity', '') ;
-function option_value($value, $default) {
-	echo 'value="'.$value.'"' ;
-	if ( $value == $default )
-		echo ' selected' ;
-}
 html_head(
-	'Inclusion and performance statistics for cards in '.$ext,
+	'Inclusion and performance statistics',
 	array('style.css', 'mtg.css', 'sealed_top.css')
 ) ;
 ?>
@@ -23,21 +18,33 @@ html_head(
 html_menu() ;
 ?>
   <div class="section">
-   <h1>Inclusion and performance statistics for cards in <?=$ext?></h1>
-   <h2>Params</h2>
+   <h1>Inclusion in sealed and performance statistics</h1>
+   <h2>Report</h2>
    <form>
+    Report :
+    <select name="report">
+<?php
+$reports = scandir('stats') ;
+foreach ( $reports as $r )
+	if ( ( $r != '.' ) && ( $r != '..' ) ) {
+		echo '     <option ' ;
+		option_value($r, $report) ;
+		echo '>'.$r.' (updated '.date ("F d Y H:i:s.", filemtime('stats/'.$r)).')</option>'."\n" ;
+	}
+?>
+    </select>
+   <h2>Params</h2>
     Sort : 
     <select name="order">
-     <option <?php option_value("sealed_open", $order) ; ?>>Opened</option>
-     <option <?php option_value("sealed_play", $order) ; ?>>Played</option>
-     <option <?php option_value("sealed_score", $order) ; ?>>Scored</option>
-     <option <?php option_value("sealed_play_ratio", $order) ; ?>>Play ratio</option>
-     <option <?php option_value("sealed_score_ratio", $order) ; ?>>Score ratio</option>
-     <option <?php option_value("sealed_play_score_ratio", $order) ; ?>>Score ratio (played)</option>
+     <option <?php option_value("opened", $order) ; ?>>Opened</option>
+     <option <?php option_value("played", $order) ; ?>>Played</option>
+     <option <?php option_value("scored", $order) ; ?>>Scored</option>
+     <option <?php option_value("play_ratio", $order) ; ?>>Play ratio</option>
+     <option <?php option_value("score_ratio", $order) ; ?>>Score ratio</option>
+     <option <?php option_value("play_score_ratio", $order) ; ?>>Score ratio (played)</option>
     </select>
     <br>
     Filter : 
-    <input type="text" name="ext" placeholder="Extension code" value="<?php echo $ext ?>" title="Extension code" size="3">
     <select name="type">
      <option <?php option_value("", $type) ; ?>>All types</option>
      <option <?php option_value("land", $type) ; ?>>Land</option>
@@ -70,56 +77,50 @@ html_menu() ;
     <input type="submit" value="Apply">
    </form>
 
+<?php
+if ( $report == '' )
+	die('Please select a report') ;
+$report = json_decode(file_get_contents('stats/'.$report)) ;
+$card_connection = card_connect() ;
+$p = array() ; ;
+foreach ( $report->cards as $i => $card ) {
+	$c = query_oneshot("SELECT `name`, `attrs`, `text` FROM `card` WHERE `id` = $i", 'Pick', $card_connection) ;
+	$card->name = $c->name ;
+	$card->attrs = $c->attrs ;
+	$card->text = $c->text ;
+	if ( $card->opened != 0 ) {
+		$card->play_ratio = $card->played / $card->opened ;
+		$card->score_ratio = $card->scored / $card->opened / 2 ;
+	} else {
+		$card->play_ratio = 0 ;
+		$card->score_ratio = 0 ;
+	}
+	if ( $card->played != 0 )
+		$card->play_score_ratio = $card->scored / $card->played / 2 ;
+	else
+		$card->play_score_ratio = 0 ;
+	$p[] = $card ;
+}
+usort($p, 'sort_'.$order) ;
+$totalgames = $report->starter_won + $report->starter_lost ;
+$winpct = $report->starter_won / $totalgames ;
+?>
+   <h2>Stats</h2>
+   <ul>
+    <li><?=count((array)$report->tournaments);?> tournament parsed</li>
+    <li>Starter won <?=$report->starter_won;?> (<?=round(100*$winpct, 2);?>%) and lost <?=$report->starter_lost;?> in <?=$totalgames;?> games</li>
+   </ul>
+
    <h2>List</h2>
    <table>
-<?php
-$card_connection = card_connect() ;
-if ( $ext == '' ) {
-	$fromwhere = "
-	FROM
-		`pick`,
-		`card`
-	WHERE
-		`card`.`id` = `pick`.`card_id`" ;
-} else {
-	$fromwhere = "
-		, `card_ext`.`rarity`
-	FROM
-		`pick`,
-		`card`,
-		`card_ext`,
-		`extension`
-	WHERE
-		`extension`.`se` = '$ext' AND
-		`extension`.`id` = `card_ext`.`ext` AND
-		`card_ext`.`card` = `card`.`id` AND
-		`card`.`id` = `pick`.`card_id`" ;
-}
-$p = query_as_array("
-	SELECT
-		`pick`.`sealed_open`,
-		`pick`.`sealed_play`,
-		`pick`.`sealed_score`,
-		`pick`.`sealed_play` / `pick`.`sealed_open` as `sealed_play_ratio`,
-		`pick`.`sealed_score` / `pick`.`sealed_open` as `sealed_score_ratio`,
-		`pick`.`sealed_score` / `pick`.`sealed_play` as `sealed_play_score_ratio`,
-		`card`.`name`,
-		`card`.`attrs`, 
-		`card`.`text`
-$fromwhere
-	ORDER BY
-		`$order` DESC
-;", 'pick', $card_connection) ;
-
-?>
     <tr>
      <th title="Ranking in selection / absolutely">#</th>
-     <th title="Card's rarity in this extension">R</th>
+     <th title="Most found card's rarity in played extensions. Mouse over to get details">R</th>
      <th title="Card's name">Name</th>
-     <th title="Card's color">C</th>
+     <th title="Card's colors">C</th>
      <th title="Number of times card was opened">Opened</th>
      <th title="Number of times card have been inserted in a deck">Played</th>
-     <th title="Number of matches won with this card in deck / 2">Scored</th>
+     <th title="Number of games won with this card in deck">Scored</th>
      <th title="Played / Opened">Play ratio</th>
      <th title="Scored / Opened">Score ratio</th>
      <th title="Scored / Played">Score ratio (played)</th>
@@ -127,13 +128,26 @@ $fromwhere
 <?php
 $nb = 0 ;
 foreach ( $p as $i => $c ) {
-	if ( ( $rarity != '' ) && ( $c->rarity != $rarity ) )
+	// Rarity
+	$crarity = 'S' ;
+	$nrarity = 0 ;
+	$rdisp = '' ;
+	foreach ( $c->rarity as $r => $rnb ) {
+		$rdisp .= $r.' : '.$rnb.' ' ;
+		if ( $rnb > $nrarity ) {
+			$crarity = $r ;
+			$nrarity = $rnb ;
+		}
+	}
+	// Filters
+	if ( ( $rarity != '' ) && ( $crarity != $rarity ) )
 		continue ;
 	$d = json_decode($c->attrs) ;
 	if ( ( $color != '' ) && is_string($d->color) && ( strpos($d->color, $color) === false ) )
 		continue ;
 	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
 		continue ;
+	// Cost
 	$manas = array() ;
 	foreach ( $d->manas as $mana ) {
 		if ( is_numeric($mana) || (  $mana == 'X' ))
@@ -143,21 +157,20 @@ foreach ( $p as $i => $c ) {
 	}
 	if ( count($manas) == 0 )
 		$manas[] = 'X' ;
-	
 	$colors = '' ;
 	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'">' ;
 	echo '    <tr title="'.$c->text.'">
      <td>'.$nb++.'/'.$i.'</td>
-     <td class="bg_r_'.(isset($c->rarity)?$c->rarity:'').'">'.$c->rarity.'</td>
+     <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
      <td>'.$colors.'</td>
-     <td>'.$c->sealed_open.'</td>
-     <td>'.$c->sealed_play.'</td>
-     <td>'.$c->sealed_score.'</td>
-     <td>'.round($c->sealed_play_ratio*100, 2).'%</td>
-     <td>'.round($c->sealed_score_ratio*100, 2).'%</td>
-     <td>'.round($c->sealed_play_score_ratio*100, 2).'%</td>
+     <td>'.$c->opened.'</td>
+     <td>'.$c->played.'</td>
+     <td>'.$c->scored.'</td>
+     <td>'.round($c->play_ratio*100, 2).'%</td>
+     <td>'.round($c->score_ratio*100, 2).'%</td>
+     <td>'.round($c->play_score_ratio*100, 2).'%</td>
     </tr>'."\n" ;
 }
 // Caption
@@ -174,3 +187,34 @@ echo '    <caption>'.$caption.'</caption>' ;
   </div>
  </body>
 </html>
+<?php
+function sort_by($field, $a, $b) {
+	$res = $b->$field - $a->$field ;
+	if ( $res == 0 )
+		return 0 ;
+	return $res / abs($res) ;
+}
+function sort_opened($a, $b) {
+	return sort_by('opened', $a, $b) ;
+}
+function sort_played($a, $b) {
+	return sort_by('played', $a, $b) ;
+}
+function sort_scored($a, $b) {
+	return sort_by('scored', $a, $b) ;
+}
+function sort_play_ratio($a, $b) {
+	return sort_by('play_ratio', $a, $b) ;
+}
+function sort_score_ratio($a, $b) {
+	return sort_by('score_ratio', $a, $b) ;
+}
+function sort_play_score_ratio($a, $b) {
+	return sort_by('play_score_ratio', $a, $b) ;
+}
+function option_value($value, $default) {
+	echo 'value="'.$value.'"' ;
+	if ( $value == $default )
+		echo ' selected' ;
+}
+?>

@@ -21,17 +21,34 @@ html_menu() ;
    <h2>Tools</h2>
    <ul>
     <li><a href="tournament/recompute.php">Recompute tournament's scores</a></li>
-    <li>
-     <form action="tournament/sealed_parse.php">
-      Update card inclusion statistics : 
-      <input type="date" name="date" placeholder="Starting date" value="2013-01-29">
-      <input type="text" name="name" placeholder="Name mask" value="-CUB">
-      <input type="submit" value="Update">
-     </form>
-    </li>
-    <li><a href="/sealed_top.php">Card inclusion statistics</a> (public)</li>
-
    </ul>
+
+   <h2>Inclusion and performance reports</h2>
+   <form action="tournament/sealed_parse.php">
+    <input type="text" name="name" placeholder="Name">
+    <input type="date" name="date" placeholder="Starting date">
+    <input type="text" name="mask" placeholder="Name mask">
+    <input type="submit" value="Create">
+   </form>
+
+   <form action="tournament/sealed_parse.php">
+    <select name="name">
+<?php
+$reports = scandir('../stats/') ;
+foreach ( $reports as $r )
+	if ( ( $r != '.' ) && ( $r != '..' ) ) {
+		echo '     <option value="'.$r.'"' ;
+		if ( $r == $report )
+			echo ' selected' ;
+		echo '>'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
+	}
+?>
+    </select>
+    <input type="submit" value="Update">
+   </form>
+
+   <li><a href="/sealed_top.php">See result</a> (public)</li>
+
    <h2>Current</h2>
    <ul>
 <?php
