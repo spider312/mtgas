@@ -14,16 +14,19 @@ if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 $folder = '../../stats/' ;
 $file = $folder.$name ;
 
-if ( ( $mask == '' ) && ( $date == '' ) && file_exists($file) ) { // Existing report and no date/mask, read them from report
-	$report = json_decode(file_get_contents($file)) ;
-	if ( $report == null )
-		die('Unable to decode report') ;
-	if ( isset($report->date) )
-		$date = $report->date ;
-	if ( isset($report->mask) )
-		$mask = $report->mask ;
-	if ( isset($report->imask) )
-		$imask = $report->imask ;
+if ( ( $mask == '' ) && ( $date == '' ) ) { // Existing report and no date/mask, read them from report
+	if ( file_exists($file) ) {
+		$report = json_decode(file_get_contents($file)) ;
+		if ( $report == null )
+			die('Unable to decode report') ;
+		if ( isset($report->date) )
+			$date = $report->date ;
+		if ( isset($report->mask) )
+			$mask = $report->mask ;
+		if ( isset($report->imask) )
+			$imask = $report->imask ;
+	} else
+		die('You must enter a name or date mask in order to generate a new report') ;
 }
 
 $card_connection = card_connect() ;
