@@ -41,12 +41,18 @@ WHERE
 		`tournament`.`type` = 'sealed'
 		OR `tournament`.`type` = 'draft'
 	)" ;
-if ( $date != '' )
+if ( $date != '' ) {
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
-if ( $mask != '' )
+	echo "Selection by date : $date\n" ;
+}
+if ( $mask != '' ) {
 	$q .= "	AND `tournament`.`name` LIKE '%$mask%'" ;
-if ( $imask != '' )
+	echo "Selection by name mask : $mask\n" ;
+}
+if ( $imask != '' ) {
 	$q .= "	AND `tournament`.`name` NOT LIKE '%$imask%'" ;
+	echo "Selection by name ignore mask : $imask\n" ;
+}
 $q .= " ;" ;
 $t = query_as_array($q) ;
 echo 'Query : '.count($t)."\n" ;
