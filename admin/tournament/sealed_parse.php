@@ -6,6 +6,7 @@ ini_set ('memory_limit', '256M');
 
 $name = param_or_die($_GET, 'name') ;
 $mask = param($_GET, 'mask', '') ;
+$imask = param($_GET, 'imask', '') ;
 $date = param($_GET, 'date', '') ;
 if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = '' ;
@@ -21,6 +22,8 @@ if ( ( $mask == '' ) && ( $date == '' ) && file_exists($file) ) { // Existing re
 		$date = $report->date ;
 	if ( isset($report->mask) )
 		$mask = $report->mask ;
+	if ( isset($report->imask) )
+		$imask = $report->imask ;
 }
 
 $card_connection = card_connect() ;
@@ -42,6 +45,8 @@ if ( $date != '' )
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
 if ( $mask != '' )
 	$q .= "	AND `tournament`.`name` LIKE '%$mask%'" ;
+if ( $imask != '' )
+	$q .= "	AND `tournament`.`name` NOT LIKE '%$imask%'" ;
 $q .= " ;" ;
 $t = query_as_array($q) ;
 echo 'Query : '.count($t)."\n" ;
@@ -125,6 +130,8 @@ if ( $date != '' )
 	$result->date = $date ;
 if ( $mask != '' )
 	$result->mask = $mask ;
+if ( $imask != '' )
+	$result->imask = $imask ;
 $result->cards = $cards ;
 $result->tournaments = $tournaments ;
 $result->starter_won = $starter_won ;
