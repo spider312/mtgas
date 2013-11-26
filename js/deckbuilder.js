@@ -18,35 +18,39 @@ function load(body, deckname) {
 			deck_option.selected = true ;
 		}
 	}
+	function update_row_language(row, decklist) {
+		if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
+			if ( deck_language.value == 'en' ) {
+				delete row.card_name
+				node_empty(row.cells[2]) ;
+				row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
+			} else
+				jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
+				function(data, b, c) {
+					var row = null
+					for ( var i = 0 ; i < decklist.rows.length ; i++ )
+						if ( decklist.rows[i].card == data.name )
+							row = decklist.rows[i] ;
+					if ( row == null )
+						return false ;
+					node_empty(row.cells[2]) ;
+					var name = data.name ;
+					if ( iss(data.card_name) ) {
+						name = data.card_name ;
+						row.card_name = data.card_name ;
+					} else 
+						delete row.card_name ;
+					row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
+				}) ;
+		}
+	}
 	deck_language.addEventListener('change', function(ev) {
 		var decklist = document.getElementById('maindeck') ;
-		for ( var i = 0 ; i < decklist.rows.length ; i++ ) { 
-			var row = decklist.rows[i] ;
-			if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
-				if ( deck_language.value == 'en' ) {
-					delete row.card_name
-					node_empty(row.cells[2]) ;
-					row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
-				} else
-					jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
-					function(data, b, c) {
-						var row = null
-						for ( var i = 0 ; i < decklist.rows.length ; i++ )
-							if ( decklist.rows[i].card == data.name )
-								row = decklist.rows[i] ;
-						if ( row == null )
-							return false ;
-						node_empty(row.cells[2]) ;
-						var name = data.name ;
-						if ( iss(data.card_name) ) {
-							name = data.card_name ;
-							row.card_name = data.card_name ;
-						} else 
-							delete row.card_name ;
-						row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
-					}) ;
-			}
-		}
+		for ( var i = 0 ; i < decklist.rows.length ; i++ )
+			update_row_language(decklist.rows[i], decklist) ;
+		var sideboard = document.getElementById('sideboard') ;
+		for ( var i = 0 ; i < sideboard.rows.length ; i++ )
+			update_row_language(sideboard.rows[i], sideboard) ;
 
 	}, false)
 	// If a deck was passed in param, parse it and fill card list with its data
@@ -334,38 +338,39 @@ function log(msg) {
 	el.value += msg+'\n' ;
 	el.scrollTop = el.scrollHeight ;
 }
+function deck_line(row, savext, side) {
+	if ( side )
+		var content = 'SB: ' ;
+	else
+		var content = '    ' ;
+	content += row.cells[0].textContent+' ' ; // Number of cards
+	if ( savext )
+		content += '['+row.ext()+']' ; // Extension
+	content += row.card ; // Name
+	if ( isn(row.attrs.nb) )
+		content += ' ('+row.attrs.nb+')' ;
+	content += '\n' ;
+	return content ;
+}
+function deck_comment_line(row) {
+	return '// '+row.comment+'\n' ;
+}
 function deck_content() {
 	var content = '' ;
-	var deck = document.getElementById('maindeck') ;
 	var savext = document.getElementById('savextensions').checked ;
+	var deck = document.getElementById('maindeck') ;
 	for ( var i = 0 ; i < deck.rows.length ; i++ ) {
-		var row = deck.rows[i] ;
-		if ( row.className == 'comment' )
-			content += '// '+row.cells[0].textContent+'\n' ;
-		else {
-			content += '    '+row.cells[0].textContent+' ' ; // Number of cards
-			if ( savext )
-				content += '['+row.ext()+']' ; // Extension
-			content += row.card ; // Name
-			if ( isn(row.attrs.nb) )
-				content += ' ('+row.attrs.nb+')' ;
-			content += '\n' ;
-		}
+		if ( deck.rows[i].className == 'comment' )
+			content += deck_comment_line(deck.rows[i]) ;
+		else
+			content += deck_line(deck.rows[i], savext) ;
 	}
-	var deck = document.getElementById('sideboard') ;
+	deck = document.getElementById('sideboard') ;
 	for ( var i = 0 ; i < deck.rows.length ; i++ ) {
-		var row = deck.rows[i] ;
-		if ( row.className == 'comment' )
-			content += '//'+row.cells[0].textContent+'\n' ;
-		else {
-			content += 'SB: '+row.cells[0].textContent+' ' ; // Number of cards
-			if ( savext )
-				content += '['+row.ext()+']' ; // Extension
-			content += row.cells[2].textContent ; // Name
-			if ( isn(row.attrs.nb) )
-				content += ' ('+row.attrs.nb+')' ;
-			content += '\n' ;
-		}
+		if ( deck.rows[i].className == 'comment' )
+			content += deck_comment_line(deck.rows[i]) ;
+		else
+			content += deck_line(deck.rows[i], savext, true) ;
 	}
 	return content ;
 }
@@ -839,17 +844,20 @@ function comment(table, txt) {
 		if ( table.rows[i].firstChild.firstChild.data == txt )
 			table.rows[i].parentNode.removeChild(table.rows[i]) ;
 	var row = create_tr(table) ; //, txt, buttons) ;
-	create_td(row, string_limit(txt, 40)).colSpan = 3 ;
+	row.comment = txt ;
+	create_td(row, string_limit(txt, 30)).colSpan = 3 ;
 	row.className = 'comment' ;
 	// Methods
 	row.editcomment = function(ev) {
 		var row = node_parent_search(ev.target, 'TR') ;
-		var ret = prompt('Comment text, empty to remove', row.firstChild.firstChild.data) ;
+		var ret = prompt('Comment text, empty to remove', row.comment) ;
 		if ( ret != null ) {
 			if ( ret == '' )
-				row.parentNode.removeChild(row) ;
-			else
-				row.firstChild.firstChild.data = ret ;
+				return row.parentNode.removeChild(row) ;
+			else {
+				row.comment = ret ;
+				row.firstChild.firstChild.data = string_limit(ret, 30) ;
+			}
 		}
 	}
 	// Buttons
@@ -869,7 +877,6 @@ function comment(table, txt) {
 		}, ev) ;
 		return menu.start(ev) ;
 	}, false)
-
 	// DND
 	row.addEventListener('dragstart', function(ev) {
 		var row = node_parent_search(ev.target, 'TR') ;
