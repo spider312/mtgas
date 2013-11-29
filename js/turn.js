@@ -242,7 +242,10 @@ function Turn(game) {
 					if ( tournament > 0 )
 						menu.addline('Tournament', function() { window.open('tournament/?id='+tournament) ; }) ;
 					menu.addline('Main page (new tab)', function() { window.open('./') ; }) ;
-					menu.addline('Quit', function() { onUnload() ; window.location.replace('./') ; }) ; // onUnload because menu has focus at this moment, window don't trigger unload event
+					menu.addline('Quit', function() {
+						window.removeEventListener('beforeunload', onBeforeUnload, false) ;
+						window.location.replace('./') ;
+					}) ; // onUnload because menu has focus at this moment, window don't trigger unload event
 					if ( game.options.get('debug') ) {
 						menu.addline() ;
 						if ( iso(logtext) && ( logtext.length > 0 ) )
@@ -897,4 +900,84 @@ function steps_init(turn) {
 function play_turn() {
 	game.turn.setturn(game.turn.num+1, game.turn.current_player) ;
 	game.turn.setstep(0) ;
+}
+
+function creatures_deal_dmg(player) { // Each player's attacking creatures fights each creature blocking it
+	for ( var i in player.battlefield.cards ) { // Each attacker will be solved individually (won't manage correctly creatures blocking multiple attackers)
+		var card = player.battlefield.cards[i] ;
+		if ( card.attacking ) { // Attacking creatures
+			var pow = card.get_pow_total() ;
+			if ( card.has_attr('double_strike') )
+				pow *= 2 ;
+			// Blockers
+			var targeting = game.target.targeting(card) ; // Targeting current card
+			var blockers = [] ;
+			for ( var j = 0 ; j < targeting.length ; j++ ) // Keep only those from opponent
+				if ( card.zone.player != targeting[j].zone.player )
+					blockers.push(targeting[j]) ;
+			// Inflicts attacking creature's power divided among creatures targetting it, ordered by target creation order
+			// (attacking player should recreate ALL targets in order he wants)
+			for ( var j = 0 ; j < blockers.length ; j++ ) {
+				var dest = blockers[j] ;
+				message(dest.get_name()+' blocks '+card.get_name()) ;
+				if ( card.attrs.trample || ( j < blockers.length-1 ) )
+					var dmg = min(pow, dest.get_thou_total() - dest.get_damages()) ; // Limit to lethal damage
+				else
+					var dmg = pow ; // Last blocker recieve all damages
+				dest.set_damages(dest.get_damages()+dmg) ;
+				var bpow = dest.get_pow_total() ;
+				if ( dest.has_attr('double_strike') )
+					bpow *= 2 ;
+				card.set_damages(card.get_damages()+bpow) ;
+				pow -= dmg ;
+			}
+		}
+	}
+}
+function sum_attackers_powers(player) { // Returns an array of life/poison lost or gained by player during current combat phase
+	var life = 0 ;
+	var poison = 0 ;
+	if ( player == game.creator )
+		var attacking_player = game.joiner ;
+	else
+		var attacking_player = game.creator ;
+	var defending_player = attacking_player.opponent ;
+	if ( game.turn.current_player == attacking_player ) { // Changing life for defending player
+		for ( var i in attacking_player.battlefield.cards ) { // Sum
+			var card = attacking_player.battlefield.cards[i] ;
+			if ( card.attacking ) { // Attacking creatures
+				var pow = card.get_pow_total() ;
+				if ( card.has_attr('double_strike') )
+					pow *= 2 ;
+				var targeting = game.target.targeting(card) ; // Targeting current card
+				var blocking = [] ;
+				for ( var j = 0 ; j < targeting.length ; j++ ) // Keep only those from opponent
+					if ( card.zone.player != targeting[j].zone.player )
+						blocking.push(targeting[j]) ;
+				if ( blocking.length > 0 ) { // Targeted (blocked) creature
+					if ( card.has_attr('trample') ) {
+						for ( var j = 0 ; j < blocking.length ; j++ )
+							pow -= blocking[j].get_thou_total() ;
+					} else
+						pow = 0 ;
+				}
+				if ( card.has_attr('infect') )
+					poison += pow ;
+				else
+					life -= pow ;
+			}
+		}
+	} else { // Changing life for attacking player
+		for ( var i in defending_player.battlefield.cards ) { // Sum
+			var card = defending_player.battlefield.cards[i] ;
+			if ( card.attacking && // Attacking creatures
+			card.has_attr('lifelink') ) { // With lifelink's
+				var pow = card.get_pow_total() ;
+				if ( card.attrs.double_strike )
+					pow *= 2 ;
+				life += pow ;
+			}
+		}
+	}
+	return new Array(life, poison) ;
 }

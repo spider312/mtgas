@@ -848,37 +848,6 @@ function battlefield(player) {
 			submenu.addline('Type number of faces',     rolldice) ;
 			menu.addline('Roll a dice',	submenu) ;
 			menu.addline('Flip a coin',	flip_coin) ;
-			var mojosto = new menu_init(mybf) ;
-			def = this.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
-			mojosto.addline('Momir ...', function() { // momir jhoira stonehewer nokiou
-				cc = prompt_int('Converted cost', def) ;
-				if ( cc != null ) {
-					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'momir', 'cc': cc}) ;
-					if ( game.nokiou )
-						$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
-				}
-			}).moimg = 'http://img.mogg.fr/VOA/Momir Vig, Simic Visionary.full.jpg' ;
-			var j = 'http://img.mogg.fr/VOA/Jhoira of the Ghitu.full.jpg' ;
-			mojosto.addline('Jhoira (instants)', function() {
-				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-instant'}) ;
-			}).moimg = j ;
-			mojosto.addline('Jhoira (sorceries)', function() {
-				$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-sorcery'}) ;
-			}).moimg = j ;
-			var sg = mojosto.addline('Stonehewer giant', function() {
-				game.stonehewer = ! game.stonehewer ;
-			}) ;
-			sg.checked = game.stonehewer ;
-			sg.moimg = 'http://img.mogg.fr/VOA/Stonehewer Giant.full.jpg' ;
-			mojosto.addline('Nonland, noncreature permanent ...',    function() {
-				cc = prompt_int('Converted cost', def) ;
-				if ( cc != null )
-					$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
-			}) ;
-			mojosto.addline('Momir also puts a noncreature permanent',    function() {
-				game.nokiou = ! game.nokiou ;
-			}).checked = game.nokiou ;
-			menu.addline('MoJoSto', mojosto) ;
 		} else
 			menu.addline('Battlefield') ;
 		return menu.start(ev) ;
@@ -1353,78 +1322,4 @@ function Life(player) {
 		}
 	}
 	return this ;
-}
-function creatures_deal_dmg(player) { // Each player's attacking creatures fights each creature blocking it
-	for ( var i in player.battlefield.cards ) { // Each attacker will be solved individually (won't manage correctly creatures blocking multiple attackers)
-		var card = player.battlefield.cards[i] ;
-		if ( card.attacking ) { // Attacking creatures
-			var pow = card.get_pow_total() ;
-			if ( card.has_attr('double_strike') )
-				pow *= 2 ;
-			// Blockers
-			var targeting = game.target.targeting(card) ; // Targeting current card
-			var blockers = [] ;
-			for ( var j = 0 ; j < targeting.length ; j++ ) // Keep only those from opponent
-				if ( card.zone.player != targeting[j].zone.player )
-					blockers.push(targeting[j]) ;
-			//var blockers = game.target.targeting(card) ;
-			// Inflicts attacking creature's power divided among creatures targetting it, ordered by target creation order
-			// (attacking player should recreate ALL targets in order he wants)
-			for ( var j = 0 ; j < blockers.length ; j++ ) {
-				var dest = blockers[j] ;
-				message(dest.get_name()+' blocks '+card.get_name()) ;
-				var dmg = min(pow, dest.attrs.thou - dest.get_damages()) ;
-				dest.set_damages(dest.get_damages()+dmg) ;
-				card.set_damages(card.get_damages()+dest.attrs.pow) ;
-				pow -= dmg ;
-			}
-		}
-	}
-}
-function sum_attackers_powers(player) { // Returns an array of life/poison lost or gained by player during current combat phase
-	var life = 0 ;
-	var poison = 0 ;
-	if ( player == game.creator )
-		var attacking_player = game.joiner ;
-	else
-		var attacking_player = game.creator ;
-	var defending_player = attacking_player.opponent ;
-	if ( game.turn.current_player == attacking_player ) { // Changing life for defending player
-		for ( var i in attacking_player.battlefield.cards ) { // Sum
-			var card = attacking_player.battlefield.cards[i] ;
-			if ( card.attacking ) { // Attacking creatures
-				var pow = card.get_pow_total() ;
-				if ( card.has_attr('double_strike') )
-					pow *= 2 ;
-				var targeting = game.target.targeting(card) ; // Targeting current card
-				var blocking = [] ;
-				for ( var j = 0 ; j < targeting.length ; j++ ) // Keep only those from opponent
-					if ( card.zone.player != targeting[j].zone.player )
-						blocking.push(targeting[j]) ;
-				if ( blocking.length > 0 ) { // Targeted (blocked) creature
-					if ( card.has_attr('trample') ) {
-						for ( var j = 0 ; j < blocking.length ; i++ )
-							pow -= blocking[j].get_thou() ;
-					} else
-						pow = 0 ;
-				}
-				if ( card.has_attr('infect') )
-					poison += pow ;
-				else
-					life -= pow ;
-			}
-		}
-	} else { // Changing life for attacking player
-		for ( var i in defending_player.battlefield.cards ) { // Sum
-			var card = defending_player.battlefield.cards[i] ;
-			if ( card.attacking && // Attacking creatures
-			card.has_attr('lifelink') ) { // With lifelink's
-				var pow = card.get_pow_total() ;
-				if ( card.attrs.double_strike )
-					pow *= 2 ;
-				life += pow ;
-			}
-		}
-	}
-	return new Array(life, poison) ;
 }
