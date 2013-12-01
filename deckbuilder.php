@@ -25,7 +25,7 @@ html_head(
 ) ;
 ?>
 
- <body onload="load(this, '<?php echo mysql_real_escape_string($_GET['deck']) ; ?>' );">
+ <body onload="load(this, '<?php echo addslashes($_GET['deck']) ; ?>' );">
 
 <?php
 html_menu() ;
@@ -43,7 +43,6 @@ html_menu() ;
      <input id="cardcost" type="text" name="cost" placeholder="cost" autocomplete="off" title="Search inside card cost, use % as a joker">
      <label>Cards per page : 
      <input id="cardlimit" type="text" name="limit" value="20" title="Number of cards to display" size="2" maxlength="2" title="Number of results to display per page"></label>
-     <select id="language" name="lang"></select>
     </div>
     <input type="submit" name="submit" value="Search" title="Search all cards matching all criteria">
     <span id="advanced_search" title="Show/hide advanced search parameters"></span>

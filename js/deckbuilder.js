@@ -5,43 +5,15 @@ function load(body, deckname) {
 	game = {}
 	game.options = new Options(true) ;
 	game.image_cache = new image_cache() ;
+	search_cards = document.getElementById('search_cards') ;
 	// Fill languages list
-	language = document.getElementById('language') ;
 	deck_language = document.getElementById('deck_language') ;
 	for ( i in langs ) {
-		var option = create_option(langs[i], i) ;
 		var deck_option = create_option(langs[i], i) ;
-		language.appendChild(option) ;
 		deck_language.appendChild(deck_option) ;
 		if ( i == game.options.get('lang') ) {
-			option.selected = true ;
+			//option.selected = true ;
 			deck_option.selected = true ;
-		}
-	}
-	function update_row_language(row, decklist) {
-		if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
-			if ( deck_language.value == 'en' ) {
-				delete row.card_name
-				node_empty(row.cells[2]) ;
-				row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
-			} else
-				jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
-				function(data, b, c) {
-					var row = null
-					for ( var i = 0 ; i < decklist.rows.length ; i++ )
-						if ( decklist.rows[i].card == data.name )
-							row = decklist.rows[i] ;
-					if ( row == null )
-						return false ;
-					node_empty(row.cells[2]) ;
-					var name = data.name ;
-					if ( iss(data.card_name) ) {
-						name = data.card_name ;
-						row.card_name = data.card_name ;
-					} else 
-						delete row.card_name ;
-					row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
-				}) ;
 		}
 	}
 	deck_language.addEventListener('change', function(ev) {
@@ -51,7 +23,7 @@ function load(body, deckname) {
 		var sideboard = document.getElementById('sideboard') ;
 		for ( var i = 0 ; i < sideboard.rows.length ; i++ )
 			update_row_language(sideboard.rows[i], sideboard) ;
-
+		search() ;
 	}, false)
 	// If a deck was passed in param, parse it and fill card list with its data
 	if ( deckname != '' ) {
@@ -104,28 +76,14 @@ function load(body, deckname) {
 		}
 	}, false) ;
 	document.getElementById('cardname').addEventListener('keyup', function(ev) {
-		var val = ev.target.value ;
-		if ( ( val.length > 2 ) && ( ev.target.previous_value != ev.target.value )) {
-			var params = {} ;
-			var form = document.getElementById('search_cards') ;
-			for ( var i = 0 ; i < form.elements.length ; i++ ) {
-				var item = form.elements.item(i) ;
-				params[item.name] = item.value
-				if ( item == ev.target ) {
-					params[item.name] = val ;
-				}
-			}
-			search(params) ;
-		}	
-		ev.target.previous_value = ev.target.value ;
-	}, false) ;
-	document.getElementById('search_cards').addEventListener('submit', function(ev) { // Search form
-		var params = {} ;
-		for ( var i = 0 ; i < ev.target.elements.length ; i++ ) {
-			var item = ev.target.elements.item(i) ;
-			params[item.name] = item.value ;
+		if ( ev.target.previous_value != ev.target.value ) {
+			ev.target.previous_value = ev.target.value ;
+			if ( ev.target.value.length > 2 )
+				search() ;
 		}
-		search(params) ;
+	}, false) ;
+	search_cards.addEventListener('submit', function(ev) { // Search form
+		search() ;
 		ev.preventDefault() ;
 	}, false) ;
 	document.getElementById('advanced_search').addEventListener('click', function(ev) { // Search form
@@ -252,6 +210,32 @@ function load(body, deckname) {
 	/*setTimeout(function() {
 		document.body.classList.add('hideh1') ;
 	}, 1000) ;*/
+}
+function update_row_language(row, decklist) {
+	if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
+		if ( deck_language.value == 'en' ) {
+			delete row.card_name
+			node_empty(row.cells[2]) ;
+			row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
+		} else
+			jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
+			function(data, b, c) {
+				var row = null
+				for ( var i = 0 ; i < decklist.rows.length ; i++ )
+					if ( decklist.rows[i].card == data.name )
+						row = decklist.rows[i] ;
+				if ( row == null )
+					return false ;
+				node_empty(row.cells[2]) ;
+				var name = data.name ;
+				if ( iss(data.card_name) ) {
+					name = data.card_name ;
+					row.card_name = data.card_name ;
+				} else 
+					delete row.card_name ;
+				row.cells[2].appendChild(document.createTextNode(string_limit(name, 25))) ;
+			}) ;
+	}
 }
 function sort_deck(deck) {
 	var rows = [] ; // Work on a copy containing only cards
@@ -538,7 +522,13 @@ function extension_select(card, orig_ext, orig_attrs) {
 	}
 	return ext ;
 }
-function search(params) {
+function search() {
+	var params = {} ;
+	for ( var i = 0 ; i < search_cards.elements.length ; i++ ) {
+		var item = search_cards.elements.item(i) ;
+		params[item.name] = item.value
+	}
+	params.lang = deck_language.value ;
 	// Send search request
 	$.getJSON('json/cards.php', params, found) ;
 	var cardlist = document.getElementById('search_result') ;
@@ -601,7 +591,7 @@ function found(data) {
 			page_submit(pagination, nbpages, 'last') ;
 		}
 	}
-	document.getElementById('search_cards').page.value = 1 ; // Reinit paginator in case we launch another search
+	search_cards.page.value = 1 ; // Reinit paginator in case we launch another search
 	// Fill with param
 	var k = 0 ;
 	var row = null
@@ -776,13 +766,6 @@ function add_card(ext, name, num, nb, to) {
 			deck_stats() ;
 		}
 	}) ;
-	row.search = function() {
-		var name = this.card ;
-		if ( iss(this.card_name) )
-			name = this.card_name ;
-		search({'name': name, 'lang': language.value}) ;
-		document.getElementById('cardname').value = name ;
-	}
 	// Events
 	row.addEventListener('mouseover', function(ev) {
 		var node = node_parent_search(ev.target, 'TR') ;
@@ -796,7 +779,6 @@ function add_card(ext, name, num, nb, to) {
 			select_deck(ev.target) ;
 	}, false ) ;
 	row.addEventListener('dblclick', function(ev) {
-		//node_parent_search(ev.target, 'TR').search() ;
 		remove_card(this, -1) ;
 	}, false ) ;
 	row.addEventListener('contextmenu', function(ev) {
