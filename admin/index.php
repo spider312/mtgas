@@ -54,7 +54,7 @@ if ( count($reports) > 0 ) {
     <select name="name">
 <?php
 	foreach ( $reports as $r )
-		if ( ( $r != '.' ) && ( $r != '..' ) )
+		if ( ( $r != '.' ) && ( $r != '..' ) ) {
 			$data = json_decode(file_get_contents($dir.$r)) ;
 			echo '     <option value="'.$r.'"
 				onclick="statsform(event,
@@ -64,6 +64,7 @@ if ( count($reports) > 0 ) {
 					\''.(isset($data->mask)  ? $data->mask:'').'\',
 					\''.(isset($data->imask) ? $data->imask:'').'\')"
 				>'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
+		}
 ?>
     </select>
     <input type="submit" value="Update">
