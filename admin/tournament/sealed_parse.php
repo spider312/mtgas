@@ -50,21 +50,25 @@ WHERE
 		`tournament`.`type` = 'sealed'
 		OR `tournament`.`type` = 'draft'
 	)" ;
+echo '<ul>' ;
 if ( $date != '' ) {
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
-	echo "Selection by date : $date\n" ;
+	echo "<li>Selection by date : $date</li>" ;
 }
+if ( count($exts) > 0 )
+	echo "<li>Selection by extensions : ".implode(', ', $exts)."</li>" ;
 if ( $mask != '' ) {
 	$q .= "	AND `tournament`.`name` LIKE '%$mask%'" ;
-	echo "Selection by name mask : $mask\n" ;
+	echo "<li>Selection by name mask : $mask</li>" ;
 }
 if ( $imask != '' ) {
 	$q .= "	AND `tournament`.`name` NOT LIKE '%$imask%'" ;
-	echo "Selection by name ignore mask : $imask\n" ;
+	echo "<li>Selection by name ignore mask : $imask</li>" ;
 }
+echo '</ul>' ;
 $q .= " ;" ;
 $t = query_as_array($q) ;
-echo 'Query : '.count($t)."\n" ;
+echo 'Query results : '.count($t)."\n" ;
 // Parse each
 $start = microtime(true) ;
 $json_parse = 0 ;
