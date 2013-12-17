@@ -6,11 +6,22 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
-	)
+	),
+	array('html.js')
 ) ;
 ?>
 
  <body>
+  <script language="javascript">
+function statsform(ev, name, date, exts, mask, imask) {
+	var form = document.getElementById('stats_create') ; //ev.target.parentNode.parentNode ;
+	form.name.value = name ;
+	form.date.value = date ;
+	form.exts.value = exts ;
+	form.mask.value = mask ;
+	form.imask.value = imask ;
+}
+  </script>
 <?php
 html_menu() ;
 // === [ Tournaments ] =========================================================
@@ -24,7 +35,7 @@ html_menu() ;
    </ul>
 
    <h2>Inclusion and performance reports</h2>
-   <form action="tournament/sealed_parse.php">
+   <form id="stats_create" action="tournament/sealed_parse.php">
     <input type="text" name="name" placeholder="Name">
     <input type="date" name="date" placeholder="Starting date">
     <input type="text" name="exts" placeholder="EXT1,EXT2,...">
@@ -33,22 +44,33 @@ html_menu() ;
     <input type="submit" value="Create">
    </form>
 
+
+<?php
+$dir = '../stats/' ;
+$reports = scandir($dir) ;
+if ( count($reports) > 0 ) {
+?>
    <form action="tournament/sealed_parse.php">
     <select name="name">
 <?php
-$reports = scandir('../stats/') ;
-foreach ( $reports as $r )
-	if ( ( $r != '.' ) && ( $r != '..' ) ) {
-		echo '     <option value="'.$r.'"' ;
-		if ( $r == $report )
-			echo ' selected' ;
-		echo '>'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
-	}
+	foreach ( $reports as $r )
+		if ( ( $r != '.' ) && ( $r != '..' ) )
+			$data = json_decode(file_get_contents($dir.$r)) ;
+			echo '     <option value="'.$r.'"
+				onclick="statsform(event,
+					\''.$r.'\',
+					\''.(isset($data->date)  ? $data->date:'').'\',
+					\''.(isset($data->exts)  ? implode(',', $data->exts):'').'\',
+					\''.(isset($data->mask)  ? $data->mask:'').'\',
+					\''.(isset($data->imask) ? $data->imask:'').'\')"
+				>'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
 ?>
     </select>
     <input type="submit" value="Update">
    </form>
-
+<?php
+}
+?>
    <li><a href="/sealed_top.php">See result</a> (public)</li>
 
    <h2>Current</h2>
