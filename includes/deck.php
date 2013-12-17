@@ -30,16 +30,16 @@ function game_create($game_name, $creator_nick, $creator_id, $creator_avatar, $c
 		'$status',
 		NOW(),
 		NOW(),
-		'".addslashes($game_name)."',
-		'$creator_nick',
-		'$creator_id',
-		'$creator_avatar',
-		'$creator_deck',
-		'$creator_score',
-		'$joiner_nick',
-		'$joiner_id',
-		'$joiner_avatar',
-		'$joiner_deck',
+		'".mysql_real_escape_string($game_name)."',
+		'".mysql_real_escape_string($creator_nick)."',
+		'".mysql_real_escape_string($creator_id)."',
+		'".mysql_real_escape_string($creator_avatar)."',
+		'".mysql_real_escape_string($creator_deck)."',
+		'".mysql_real_escape_string($creator_score)."',
+		'".mysql_real_escape_string($joiner_nick)."',
+		'".mysql_real_escape_string($joiner_id)."',
+		'".mysql_real_escape_string($joiner_avatar)."',
+		'".mysql_real_escape_string($joiner_deck)."',
 		'$tournament',
 		'$round'
 	) ;") ;
@@ -76,7 +76,7 @@ function game_toss($id) {
 	) VALUES (
 		'$id',
 		'',
-		'0',
+		".time().",
 		'0',
 		'toss',
 		'{\"player\":\"$starter\"}'
@@ -203,25 +203,36 @@ function card2obj($conn, $name, $ext='') {
 		$card->attrs = json_decode($card->attrs) ; // Decode compiled attrs from DB
 	else // Card not in database, skip
 		return null ;
-	// Extension
-	$query_b = query("SELECT * FROM `card_ext`, `extension` WHERE
+	// Extensions
+	/*
+	$query_b = query_as_array("SELECT * FROM `card_ext`, `extension` WHERE
 		`card_ext`.`card` = '".$card->id."' AND
 		`card_ext`.`ext` = '".ext_id($ext, $conn)."' AND
 		`card_ext`.`ext` = `extension`.`id` AND
 		`card_ext`.`nbpics` > 0
 	ORDER BY `extension`.`priority` DESC, `extension`.`release_date` DESC", 'Card\'s extension', $conn) ;
-	if ( mysql_num_rows($query_b) == 0 ) { // Card not existing for this extension
-		$query_b = query("SELECT * FROM `card_ext`, `extension` WHERE
-			`card_ext`.`card` = '".$card->id."' AND
-			`extension`.`id` = `card_ext`.`ext` AND
-			`card_ext`.`nbpics` > 0
-		ORDER BY `extension`.`priority` DESC, `extension`.`release_date` DESC", 'Card\'s extensions', $conn) ; // All extensions for this card
+	if ( count($query_b) == 0 ) { // Card not existing for this extension
 	}
-	if ( $ext_row = mysql_fetch_object($query_b) ) { // At least a result found in one of the queries
-		$card->ext = $ext_row->se ;
-		$card->rarity = $ext_row->rarity ;
-	} else
-		return null ; // Some info from extension are required (ext itself and image num required for image displaying)
+	*/
+	// All extensions for this card
+	$exts = query_as_array("SELECT * FROM `card_ext`, `extension` WHERE
+		`card_ext`.`card` = '".$card->id."' AND
+		`extension`.`id` = `card_ext`.`ext`
+	ORDER BY `extension`.`priority` DESC, `extension`.`release_date` DESC", 'Card\'s extensions', $conn) ;
+	//AND `card_ext`.`nbpics` > 0
+	$ext_row = null ; // "Selected extension (first one having images)
+	$card->exts = array() ;
+	foreach ( $exts as $ext ) {
+		$card->exts[] = $ext->se ;
+		if ( ( $ext_row == null ) && ( $ext->nbpics > 0 ) )
+			$ext_row = $ext ;
+	}
+	if ( $ext_row == null ) {
+		echo "No extension with image for $name\n" ;
+		return null ;
+	}
+	$card->ext = $ext_row->se ;
+	$card->rarity = $ext_row->rarity ;
 	// Pic num (requires card and extension)
 	if ( $ext_row->nbpics > 1 ) // This card has many pics in that extension
 		if ( isset($pic_num) ) { // One was in name passed in param
