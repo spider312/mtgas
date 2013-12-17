@@ -15,6 +15,10 @@ if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 $folder = '../../stats/' ;
 $file = $folder.$name ;
 
+$exts = explode(',', $exts) ;
+foreach ( $exts as $i => $ext )
+	$exts[$i] = trim($ext) ;
+
 if ( ( $mask == '' ) && ( $date == '' ) && ( $exts == '' ) ) { // Existing report and no date/mask, read them from report
 	if ( file_exists($file) ) {
 		$report = json_decode(file_get_contents($file)) ;
@@ -30,10 +34,6 @@ if ( ( $mask == '' ) && ( $date == '' ) && ( $exts == '' ) ) { // Existing repor
 			$imask = $report->imask ;
 	} else
 		die('You must enter a name or date mask in order to generate a new report') ;
-} else {
-	$exts = explode(',', $exts) ;
-	foreach ( $exts as $i => $ext )
-		$exts[$i] = trim($ext) ;
 }
 $card_connection = card_connect() ;
 // All decks from all sealed events
