@@ -33,7 +33,25 @@ foreach ( $reports as $r )
 	}
 ?>
     </select>
-   <h2>Params</h2>
+    <input type="submit" value="Select">
+
+<?php
+if ( $report == '' )
+	die('</form>') ;
+$report = json_decode(file_get_contents('stats/'.$report)) ;
+echo '   <ul>' ;
+if ( isset($report->date) )
+	echo "<li>Selection by date : {$report->date}</li>" ;
+if ( isset($report->exts) && ( count($report->exts) > 0 ) )
+	echo "<li>Selection by extensions : ".implode(', ', $report->exts)."</li>" ;
+if ( isset($report->mask) )
+	echo "<li>Selection by name mask : {$report->mask}</li>" ;
+if ( isset($report->imask) )
+	echo "<li>Selection by name ignore mask : {$report->imask}</li>" ;
+?>
+   </ul>
+
+   <h2>Display</h2>
     Sort : 
     <select name="order">
      <option <?php option_value("opened", $order) ; ?>>Opened</option>
@@ -78,9 +96,6 @@ foreach ( $reports as $r )
    </form>
 
 <?php
-if ( $report == '' )
-	die('Please select a report') ;
-$report = json_decode(file_get_contents('stats/'.$report)) ;
 $card_connection = card_connect() ;
 $p = array() ; ;
 foreach ( $report->cards as $i => $card ) {
