@@ -27,6 +27,7 @@ html_menu() ;
    <form action="tournament/sealed_parse.php">
     <input type="text" name="name" placeholder="Name">
     <input type="date" name="date" placeholder="Starting date">
+    <input type="text" name="exts" placeholder="EXT1,EXT2,...">
     <input type="text" name="mask" placeholder="Name mask">
     <input type="text" name="imask" placeholder="Name ignore mask">
     <input type="submit" value="Create">
