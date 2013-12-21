@@ -19,22 +19,6 @@ $exts = explode(',', $exts) ;
 foreach ( $exts as $i => $ext )
 	$exts[$i] = trim($ext) ;
 
-if ( ( $mask == '' ) && ( $date == '' ) && ( $exts == '' ) ) { // Existing report and no date/mask, read them from report
-	if ( file_exists($file) ) {
-		$report = json_decode(file_get_contents($file)) ;
-		if ( $report == null )
-			die('Unable to decode report') ;
-		if ( isset($report->date) )
-			$date = $report->date ;
-		if ( isset($report->exts) )
-			$exts = $report->exts ;
-		if ( isset($report->mask) )
-			$mask = $report->mask ;
-		if ( isset($report->imask) )
-			$imask = $report->imask ;
-	} else
-		die('You must enter a name or date mask in order to generate a new report') ;
-}
 $card_connection = card_connect() ;
 // All decks from all sealed events
 $q = "SELECT
