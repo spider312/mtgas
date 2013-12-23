@@ -16,9 +16,13 @@ if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 $folder = '../../stats/' ;
 $file = $folder.$name ;
 
-$exts = explode(',', $exts) ;
-foreach ( $exts as $i => $ext )
-	$exts[$i] = trim($ext) ;
+if ( $exts == '' )
+	$exts = array() ;
+else {
+	$exts = explode(',', $exts) ;
+	foreach ( $exts as $i => $ext )
+		$exts[$i] = trim($ext) ;
+}
 
 $card_connection = card_connect() ;
 // All decks from all sealed events
@@ -31,10 +35,6 @@ FROM
 	`tournament`
 WHERE
 	`tournament`.`min_players` > 1" ;
-/*	AND  (
-		`tournament`.`type` = 'sealed'
-		OR `tournament`.`type` = 'draft'
-	)" ;*/
 echo '<ul>' ;
 if ( $date != '' ) {
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
