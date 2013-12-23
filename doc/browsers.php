@@ -2,8 +2,8 @@
 <html>
  <head>
   <title>MTGAS : Browsers comparison</title>
-  <link rel="icon" type="image/jpg" href="/themes/mogg/favicon.jpg">
-  <link rel="stylesheet" type="text/css" href="/themes/mogg/css/style.css">
+  <link rel="icon" type="image/jpg" href="../themes/jay_kay/favicon.jpg">
+  <link rel="stylesheet" type="text/css" href="../themes/jay_kay/css/style.css">
  </head>
 
  <body>
