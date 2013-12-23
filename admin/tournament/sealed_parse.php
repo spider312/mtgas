@@ -5,10 +5,11 @@ ini_set ('max_execution_time', 0);
 ini_set ('memory_limit', '256M'); 
 
 $name = param_or_die($_GET, 'name') ;
+$format = param($_GET, 'format', '') ;
+$date = param($_GET, 'date', '') ;
+$exts = param($_GET, 'exts', '') ;
 $mask = param($_GET, 'mask', '') ;
 $imask = param($_GET, 'imask', '') ;
-$exts = param($_GET, 'exts', '') ;
-$date = param($_GET, 'date', '') ;
 if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = '' ;
 
@@ -29,15 +30,19 @@ $q = "SELECT
 FROM
 	`tournament`
 WHERE
-	`tournament`.`min_players` > 1
-	AND  (
+	`tournament`.`min_players` > 1" ;
+/*	AND  (
 		`tournament`.`type` = 'sealed'
 		OR `tournament`.`type` = 'draft'
-	)" ;
+	)" ;*/
 echo '<ul>' ;
 if ( $date != '' ) {
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
 	echo "<li>Selection by date : $date</li>" ;
+}
+if ( $format != '' ) {
+	$q .= " AND `tournament`.`type` = '$format'" ;
+	echo "<li>Selection by format : $format</li>" ;
 }
 if ( count($exts) > 0 )
 	echo "<li>Selection by extensions : ".implode(', ', $exts)."</li>" ;
@@ -71,7 +76,7 @@ foreach ( $t as $d ) {
 		echo "Unparsed : no score\n" ;
 		continue ;
 	}
-	if ( count(array_intersect($data->boosters, $exts)) == 0 ) {
+	if ( ( count($exts) > 0 ) && ( count(array_intersect($data->boosters, $exts)) == 0 ) ) {
 		echo "Containing no wanted booster\n" ;
 		continue ;
 	}
@@ -126,10 +131,10 @@ foreach ( $t as $d ) {
 			$rounds_number = $data->rounds_number ;
 		$score = $data->score->{$r->player_id}->gamepoints/3 ; // 3 gamepoints per game win
 		foreach ( $deck->main as $id => $card ) // Played cards
-			if ( count(array_intersect($card->exts, $exts)) > 0 )
+			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
 				update_score($card->id, $card->rarity, $rounds_number, $score) ;
 		foreach ( $deck->side as $id => $card ) // Not played cards
-			if ( count(array_intersect($card->exts, $exts)) > 0 )
+			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
 				update_score($card->id, $card->rarity) ;
 		$lparsed++ ;
 	}
@@ -143,6 +148,8 @@ echo "<li>Decks parsing (cards/extensions searching): $deck_parse</li></ul>" ;
 $result = new Simple_Object() ;
 if ( $date != '' )
 	$result->date = $date ;
+if ( $format != '' )
+	$result->format = $format ;
 if ( count($exts) > 0 )
 	$result->exts = $exts ;
 if ( $mask != '' )

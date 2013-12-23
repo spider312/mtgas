@@ -13,16 +13,18 @@ html_head(
 
  <body>
   <script language="javascript">
-function statsform(el) { //ev, name, date, exts, mask, imask) {
+function statsform(el) {
 	var spl = el.value.split('|') ;
 	if ( spl.length < 5 )
 		alert('Not 5 parts in '+el.value) ;
 	var form = document.getElementById('stats_create') ;
-	form.name.value = spl[0] ;
-	form.date.value = spl[1] ;
-	form.exts.value = spl[2] ;
-	form.mask.value = spl[3] ;
-	form.imask.value = spl[4] ;
+	var i = 0 ;
+	form.name.value = spl[i++] ;
+	form.date.value = spl[i++] ;
+	form.format.value = spl[i++] ;
+	form.exts.value = spl[i++] ;
+	form.mask.value = spl[i++] ;
+	form.imask.value = spl[i++] ;
 }
   </script>
 <?php
@@ -40,6 +42,20 @@ html_menu() ;
    <h2>Inclusion and performance reports</h2>
    <form id="stats_create" action="tournament/sealed_parse.php">
     <input type="text" name="name" placeholder="Name">
+    <select name="format">
+     <optgroup label="<?=__('index.tournaments.create.limited');?>">
+      <option value="draft"><?=__('index.tournaments.create.draft');?></option>
+      <option value="sealed"><?=__('index.tournaments.create.sealed');?></option>
+     </optgroup>
+     <optgroup label="<?=__('index.tournaments.create.constructed');?>">
+      <option value="vintage"><?=__('index.tournaments.create.vintage');?></option>
+      <option value="legacy"><?=__('index.tournaments.create.legacy');?></option>
+      <option value="extended"><?=__('index.tournaments.create.modern');?></option>
+      <option value="standard"><?=__('index.tournaments.create.standard');?></option>
+      <option value="edh"><?=__('index.tournaments.create.edh');?></option>
+     </optgroup>
+    </select>
+
     <input type="date" name="date" placeholder="Starting date">
     <input type="text" name="exts" placeholder="EXT1,EXT2,...">
     <input type="text" name="mask" placeholder="Name mask">
@@ -61,6 +77,7 @@ if ( count($reports) > 0 ) {
 			$data = json_decode($content) ;
 			$value  = $r ;
 			$value .= '|'.(isset($data->date)  ? $data->date:'') ;
+			$value .= '|'.(isset($data->format)? $data->format:'') ;
 			$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
 			$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
 			$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
