@@ -121,12 +121,11 @@ function return_bytes($val) {
 // HTML
 function add_css($args) {
 	if ( count($args) > 0 ) {
-		global $theme ;
+		global $theme, $url ;
 		echo '  <!-- CSS -->'."\n" ;
-		//echo '  <link type="text/css" rel="stylesheet" href="bootstrap/css/bootstrap.min.css">'."\n" ;
 		foreach ( $args as $arg ) { /*func_get_args()*/
 			if ( substr($arg, 0, 4) != 'http' )
-				$prefix = '/themes/'.$theme.'/css/' ;
+				$prefix = $url.'/themes/'.$theme.'/css/' ;
 			else
 				$prefix = '' ;
 			echo '  <link type="text/css" rel="stylesheet" href="'.$prefix.$arg.'">'."\n" ;
@@ -136,11 +135,11 @@ function add_css($args) {
 }
 function add_js($args) {
 	if ( count($args) > 0 ) {
+		global $url ;
 		echo '  <!-- JS -->'."\n" ;
-		//echo '  <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>'."\n" ;
 		foreach ( $args as $arg ) {
 			if ( substr($arg, 0, 4) != 'http' )
-				$prefix = '/js/' ;
+				$prefix = $url.'/js/' ;
 			else
 				$prefix = '' ;
 			echo '  <script type="text/javascript" src="'.$prefix.$arg.'"></script>'."\n" ;
@@ -150,9 +149,10 @@ function add_js($args) {
 }
 function add_rss($args) {
 	if ( count($args) > 0 ) {
+		global $url ;
 		echo '  <!-- RSS -->'."\n" ;
 		foreach ( $args as $title => $feed )
-			echo '  <link type="application/rss+xml" rel="alternate" title="'.$title.'" href="'.$feed.'">'."\n" ;
+			echo '  <link type="application/rss+xml" rel="alternate" title="'.$title.'" href="'.$url.$feed.'">'."\n" ;
 		echo '  <!-- /RSS -->'."\n" ;
 	}
 }
@@ -175,42 +175,11 @@ class menu_entry {
 		$this->url = $url ;
 		$this->title = $title ;
 	}
-	function bootstrap_render($offset='       ') {
-		echo $offset.'<li ' ;
-		if ( $_SERVER['PHP_SELF'] == $this->url )
-			echo ' class="active"' ;
-		echo 'title="'.$this->title.'"><a href="'.$this->url.'">'.$this->name.'</a></li>'."\n" ;
-
-	}
 }
 function menu_add($name, $url, $title='') {
 	global $menu_entries ;
 	$menu_entries[] = new menu_entry($name, $url, $title) ;
 	return $menu_entries ;
-}
-function bootstrap_menu($additionnal_entries=null) {
-	global $menu_entries, $url, $appname ;
-	$home = ( $_SERVER['PHP_SELF'] == '/index_alt.php' ) ;
-	echo '   <!-- Navbar -->
-   <div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="navbar-inner">
-     <div class="container">
-      <ul class="nav">
-       <li' ;
-	if ( $home )
-		echo ' class="active"' ;
-	echo ' title="'.$appname.'\'s home"><a href="'.$url.'/index_alt.php">Home</a></li>'."\n" ;
-	foreach ( $menu_entries as $i => $entry )
-		$entry->bootstrap_render() ;
-	echo '      </ul>'."\n" ;
-	if ( $home )
-		echo '      <ul class="nav pull-right">
-       <li><a id="identity_shower" title="Change nickname and avatar" class="pull-right">Nickname</a></li>
-      </ul>'."\n" ;
-	echo '     </div>
-    </div>
-   </div>
-   <!-- /Navbar -->'."\n" ;
 }
 function html_menu($additionnal_entries=null) {
 	global $menu_entries, $url ;
