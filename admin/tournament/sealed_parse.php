@@ -76,7 +76,7 @@ foreach ( $t as $d ) {
 		echo "Unparsed : no score\n" ;
 		continue ;
 	}
-	if ( ( count($exts) > 0 ) && ( count(array_intersect($data->boosters, $exts)) == 0 ) ) {
+	if ( ( count($exts) > 0 ) && ( isset($data->boosters) ) && ( count(array_intersect($data->boosters, $exts)) == 0 ) ) {
 		echo "Containing no wanted booster\n" ;
 		continue ;
 	}
