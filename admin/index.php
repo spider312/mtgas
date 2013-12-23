@@ -13,13 +13,16 @@ html_head(
 
  <body>
   <script language="javascript">
-function statsform(ev, name, date, exts, mask, imask) {
-	var form = document.getElementById('stats_create') ; //ev.target.parentNode.parentNode ;
-	form.name.value = name ;
-	form.date.value = date ;
-	form.exts.value = exts ;
-	form.mask.value = mask ;
-	form.imask.value = imask ;
+function statsform(el) { //ev, name, date, exts, mask, imask) {
+	var spl = el.value.split('|') ;
+	if ( spl.length < 5 )
+		alert('Not 5 parts in '+el.value) ;
+	var form = document.getElementById('stats_create') ;
+	form.name.value = spl[0] ;
+	form.date.value = spl[1] ;
+	form.exts.value = spl[2] ;
+	form.mask.value = spl[3] ;
+	form.imask.value = spl[4] ;
 }
   </script>
 <?php
@@ -50,25 +53,23 @@ $dir = '../stats/' ;
 $reports = scandir($dir) ;
 if ( count($reports) > 0 ) {
 ?>
-   <form action="tournament/sealed_parse.php">
-    <select name="name">
+    Load : <select name="name">
 <?php
 	foreach ( $reports as $r )
 		if ( ( $r != '.' ) && ( $r != '..' ) ) {
-			$data = json_decode(file_get_contents($dir.$r)) ;
-			echo '     <option value="'.$r.'"
-				onclick="statsform(event,
-					\''.$r.'\',
-					\''.(isset($data->date)  ? $data->date:'').'\',
-					\''.(isset($data->exts)  ? implode(',', $data->exts):'').'\',
-					\''.(isset($data->mask)  ? $data->mask:'').'\',
-					\''.(isset($data->imask) ? $data->imask:'').'\')"
-				>'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
+			$content = file_get_contents($dir.$r) ;
+			$data = json_decode($content) ;
+			$value  = $r ;
+			$value .= '|'.(isset($data->date)  ? $data->date:'') ;
+			$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
+			$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
+			$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
+			echo '     <option value="'.$value.'" onclick="statsform(this)">
+				'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')
+			</option>'."\n" ;
 		}
 ?>
     </select>
-    <input type="submit" value="Update">
-   </form>
 <?php
 }
 ?>
