@@ -24,7 +24,7 @@ function booster_as_array_with_ext($oext=null, &$upool=null) {
 	$ext = $oext->se ;
 	// Get data from DB Booster
 	$data = JSON_decode($oext->data) ;
-	if ( intval($data->uniq) == 1 )
+	if ( isset($data->uniq) && intval($data->uniq) == 1 )
 		$ext_cards = &$upool ;
 	else
 		$ucards = null ;
@@ -110,7 +110,7 @@ function booster_as_array_with_ext($oext=null, &$upool=null) {
 		$result[] = rand_card($cardst[$r], $ext_cards) ;
 	}
 	// 0-1 foil
-	if ( ( rand(1, $proba_foil) == 1 ) && ( intval($data->uniq) != 0) ) { // CUB don't want foils, they break unicity
+	if ( ( rand(1, $proba_foil) == 1 ) && isset($data->uniq) && ( intval($data->uniq) != 0) ) { // CUB don't want foils, they break unicity
 		$c-- ;
 		$result[] = rand_card($cardsf, $ext_cards) ; // Uses it's own card list, so won't be removed from 'normal' cards lists
 	}
