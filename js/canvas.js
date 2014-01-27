@@ -173,9 +173,9 @@ function resize_window(ev) {
 	resize_right_column() ;
 }
 function resize_right_column() {
-	//var chatbox = document.getElementById('chatbox') ; // ? Should be cached
-	//var sendbox = document.getElementById('sendbox') ; // Globally cached by network.js
-	//var autotext = document.getElementById('autotext') ;
+	var chatbox = document.getElementById('chatbox') ; // ? Should be cached
+	var sendbox = document.getElementById('sendbox') ; // Globally cached by network.js
+	var autotext = document.getElementById('autotext') ;
 	var scrbot = chatbox.scrollHeight - ( chatbox.scrollTop + chatbox.clientHeight ) ; // Scroll from bottom, if 0, will scroll to se added line
 	// Refresh autotext buttons in order to know size of their container
 	if ( ! spectactor )
