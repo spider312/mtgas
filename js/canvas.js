@@ -544,7 +544,8 @@ function canvas_add_events(canvas) {
 	let simulate click by detecting widget under mousedown and mouseup and generate a click if the same
 	*/
 	window.addEventListener('click', canvasEventStop, false) ; // Right click under windows
-	window.addEventListener('contextmenu', canvasEventStop, false) ;
+	//window.addEventListener('contextmenu', canvasEventStop, false) ;
+	window.addEventListener('contextmenu', eventStop, false) ;
 	window.addEventListener('resize', 	resize_window,	false) ; // Resize
 }
 // === [ MAIN LIB ] ============================================================
