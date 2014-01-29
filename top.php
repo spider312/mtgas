@@ -10,11 +10,19 @@ function disp_ranking($players, $nb, $caption, $legend) {
    <tr>
     <th>#</th>
     <th>Avatar</th>
-    <th>Nick</th>
-    <th>Games</th>
-    <th>Score</th>
-    <th>Ratio</th>
-   </tr>
+    <th>Nick</th>' ;
+	switch ( $caption ) {
+		case 'Top playing' ;
+			echo '    <th>Games</th>' ;
+			break ;
+		case 'Top winning' ;
+			echo '    <th>Score</th>' ;
+			break ;
+		case 'Better ratio' ;
+			echo '    <th>Ratio</th>' ;
+			break ;
+	}
+echo '   </tr>
 ' ;
 	$i = 0 ;
 	foreach ( $players as $id => $player ) {
@@ -27,13 +35,23 @@ function disp_ranking($players, $nb, $caption, $legend) {
 					$class = 'self' ;
 				else
 					$class = '' ;
+		switch ( $caption ) {
+			case 'Top playing' ;
+				$column = '<td>'.$player->matches.'</td>' ;
+				break ;
+			case 'Top winning' ;
+				$column = '<td>'.$player->score.'</td>' ;
+				break ;
+			case 'Better ratio' ;
+				$column = '<td>'.round(($player->score/$player->matches), 2).'</td>' ;
+				break ;
+		}
+
 		echo '   <tr class="'.$class.'">
     <td>'.$i.'</td>
     <td><img src="'.($player->avatar==''?$default_avatar:$player->avatar).'" height="30"></td>
     <td><a href="player.php?id='.$id.'">'.$player->nick.'</a></td>
-    <td>'.$player->matches.'</td>
-    <td>'.$player->score.'</td>
-    <td>'.round(($player->score/$player->matches), 2).'</td>
+    '.$column.'
    </tr>
 ' ;
 		}
