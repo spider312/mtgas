@@ -173,7 +173,7 @@ function init() {
 		// Basic lands
 	lands = [] ;
 	function landbase(id, name, mana) {
-		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1, 'provide': [mana]}, toString: function() { return this.name+"\n" ; } } ;
+		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1, 'types': ['land'], 'supertypes': ['basic'], 'provide': [mana]}, toString: function() { return this.name+"\n" ; } } ;
 	}
 	arr = [
 		landbase(3332, 'Forest', 'G'),
