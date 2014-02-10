@@ -5,6 +5,20 @@
 /**************************
  * General considerations *
  * ************************/
+/*tr, li, option*/
+* {
+	transition: all 0.2s ;
+	transition-timing-function: ease ;
+}
+#options_hider * { /* Option window animations */
+	overflow: hidden ;
+}
+#options_hider #options_content {
+	overflow: visible ;
+}
+input, button {
+	transition: none 0s ;
+}
 body {
 	background-color: #1f1a14;
 	margin: 0 ;
@@ -68,29 +82,27 @@ a:hover {
 /*
  *
  **/
-#header{
-	margin:-1px 0 0 -1px;
-	padding: 17px ;
-	/*padding: 1%;*/
-	/*font-size:x-small;*/
-	font-size:12px;
+header {
 	background:url('../images/header_bar.png') repeat-x center;
-	max-height: 50px ;
-	border-width: 0 0 1px ;
+	border-width: 0 0 1px !important ;
+	height: 50px ;
+	line-height: 50px ;
+	padding: 0 17px ;
+	font-size:12px;
+	margin:-1px 0 0 -1px;
 }
-#header img { /* Facebook icon */
-	margin-top: -4px ;
-	margin-bottom: -4px ;
+header img { /* Facebook icon, avatar, connexion indicator*/
+	vertical-align: middle ;
 }
-#header a, #header span {
+header a {
 	text-decoration:none;
-	color: #ece7dd;
+	color: #ece7dd !important ;
 }
-#header a:hover {
-	color : #e4dc90 ;
+header a:hover {
+	color : #e4dc90 !important ;
 }
-#header a:active {
-	color : #1F1A14 ;
+header a:active {
+	color : #1F1A14 !important ;
 }
 #identity_shower {
 	float: right ;
