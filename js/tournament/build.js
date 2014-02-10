@@ -172,15 +172,15 @@ function init() {
 	}, false) ;
 		// Basic lands
 	lands = [] ;
-	function landbase(id, name) {
-		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1}, toString: function() { return this.name+"\n" ; } } ;
+	function landbase(id, name, mana) {
+		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1, 'provide': [mana]}, toString: function() { return this.name+"\n" ; } } ;
 	}
 	arr = [
-		landbase(3332, 'Forest'),
-		landbase(4621, 'Island'),
-		landbase(6020, 'Mountain'),
-		landbase(6871, 'Plains'),
-		landbase(9266, 'Swamp')
+		landbase(3332, 'Forest', 'G'),
+		landbase(4621, 'Island', 'U'),
+		landbase(6020, 'Mountain', 'R'),
+		landbase(6871, 'Plains', 'W'),
+		landbase(9266, 'Swamp', 'B')
 	] ;
 	var land_main = create_tr(land) ;
 	var land_side = create_tr(land) ;
@@ -627,12 +627,16 @@ function disp_side(originaldeck, table) {
 	} while ( ( side.length > 0 ) ) ;
 	var trc = create_tr(table) ;
 	var nblands = 0 ;
-	if ( table == deck )
-		for ( var i in lands)
-			nblands += parseInt(document.getElementById('md'+lands[i].name).value) ;
-	// Stats
-	if ( ( table == deck ) )
+	if ( table == deck ) {
+		for ( var i in lands) {
+			var nb = parseInt(document.getElementById('md'+lands[i].name).value) ;
+			for ( var j = 0 ; j < nb ; j++ )
+				cards.push(lands[i]) ;
+			nblands += nb ;
+		}
+		// Stats
 		deck_stats_cc(cards) ;
+	}
 	// Text line at bottom of table resuming content
 	create_td(trc, (nb+nblands)+' total cards ('+nblands+' basic lands)') ;
 	var line = '' ;
