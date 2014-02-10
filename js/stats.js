@@ -33,13 +33,14 @@ function deck_stats_cc(cards) {
 			else
 				raw_type[type] = 1 ;
 		}
-		for ( var j = 0 ; j < card.attrs.provide.length ; j++ ) {
-			var color = card.attrs.provide[j] ;
-			if ( isn(raw_provide[color]) )
-				raw_provide[color] += 1 ;
-			else
-				raw_provide[color] = 1 ;
-		}
+		if ( iso(card.attrs.provide) )
+			for ( var j = 0 ; j < card.attrs.provide.length ; j++ ) {
+				var color = card.attrs.provide[j] ;
+				if ( isn(raw_provide[color]) )
+					raw_provide[color] += 1 ;
+				else
+					raw_provide[color] = 1 ;
+			}
 	}
 		// Color
 	var data_color = [] ;
