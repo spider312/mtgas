@@ -19,10 +19,10 @@ function message($txt='no text to send') {
 }
 // Debug
 function l($obj) {
-	echo '<pre>'.print_r($obj, true).'</pre>';
+	return '<pre>'.print_r($obj, true).'</pre>'."\n" ;
 }
 function p($obj) {
-	return l($obj);
+	echo l($obj);
 }
 function d($obj) {
 	die(l($obj));
@@ -169,6 +169,14 @@ function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
 	add_rss($rss) ;
 	echo ' </head>'."\n" ;
 }
+function html_foot() {
+	if ( is_file('../footer.php') )
+		include '../footer.php' ;
+	else
+		echo "  <!-- No 'footer.php' file found, you may create one if you want to include something on each page of your site -->\n" ;
+	echo ' </body>
+</html>' ;
+}
 class menu_entry {
 	function __construct($name, $url, $title='') {
 		$this->name = $name ;
@@ -183,7 +191,7 @@ function menu_add($name, $url, $title='') {
 }
 function html_menu($additionnal_entries=null) {
 	global $menu_entries, $url ;
-	echo '   <div id="header" class="section">'."\n" ;
+	echo '   <header class="section">'."\n" ;
 	echo '    <a title="'.__('menu.main.title').'" href="'.$url.'">'.__('menu.main').'</a> - '."\n" ;
 	foreach ( $menu_entries as $i => $entry ) {
 		if ( $i == count($menu_entries)-1 )
@@ -193,16 +201,7 @@ function html_menu($additionnal_entries=null) {
 		echo '    <a title="'.$entry->title.'" href="'.$entry->url.'">'.$entry->name.'</a>'.$separator."\n" ;
 	}
 	echo '    <a id="identity_shower" title="'.__('menu.identity_shower.title').'">Nickname</a>'."\n" ;
-	echo '   </div>'."\n\n" ;
-}
-function html_options() { // Displays options window
-	echo '    <h2>Options</h2>
-    <fieldset><legend>Appearence</legend>
-     <label title="Search images on another location than default one, another server or your own hard drive for example">Card images : <select id="cardimages_choice">' ;
-     global $cardimages_choice, $cardimages_default ;
-     foreach ( $cardimages_choice as $choice_name => $choice_url ) 
-	echo '       <option value="'.$choice_url.'" selected="selected">'.$choice_name.'</option>'."\n" ;
-
+	echo '   </header>'."\n\n" ;
 }
 // HTML Generation
 function html_option($value, $disp, $selected) {
@@ -241,13 +240,6 @@ function json_verbose_error($i) {
 			return 'Erreur inconnue' ;
 	}
 	return 'Hu ?' ;
-}
-// http://stackoverflow.com/questions/1048487/phps-json-encode-does-not-escape-all-json-control-characters
-function escapeJsonString($value) { # list from www.json.org: (\b backspace, \f formfeed)
-	$escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c") ;
-	$replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b") ;
-	$result = str_replace($escapers, $replacements, $value) ;
-	return $result ;
 }
 // Theme
 function theme_image($name) {

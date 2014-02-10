@@ -110,6 +110,7 @@ if ( $id > 0 ) {
    <div id="stats_color"></div>
    <div id="stats_cost"></div>
    <div id="stats_type"></div>
+   <div id="stats_provide"></div>
   </div>
 
   <div class="section group overscroll">
@@ -156,8 +157,4 @@ if ( $id > 0 ) {
   </div>
   <canvas id="rotated"></canvas>
 <?php
-if ( is_file('../footer.php') )
-	include '../footer.php' ;
-?>
- </body>
-</html>
+html_foot() ;

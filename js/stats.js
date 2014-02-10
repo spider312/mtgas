@@ -3,6 +3,7 @@ function deck_stats_cc(cards) {
 		node_empty(document.getElementById('stats_color')) ;
 		node_empty(document.getElementById('stats_cost')) ;
 		node_empty(document.getElementById('stats_type')) ;
+		node_empty(document.getElementById('stats_provide')) ;
 		return false ;
 	}
 	// Data computing
@@ -10,6 +11,7 @@ function deck_stats_cc(cards) {
 	var raw_color = {} ;
 	var raw_cost = [] ;
 	var raw_type = {} ;
+	var raw_provide = {} ;
 	for ( var i = 0 ; i < cards.length ; i++ ) {
 		var card = cards[i] ;
 		for ( var j = 0 ; j < card.attrs.color.length ; j++ ) { // Card may be multiple colors
@@ -30,6 +32,13 @@ function deck_stats_cc(cards) {
 				raw_type[type] += 1 ;
 			else
 				raw_type[type] = 1 ;
+		}
+		for ( var j = 0 ; j < card.attrs.provide.length ; j++ ) {
+			var color = card.attrs.provide[j] ;
+			if ( isn(raw_provide[color]) )
+				raw_provide[color] += 1 ;
+			else
+				raw_provide[color] = 1 ;
 		}
 	}
 		// Color
@@ -54,6 +63,21 @@ function deck_stats_cc(cards) {
 	var data_type = [] ;
 	for ( var i in raw_type )
 		data_type.push({'label': i, 'data': [[i, raw_type[i]]]}) ;
+		// Provide
+	var data_provide = [] ;
+	if ( raw_provide['X'] )
+		data_provide.push({'label': 'Colorless', 'data': [['Colorless', raw_provide['X']]], pie: {'explode': 5, 'fillColor': 'Olive', 'color': 'Olive'}}) ;
+	if ( raw_provide['W'] )
+		data_provide.push({'label': 'White', 'data': [['White', raw_provide['W']]], pie: {'fillColor': 'white', 'color': 'white'}}) ;
+	if ( raw_provide['U'] )
+		data_provide.push({'label': 'Blue', 'data': [['Blue', raw_provide['U']]], pie: {'fillColor': 'blue', 'color': 'blue'}}) ;
+	if ( raw_provide['B'] )
+		data_provide.push({'label': 'Black', 'data': [['Black', raw_provide['B']]], pie: {'fillColor': 'black', 'color': 'black'}}) ;
+	if ( raw_provide['R'] )
+		data_provide.push({'label': 'Red', 'data': [['Red', raw_provide['R']]], pie: {'fillColor': 'red', 'color': 'red'}}) ;
+	if ( raw_provide['G'] )
+		data_provide.push({'label': 'Green', 'data': [['Green', raw_provide['G']]], pie: {'fillColor': 'green', 'color': 'green'}}) ;
+
 	// Display
 		// Color pie
 	var div = document.getElementById('stats_color') ;
@@ -168,4 +192,40 @@ function deck_stats_cc(cards) {
 			show: false
 		}
 	});
+		// Provide pie
+	var div = document.getElementById('stats_provide') ;
+	node_empty(div) ;
+	div.appendChild(create_div('Provide pie')) ;
+	var content = create_div() ;
+	content.style.height = '100px' ;
+	div.appendChild(content) ;
+	Flotr.draw(content, data_provide, {
+		HtmlText: false,
+		grid: {
+			verticalLines: false,
+			horizontalLines: false
+		},
+		xaxis: {
+			showLabels: false
+		},
+		yaxis: {
+			showLabels: false
+		},
+		pie: {
+			show: true,
+			explode: 2,
+			shadowSize: 0,
+			labelFormatter: function (total, value) {
+				return (100 * value / total).toFixed(0)+'%';
+			}
+		},
+		mouse: {
+			track: true,
+			trackDecimals: 0
+		},
+		legend: {
+			show: false
+		}
+	});
+
 }
