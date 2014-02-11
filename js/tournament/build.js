@@ -638,7 +638,7 @@ function disp_side(originaldeck, table) {
 		deck_stats_cc(cards) ;
 	}
 	// Text line at bottom of table resuming content
-	create_td(trc, (nb+nblands)+' total cards ('+nblands+' basic lands)') ;
+	create_td(trc, cards.length+' total cards ('+nblands+' basic lands)') ;
 	var line = '' ;
 	for ( var i in types )
 		line += i+' : '+types[i]+', ' ;
