@@ -138,16 +138,12 @@ html_menu() ;
     <div id="stats_cost"></div>
     <div id="stats_typelist"></div>
     <div id="stats_type"></div>
+   <div id="stats_provide"></div>
    </div>
 
   <!-- Logs -->
   <textarea id="log" class="hidden"></textarea>
 
   </div>
-
 <?php
-if ( is_file('footer.php') )
-	include 'footer.php' ;
-?>
- </body>
-</html>
+html_foot() ;

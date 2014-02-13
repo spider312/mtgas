@@ -71,6 +71,7 @@ html_head('Drafting '.$tournament->name,
    <div id="stats_color"></div>
    <div id="stats_cost"></div>
    <div id="stats_type"></div>
+   <div id="stats_provide"></div>
   </div>
 
   <div id="tournament" class="section">
@@ -86,10 +87,5 @@ html_head('Drafting '.$tournament->name,
    <a href="../">main page</a> &gt;
    <a href="./?id=<?php echo $id ; ?>">tournament</a>
   </div>
-
 <?php
-if ( is_file('../footer.php') )
-	include '../footer.php' ;
-?>
- </body>
-</html>
+html_foot() ;
