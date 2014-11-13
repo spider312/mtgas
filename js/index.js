@@ -1,33 +1,165 @@
 // index.js : Management of MTGAS index (games list, preloaded decks ...)
 $(function() { // On page load
-	//document.getElementById('game_name').select() ; // Give focus on page load
+	workarounds() ;
 	document.getElementById('shout')[0].focus() ;
 	ajax_error_management() ;
-	player_id = $.cookie(session_id) ;
+	notification_request() ;
 	game = {}
 	game.options = new Options(true) ;
+	game.options.add_trigger('profile_nick', function(option) {
+		game.connection.close(1000, 'reconnecting for nick change') ;
+		game.connection.connect() ;
+	}) ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
 	save_restore('tournament_players') ;
-	save_restore('tournament_boosters', save_tournament_boosters) ; // Before "type" because it will look at saved value
+		// Before "type" because it will look at saved value
+	save_restore('tournament_boosters', save_tournament_boosters) ;
 	save_restore('tournament_type', null, function(field) {
 		tournament_boosters(field.selectedIndex) ;
 	}) ;
 	save_restore('draft_boosters') ; // hidden for saving
 	save_restore('sealed_boosters') ;
-	last_shout_id = 0 ;
+	// DOM Elements cache
+	shout = document.getElementById('shout') ;
+	shouts = document.getElementById('shouts') ;
+	shouters = document.getElementById('shouters') ;
+	pending_games = document.getElementById('pending_games') ;
+	running_games = document.getElementById('running_games') ;
+	duel_view = document.getElementById('duel_view') ;
+	duel_join = document.getElementById('duel_join') ;
+	pending_tournaments = document.getElementById('pending_tournaments') ;
+	running_tournaments = document.getElementById('running_tournaments') ;
+	tournament_join = document.getElementById('tournament_join') ;
+	tournament_view = document.getElementById('tournament_view') ;
+	// Websockets
+	game.connection = new Connexion('index', function(data, ev) { // OnMessage
+		switch ( data.type  ) {
+			// Base
+			case 'msg' :
+				alert(data.msg) ;
+				break ;
+			case 'userlist' :
+				while( shouters.options.length > 0 )
+					shouters.remove(0) ;
+				for ( var i = 0 ; i < data.users.length ; i++ ) {
+					var user = data.users[i] ;
+					var option = create_option(user.nick, user.player_id) ;
+					option.addEventListener('dblclick', function(ev) {
+						var input = shout[0]
+						input.value += ev.target.label+', ' ;
+						input.focus() ;
+					}, false) ;
+					if ( user.inactive )
+						option.classList.add('inactive') ;
+					if ( user.typing )
+						option.classList.add('typing') ;
+					shouters.appendChild(option) ;
+				}
+				break ;
+			// Shoutbox
+			case 'shout' :
+				var li = create_li(create_a(data.player_nick, '/player.php?id='+data.player_id))
+				li.appendChild(create_text(': '+data.message)) ;
+				li.appendChild(create_span(' '+timeWithDays(mysql2date(data.time)))) ;
+				shouts.appendChild(li) ;
+				shouts.scrollTop = shouts.scrollHeight ;
+				if ( game.connection.registered && ! document.hasFocus() )
+					notification_send('Mogg Shout', data.player_nick+' : '+data.message, 'shout') ;
+				break ;
+			// Duels
+			case 'pendingduel' :
+				if ( game.connection.registered && ! document.hasFocus() )
+					notification_send('Mogg Duel', 'New duel : '+data.name, 'duel') ;
+				pending_duel_add(data) ;
+				break ;
+			case 'joineduel' :
+				if ( data.redirect && ( ( player_id == data.creator_id ) || ( player_id == data.joiner_id ) ) ) {
+					window.focus() ;
+					document.location = 'play.php?id='+data.id ;
+				} else {
+					pending_duel_remove(data.id) ;
+					running_duel_add(data) ;
+				}
+				break ;
+			case 'duelcancel' :
+				if ( ! pending_duel_remove(data.id) )
+					running_duel_remove(data.id) ;
+				break ;
+			// Tournaments
+			case 'pending_tournament' :
+				if ( pending_tournament_add(data) && game.connection.registered && ( data.min_players > 1 ) && ! document.hasFocus() )
+					notification_send('Mogg Tournament', 'New tournament : '+data.format+' '+data.name, 'tournament');
+				break ;
+			case 'running_tournament' :
+				var tr = pending_tournament_remove(data.id) ;
+				if ( tr != null ) { // Found in pending : tournament starting, redirect
+					for ( var i = 0 ; i < data.players.length ; i++ )
+						if ( data.players[i].player_id == player_id ) {
+							notification_send('Mogg Tournament starting', 'Starting : '+data.format+' '+data.name, 'start') ;
+							window.focus() ;
+							document.location = 'tournament/?id='+data.id ;
+						}
+				}
+				running_tournament_add(data) ;
+				break ;
+			case 'ended_tournament' :
+				if ( pending_tournament_remove(data.id) == null )
+					running_tournament_remove(data.id)
+					//if ( running_tournament_remove(data.id) == null )
+						//debug('ended tournament not found '+data.id) ;
+				break ;
+			default : 
+				debug('Unknown type '+data.type) ;
+				debug(data) ;
+		}
+	}, function(ev) { // OnClose/OnConnect
+		// Clear everything
+			// Shout
+		node_empty(shouters) ;
+		node_empty(shouts) ;
+			// Duels
+		duel_join.classList.add('hidden') ;
+		node_empty(pending_games) ;
+		duel_view.classList.add('hidden') ;
+		node_empty(running_games) ;
+			// Tournaments
+		node_empty(pending_tournaments) ;
+		tournament_join.classList.add('hidden') ; // for disconection
+		node_empty(running_tournaments) ;
+		tournament_view.classList.add('hidden') ;
+	}) ;
+	game.connection.events() ;
+	//window.addEventListener('blur', function(ev) {connection.send({'type': 'blur'}) ;}, false) ;
+	//window.addEventListener('focus', function(ev) {connection.send({'type': 'focus'}) ;}, false) ;
 // === [ EVENTS ] ==============================================================
 	// Shoutbox
-	document.getElementById('shout').addEventListener('submit', function(ev) {
+	shout.addEventListener('submit', function(ev) {
 		var field = this[0] ;
 		if ( field.value != '' ) {
-			$.getJSON(this.action,
-				{'nick': game.options.get('profile_nick'),'message': field.value, 'from': last_shout_id}) ;
+			if ( game.connection != null )
+				game.connection.send(JSON.stringify({'type': 'shout', 'message': field.value})) ;
 			field.value = '' ;
 		}
 		field.focus() ;
 		return eventStop(ev) ;
+	}, false) ;
+	keypress_timer = null ;
+	shout[0].prev_val = shout[0].value ;
+	shout[0].addEventListener('keyup', function(ev) {
+		if ( this.prev_val == this.value )
+			return false ;
+		this.prev_val = this.value ;
+		if ( keypress_timer != null ) // A timer is already running, overwrite it
+			clearTimeout(keypress_timer) ;
+		else // No timer : notify
+			if ( game.connection != null )
+				game.connection.send(JSON.stringify({'type': 'keypress'})) ;
+		keypress_timer = setTimeout(function() {
+			keypress_timer = null ;
+			game.connection.send(JSON.stringify({'type': 'keyup'})) ;
+		}, 1000) ;
 	}, false) ;
 	// Form adapting to user selections
 		// Boosters
@@ -72,15 +204,13 @@ $(function() { // On page load
 			var name = ev.target.name.value ;
 			if ( name == '' )
 				name = "I'm a noob ! " ;
-			$.post(ev.target.action, {
+			game.connection.send({
+				'type': 'pendingduel',
 				'name': name,
-				'nick': game.options.get('profile_nick'),
-				'avatar': game.options.get('profile_avatar'),
-				'deck': deck_get(deckname)
-			}, function(data) {
-				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-					alert(data.msg) ;
-			}, 'json') ;
+				'creator_nick': game.options.get('profile_nick'),
+				'creator_avatar': game.options.get('profile_avatar'),
+				'creator_deck': deck_get(deckname)
+			}) ;
 		}
 		return eventStop(ev) ;
 	}, false) ;
@@ -91,10 +221,11 @@ $(function() { // On page load
 		if ( tournament_constructed(type) && ( deckname == null ) )
 			alert('You must select a deck in order to create a constructed tournament') ;
 		else
-			$.post(ev.target.action, {
-				'type' : type,
+			game.connection.send({
+				'type' : 'pending_tournament',
+				'format' : type,
 				'name' : ev.target.name.value,
-				'players' : ev.target.players.value,
+				'min_players' : ev.target.players.value,
 				'boosters' : ev.target.boosters.value,
 				'nick' : game.options.get('profile_nick'), 
 				'avatar' : game.options.get('profile_avatar'), 
@@ -102,10 +233,7 @@ $(function() { // On page load
 				'rounds_number' : ev.target.rounds_number.value,
 				'rounds_duration' : ev.target.rounds_duration.value,
 				'clone_sealed' : ev.target.clone_sealed.checked
-			 }, function(data) {
-				if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )
-					alert(data.msg) ;
-			}, 'json') ;
+			}) ;
 		return eventStop(ev) ;
 	}, false) ;
 	// Decks list
@@ -187,232 +315,189 @@ $(function() { // On page load
 	// Display decks list
 	decks_list() ;
 	get_extensions() ;
-	// Start to display and regulary update games list
-	shout_timer(document.getElementById('shouts')) ;
-	games_timer(document.getElementById('pending_games'), document.getElementById('cell_no')
-		, document.getElementById('running_games'), document.getElementById('running_games_no')) ;
-	tournaments_timer(document.getElementById('pending_tournaments'), document.getElementById('tournament_no')
-		, document.getElementById('running_tournaments'), document.getElementById('running_tournament_no')) ;
 }) ;
-// === [ TIMERS ] ==============================================================
-function shout_timer(ul) {
-	$.getJSON('json/shout.php', {'from': last_shout_id}, function(shouts) {
-		if ( shouts.length > 0 ) {
-			for ( var i in shouts ) {
-				var id = parseInt(shouts[i].id) ;
-				if ( id > last_shout_id )
-					last_shout_id = id ;
-				var li = create_li(shouts[i].sender_nick+': '+shouts[i].message) ;
-				li.appendChild(create_span(timeWithDays(mysql2date(shouts[i].time)))) ;
-				ul.appendChild(li) ;
-			}
-			ul.scrollTop = ul.scrollHeight ;
-		}
-		window.setTimeout(shout_timer, game_list_timer, ul) ;
-	}) ;
+// === [ Duels ] ==============================================================
+function player_cell(cell, nick, avatar) {
+	node_empty(cell) ;
+	var img = create_img(avatar, nick+'\'s avatar', nick+'\'s avatar')
+	img.style.maxWidth = '25px' ;
+	img.style.maxHeight = '25px' ;
+	cell.appendChild(img) ;
+	cell.appendChild(create_text(nick)) ;
 }
-// Requests from server a list of pending games, and display them in prepared tables
-function games_timer(pending_games, cell_no, running_games, running_games_no) {
-	$.getJSON('json/pending_games.php', {'player_id': player_id}, function(data) {
-		// Redirect to joined game/tournament
-		if ( data.game_redirect ) {
-			window.focus() ;
-			document.location = 'play.php?id='+data.game_redirect ;
-		}
-		// Displays a list of single games
-		var rounds = data.games ; // Get games list
-		node_empty(pending_games) ; // Remove old lines
-		if ( rounds.length > 0 ) { // Some pending games returned
-			document.getElementById('duel_join').classList.remove('hidden') ;
-			cell_no.style.display = 'none' ; // Hide table line "no pending games"
-			for ( var i = 0 ; i < rounds.length ; i++ ) { // Add new lines
-				var round = rounds[i] ;
-				var submit = create_submit('id', round.id, 'game_' + round.id) ;
-				// Normal form for clients not trigering events
-				var form = create_form('join.php', 'post', 
-					create_hidden('nick', game.options.get('profile_nick')), 
-					create_hidden('avatar', game.options.get('profile_avatar')), 
-					create_hidden('deck', deck_get(deck_checked())),
-					submit
-				) ;
-				// Submit override for the form, replacing its sumbission by an AJAJ query
-				form.addEventListener('submit', function(ev) {
-					var deckname = deck_checked() ;
-					if ( deckname == null ) {
-						alert('You must select a deck in order to join a duel') ;
-						return eventStop(ev) ;
-					}
-				}, false) ;
-				// Table line content (form is the first cell)
-				var img = create_img(round.creator_avatar, round.creator_nick+'\'s avatar', round.creator_nick+'\'s avatar')
-				img.style.maxWidth = '25px' ;
-				img.style.maxHeight = '25px' ;
-				var creator = create_label(submit.id, round.creator_nick) ;
-				creator.insertBefore(img, creator.firstChild) ;
-				var tr = create_tr(pending_games, 
-					form, 
-					create_label(submit.id, round.name),
-					creator,
-					create_label(submit.id, time_disp(round.age)),
-					create_label(submit.id, time_disp(round.inactivity))
-				) ;
-				if ( round.creator_id == player_id )
-					tr.classList.add('registered') ;
-			}
-		} else // No pending games returned
-			//cell_no.style.display = '' ; // Show table line "no pending games"
-			document.getElementById('duel_join').classList.add('hidden') ;
-		// Display a list of runing games
-		var rounds = data.runing_games ; // Get games list
-		node_empty(running_games) ; // Remove old lines
-		if ( rounds.length > 0 ) { // Some pending games returned
-			document.getElementById('duel_view').classList.remove('hidden') ;
-			running_games_no.style.display = 'none' ; // Hide table line "no pending games"
-			for ( var i = 0 ; i < rounds.length ; i++ ) { // Add new lines
-				var round = rounds[i] ;
-				var url = 'play.php?id='+round.id ;
-				// Creator
-				var creator = create_a(round.creator_nick, url) ;
-				var img = create_img(round.creator_avatar, round.creator_nick+'\'s avatar', round.creator_nick+'\'s avatar')
-				img.style.maxWidth = '25px' ;
-				img.style.maxHeight = '25px' ;
-				creator.insertBefore(img, creator.firstChild) ;
-				// Joiner
-				var joiner = create_a(round.joiner_nick, url) ;
-				var img = create_img(round.joiner_avatar, round.joiner_nick+'\'s avatar', round.joiner_nick+'\'s avatar')
-				img.style.maxWidth = '25px' ;
-				img.style.maxHeight = '25px' ;
-				joiner.insertBefore(img, joiner.firstChild) ;
-				// Line
-				var tr = create_tr(running_games,
-					create_a(round.name, url),
-					creator,
-					create_a(round.creator_score, url),
-					create_a(round.joiner_score, url),
-					joiner,
-					create_a(time_disp(round.age), url),
-					create_a(time_disp(round.inactivity), url)
-				) ;
-				tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
-				if ( ( round.creator_id == player_id ) || ( round.joiner_id == player_id ) )
-					tr.classList.add('registered') ;
-			}
-		} else // No pending games returned
-			//running_games_no.style.display = '' ; // Show table line "no pending games"
-			document.getElementById('duel_view').classList.add('hidden') ;
-	}) ;
-	// Loop's next iteration
-	window.setTimeout(games_timer, game_list_timer // Call same function in 'game_list_timer' seconds
-		, pending_games, cell_no, running_games, running_games_no) ; // With all same parameters (pointers to result displaying tables)
+function pending_duel_add(round) {
+	duel_join.classList.remove('hidden') ;
+	var tr = create_tr(pending_games, 
+		round.name,
+		'',
+		''
+	) ;
+	player_cell(tr.cells[1], round.creator_nick, round.creator_avatar) ;
+	tr.timer = start_timer(tr.cells[2], round.creation_date) ;
+	tr.round = round ;
+	tr.addEventListener('click', function(ev) {
+		var deckname = deck_checked() ;
+		if ( deckname == null )
+			alert('You must select a deck in order to join a duel') ;
+		else
+			game.connection.send({
+				'type': 'joineduel',
+				'id': this.round.id,
+				'joiner_nick': game.options.get('profile_nick'),
+				'joiner_avatar': game.options.get('profile_avatar'),
+				'joiner_deck': deck_get(deckname)
+			}) ;
+	}, false) ;
+	if ( round.creator_id == player_id )
+		tr.classList.add('registered') ;
 }
-function tournaments_timer(pending_tournaments, tournament_no, running_tournaments, running_tournament_no) {
-// Requests from server a list of pending and past tournaments, and display them in prepared tables
-	$.getJSON('tournament/json/pending.php', {'player_id': player_id}, function(data) {
-		if ( data.tournament_redirect ) {
-			window.focus() ;
-			document.location = 'tournament/?id='+data.tournament_redirect ;
+function running_duel_add(round) {
+	duel_view.classList.remove('hidden') ;
+	running_games.classList.remove('hidden') ;
+	var url = 'play.php?id='+round.id ;
+	var tr = create_tr(running_games,
+		create_a(round.name, url),
+		create_a('', url),
+		create_a(round.creator_score, url),
+		create_a(round.joiner_score, url),
+		create_a('', url),
+		create_a(time_disp(round.age), url)
+	) ;
+	player_cell(tr.cells[1].firstElementChild, round.creator_nick, round.creator_avatar) ;
+	player_cell(tr.cells[4].firstElementChild, round.joiner_nick, round.joiner_avatar) ;
+	tr.timer = start_timer(tr.cells[5].firstElementChild, round.creation_date) ;
+	tr.round = round ;
+	tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
+	if ( ( round.creator_id == player_id ) || ( round.joiner_id == player_id ) )
+		tr.classList.add('registered') ;
+}
+function duel_remove(tbody, div, id) {
+	for ( var i = 0 ; i < tbody.rows.length ; i++ )
+		if ( tbody.rows[i].round.id == id ) {
+			clearInterval(tbody.rows[i].timer) ;
+			tbody.removeChild(tbody.rows[i]) ;
+			if ( tbody.rows.length == 0 )
+				div.classList.add('hidden') ;
+			return true ;
 		}
-		// Displays a list of pending tournaments
-		var tournaments = data.tournaments ;
-		node_empty(pending_tournaments) ; // Remove old lines
-		if ( tournaments.length > 0 ) { // Some pending games returned
-			document.getElementById('tournament_join').classList.remove('hidden') ;
-			tournament_no.style.display = 'none' ; // Hide table line "no pending tournaments"
-			for ( var i = 0 ; i < tournaments.length ; i++ ) { // Add new lines
-				var tournament = tournaments[i] ;
-				var submit = create_submit('id', tournament.id, 'tournament_' + tournament.id) ;
-				// Normal form for clients not trigering events
-				var form = create_form('tournament/json/join.php', 'post', 
-					create_hidden('nick', game.options.get('profile_nick')), 
-					create_hidden('avatar', game.options.get('profile_avatar')), 
-					create_hidden('deck', deck_get(deck_checked())),
-					submit
-				) ;
-				// Submit override for the form, replacing its sumbission by an AJAJ query
-				form.addEventListener('submit', function(ev) {
-					var deckname = deck_checked() ;
-					if ( tournament_constructed(tournament.type) && ( deckname == null ) )
-						alert('You must select a deck in order to join a constructed tournament') ;
-					else
-						$.post(ev.target.action, {
-							'id' : ev.target.id.value, 
-							'nick' : game.options.get('profile_nick'), 
-							'avatar' : game.options.get('profile_avatar'), 
-							'deck' : deck_get(deckname)
-						 }, function(data) {
-							if ( data.msg != '' )
-								alert(data.msg) ;
-						}, 'json') ;
-					return eventStop(ev) ;
-				}, false) ;
-				// Table line content (form is the first cell)
-				var age = create_label(submit.id, time_disp(tournament.age)) ;
-				age.classList.add('nowrap') ;
-				var slots = create_label(submit.id, (tournament.min_players-tournament.players.length)+' / '+tournament.min_players) ;
-				slots.classList.add('nowrap') ;
-				var playerlist = create_label(submit.id, list_players(tournament)) ;
-				playerlist.classList.add('nowrap') ;
-				var view = create_a('View', 'tournament/?id='+tournament.id, null, 'Just view tournament page, chat with other players, without register for playing') ;
-				var tr = create_tr(pending_tournaments, 
-					form, 
-					create_label(submit.id, tournament.type),
-					create_label(submit.id, tournament.name),
-					age,
-					slots,
-					playerlist,
-					view
-				) ;
-				var word = 'register'
-				for ( var j in tournament.players )
-					if ( tournament.players[j].player_id == player_id ) {
-						tr.classList.add('registered') ;
-						word = 'unregister' ;
-					}
-				tr.title = 'Click to '+word+' to tournament '+tournament.type+' : '+tournament.name ;
-			}
-		} else // No pending tournaments returned
-			//tournament_no.style.display = '' ; // Show table line "no pending tournament"
-			document.getElementById('tournament_join').classList.add('hidden') ;
-		// Running
-		node_empty(running_tournaments) ; // Remove old lines
-		if ( data.tournaments_running.length > 0 ) {
-			document.getElementById('tournament_view').classList.remove('hidden') ;
-			running_tournament_no.style.display = 'none' ; // Hide table line "no pending tournaments"
-			for ( var i = 0 ; i < data.tournaments_running.length ; i++ ) {
-				var t = data.tournaments_running[i] ;
-				var url = 'tournament/?id='+t.id ;
-				var title = 'View tournament '+t.type+' : '+t.name ;
-				var tournament = JSON.parse(t.data) ;
-				var age = create_a(time_disp(t.time_left), url, null, title) ;
-				age.classList.add('nowrap') ;
-				var playerlist = create_a(list_players(tournament), url, null, title) ;
-				playerlist.classList.add('nowrap') ;
-				var tr = create_tr(running_tournaments, 
-					create_a(t.type, url, null, title), 
-					create_a(t.name, url, null, title), 
-					create_a(tournament_status(t.status), url, null, title), 
-					age,
-					playerlist
-				) ;
-				for ( var j in tournament.players )
-					if ( tournament.players[j].player_id == player_id )
-						tr.classList.add('registered') ;
-			}
-		} else
-			//running_tournament_no.style.display = '' ;
-			document.getElementById('tournament_view').classList.add('hidden') ;
-	}) ;
-	// Loop's next iteration
-	if ( true ) // To stop loop for debuging
-		window.setTimeout(tournaments_timer, game_list_timer // Call same function in 'game_list_timer' seconds
-			, pending_tournaments, tournament_no // With all same parameters (pointers to result displaying tables)
-			, running_tournaments, running_tournament_no) ;
+	return false ;
+}
+function pending_duel_remove(id) {
+	return duel_remove(pending_games, duel_join, id) ;
+}
+function running_duel_remove(id) {
+	return duel_remove(running_games, duel_view, id) ;
+}
+// === [ Tournaments ] ==============================================================
+function pending_tournament_add(tournament) {
+	tournament_join.classList.remove('hidden') ;
+	var current_line = null ;
+	for ( var i = 0 ; i < pending_tournaments.rows.length ; i++ )
+		if ( pending_tournaments.rows[i].tournament.id == tournament.id ) {
+			current_line = pending_tournaments.rows[i] ;
+			break ;
+		}
+	var name = tournament.name ;
+	if ( ! tournament_constructed(tournament.format) && iso(tournament.data.boosters) )
+		name += ' ('+tournament.data.boosters.join('-')+')' ;
+	var tr = create_tr(pending_tournaments, 
+		tournament.format,
+		name,
+		'', '', '',
+		create_a('View', 'tournament/?id='+tournament.id, null,
+			'Go to tournament page without register for playing')
+	) ;
+	if ( current_line != null )
+		pending_tournaments.replaceChild(tr, current_line) ;
+	tr.tournament = tournament ;
+	tr.timer = start_timer(tr.cells[2], tournament.creation_date) ;
+	tr.cells[3].classList.add('nowrap') ;
+	tr.cells[4].classList.add('nowrap') ;
+	tr.cells[5].addEventListener('click', function(ev) {ev.stopPropagation() ;}, false) ;
+	update_tournament_players(tr) ;
+	tr.addEventListener('click', function(ev) {
+		game.connection.send({
+			'type': 'tournament_register',
+			'id' : tournament.id, 
+			'nick' : game.options.get('profile_nick'), 
+			'avatar' : game.options.get('profile_avatar'), 
+			'deck' : deck_get(deck_checked())
+		}) ;
+	}, false) ;
+	return ( current_line == null ) ;
+}
+function running_tournament_add(t) {
+	tournament_view.classList.remove('hidden') ;
+	// Search if it already has a line
+	var table = running_tournaments ;
+	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ )
+		if ( running_tournaments.rows[i].tournament.id == t.id ) {
+			table = null ; // Create it off parent, will be added after
+			var current_line = running_tournaments.rows[i] ; // Store for replaceChild
+		}
+	var url = 'tournament/?id='+t.id ;
+	var title = 'View tournament '+t.type+' : '+t.name ;
+	var name = t.name ;
+	if ( ! tournament_constructed(t.format) && iso(t.data.boosters) )
+		name += ' ('+t.data.boosters.join('-')+')' ;
+	var tr = create_tr(table, 
+		create_a(t.format, url, null, title), 
+		create_a(name, url, null, title), 
+		create_a(tournament_status(t.status), url, null, title), 
+		create_a('', url, null, title), 
+		create_a(list_players(t), url, null, title)
+	) ;
+	if ( table == null )
+		running_tournaments.replaceChild(tr, current_line) ;
+	tr.tournament = t ;
+	tr.timer = start_timer(tr.cells[3].firstElementChild, t.due_time, true) ;
+	tr.cells[3].classList.add('nowrap') ;
+	tr.cells[4].classList.add('nowrap') ;
+	for ( var j in t.players )
+		if ( t.players[j].player_id == player_id )
+			tr.classList.add('registered') ;
+}
+function update_tournament_players(tr) {
+	// Slots
+	var t = tr.tournament ;
+	node_empty(tr.cells[3]) ;
+	tr.cells[3].appendChild(create_text((t.min_players-t.players.length)+' / '+t.min_players)) ;
+	// Player list
+	node_empty(tr.cells[4]) ;
+	tr.cells[4].appendChild(list_players(t)) ;
+	// Registered
+	var word = 'register to' ;
+	tr.classList.remove('registered') ;
+	for ( var j in t.players )
+		if ( t.players[j].player_id == player_id ) {
+			tr.classList.add('registered') ;
+			word = 'unregister from' ;
+		}
+	tr.title = 'Click to '+word+' tournament : '+tr.tournament.name+' #'+tr.tournament.id ;
 }
 function list_players(tournament) {
 	var ul = document.createElement('ol') ;
 	for ( var j in tournament.players )
 		ul.appendChild(create_li(tournament.players[j].nick)) ;
 	return ul ;
+}
+function tournament_remove(id, table, container) {
+	for ( var i = 0 ; i < table.rows.length ; i++ ) {
+		var tr = table.rows[i] ;
+		if ( tr.tournament.id == id ) {
+			tr.parentNode.removeChild(tr) ;
+			if ( table.rows.length == 0 )
+				container.classList.add('hidden') ;
+			return tr ;
+		}
+	}
+	return null ;
+}
+function pending_tournament_remove(id) {
+	return tournament_remove(id, pending_tournaments, tournament_join) ;
+}
+function running_tournament_remove(id) {
+	return tournament_remove(id, running_tournaments, tournament_view) ;
 }
 // === [ FIXED LISTS ] =========================================================
 function get_extensions() {
@@ -622,17 +707,15 @@ function decks_list() {
 					alert('Please select a deck') ;
 					return false ;
 				}
-				var form = create_form('goldfish.php', 'post',
-					create_hidden('nick', game.options.get('profile_nick')),
-					create_hidden('avatar', game.options.get('profile_avatar')),
-					create_hidden('deck', deck_get(deck)), 
-					create_hidden('goldfish_nick', ev.target.deck_name),
-					create_hidden('goldfish_avatar', 'themes/'+theme+'/goldfish.png'),
-					create_hidden('goldfish_deck', deck_get(ev.target.deck_name))
-				) ;
-				document.body.appendChild(form) ;
-				form.submit() ;
-				document.body.removeChild(form) ;
+				game.connection.send({
+					'type': 'goldfish',
+					'creator_nick': game.options.get('profile_nick'),
+					'creator_avatar': game.options.get('profile_avatar'),
+					'creator_deck': deck_get(deck),
+					'joiner_nick': ev.target.deck_name,
+					'joiner_avatar': 'themes/'+theme+'/goldfish.png',
+					'joiner_deck': deck_get(ev.target.deck_name)
+				}) ;
 			}, false) ;
 			img.title = 'Play with your selected deck against '+deck_name ;
 			img.deck_name = deck_name

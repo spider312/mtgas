@@ -1,12 +1,44 @@
-<!DOCTYPE html>
-<html>
- <head>
-  <title>MTGAS : GUI (in-game keyboard and mouse shortcuts)</title>
-  <link rel="stylesheet" href="style.css" type="text/css">
-  <link rel="icon" type="image/jpg" href="/themes/mogg/favicon.jpg">
- </head>
+<?php
+include '../lib.php' ;
+html_head(
+	'In-game keyboard and mouse shortcuts',
+	array(
+		'style.css'
+		, 'index.css'
+		, 'options.css'
+	)
+) ;
+?>
+
  <body>
-  <table border="1">
+  <table border="1" class="section">
+   <tr><th colspan="2">Steps icons and "next phase" button between battlefields</th></tr>
+   <tr>
+    <td><strong>Click "next phase" button</strong></td>
+    <td>Default action for current step (untap, triggers upkeep, draw, declare attackers, damages), then enter next step</td>
+   </tr>
+   <tr>
+    <td><strong>Click a step icon</strong></td>
+    <td>Enter that step</td>
+   </tr>
+   <tr>
+    <td><strong>Double click a step icon</strong></td>
+    <td>Default action for that step, then enter next step</td>
+   </tr>
+   <tr>
+    <td>Right click button on steps' right</td>
+    <td>Enter previous step</td>
+   </tr>
+   <tr>
+    <td>Ctrl + click button on steps' right</td>
+    <td>Enter last step</td>
+   </tr>
+   <tr>
+    <td>Ctrl + right click button on steps' right</td>
+    <td>Enter first step</td>
+   </tr>
+
+
    <tr><th colspan="2">Game keyboard shortcuts</th></tr>
    <tr>
     <td>Any printable character</td>
@@ -26,7 +58,7 @@
    </tr>
    <tr>
     <td>Ctrl+Shift+Space</td>
-    <td>Current step's default action (untap, draw ...), then next step (like double click on a step)</td>
+    <td>Current step's default action, then next step</td>
    </tr>
    <tr>
     <td>Ctrl+i</td>
@@ -53,7 +85,7 @@
     <td>Draw</td>
    </tr>
    <tr>
-    <td>Ctrl+m</td>
+    <td><strong>Ctrl+m</strong></td>
     <td>Shuffle, then first draw / mulligan</td>
    </tr>
    <tr>
@@ -65,15 +97,11 @@
     <td>Shuffle library</td>
    </tr>
    <tr>
-    <td>Ctrl+z</td>
+    <td><strong>Ctrl+z</strong></td>
     <td>Undo my last draw</td>
    </tr>
-   <tr>
-    <td>Alt+d</td>
-    <td>Duplicate selected cards/tokens</td>
-   </tr>
 
-   <tr><th colspan="2">Selection keyboard shortcuts</th></tr>
+   <tr><th colspan="2">Selection keyboard shortcuts - affects each selected card</th></tr>
    <tr>
     <td>Ctrl+Suppr</td>
     <td>Send selected cards to graveyard</td>
@@ -90,6 +118,32 @@
     <td>Ctrl+n</td>
     <td>Set a note for selected cards</td>
    </tr>
+   <tr>
+    <td>Alt+d</td>
+    <td>Duplicate selected cards/tokens</td>
+   </tr>
+   <tr>
+    <td>Alt+PgUp</td>
+    <td>Add a counter on selected cards</td>
+   </tr>
+   <tr>
+    <td>Alt+PgDn</td>
+    <td>Remove a counter from selected cards</td>
+   </tr>
+   <tr>
+    <td>Ctrl+Alt+PgUp</td>
+    <td>Add a counter and +1/+1 on selected cards</td>
+   </tr>
+   <tr>
+    <td>Ctrl+Alt+PgDn</td>
+    <td>Remove a counter and -1/-1 from selected cards (like removing a +1/+1 counter, not like adding a -1/-1 counter)</td>
+   </tr>
+   <tr>
+    <td>Ctrl+up/down/left/right</td>
+    <td>Move card on battlefield</td>
+   </tr>
+
+   <tr><th colspan="2">Creature boost - replace + by * or - by / to limit effect to current turn</th></tr>
    <tr>
     <td>Ctrl++</td>
     <td>Selected cards gets +1/+0</td>
@@ -113,53 +167,6 @@
    <tr>
     <td>Ctrl+Alt+-</td>
     <td>Selected cards gets -1/-1</td>
-   </tr>
-   <tr><td colspan="2">For last 6 items, replace + by * or - by / to limit effect to current turn</td></tr>
-   <tr>
-    <td>Alt+PgUp</td>
-    <td>Add a counter on selected cards</td>
-   </tr>
-   <tr>
-    <td>Alt+PgDn</td>
-    <td>Remove a counter from selected cards</td>
-   </tr>
-   <tr>
-    <td>Ctrl+Alt+PgUp</td>
-    <td>Add a counter and +1/+1 on selected cards</td>
-   </tr>
-   <tr>
-    <td>Ctrl+Alt+PgDn</td>
-    <td>Remove a counter and -1/-1 from selected cards (like removing a +1/+1 counter, not like adding a -1/-1 counter)</td>
-   </tr>
-   <tr>
-    <td>Ctrl+up/down/left/right</td>
-    <td>Move card on battlefield</td>
-   </tr>
-
-   <tr><th colspan="2">Phases buttons</th></tr>
-   <tr>
-    <td>Click button on steps' right</td>
-    <td>Default action for current step (untap, triggers upkeep, draw, declare attackers, damages), then enter next step. On last step, next turn</td>
-   </tr>
-   <tr>
-    <td>Right click button on steps' right</td>
-    <td>Enter previous step</td>
-   </tr>
-   <tr>
-    <td>Ctrl + click button on steps' right</td>
-    <td>Enter last step</td>
-   </tr>
-   <tr>
-    <td>Ctrl + right click button on steps' right</td>
-    <td>Enter first step</td>
-   </tr>
-   <tr>
-    <td>Click a step</td>
-    <td>Enter that step</td>
-   </tr>
-   <tr>
-    <td>Double click a step</td>
-    <td>Like button on steps' right, but for double clicked step</td>
    </tr>
 
    <tr><th colspan="2">Mouse actions - Left button</th></tr>
@@ -208,6 +215,26 @@
     <td>Move card to battlefield (or graveyard for battlefield list)</td>
    </tr>
 
+   <tr><th colspan="2">Mouse actions - Right button</th></tr>
+   <tr>
+    <td><strong>Right click a card, zone, step, zoom, messages, phase name (for main menu)</strong></td>
+    <td>Contextual menu</td>
+   </tr>
+   <tr>
+    <td><strong>Right drag'n'drop from a card to a card or avatar, exile, graveyard or library</strong></td>
+    <td>
+     Target - Create an arrow from selected cards to droped element
+     <ul>
+      <li>Default arrow is <strong>yellow</strong> and going away on next <strong>phase</strong></li>
+      <li><strong>Shift</strong> while draging makes the arrow <strong>red</strong> and going away on next <strong>step</strong></li>
+      <li><strong>Ctrl</strong> while draging makes the arrow <strong>green</strong> and going away on next <strong>turn</strong></li>
+      <li><strong>Alt</strong> while draging makes the arrow <strong>blue</strong> and <strong>never</strong> going away</li>
+     </ul>
+      <p>Creating an arrow deletes previous arrows between the same elements</p>
+	  <p>A reminder box is displayed by default for keyboard modifiers. You can disable/enable it in options</p>
+    </td>
+   </tr>
+
    <tr><th colspan="2">Mouse actions - Drag'n'drop</th></tr>
    <tr>
     <td>Ctrl+Drag'n'drop cards to library, graveyard or exile</td>
@@ -223,29 +250,14 @@
    </tr>
    <tr>
     <td>Drag'n'drop cards from hand to manapool</td>
-    <td>Check if card is playable with current mana, then if yes, plays it removing used mana from pool (playability is indicated by mouse cursor when draging over mana pool)</td>
-   </tr>
-
-   <tr><th colspan="2">Mouse actions - Right button</th></tr>
-   <tr>
-    <td>Right click a card, zone, step, zoom, messages, phase name (for main menu)</td>
-    <td>Contextual menu</td>
-   </tr>
-   <tr>
-    <td>Right drag'n'drop from a card to a card or avatar, exile, graveyard or library</td>
     <td>
-     Create an arrow from selected cards to droped element
-     <ul>
-      <li>Default arrow is yellow and going away on next <strong>phase</strong></li>
-      <li>Shift while draging makes the arrow red and going away on next <strong>step</strong></li>
-      <li>Ctrl while draging makes the arrow green and going away on next <strong>turn</strong></li>
-      <li>Alt while draging makes the arrow blue and <strong>never</strong> going away</li>
-      <li>Creating an arrow deletes previous arrows between the same elements (better way to delete a blue arrow, for example)</li>
-     </ul>
-    </td>
+	 <p>Check if cards are playable with current mana in pool</p>
+	 <p>Playability is indicated by mouse cursor when draging over mana pool</p>
+	 <p>If playable, droping cards play them, removing used mana from pool</p>
+	</td>
    </tr>
 
-   <tr><th colspan="2">Debug</th></tr>
+   <!--tr><th colspan="2">Debug</th></tr>
    <tr><td colspan="2">A "debug" option adds entries to various menus, and displays log messages (essentially non blocking errors) in history</td></tr>
    <tr>
     <td>Ctrl+l</td>
@@ -258,19 +270,7 @@
    <tr>
     <td>Ctrl+k</td>
     <td>Display image cache informations</td>
-   </tr>
-   <tr>
-    <td>Ctrl+j</td>
-    <td>Display cards on battlefield</td>
-   </tr>
-   <tr>
-    <td>Ctrl+h</td>
-    <td>Relaunch timer (when time left/elapsed stoped updating)</td>
-   </tr>
-   <tr>
-    <td>Ctrl+H</td>
-    <td>Stop timer (no use other than debug)</td>
-   </tr>
+   </tr-->
   </table>
 
  </body>

@@ -35,7 +35,7 @@
      </tr>
      <tr>
       <th>Chromium</th>
-      <td class="no">no</td>
+      <td class="yes">mostly (only ctrl+n isn't cancelable)</td>
       <td class="yes">yes</td>
      </tr>
      <tr>
