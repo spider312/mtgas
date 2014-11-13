@@ -1,6 +1,17 @@
 <?php
 include_once 'lib.php' ;
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../../tournament/tournament.php' ;
+function tournament_all_players($tournament) {
+	$players = array() ;
+	$players_query = query("SELECT *
+	FROM `registration`
+	WHERE
+		`tournament_id` = '".$tournament->id."'
+	ORDER BY `order` ASC ; ") ;
+	while ( $row = mysql_fetch_object($players_query) )
+		$players[] = $row ;
+	return $players ;
+}
 html_head(
 	'Admin > Tournament > Recompute',
 	array(

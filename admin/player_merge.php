@@ -82,7 +82,7 @@ foreach ( $rounds as $round ) {
 }
 function disp_opponent($id, $nicks) {
 	global $player_id ;
-	$result = '<a href="../stats.php?id='.$id.'">'.join(', ', $nicks).'</a>' ;
+	$result = '<a href="../player.php?id='.$id.'">'.join(', ', $nicks).'</a>' ;
 	if ( $player_id == $id )
 		$result .= ' (you)' ;
 	return $result ;

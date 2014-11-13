@@ -34,7 +34,8 @@ $q = "SELECT
 FROM
 	`tournament`
 WHERE
-	`tournament`.`min_players` > 1" ;
+	`tournament`.`min_players` > 1
+	AND `tournament`.`status` = 6" ;
 echo '<ul>' ;
 if ( $date != '' ) {
 	$q .= " AND `tournament`.`creation_date` > '$date'" ;
@@ -73,7 +74,7 @@ foreach ( $t as $d ) {
 	$data = json_decode($d->data) ;
 	$json_parse += ( microtime(true) - $json_start ) ;
 	if ( ! property_exists($data, 'score') ) {
-		echo "Unparsed : no score\n" ;
+		echo "No score\n" ;
 		continue ;
 	}
 	if ( ( count($exts) > 0 ) && ( isset($data->boosters) ) && ( count(array_intersect($data->boosters, $exts)) == 0 ) ) {
@@ -132,10 +133,10 @@ foreach ( $t as $d ) {
 		$score = $data->score->{$r->player_id}->gamepoints/3 ; // 3 gamepoints per game win
 		foreach ( $deck->main as $id => $card ) // Played cards
 			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
-				update_score($card->id, $card->rarity, $rounds_number, $score) ;
+				update_score($card, $rounds_number, $rounds_number, $score) ;
 		foreach ( $deck->side as $id => $card ) // Not played cards
 			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
-				update_score($card->id, $card->rarity) ;
+				update_score($card, $rounds_number) ;
 		$lparsed++ ;
 	}
 	$parsed += $lparsed ;
@@ -145,7 +146,7 @@ echo "\n</pre>Parsed $parsed decks" ;
 echo "<ul><li>Total time : ".(microtime(true)-$start).'</li>' ;
 echo "<li>Tournament data JSON decoding : $json_parse</li>" ;
 echo "<li>Decks parsing (cards/extensions searching): $deck_parse</li></ul>" ;
-$result = new Simple_Object() ;
+$result = new stdClass() ;
 if ( $date != '' )
 	$result->date = $date ;
 if ( $format != '' )
@@ -167,22 +168,22 @@ fwrite($fh, json_encode($result));
 fclose($fh);
 
 // Lib
-function update_score($card_id, $rarity='S', $played=0, $score=0) {
+function update_score($card, $opened=1, $played=0, $score=0) {
 	global $cards ;
-	if ( ! array_key_exists($card_id, $cards) ) {
-		$cards[$card_id] = new simple_object() ;
-		$cards[$card_id]->opened = 1 ;
-		$cards[$card_id]->played = $played ;
-		$cards[$card_id]->scored = $score ;
-		$cards[$card_id]->rarity = array($rarity => 1) ;
+	if ( ! array_key_exists($card->id, $cards) ) {
+		$cards[$card->id] = new stdClass() ;
+		$cards[$card->id]->opened = $opened ;
+		$cards[$card->id]->played = $played ;
+		$cards[$card->id]->scored = $score ;
+		$cards[$card->id]->rarity = array($card->rarity => 1) ;
 	} else {
-		$cards[$card_id]->opened += 1 ;
-		$cards[$card_id]->played += $played ;
-		$cards[$card_id]->scored += $score ;
-		if ( ! array_key_exists($rarity, $cards[$card_id]->rarity) )
-			$cards[$card_id]->rarity[$rarity] = 1 ;
+		$cards[$card->id]->opened += $opened ;
+		$cards[$card->id]->played += $played ;
+		$cards[$card->id]->scored += $score ;
+		if ( ! array_key_exists($rarity, $cards[$card->id]->rarity) )
+			$cards[$card->id]->rarity[$card->rarity] = 1 ;
 		else
-			$cards[$card_id]->rarity[$rarity]++ ;
+			$cards[$card->id]->rarity[$card->rarity]++ ;
 	}
 }
 die('end'."\n") ;

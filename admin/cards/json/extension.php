@@ -11,6 +11,7 @@ if ( array_key_exists('ext_id', $_GET) ) {
 	$priority = param_or_die($_GET, 'priority') ;
 	$release_date = param_or_die($_GET, 'release_date') ;
 	$bloc = param_or_die($_GET, 'bloc') ;
+	$data = param_or_die($_GET, 'data') ;
 	$updates = array() ;
 	if ( $se != '' )
 		$updates[] = "`se` = '".mysql_real_escape_string($se)."'" ;
@@ -22,8 +23,9 @@ if ( array_key_exists('ext_id', $_GET) ) {
 		$updates[] = "`priority` = '$priority'" ;
 	if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $release_date, $matches) )
 		$updates[] = "`release_date` = '$release_date'" ;
-	if ( intval($priority).'' == $priority )
+	if ( intval($bloc).'' == $bloc )
 		$updates[] = "`bloc` = '$bloc'" ;
+	$updates[] = "`data` = '$data'" ;
 	$q = "UPDATE 
 		`extension`
 	SET

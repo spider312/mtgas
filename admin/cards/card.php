@@ -1,22 +1,6 @@
 <?php
 include_once 'lib.php' ;
-
 $id = param_or_die($_GET, 'id') ;
-
-function debug($obj, $prefix='	') {
-	echo $prefix.'<ul>'."\n" ;
-	foreach ( $obj as $name => $value ) {
-		$type = gettype($value) ;
-		echo $prefix.' <li>' ;
-		if ( ( $type == 'object') || ( $type == 'array') ) {
-			echo $name.' : ' ;
-			debug($value, $prefix.' ') ;
-		} else
-			echo $name.' : '.$value ;
-		echo '</li>'."\n" ;
-	}
-	echo $prefix.'</ul>'."\n" ;
-}
 
 html_head(
 	'Admin > Cards > View one',
@@ -26,6 +10,7 @@ html_head(
 	), 
 	array (
 		'lib/jquery.js',
+		'math.js',
 		'html.js'
 	)
 ) ;
@@ -58,6 +43,7 @@ function start() {
 	ajax_error_management() ;
 	document.getElementById('update_card').addEventListener('submit', function(ev) {
 		ev.target.parentNode.classList.add('updating') ;
+		ev.target.fixed_attrs.value = JSON.stringify(JSON.parse(ev.target.fixed_attrs.value)) ;
 		$.getJSON(ev.target.action, {
 			'card_id': ev.target.card_id.value,
 			'card_name': ev.target.card_name.value,
@@ -237,7 +223,7 @@ if ( count($langs) > 0 ) {
     </tr>
     <tr>
      <th>Stored</th>
-     <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><?php debug($json) ; ?></td>
+     <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><pre><?php print_r($json) ; ?></pre></td>
     </tr>
     <tr>
      <th>Compile log</th>
@@ -245,7 +231,7 @@ if ( count($langs) > 0 ) {
     </tr>
     <tr>
      <th>Compiled</th>
-     <td title="<?php echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><?php debug($attrs) ; ?></td>
+     <td title="<?php echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><pre><?php print_r($attrs) ; ?></pre></td>
     </tr>
    </form>
 

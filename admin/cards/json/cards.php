@@ -6,9 +6,12 @@ if ( array_key_exists('ext', $_GET) ) {
 	$connec = card_connect() ;
 	$ext = param_or_die($_GET, 'ext') ;
 	$rarity = param($_GET, 'rarity', false) ;
+	$text = param($_GET, 'text', false) ;
 	$where = '' ;
 	if ( $rarity )
 		$where .= 'AND `card_ext`.`rarity` = \''.$rarity.'\' ' ;
+	if ( $text )
+		$where .= 'AND `card`.`text` LIKE \'%'.$text.'%\' ' ;
 	die(json_encode(query_as_array("SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '$ext' AND `card`.`id` = `card_ext`.`card` $where ORDER BY `card`.`name`", 'Card list', $connec))) ;
 } else
 	die("{'msg' : 'No ext in param'}") ;

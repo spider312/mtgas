@@ -21,6 +21,7 @@ html_menu() ;
      <th>Name</th>
      <th>Cards</th>
 <?php
+// Card names are not imported in asian languages (only images are)
 foreach ( $langs as $code => $lang )
 	if ( $code != 'en' )
 		echo '     <th>'.$lang.'</th>'
@@ -51,16 +52,13 @@ while ( $arr = mysql_fetch_array($query) ) {
 				$nbtranslations++ ;
 
 		}
-		$text = $nbcards ;
+		$text = $nbtranslations ;
 		if ( $nbtranslations == $nbcards )
 			$class = 'yes' ;
 		else if ( $nbtranslations == 0 )
 			$class = 'no' ;
-		else {
+		else
 			$class = 'little' ;
-			$text = "$nbtranslations / $nbcards" ;
-			$text = $nbtranslations ;
-		}
 		echo "     <td class=\"$class\">$text</td>\n" ;
 	}
 	echo '     <td><a href="/admin/cards/import/?source=mci&ext_source='.$mcicode.'&ext_local='.$arr['se'].'">Import</a></td>'."\n" ;

@@ -175,7 +175,7 @@ foreach ( $p as $i => $c ) {
 	$colors = '' ;
 	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'">' ;
-	echo '    <tr title="'.$c->text.'">
+	echo '    <tr title="'.htmlentities($c->text).'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>

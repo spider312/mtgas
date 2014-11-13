@@ -44,11 +44,13 @@ if ( $arr = mysql_fetch_array($query) ) {
     Priority : <input type="text" name="priority" size="2" value="<?php echo $ext_bdd['priority'] ; ?>">
     Release date : <input type="text" name="release_date" size="10" value="<?php echo $ext_bdd['release_date'] ; ?>">
     Bloc : <input type="text" name="bloc" size="2" value="<?php echo $ext_bdd['bloc'] ; ?>">
+	Data : <textarea name="data"><?php echo $ext_bdd['data'] ; ?></textarea>
     <input type="submit" name="update" value="Update">
   </form>
 
   <form id="filter">
    Rarity : <input type="text" name="rarity">
+   Text : <input type="text" name="text">
    <input type="submit" name="filter" value="filter">
   </form>
 
@@ -66,10 +68,7 @@ if ( $arr = mysql_fetch_array($query) ) {
 
   <div id="stats">
    <label><input type="checkbox" id="stats_multi">Don't count multicolored</label>
-   <div id="stats_color"></div>
-   <div id="stats_cost"></div>
-   <div id="stats_typelist"></div>
-   <div id="stats_type"></div>
+   <div id="stats_graphs"></div>
    <ul id="rarities"></ul>
   </div>
 

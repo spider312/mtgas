@@ -1,6 +1,6 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../../tournament/lib.php' ;
+/*
 function tournament_constructed($type) {
 	switch ( $type ) {
 		case 'draft' :
@@ -74,6 +74,7 @@ function player_status($stat, $ready) {
 	}
 	return $result ;
 }
+*/
 function tournament_status($stat) {
 	$result = 'Initializing' ;
 	switch ( intval($stat) ) {

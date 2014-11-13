@@ -34,6 +34,8 @@ html_menu() ;
 
   <div class="section">
    <h1>Tournaments</h1>
+   <h2>Server</h2>
+   <a href="websocket.php">Manage server</a>
    <h2>Tools</h2>
    <ul>
     <li><a href="tournament/recompute.php">Recompute tournament's scores</a></li>
@@ -63,30 +65,41 @@ html_menu() ;
     <input type="submit" value="Create">
    </form>
 
-
 <?php
 $dir = '../stats/' ;
-$reports = scandir($dir) ;
+
+if ( array_key_exists('delete_report', $_GET) ) {
+	$spl = split("\|", param_or_die($_GET, 'name')) ;
+	$name = $spl[0] ;
+	if ( unlink($dir.$name) )
+		echo "<p>Deleted $name</p>" ;
+	else
+		echo "<p>Can't delete $name</p>" ;
+}
+
+$reports = array_reverse(sorted_scandir($dir)) ;
 if ( count($reports) > 0 ) {
 ?>
-    Load : <select name="name">
+     <form>
+     Load : <select name="name">
 <?php
-	foreach ( $reports as $r )
-		if ( ( $r != '.' ) && ( $r != '..' ) ) {
-			$content = file_get_contents($dir.$r) ;
-			$data = json_decode($content) ;
-			$value  = $r ;
-			$value .= '|'.(isset($data->date)  ? $data->date:'') ;
-			$value .= '|'.(isset($data->format)? $data->format:'') ;
-			$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
-			$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
-			$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
-			echo '     <option value="'.$value.'" onclick="statsform(this)">
-				'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')
-			</option>'."\n" ;
-		}
+	foreach ( $reports as $r ) {
+		$content = file_get_contents($dir.$r) ;
+		$data = json_decode($content) ;
+		$value  = $r ;
+		$value .= '|'.(isset($data->date)  ? $data->date:'') ;
+		$value .= '|'.(isset($data->format)? $data->format:'') ;
+		$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
+		$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
+		$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
+		echo '     <option value="'.$value.'" onclick="statsform(this)">
+			'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')
+		</option>'."\n" ;
+	}
 ?>
-    </select>
+     </select>
+     <button name="delete_report" value="true">Delete</button>
+    </form>
 <?php
 }
 ?>
@@ -102,17 +115,6 @@ foreach ( $t as $tournament )
 	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->name.'</a></li>'
 ?>
    </ul>
-   
-   <h2>Previous</h2>
-   <ul>
-<?php
-$t = query_as_array("SELECT `id`, `name`, `creation_date` FROM `tournament` WHERE `status` = 0 OR `status` > 5 ORDER BY `creation_date` DESC LIMIT 0, 10 ;", 'tournament list', $mysql_connection) ;
-if ( count($t) == 0 )
-	echo '    <li>No previous tournament</li>' ;
-foreach ( $t as $tournament )
-	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->creation_date.' : '.$tournament->name.'</a></li>'
-?>
-   </ul>
   </div>
 <?php // === [ Cards ] ========================================================= ?>
   <div class="section">
@@ -123,6 +125,7 @@ foreach ( $t as $tournament )
    <h2>Search</h2>
    <form action="cards/cards.php" method="get">
     <input type="text" name="name" placeholder="Name">
+    <input type="text" name="ext" placeholder="Ext" size="3">
     <input type="text" name="text" placeholder="Text">
     <input type="text" name="types" placeholder="Type">
     <input type="text" name="cost" placeholder="Cost">
@@ -132,6 +135,10 @@ foreach ( $t as $tournament )
 
    <h2>Import</h2>
    <a href="cards/import/">Import cards</a>
+   <form action="cards/import/mtgo_cube.php">
+    Download a MTGO Cube list from a DailyMTG article : 
+    <input type="text" name="url" placeholder="URL of article">
+   </form>
    <form action="cards/upload.php" enctype="multipart/form-data" method="post">
     Create/update a (<abbr title="No new card will be created, listed cards will be added to extension if already existing">virtual</Abbr>) extension from a list
     <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">

@@ -62,7 +62,9 @@ foreach ( scandir($baseimagedir) as $rep )
      <th>Nb img</th>
      <th>Missing images</th>
      <th>Missing cards</th>
-     <th>Folder / mean size</th>
+     <th>Folder size</th>
+     <th>Mean size</th>
+     <th>Variance</th>
     </tr>
 <?
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
@@ -88,6 +90,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$images= array() ;
 	$unimagedcards = array() ;
 	$foldersize = 0 ;
+	$filesizes = array() ;
 	if ( array_key_exists($arr['se'], $exts) ) {
 		//$images = get_object_vars($exts->$arr['se']) ;
 		$images = $exts[$arr['se']] ;
@@ -98,7 +101,9 @@ while ( $arr = mysql_fetch_array($query) ) {
 				$cardimg = card_img_by_name($card['name'], $i, $card['nbpics']) ;
 				if ( array_key_exists($cardimg, $images) ) {
 					unset($images[$cardimg]) ;
-					$foldersize += filesize($url.$arr['se'].'/'.$cardimg) ;
+					$fs = filesize($url.$arr['se'].'/'.$cardimg) ;
+					$filesizes[] = $fs/1024 ;
+					$foldersize += $fs ;
 				} else {
 					// Dual cards have an image for each face, do the same on both
 					if ( ereg ('(.*) \((.*)\)', $card['name'], $regs) ) {
@@ -164,11 +169,49 @@ while ( $arr = mysql_fetch_array($query) ) {
 			echo '       <i>None</i>'."\n" ;
 	echo '      </td>'."\n" ;
 	if ( $nbimages == 0 )
-		echo '      <td>N/A</td>'."\n" ;
-	else
-		echo '      <td>'.human_filesize($foldersize).' / '.human_filesize(round($foldersize/$nbimages)).'</td>'."\n" ;
+		echo '      <td colspan="3">N/A</td>'."\n" ;
+	else {
+		$meansize = round($foldersize/$nbimages) ;
+		echo '      <td>'.human_filesize($foldersize).'</td>'."\n" ;
+		echo '      <td style="background-color: '.nb2html(round($meansize/1024)).' !important ;">'.human_filesize($meansize).'</td>'."\n" ;
+		$variance = round(variance($filesizes)) ;
+		$cv = round((5000 - $variance ) / 20) ;
+		echo '      <td style="background-color: '.nb2html($cv).' !important ;">'.$variance.'</td>'."\n" ;
+	}
 	echo '     </tr>'."\n" ;
 	unset($exts[$arr['se']]) ;
+}
+function nb2html($nb, $max=255) {
+	$nb = min($nb, $max) ; // $nb can't be > $max
+	$mid = $max/2 ;
+	$r = $g = $b = 0 ;
+	if ( $nb <= $mid ) {
+		$r = 255 ;
+		$g = 2 * $nb ;
+	} else {
+		$nb -= $mid ;
+		$g = 255 ;
+		$r = 255 - $nb * 2 ;
+	}
+	return '#'.
+		str_pad(base_convert($r, 10, 16), 2, '0', STR_PAD_LEFT).
+		str_pad(base_convert($g, 10, 16), 2, '0', STR_PAD_LEFT).
+		str_pad(base_convert($b, 10, 16), 2, '0', STR_PAD_LEFT) ;
+}
+function average($arr) {
+	if (!count($arr)) return 0 ;
+	$sum = 0 ;
+	for ( $i = 0 ; $i < count($arr) ; $i++ )
+		$sum += $arr[$i] ;
+	return $sum / count($arr) ;
+}
+function variance($arr) {
+	if (count($arr) < 2) return 0;
+	$mean = average($arr) ;
+	$sos = 0 ; // Sum of squares
+	for ($i = 0 ; $i < count($arr) ; $i++)
+		$sos += ($arr[$i] - $mean) * ($arr[$i] - $mean) ;
+	return $sos / (count($arr)-1) ;
 }
 ?>
    </table>
