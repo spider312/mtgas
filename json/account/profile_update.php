@@ -3,7 +3,7 @@ include '../../lib.php' ;
 include '../../includes/db.php' ;
 if ( ! array_key_exists('login', $_SESSION) || ! array_key_exists('password', $_SESSION) )
 	die('{"msg": "No login or password in session"}') ;
-$result = new simple_object() ;
+$result = new stdClass() ;
 $json = param_or_die($_POST, 'json') ;
 $email = param_or_die($_SESSION, 'login') ;
 $password = param_or_die($_SESSION, 'password') ;

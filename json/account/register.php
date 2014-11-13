@@ -1,7 +1,7 @@
 <?php
 include '../../lib.php' ;
 include '../../includes/db.php' ;
-$result = new simple_object() ;
+$result = new stdClass() ;
 $email = param_or_die($_GET, 'email') ;
 $password = param_or_die($_GET, 'password') ;
 $remember = param_or_die($_GET, 'remember') ;

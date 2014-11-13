@@ -3,7 +3,7 @@ include '../../lib.php' ;
 include '../../includes/db.php' ;
 
 $player_id = param_or_die($_GET, 'player_id') ;
-$data = new simple_object() ;
+$data = new stdClass() ;
 
 // List registered tournaments
 $delay = param_or_die($_GET, 'tournaments_delay') ;
