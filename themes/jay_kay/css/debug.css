@@ -1,0 +1,34 @@
+#debug {
+	position: fixed ;
+	bottom: 1% ;
+	right: 1% ;
+	width: 50% ;
+	max-height: 98% ;
+	border: 1px solid black ;
+	background-color: white ;
+	overflow: auto ;
+	z-index: 100 ;
+}
+#debug ul {
+	padding-left: 0 ;
+}
+#debug li > ul {
+	padding-left: 20px ;
+	padding-right: 20px ;
+	border: 1px solid lightgray ;
+}
+#debug li {
+	list-style-type: none ;
+}
+#debug li:hover {
+	background-color: rgba(10, 10, 10, .1) ;
+}
+#debug li.shrink > ul {
+	display: none ;
+}
+#debug button {
+	width: 50% ;
+}
+#debug.hidden {
+	display: none ;
+}
