@@ -1,7 +1,7 @@
 <?php
 // === [ DATABASE ] ============================================================
 function card_search($get, $connec=null) {
-	$data = new simple_object() ;
+	$data = new stdClass() ;
 	if ( isset($get['page']) ) {
 		$data->page = intval($get['page']) ;
 		unset($get['page']) ;
@@ -13,9 +13,15 @@ function card_search($get, $connec=null) {
 	} else
 		$data->limit = 30 ;
 	$from = ($data->page-1)*$data->limit ;
-	$select = 'SELECT * FROM `card` ' ;
+	if ( isset($get['ext']) && ( $get['ext'] != '' ) ) {
+		$select = 'SELECT `card`.*, `extension`.`se` FROM `card` LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
+		$where = 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' OR `extension`.`name` LIKE \''.$get['ext'].'%\' )' ;
+		unset($get['ext']) ;
+	} else {
+		$select = 'SELECT * FROM `card` ' ;
+		$where = '' ;
+	}
 	$order = ' ORDER BY `card`.`name`' ;
-	$where = '' ;
 	if ( isset($get['lang']) ) {
 		if ( $get['lang'] == 'en' )
 			unset($get['lang']) ;
@@ -24,8 +30,8 @@ function card_search($get, $connec=null) {
 			$select = 'SELECT * FROM `card` LEFT JOIN `cardname`
 			ON `card`.`id` = `cardname`.`card_id`' ;
 			$order = ' ORDER BY `cardname`.`card_name`' ;
-			//$where = " AND ( `cardname`.`card_name` LIKE '%".mysql_real_escape_string($get['name'])."%' 
-			//OR `card`.`name` LIKE '%".mysql_real_escape_string($get['name'])."%')" ;
+			//$where = " AND ( `cardname`.`card_name` LIKE '%".mysql_real_escape_string($get['name'])."%'
+			// OR `card`.`name` LIKE '%".mysql_real_escape_string($get['name'])."%')" ;
 			$get['card_name'] = $get['name'] ;
 			unset($get['name']) ;
 		}
@@ -42,7 +48,7 @@ function card_search($get, $connec=null) {
 		if ( mysql_num_rows($result) == 0 ) { // No results*/
 			$data->mode = 'whole' ;
 			// Search part of word
-			$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
+			$result = query($select.get2where($get, 'LIKE', '%', '%', 'card').$where.$order, 'Card listing', $connec) ;
 		/*
 	}*/
 	$data->num_rows = mysql_num_rows($result) ;
@@ -228,6 +234,12 @@ class attrs {
 				$this->color .= $color ;
 		}
 	}
+	function addmana($color) {
+		if ( ! property_exists($this, 'provide') )
+			$this->provide = array() ;
+		if ( ! in_array($color, $this->provide) )
+			$this->provide[] = $color ;
+	}
 	function __construct($arr = null) {
 		if ( $arr != null ) {
 			// Cost
@@ -277,8 +289,8 @@ class attrs {
 						$this->color = $allcolorscode[$this->color_index] ;
 						break ;
 					}
-				if ( $this->color_index < 0 )
-					die('Color index error for ['.$this->color.'] '.$arr['name']) ;
+				//if ( $this->color_index < 0 )
+					//die('Color index error for ['.$this->color.'] '.$arr['name']) ;
 			} else
 				die('No cost in array : '.$arr['name']) ;
 			// Types
@@ -294,7 +306,7 @@ class attrs {
 				if ( count($pieces) > 1 ) { // Card is a transform
 					manage_all_text($arr['name'], $pieces[0], $this) ; // Manage "day"
 					// Then manage "night", 3+ lines : name, color/types, text (all other lines, such as "pow/tou \n other effects" for creats)
-					$transform = new simple_object() ;
+					$transform = new stdClass() ;
 					$matches = explode("\n", $pieces[1]) ;
 					if ( count($matches) > 0 )
 						$transform->name = stripslashes(array_shift($matches)) ;
@@ -322,14 +334,14 @@ class attrs {
 						manage_all_text($arr['name'], $pieces[0], $this) ; // Manage "main" part
 						$matches = explode("\n", $pieces[1]) ;
 						if ( strpos($arr['name'], '/') === false ) { // No "/" in name, it's a flip
-							$flip = new simple_object() ;
+							$flip = new stdClass() ;
 							$flip->name = array_shift($matches) ;
 							if ( count($matches) > 0 )
 								manage_types(array_shift($matches), $flip) ;
 							$this->flip_attrs = $flip ;
 							manage_all_text($arr['name'], implode("\n", $matches), $flip) ;
 						} else { // "/" in name, it's a split
-							$split = new simple_object() ;
+							$split = new stdClass() ;
 							if ( count($matches) > 0 )
 								$split->manas = cost_explode(array_shift($matches)) ;
 							if ( count($matches) > 0 )
@@ -392,6 +404,7 @@ function manage_types($type, $target) {
 	global $cardtypes, $permtypes ;
 	$type = strtolower($type) ;
 	$target->types = array() ;
+	$target->subtypes = array() ;
 	if ( preg_match('/(.*) - (.*)/', $type, $matches) ) {
 		$type = $matches[1] ;
 		if ( count($matches[2]) > 0 )
@@ -412,6 +425,7 @@ function color_compare($a, $b) {
 	return array_search($a, $colorscode) - array_search($b, $colorscode) ;
 }
 $colors = array('X' => 'colorless', 'W' => 'white', 'U' => 'blue', 'B' => 'black', 'R' => 'red', 'G' => 'green') ;
+$basic_lands = array('W' => 'plains', 'U' => 'island', 'B' => 'swamp', 'R' => 'mountain', 'G' => 'forest') ;
 $colorscode = array_keys($colors) ; // For ordering
 $allcolorscode = array('', 'X', 'W', 'U', 'B', 'R', 'G', 'WU','WB','UB','UR','BR','BG','RG','RW','GW','GU','WUB','UBR','BRG','RGW','GWU','WBR','URG','BGW','RWU','GUB','WUBR','UBRG','BRGW','RGWU','GWUB','WUBRG') ;
 $cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
@@ -467,12 +481,13 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 			if ( ! in_array($matches[1], $target->steps) ) // Not adding multiple times the same item
 				$target->steps[] = $matches[1] ;
 			// Emblem
-			if ( preg_match('/You get an emblem with /', $piece, $matches) ) {
-				$token = new simple_object() ;
+			if ( preg_match('/[You get|Target opponent gets] an emblem with /', $piece, $matches) ) {
+				$token = new stdClass() ;
 				$token->nb = 1 ;
 				$token->name = 'Emblem.'.$target->subtypes[0] ;
-				$token->attrs = new simple_object() ;
+				$token->attrs = new stdClass() ;
 				$token->attrs->types = array('emblem') ;
+				$token->attrs->subtypes = array() ;
 				manage_text($name, $piece, $token->attrs) ;
 				$target->tokens[] = $token ;
 			} else
@@ -546,6 +561,34 @@ function manage_text($name, $text, $target) {
 		// Upkeep trigger
 	if ( preg_match('/At the beginning of your upkeep, (.*)/', $text, $matches) )
 		$target->trigger_upkeep = stripslashes($matches[1]) ;
+	// Add mana
+	//if ( in_array('land', $target->types) )
+		//echo $name."\n" ;
+	global $basic_lands ;
+	if ( ! property_exists($target, 'subtypes') )
+		echo $name."<br>\n" ;
+	else // Basic land types in subtypes
+		foreach ( $basic_lands as $color => $basic_land )
+			if ( in_array($basic_land, $target->subtypes) )
+				$target->addmana($color) ;
+	if ( preg_match('/\{T\}: Add (?<manas>.*) to your mana pool/', $text, $matches) ) {
+		if ( $matches['manas'] == 'one mana of any color' ) {
+			$target->addmana('W') ;
+			$target->addmana('U') ;
+			$target->addmana('B') ;
+			$target->addmana('R') ;
+			$target->addmana('G') ;
+		} else {
+			$manas = preg_split('/( or )|(, )/', $matches['manas']) ;
+			//echo $name.' : '.join(', ', $manas)."<br>\n" ;
+			foreach ( $manas as $mana )
+				if ( preg_match_all('/\{(.*?)\}/', $mana, $matches) )
+					for ( $i = 1 ; $i < count($matches) ; $i++ )
+						foreach ( $matches[$i] as $color )
+							if ( method_exists($target, 'addmana') )
+								$target->addmana($color) ;
+		}
+	}
 	// CIP
 	if ( preg_match('/'.addcslashes($name, '\'"\\/' ).' enters the battlefield (or (?<alt>[^,]*),)?(?<act>.*)/', $text, $matches) ) {
 		/* Alternate trigger ('or attacks', 'or leaves play' ...)
@@ -609,7 +652,7 @@ function manage_text($name, $text, $target) {
 		if ( preg_match('/(.*)'.$name.'.{0,3} power (?<both>.*) equal to the number of (?<next>.*)/', $text, $m) ) {
 			if ( preg_match('/^(?<type>.*) named (?<name>.*) (?<cond>'.implode('|', $conds).')/', $m['next'], $matches)
 				|| preg_match('/^(?<type>.*) (?<cond>'.implode('|', $conds).')/', $m['next'], $matches) ) {
-				$target->powtoucond = new simple_object() ;
+				$target->powtoucond = new stdClass() ;
 				$target->powtoucond->what = 'cards' ;
 				$target->powtoucond->from = array_search($matches['cond'], $conds) ;
 				if ( array_key_exists('name', $matches) )
@@ -658,7 +701,7 @@ function manage_text($name, $text, $target) {
 			} elseif ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
 				switch ( $m['who'] ) {
 					case 'you' : // Kird ape
-						$target->powtoucond = new simple_object() ;
+						$target->powtoucond = new stdClass() ;
 						$target->powtoucond->what = 'card' ;
 						$target->powtoucond->pow = intval($matches['pow']) ;
 						$target->powtoucond->thou = intval($matches['tou']) ;
@@ -691,7 +734,7 @@ function manage_text($name, $text, $target) {
 				conditionnal_poly_boost($target, $matches, $matches_after['what']) ;
 			} else {
 				if ( ! isset($target->bonus) )
-					$target->bonus = new simple_object() ;
+					$target->bonus = new stdClass() ;
 				$target->bonus->pow = intval($matches['pow']) ;
 				$target->bonus->tou = intval($matches['tou']) ;
 				global $creat_attrs ;
@@ -702,20 +745,21 @@ function manage_text($name, $text, $target) {
 	}
 	if ( preg_match('/(Equipped|Enchanted) creature doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
 		if ( ! isset($target->bonus) )
-			$target->bonus = new simple_object() ;
+			$target->bonus = new stdClass() ;
 		$target->bonus->no_untap = true ;
 	}
 	// Living weapon
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
+	//if ( preg_match_all('/[Pp]uts? (?<number>\w+)( (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+))? (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 		foreach ( $all_matches as $matches ) {
-			$token = new simple_object() ;
+			$token = new stdClass() ;
 			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
 			if ( $token->nb < 1 )
 				$token->nb = 1 ;
-			$token->attrs = new simple_object() ;
+			$token->attrs = new stdClass() ;
 			// Token name -> types / subtypes -> name
 			$types = explode(' ', $matches['name']) ;
 			$nameparts = array() ;
@@ -744,14 +788,14 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	if ( preg_match_all('/(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?/', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('#(?<self>'.strtolower($name).' and )?(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
-			$boost_bf = new simple_object() ;
+			$boost_bf = new stdClass() ;
 			// Main params : amount boosted
 			$boost_bf->pow = intval($match['pow']) ;
 			$boost_bf->tou = intval($match['tou']) ;
 			// Secondary params :boost self, boost only creatures controled by its controler
-			$boost_bf->self = ( $match['other'] != 'other ' );
+			$boost_bf->self = ( $match['self'] != '' ) || ( $match['other'] != 'other ' );
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
 			if ( $match['control'] == 'you control ' ) // "New" boost way : only creatures you control
 				$boost_bf->control = 1 ;
@@ -794,7 +838,7 @@ function manage_text($name, $text, $target) {
 	}
 	// Animate
 	if ( preg_match('/((?<cost>.*)\s*:\s*)?(?<eot>Until end of turn, )?'.addcslashes($name, '/').' (.* it )?becomes an? (?<pow>\d)\/(?<tou>\d) (?<rest>.*)/', $text, $matches) ) {
-		$animated = new simple_object() ;
+		$animated = new stdClass() ;
 		if ( $matches['cost'] != '' )
 			$animated->cost = manacost($matches['cost']) ;
 		$animated->pow = intval($matches['pow']) ;
@@ -851,7 +895,7 @@ function apply_creat_attrs($text, $attr, $target) {
 function conditionnal_poly_boost($target, $matches, $text) { // Parses text after 'foreach'
 	global $conds, $cardtypes ;
 	if ( preg_match('/(?<other>other )?(?<what>.*)( card)? (?<where>'.implode('|', $conds).')( named (?<name>.*))?/', $text, $m) ) {
-		$target->powtoucond = new simple_object() ;
+		$target->powtoucond = new stdClass() ;
 		$target->powtoucond->what = 'cards' ;
 		$target->powtoucond->pow = intval($matches['pow']) ;
 		$target->powtoucond->thou = intval($matches['tou']) ;

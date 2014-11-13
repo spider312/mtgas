@@ -18,8 +18,10 @@ game.player is myself, game.opponent is my opponent, they are relative, and only
 game.creator is the player who created, game.joiner is the one who joined, they are absolute, and are used over network to identify a player server-side (for ajax)
 */
 // Classes
-function Game(id, options, player_id, player_nick, player_avatar, player_score, opponent_id, opponent_nick, opponent_avatar, opponent_score) {
+function Game(id, start_date, options, player_id, player_nick, player_avatar, player_score, opponent_id, opponent_nick, opponent_avatar, opponent_score) {
+	this.display = {} ;
 	this.id = id ;
+	this.start_date = mysql2date(start_date) ;
 	this.options = options ;
 	this.match_num = function() {
 		return this.player.attrs.score + this.opponent.attrs.score ;
@@ -51,7 +53,7 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 	this.cards = new Array() ;
 	// Tokens
 	this.tokens = new Array() ;
-	this.tokens_catalog = null ;
+	this.tokens_catalog = null ; // Files found on server, for extension searching when creating a token
 	$.getJSON('json/tokens.php', null, function(data) {
 		game.tokens_catalog = data ;
 	}) ;
@@ -64,21 +66,28 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 	// Targets
 	this.target = new Targets() ;
 	// Phase
-	//this.phase = 0 ; // Initially there
 	this.phase = 1 ; // Initially in start, run after game creation
-	// Spectactors
-	this.spectactors = [] ;
+	// Callbacks
+	this.callbacks = new Array() ;
+	this.callback_id = 0 ;
+	// Spectators
+	this.spectators = new Spectators(function(msg, span) { // Message display
+		message(msg, 'join', span) ;
+	}, function(id) { // I'm a player allowing a spectator
+		action_send('allow', {'spectactor': id}) ;
+	}, function(player) { // I'm allowed spectator
+		var zone = player.hand ; // Show hand
+		zone.default_visibility = true ;
+		for ( var i = 0 ; i < zone.cards.length ; i++ )
+			zone.cards[i].load_image() ;
+	}) ;
 	this.hover = null ;
 	// Canvas
 	this.canvas = document.getElementById('paper') ;
 	this.context = this.canvas.getContext('2d') ;
 	resize_window() ;
 	canvas_add_events(this.canvas) ;
-	// Send stack
-	this.action_stack = new Array() ;
-	// Mana icons (all, not just pool ones)
-	this.manaicons = new Array() ;
-	// canvas title
+	// Canvas title
 	this.title = '' ;
 	this.settittle = function(title) {
 		if ( iss(title) )
@@ -86,6 +95,8 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 	}
 	this.movedate = new Date() ;
 	this.infobulle = new InfoBulle() ;
+	// Mana icons (all, not just pool ones)
+	this.manaicons = new Array() ;
 	// Options custom behaviour
 	this.options.add_trigger('sounds', function(option) { if ( option.input.checked ) game.sound.loadall() ; }) ;
 	this.options.add_trigger('invert_bf', function() { resize_window() ; }) ;
@@ -98,6 +109,7 @@ function Game(id, options, player_id, player_nick, player_avatar, player_score, 
 	}) ;
 	this.stonehewer = true ;
 	this.nokiou = false ;
+	this.lastwinner = null ; // Used in "refresh while siding"
 }
 function Player(game, is_top, id, name, avatar, score) { // game as a param as it's not already a global
 	// Methods
@@ -175,6 +187,7 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 				this.score = this.attrs.score ;
 				side_start(game.player, this) ;
 			}
+			game.lastwinner = this ;
 			this.endgame() ;
 		}
 		// Side
@@ -200,6 +213,9 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 			else
 				this.library.unreveal_recieve() ;
 		}
+		// Cards drawn
+		if ( isn(attrs.draw) && ( this.attrs.draw != attrs.draw ) )
+			this.attrs.draw = attrs.draw ;
 		this.sync_attrs = clone(this.attrs) ;
 	}
 	this.endgame = function() {
@@ -215,8 +231,8 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 		message(this.name+' won match '+game.match_num(), 'win') ;
 		var player = this ;
 		this.sync(function(param) {
-			// Only delays side start, hoping an action recieve/manage will trigger before response, as it will redirect player if round started
-			// before asking him for side
+			// Only delays side start, hoping an action recieve/manage will trigger before response, 
+			// as it will redirect player if round started before asking him for side
 			side_start(game.player, player) ;
 		}) ;
 		this.endgame() ;
@@ -321,6 +337,33 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 	this.graveyard.default_visibility = true ;
 	this.exile.default_visibility = true ;
 	this.sideboard.default_visibility = false ; // No preloading, seeing those cards will be done by other mechanisms (listeditor, side)
+	// Websockets
+	this.connected = false ;
+	this.focused = true ;
+	this.connect = function(val) {
+		this.connected = val ;
+		this.updatews() ;
+	}
+	this.focus = function(val) {
+		this.focused = val ;
+		this.updatews() ;
+	}
+	this.updatews = function() {
+		var color = 'red' ;
+		if ( this.connected ) {
+			if ( this.focused )
+				color = 'green' ;
+			else
+				color = 'blue' ;
+		}
+		game.image_cache.load(theme_image('sphere/'+color+'.png'), function(img, widget) {
+			widget.cnximg = img ;
+			widget.refresh() ;
+			draw() ;
+		}, function(widget) {
+			log('Unable to load image for '+widget) ;
+		}, this.life) ;
+	}
 }
 function Sound() {
 	// Sounds

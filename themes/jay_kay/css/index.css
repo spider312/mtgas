@@ -23,33 +23,54 @@ td.nowrap {
 	margin-top: 25px ;
 	margin-bottom: 0;
 }
-#shoutbox input[type=submit] {
-	-moz-box-sizing: border-box ;
-	width: 10% ;
-}
-#shoutbox input[type=text] {
-	-moz-box-sizing: border-box ;
-	width: 90% ;
-}
-#shouts {
-	list-style-type: none ;
-	padding: 0 ;
+#shout_body { /* Resizable part */
 	height: 100px ;
-	overflow-y: scroll ;
-	resize: vertical;
 	min-height: 50px ;
 	max-height: 200px ;
+	overflow: auto ; /* Needed for resize */
+	resize: vertical;
+	padding-bottom: 10px ; /* Content doesn't display over resizer */
+}
+#shout_body > * {
+	-moz-box-sizing: border-box ;
+	box-sizing: border-box ;
+	height: 100% ;
+}
+#shouts {
+	float: left ;
+	width: 85% ;
+	padding: 0 ;
+	overflow-y: scroll ;
+	list-style-type: none ;
+	height: 100% ;
+	resize: none;
 }
 #shouts span {
 	float: right ;
 	color: #907C6C ;
 }
-#shouts li:hover span {
-	color: black ;
-}
 #shouts li:hover {
 	background-color: #F4ECD2 ;
 }
+#shouts li:hover span {
+	color: black ;
+}
+#shouters {
+	width: 15% ;
+	border-width: 0 ;
+	background-color: transparent ;
+}
+#shoutbox input[type=submit] {
+	-moz-box-sizing: border-box ;
+	box-sizing: border-box ;
+	width: 10% ;
+}
+#shoutbox input[type=text] {
+	-moz-box-sizing: border-box ;
+	box-sizing: border-box ;
+	width: 90% ;
+}
+
 /* Index is divided in 2 columns */
 #left_col, #right_col {
 	float: left ;
@@ -59,7 +80,7 @@ td.nowrap {
 	margin-bottom: 2% ;
 }
 /* Each divided in sections */
-#stats, #profile, #duels, #tournaments, #decks {
+#stats, #profile, #duels, #tournaments, #decks, #teamspeak {
 	width: 100% ;
 	margin-top: 25px ;
 	padding-bottom: 10px ;
@@ -86,6 +107,12 @@ td.nowrap {
 	margin-top: 15px ;
 }
 /* Table lines enhancement */
+#pending_games tr, #pending_tournaments tr {
+	cursor: pointer ;
+}
+td a img {
+	vertical-align: middle ;
+}
 td a, td label {
 	display: block ;
 	text-decoration: none ;
@@ -99,7 +126,8 @@ ol {
 	background-color: #F4ECD2 ;
 }
 #decks_table input[type=text] {
-	width: 99% ;
+	width: 100% ;
+	box-sizing: border-box;
 }
 #decks_table .first_col {
 	width: 0 ;
@@ -130,6 +158,16 @@ table button {
 }
 .score {
 	text-align: center ;
+}
+/* As those are HTMLOption, chromium doesn't apply font properties (nor "content") */
+.inactive {
+	color: #8E7560 ;
+}
+.typing {
+	color: #F4ECD2 ;
+}
+.typing::after {
+	content:"…" ;
 }
 /* Deck list */
 .deck td {

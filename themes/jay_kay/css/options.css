@@ -1,23 +1,6 @@
 /* Generic */
 .errored {
-	/*border: 2px solid red ;*/
 	box-shadow: 0 0 5px 3px red ;
-}
-/* Hider */
-.hider {
-	position: fixed ;
-	left: 0 ;
-	top: 0 ;
-	width: 100% ;
-	height: 100% ;
-	/*background-color: black ;*/
-	background-color: rgba(0, 0, 0, 0.65) ;
-	z-index: 10 ;
-}
-.hider > * {
-	position:absolute ;
-	left: 50% ;
-	top: 50% ;
 }
 /* AJAJ */
 .updating {
@@ -28,9 +11,36 @@
 	background-color: rgba(127, 255, 127, 0.5) !important ;
 	border-color: rgba(127, 255, 127, 0.75) ;
 }
+#options_hider * { /* Option window animations */
+	overflow: hidden ;
+}
+#options_hider #options_content {
+	overflow: visible ;
+}
+/* Hider */
+.hider {
+	position: fixed ;
+	left: 0 ;
+	top: 0 ;
+	width: 100% ;
+	height: 100% ;
+	background-color: rgba(0, 0, 0, 0.65) ;
+	z-index: 10 ;
+	/*opacity: 0 ;*/
+}
+/* As it cover all screen, it's always hover, used for animation */
+/*.hider:hover {
+	opacity: 1 ;
+}*/
+.hider > * {
+	position:absolute ;
+	left: 50% ;
+	top: 50% ;
+}
 /* Options window */
 #options { /* Container */
 	padding-right: 100px ; /* For tabs */
+	transition: height 0.5s ; /* No transition for positioning (margin) */
 }
 #options h1 {
 	margin-right: -90px ;
@@ -87,4 +97,9 @@
 #avatar_demo {
 	max-width: 100px ;
 	max-height: 100px ;
+}
+/* Websockets */
+#wsci {
+	vertical-align: bottom ;
+	height: 30px ;
 }

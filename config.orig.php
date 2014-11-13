@@ -1,7 +1,8 @@
 <?php
 // Application internals
 $appname = 'MTGAS' ; // Must be different on servers hosted behind the same hostname
-$default_theme = 'mogg' ;
+$default_theme = 'jay_kay' ;
+$index_image = 'Mogg Maniac.crop.jpg' ; // Relative to theme folder
 $url = 'http://mogg.fr/' ;
 $dir = '/path/to/folder/containing/this/' ; // Required for cron inclusions, can be relative to ~
 $cardimages_default = 'http://img.mogg.fr/MIDRES/' ; // Default working img dir
@@ -13,12 +14,8 @@ $cardimages_choice = Array(
 	'Custom' => ''
 ) ;
 $default_avatar = 'img/avatar/kuser.png' ;
-$timeout = 60 ; // Time in secs without refresh from creator before ending a created game without an opponent
 $daemon_delay = 1 ; // Time in secs between daemon iterations
 $log = false ; // Daemon returning data
-// Admin
-$spoiler_dir = 'spoiler/ext' ;
-$raw_dir = 'spoiler/raw' ;
 // Custom menu entries
 //menu_add('Mogg', 'http://mogg.fr', 'Original website') ;
 // Database

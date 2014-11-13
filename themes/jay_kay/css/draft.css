@@ -1,18 +1,47 @@
+/* Tournament info : draft table representation under drafting cards */
+#tournament_info {
+	margin: 0 auto ; /* Center */
+}
+#tournament_info caption {
+	white-space: nowrap ;
+}
+#tournament_info tbody, #tournament_info td {
+	border-width: 0 !important ;
+}
+#tournament_info td.player { /* Player TD with avatar */
+	text-align: center ;
+	height: 30px ;
+	padding-left: 30px ;
+	background-position: left top ;
+	background-size:30px 30px;
+	background-repeat:no-repeat;
+}
+#tournament_info .table {
+	background: darkgreen url('../THS_BackgroundTexture_01.jpg') repeat left top ;
+	background-size: contain ;
+}
+/* Cards */
+.card {
+	border: 3px solid black ; /* Add a border to color on pick */
+}
+/* Drafting cards*/
 #booster_cards {
-	line-height: 0 ;
+	line-height: 0 ; /* No space between "lines" of cards */
 }
-#booster_cards img {
-	border: 3px solid black ;
+.pick.card { border-color: lime ; }
+.side.card { border-color: blue ; }
+.drafting.card {
+	cursor: pointer ; /* Clickable */
 }
-#booster_cards img.picking {
-	border-color: green ;
+/* Drafted cards */
+#drafted_cards, #sided_cards {
+	min-height: 100px ; /* Default space for drag'n'drop when empty */
+	line-height: 0 ; /* No space between "lines" of cards */
 }
-#booster_cards img.pick {
-	border-color: lime ;
+.drafted.card, .sided.card {
+	cursor: move ; /* Drag'n'drop*/
 }
-#booster_cards img.siding {
-	border-color: darkblue ;
-}
-#booster_cards img.side {
-	border-color: blue ;
+/* DND */
+.drag {
+	opacity: .5 ;
 }

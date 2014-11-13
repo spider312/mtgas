@@ -1,4 +1,13 @@
 <?php
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../config.php' ;
+// MySQL
+$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
+if ( ! $mysql_connection )
+	die('Connection failed : '.mysql_error()) ;
+if ( ! mysql_select_db($mysql_db, $mysql_connection) )
+	die('Selection failed : '.mysql_error()) ;
+
+
 function query($query, $name='Query', $conn=null) {
 	if ( $conn == null  ) {
 		global $mysql_connection ;
@@ -28,17 +37,16 @@ function query_as_array($query, $name='Query', $conn=null) {
 		$array[] = $row ;
 	return $array ;
 }
-function get2where($get, $comp, $prefix, $suffix) {
-	$where = '' ;
+function get2where($get, $comp, $prefix, $suffix, $table='') {
+	$where = 'WHERE 1 ' ;
 	foreach ( $get as $i => $val ) {
 		if ( ( $i != 'submit' ) && ( $val != '' ) ) {
-			if ( $where != '' )
-				$where .= 'AND ' ;
+			$where .= 'AND ' ;
+			if ( $table != '' )
+				$where .= '`'.$table.'`.' ;
 			$where .= '`'.$i . '` '.$comp.' \''.$prefix . mysql_real_escape_string($val) . $suffix . '\' ' ;
 		}
 	}
-	if ( $where != '' )
-		$where = 'WHERE '.$where ;
 	return $where ;
 }
 function card_connect() {
@@ -50,4 +58,66 @@ function card_connect() {
 		die('Card selection failed : '.mysql_error()) ;
 	return $card_connection ;
 }
+class Db {
+	private $host = '' ;
+	private $user = '' ;
+	private $pass = '' ;
+	private $db = '' ;
+	private $link = false ;
+	public function __construct($host_, $user_, $pass_, $db_) {
+		$this->host = $host_ ;
+		$this->user = $user_ ;
+		$this->pass = $pass_ ;
+		$this->db = $db_ ;
+	}
+	public function dierr($msg) {
+		die($msg) ;
+	}
+	public function escape($string) {
+		$this->check() ;
+		return $this->link->real_escape_string($string) ;
+	}
+	public function check() {
+		if ( ! $this->link ) {
+			$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+			if ( $this->link->connect_error )
+				$this->dierr('Erreur de connexion - check ('.$this->link->connect_errno.' : '.$this->link->connect_error.')') ;
+		}
+		if ( ! $this->link->ping() ) {
+			//$this->dierr('Erreur de reconnexion - ping') ;
+			$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+			echo "MySQLi reconnected\n" ;
+		}
+		return $this->link ;
+	}
+	public function query($query) {
+		$this->check() ;
+		$result = $this->link->query($query) ;
+		if ( $result === false )
+			 $this->dierr("Erreur de requête : \n$query\n{$this->link->error}") ;
+		return $result ;
+	}
+	public function insert($query) {
+		$this->query($query) ;
+		return $this->link->insert_id ;
+	}
+	public function select($query) {
+		$result = $this->query($query) ;
+		if (method_exists('mysqli_result', 'fetch_all')) # Compatibility layer with PHP < 5.3
+			$res = $result->fetch_all(MYSQLI_ASSOC);
+		else
+			for ($res = array(); $tmp = $result->fetch_object();)
+				$res[] = $tmp;
+		return $res;
+	}
+	public function update($query) {
+		$this->query($query) ;
+		return $this->link->affected_rows ;
+	}
+	public function delete($query) {
+		return $this->update($query) ;
+	}
+}
+$db = new Db('', $mysql_login, $mysql_password, $mysql_db) ;
+$db_cards = new Db('', $card_login, $card_password, $card_db) ;
 ?>

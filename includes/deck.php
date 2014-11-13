@@ -203,17 +203,6 @@ function card2obj($conn, $name, $ext='') {
 		$card->attrs = json_decode($card->attrs) ; // Decode compiled attrs from DB
 	else // Card not in database, skip
 		return null ;
-	// Extensions
-	/*
-	$query_b = query_as_array("SELECT * FROM `card_ext`, `extension` WHERE
-		`card_ext`.`card` = '".$card->id."' AND
-		`card_ext`.`ext` = '".ext_id($ext, $conn)."' AND
-		`card_ext`.`ext` = `extension`.`id` AND
-		`card_ext`.`nbpics` > 0
-	ORDER BY `extension`.`priority` DESC, `extension`.`release_date` DESC", 'Card\'s extension', $conn) ;
-	if ( count($query_b) == 0 ) { // Card not existing for this extension
-	}
-	*/
 	// All extensions for this card
 	$exts = query_as_array("SELECT * FROM `card_ext`, `extension` WHERE
 		`card_ext`.`card` = '".$card->id."' AND

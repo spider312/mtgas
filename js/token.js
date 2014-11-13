@@ -9,7 +9,7 @@ function Token(id, extension, name, zone, attrs, img_url, register) {
 	}
 	if ( ! iso(attrs.subtypes) )
 		attrs.subtypes = name.toLowerCase().split(' ') ;
-	this.init('t_' + id, extension, name, zone.player.life, attrs) ; // Token will give impression it comes from zone 'life'
+	this.init('t_' + id, extension, name, zone.player.life, attrs, [extension]) ;
 	this.image_url = img_url ;
 	this.bordercolor = 'SlateGray' ;
 	this.setzone(zone) ;
@@ -19,7 +19,7 @@ function Token(id, extension, name, zone, attrs, img_url, register) {
 	if ( register )
 		game.tokens.push(this) ; // Register it in order to delete on game end
 	this.get_name = function() {
-		return 'token '+this.name ; // Defaults to token, overridden by duplicate
+		return this.name+' (token)' ; // Defaults to token, overridden by duplicate
 	}
 }
 function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // Modularisation between custom token creation and previous tokens recalling menu
@@ -38,11 +38,16 @@ function create_token_recieve(id, ext, name, zone, attrs) {
 	message(active_player.name+' creates '+tk.get_name(), 'zone') ;
 	return tk ;
 }
-function token_extention(img, ext) { // Search token in extensions
+function token_extention(img, ext, exts) { // Search token in extensions
 	if ( ! iso(game.tokens_catalog) ) // No catalog ?
 		return ext ;
-	if ( iso(game.tokens_catalog[ext]) && iss(game.tokens_catalog[ext][img]) ) // Ext existing in catalog, and token existing in ext
+	// Search card selected extension in catalog
+	if ( iso(game.tokens_catalog[ext]) && iss(game.tokens_catalog[ext][img]) )
 		return ext ;
+	// Search other extensions in catalog (essentially promo reprint)
+	for ( var i = 0 ; i < exts.length ; i++ )
+		if ( iso(game.tokens_catalog[exts[i]]) && iss(game.tokens_catalog[exts[i]][img]) )
+			return exts[i] ;
 	if ( iso(game.tokens_catalog['EXT']) && iss(game.tokens_catalog['EXT'][img]) ) // Token existing in special extension
 		return 'EXT' ;
 	var tokens_catalog = clone(game.tokens_catalog) ;

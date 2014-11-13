@@ -1,9 +1,16 @@
 // image.js : Images and cache management
 // Lib
 function card_image_url(ext, name, attrs) {
+	name = name.replace(/"/g, '') ;
+/*
+	$name = str_replace(' / ', '', $name) ; // Fire / Ice -> FireIce
+	$name = str_replace(' // ', '', $name) ; // Idem with escaping
+	$name = str_replace(':', '', $name) ; // Circle of protection: Black -> Circle of protection Black
+	$name = str_replace('"', '', $name) ; // Kongming, "Sleeping Dragon"
+*/
 	var url = '/'+ext+'/'+card_image_name(name) ;
 	if ( attrs )
-		if ( isn(attrs.nb) )
+		if ( isn(attrs.nb) && ( attrs.nb > 0 ) )
 			url += attrs.nb ;
 	url += '.full.jpg' ;
 	return url ;
@@ -34,7 +41,7 @@ function card_images(url) {
 	return result ;
 }
 function theme_image(name) {
-	return [ '/themes/'+theme+'/'+name ] ;
+	return [ url+'/themes/'+theme+'/'+name ] ;
 }
 function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
 	if ( ( url.indexOf('://') < 0 ) && ( url.indexOf('/') > 0 ) )

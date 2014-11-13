@@ -63,6 +63,9 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	border: 1px solid black ;
 	height: 22px ;
 }
+#timeleft.timer_notice {
+	color: red ;
+}
 #chatbox {
 	/*overflow-x: auto ;*/
 	overflow-y: scroll ;
@@ -80,7 +83,7 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	width: 100% ;
 }
 .lastseen	{
-	background-color: pink ;
+	background-color: pink !important ;
 }
 #sendbox {
 	position: absolute ; /* Defined by JS after filling #autotext */
@@ -276,4 +279,8 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 /* Second sens */
 #chatbox .land	{
 	background-color: wheat ; /*sandybrown, peru, tan, wheat */
+}
+/* WebSocket connexion indicator */
+#wsci {
+	height: 22px ! important ;
 }

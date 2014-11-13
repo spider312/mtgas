@@ -20,7 +20,10 @@ function Widget(obj) {
 			obj.cache.height = h ;
 	}
 	obj.get_coords_center = function() {
-		return {'x': this.x + Math.round(this.w/2), 'y': this.y + Math.round(this.h/2)} ;
+		if ( isf(this.get_attachedto) && ( this.get_attachedto() != null ) )
+			return {'x': this.x + Math.round(this.w/2), 'y': this.y + 5} ;
+		else
+			return {'x': this.x + Math.round(this.w/2), 'y': this.y + Math.round(this.h/2)} ;
 	}
 	// Drawing cache
 	obj.cache = document.createElement('canvas') ;
@@ -109,7 +112,6 @@ function InfoBulle() {
 }
 function resize_window(ev) {
 // --- [ Globals used by canvas ] ----------------------------------------------
-	ping = 0 ;
 // --- [ Compute dimensions ] --------------------------------------------------
 	if ( window.innerHeight > 800 ) {
 		cardimagewidth = 250 ; // Width of card images in zoom, draft and build
@@ -171,6 +173,8 @@ function resize_window(ev) {
 	draw() ;
 // --- [ Right column ] --------------------------------------------------------
 	resize_right_column() ;
+// --- [ Side ] ----------------------------------------------------------------
+	side_resize() ;
 }
 function resize_right_column() {
 	var chatbox = document.getElementById('chatbox') ; // ? Should be cached
@@ -267,168 +271,180 @@ function resize_player_zone(player) { // Resize all zones for a player
 }
 // === [ MAIN DRAW ] ===========================================================
 function draw() {
-	//draw_counter++ ;
-	game.drawing = true ;
-	if ( game.drawing ) {
-		var begin = bench() ;
-		// Background
-		game.context.clearRect(0, 0, game.canvas.width, game.canvas.height) ;
-		// Widgets (zones, manapools, phases ...)
-		for ( var i in game.widgets )
-			if ( isf(game.widgets[i].draw ) ) {
-				game.context.save() ;
-				game.widgets[i].draw(game.context) ;
-				game.context.restore() ;
-			} else
-				log(game.widgets[i]+' has no draw method') ;
-		// Selection rectangle
-		if ( ( game.selection_rectangle != null ) && ( game.mouseX != game.selection_rectangle.x ) ) { // Only show if mouse moved on X axis, for hand selection not being drawn on click
-			// xb, yb is upper left corner, xe, ye is bottom right (necessary for limitation)
-			var xb = min(game.mouseX, game.selection_rectangle.x) ;
-			var yb = min(game.mouseY, game.selection_rectangle.y) ;
-			var xe = max(game.mouseX, game.selection_rectangle.x) ;
-			var ye = max(game.mouseY, game.selection_rectangle.y) ;
-			// Limit to zone
-			var zone = game.selection_rectangle.zone ;
-			var xb = max(xb, zone.x + 1) ;
-			var yb = max(yb, zone.y + 1 ) ;
-			var xe = min(xe, zone.x + zone.w - 1 ) ;
-			var ye = min(ye, zone.y + zone.h - 1 ) ;
-			if ( zone.type == 'hand' ) // Selection in hand is full heightened
-				ye = zone.y + zone.h - 1 ;
-			// Draw
-			var w = xe - xb ;
-			var h = ye - yb ;
-			game.context.strokeStyle = 'white' ;
-			game.context.strokeRect(xb+.5, yb+.5, w, h) ;
-			if ( game.options.get('transparency') ) {
-				canvas_set_alpha(.1) ; // .5
-				game.context.fillStyle = 'white' ;
-				game.context.fillRect(xb+.5, yb+.5, w, h) ;
-				canvas_reset_alpha() ;
-			}
-		}
-		// Targets
-		game.target.draw(game.context) ;
-		// DND
-		if ( game.drag != null ) {
-			var zone = game.widget_under_mouse ;
-			if ( zone != null ) { // Dragging over canvas, not over en HTML element in front
-				game.context.save() ;
-				game.context.strokeStyle = 'white' ;
-				game.context.fillStyle = 'white' ;
-				canvas_set_alpha(bgopacity) ; // .5
-				var cards = game.selected.cards ;
-				for ( var i = 0 ; i < cards.length ; i++ ) {
-					var card = cards[i] ;
-					// Card's top left (reference for positionning)
-					var tl_x = game.mouseX - game.dragxoffset ; // Mouse position - mouse click position
-					var tl_y = game.mouseY - game.dragyoffset ;
-					if ( zone.type == 'battlefield' ) {
-						if ( game.dragover != null ) { // Dragover a card on BF : show attach
-							var offset = 10 * ( i + 1 ) ;
-							card.draw(game.context, game.dragover.x+offset, game.dragover.y-offset) ;
-						} else { // Draw destination on BF
-							tl_x += card.xoffset * gridswidth ; // If moving multiple cards, add relative position of that one
-							tl_y += card.yoffset * gridsheight ;
-							var c = zone.grid_at(tl_x, tl_y) ;
-							var p = zone.grid_coords(c.x, c.y) ;
-							card.draw(game.context, p.x, p.y) ;
-						}
-					} else { // Draw cards
-						tl_x += ( i - game.selected.cards.indexOf(game.drag) ) * cardwidth ; // Draw cards side on side, center on clicked one
-						card.draw(game.context, tl_x, tl_y) ;
-					}
-				}
-				game.context.restore() ;
-			}
-		}
-		/* Detected mouse position
-		game.context.strokeStyle = 'red' ;
-		game.context.strokeRect(game.mouseX-.5, game.mouseY-.5, 3, 3) ;
-		/**/
-		// Title
-		var nomove = new Date() - game.movedate ; // ms since last mouse move
-		if ( ( game.title != '' ) && ( nomove > 20 ) ) {
-			var mw = 200 ;
-			var xo = 0 ;
-			var yo = 20
-			var x = game.mouseX + xo ;
-			var y = game.mouseY + yo ;
-			var xd = 'l' ;
-			var yd = 't' ;
-			if ( x + mw > game.canvas.width ) { // would draw out right of canvas
-				var xd = 'r' ;
-				x -= 2 * xo ;
-			}
-			if ( y + 20 > game.canvas.height ) { // would draw out right of canvas
-				var yd = 'b' ;
-				y -= yo  ;
-			}
-			if ( ( xd == 'l' ) && ( yd == 'b' ) )
-				canvas_framed_text_bl(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
-			else if ( ( xd == 'l' ) && ( yd == 't' ) )
-				canvas_framed_text_tl(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
-			else if ( ( xd == 'r' ) && ( yd == 'b' ) )
-				canvas_framed_text_br(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
-			else if ( ( xd == 'r' ) && ( yd == 't' ) )
-				canvas_framed_text_tr(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
-			else
-				log('Unkwnown direction : '+xd+', '+yd) ; 			
-		}
-		// Infobulle
-		if ( iso(game.infobulle ) && game.infobulle.display() )
-			game.infobulle.draw(game.context) ;
-		// Number of permanents
-		if ( ( game.widget_under_mouse ) && ( game.widget_under_mouse.type == 'battlefield' ) ) {
-			var coords = game.widget_under_mouse.grid_at(game.mouseX, game.mouseY) ;
-			var nb = 0 ;
-			var pow = 0 ;
-			var untap = 0 ;
-			for ( var j = -1 ; j < 2 ; j++ )
-				for ( var i = 0 ; i < bfcols ; i++ ) {
-					var card = game.widget_under_mouse.grid[i][coords.y+j] ;
-					if ( card != null ) {
-						nb++ ;
-						pow += card.get_pow_total() ;
-						if ( card.is_land() && ! card.tapped )
-							untap++ ;
-					}
-				}
-			var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
-			game.context.save()
-			/** /
-			canvas_set_alpha(.1) ;
-			var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
-			var post = game.widget_under_mouse.grid_coords(coords.x, 0) ;
+	// Old fashion draw, called on each event (mouse, network ...)
+}
+function display_start() {
+	game.display.count = 0 ;
+	window.setInterval(draw_timer, 40) ;
+	game.display.time = 0 ;
+	game.display.bench = 'Uninitialized' ;
+	window.setInterval(debug_timer, 1000) ;
+}
+function debug_timer() {
+	var txt = 'Display : '+Math.round(game.display.time / game.display.count)+'ms' ;
+	//txt += ' '+game.card_under_mouse ;
+	game.display.bench = txt ;
+	game.display.count = 0 ;
+	game.display.time = 0 ;
+}
+function draw_timer() {
+	var begin = bench() ;
+	// Background
+	game.context.clearRect(0, 0, game.canvas.width, game.canvas.height) ;
+	// Widgets (zones, manapools, phases ...)
+	for ( var i in game.widgets )
+		if ( isf(game.widgets[i].draw ) ) {
+			game.context.save() ;
+			game.widgets[i].draw(game.context) ;
+			game.context.restore() ;
+		} else
+			log(game.widgets[i]+' has no draw method') ;
+	// Selection rectangle
+	if ( ( game.selection_rectangle != null ) && ( game.mouseX != game.selection_rectangle.x ) ) { // Only show if mouse moved on X axis, for hand selection not being drawn on click
+		// xb, yb is upper left corner, xe, ye is bottom right (necessary for limitation)
+		var xb = min(game.mouseX, game.selection_rectangle.x) ;
+		var yb = min(game.mouseY, game.selection_rectangle.y) ;
+		var xe = max(game.mouseX, game.selection_rectangle.x) ;
+		var ye = max(game.mouseY, game.selection_rectangle.y) ;
+		// Limit to zone
+		var zone = game.selection_rectangle.zone ;
+		var xb = max(xb, zone.x + 1) ;
+		var yb = max(yb, zone.y + 1 ) ;
+		var xe = min(xe, zone.x + zone.w - 1 ) ;
+		var ye = min(ye, zone.y + zone.h - 1 ) ;
+		if ( zone.type == 'hand' ) // Selection in hand is full heightened
+			ye = zone.y + zone.h - 1 ;
+		// Draw
+		var w = xe - xb ;
+		var h = ye - yb ;
+		game.context.strokeStyle = 'white' ;
+		game.context.strokeRect(xb+.5, yb+.5, w, h) ;
+		if ( game.options.get('transparency') ) {
+			canvas_set_alpha(.1) ; // .5
 			game.context.fillStyle = 'white' ;
-			game.context.fillRect(posl.x, posl.y, bfcols*gridswidth, gridsheight) ;
-			//game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
-			/**/
-			canvas_set_alpha(.2) ;
-			if ( nb > 0 ) {
-				game.context.font = gridsheight+"pt Arial";
-				var txt = nb ;
-				if ( pow > 0 )
-					txt += ' : '+pow ;
-				if ( untap > 0 )
-					txt = untap+' / '+txt ;
-				canvas_text_tr(game.context, txt, pos.x+gridswidth, pos.y, 'white') ;
-			}
+			game.context.fillRect(xb+.5, yb+.5, w, h) ;
 			canvas_reset_alpha() ;
+		}
+	}
+	// Targets
+	game.target.draw(game.context) ;
+	// DND
+	if ( game.drag != null ) {
+		var zone = game.widget_under_mouse ;
+		if ( zone != null ) { // Dragging over canvas, not over en HTML element in front
+			game.context.save() ;
+			game.context.strokeStyle = 'white' ;
+			game.context.fillStyle = 'white' ;
+			canvas_set_alpha(bgopacity) ; // .5
+			var cards = game.selected.cards ;
+			for ( var i = 0 ; i < cards.length ; i++ ) {
+				var card = cards[i] ;
+				// Card's top left (reference for positionning)
+				var tl_x = game.mouseX - game.dragxoffset ; // Mouse position - mouse click position
+				var tl_y = game.mouseY - game.dragyoffset ;
+				if ( zone.type == 'battlefield' ) {
+					if ( game.dragover != null ) { // Dragover a card on BF : show attach
+						var offset = 10 * ( i + 1 ) ;
+						card.draw(game.context, game.dragover.x+offset, game.dragover.y-offset) ;
+					} else { // Draw destination on BF
+						tl_x += card.xoffset * gridswidth ; // If moving multiple cards, add relative position of that one
+						tl_y += card.yoffset * gridsheight ;
+						var c = zone.grid_at(tl_x, tl_y) ;
+						var p = zone.grid_coords(c.x, c.y) ;
+						card.draw(game.context, p.x, p.y) ;
+					}
+				} else { // Draw cards
+					tl_x += ( i - game.selected.cards.indexOf(game.drag) ) * cardwidth ; // Draw cards side on side, center on clicked one
+					card.draw(game.context, tl_x, tl_y) ;
+				}
+			}
 			game.context.restore() ;
 		}
-		// Additionnal information
-		if ( game.options.get('debug') ) {
-			var txt = 'Display : '+(bench() - begin)+'ms' ;
-			txt += ' Ping : '+ping+'ms' ;
-			//txt += ' Frames : '+draw_counter ;
-			//txt += ' Selection : '+game.selected.zone ;
-			canvas_text_tr(game.context, txt, game.turn.x + game.turn.w-5, game.turn.y+5, 'white', paperwidth) ;
+	}
+	/* Detected mouse position * /
+	game.context.strokeStyle = 'red' ;
+	game.context.strokeRect(game.mouseX-.5, game.mouseY-.5, 3, 3) ;
+	/**/
+	// Title
+	/*
+	var nomove = new Date() - game.movedate ; // ms since last mouse move
+	if ( ( game.title != '' ) && ( nomove > 20 ) ) {
+		var mw = 200 ;
+		var xo = 0 ;
+		var yo = 20
+		var x = game.mouseX + xo ;
+		var y = game.mouseY + yo ;
+		var xd = 'l' ;
+		var yd = 't' ;
+		if ( x + mw > game.canvas.width ) { // would draw out right of canvas
+			var xd = 'r' ;
+			x -= 2 * xo ;
 		}
-		game.drawing = false ;
-	} else 
-		log('framedrop') ;
+		if ( y + 20 > game.canvas.height ) { // would draw out right of canvas
+			var yd = 'b' ;
+			y -= yo  ;
+		}
+		if ( ( xd == 'l' ) && ( yd == 'b' ) )
+			canvas_framed_text_bl(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
+		else if ( ( xd == 'l' ) && ( yd == 't' ) )
+			canvas_framed_text_tl(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
+		else if ( ( xd == 'r' ) && ( yd == 'b' ) )
+			canvas_framed_text_br(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
+		else if ( ( xd == 'r' ) && ( yd == 't' ) )
+			canvas_framed_text_tr(game.context, game.title, x, y, 'black', mw, 'lightgray') ;
+		else
+			log('Unkwnown direction : '+xd+', '+yd) ; 			
+	}
+	*/
+	// Infobulle
+	if ( iso(game.infobulle ) && game.infobulle.display() )
+		game.infobulle.draw(game.context) ;
+	// Number of permanents
+	if ( ( game.widget_under_mouse ) && ( game.widget_under_mouse.type == 'battlefield' ) ) {
+		var coords = game.widget_under_mouse.grid_at(game.mouseX, game.mouseY) ;
+		var nb = 0 ;
+		var pow = 0 ;
+		var untap = 0 ;
+		for ( var j = -1 ; j < 2 ; j++ )
+			for ( var i = 0 ; i < bfcols ; i++ ) {
+				var card = game.widget_under_mouse.grid[i][coords.y+j] ;
+				if ( card != null ) {
+					nb++ ;
+					pow += card.get_pow_total() ;
+					//if ( card.is_land() && ! card.tapped )
+					if ( iso(card.attrs.provide) && ! card.tapped )
+						untap++ ;
+				}
+			}
+		var pos = game.widget_under_mouse.grid_coords(bfcols-1, coords.y) ;
+		game.context.save()
+		/** /
+		canvas_set_alpha(.1) ;
+		var posl = game.widget_under_mouse.grid_coords(0, coords.y) ;
+		var post = game.widget_under_mouse.grid_coords(coords.x, 0) ;
+		game.context.fillStyle = 'white' ;
+		game.context.fillRect(posl.x, posl.y, bfcols*gridswidth, gridsheight) ;
+		//game.context.fillRect(post.x, post.y, gridswidth, bfrows*gridsheight) ;
+		/**/
+		canvas_set_alpha(.2) ;
+		if ( nb > 0 ) {
+			game.context.font = gridsheight+"pt Arial";
+			var txt = nb ;
+			if ( pow > 0 )
+				txt += ' : '+pow ;
+			if ( untap > 0 )
+				txt = untap+' / '+txt ;
+			canvas_text_tr(game.context, txt, pos.x+gridswidth, pos.y, 'white') ;
+		}
+		canvas_reset_alpha() ;
+		game.context.restore() ;
+	}
+	// Additionnal information
+	if ( game.options.get('debug') ) {
+		game.display.count++ ;
+		game.display.time += bench() - begin ;
+		canvas_text_tr(game.context, game.display.bench, game.turn.x + game.turn.w-5, game.turn.y+5, 'white', paperwidth) ;
+	}
 }
 // === [ MAIN EVENT DISPATCHER ] ===============================================
 function canvasMouseDown(ev) {
@@ -510,7 +526,8 @@ function canvasEventStop(ev) { // Under windows, canvas doesn't seem to trigger 
 		return eventStop(ev) ;
 }
 function canvas_add_events(canvas) {
-	game.drawing = false ;
+	//draw_timer() ;
+	canvas_loading() ;
 	// Custom mouse management (uses only down, move, up, cancels all other)
 	game.widget_under_mouse = null ;
 	game.card_under_mouse = null ;
@@ -547,6 +564,12 @@ function canvas_add_events(canvas) {
 	//window.addEventListener('contextmenu', canvasEventStop, false) ;
 	window.addEventListener('contextmenu', eventStop, false) ;
 	window.addEventListener('resize', 	resize_window,	false) ; // Resize
+}
+function canvas_loading() {
+	var font = game.context.font ;
+	game.context.font = 50+"pt Arial";
+	canvas_framed_text_c(game.context, 'Loading ...', paper.width/2, paper.height/2, 'white', paper.width, 'transparent', 40) ;
+	game.context.font = font
 }
 // === [ MAIN LIB ] ============================================================
 function widget_cache_update(ev) {

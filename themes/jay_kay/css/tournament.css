@@ -1,76 +1,40 @@
-table {
-	margin: 1% ;
-	margin-top: 0 ;
+h2 {
+	margin-bottom: 2px ;
+	margin-top: 5px ;
 }
-/* Tournament index */
+.central {
+	margin: 2% ;
+}
 .self {
 	background-color: #F4ECD2 ;
 }
-.group {
-	margin: 2% ;
-}
-#toplink {
-	font-size: larger ;
-}
-pre {
-	overflow: hidden ;
-	height: 50px ;
-	margin: 0 ;
-}
-pre.maximized {
-	overflow: visible ;
-	height: auto ;
-}
-.column {
-	/*border: 1px solid red ;*/
-	width: 48% ;
-	padding: 1% ;
-	float: left ;
-}
-/* Draft + Build*/
+/* Draft + Build */
 #info {
 	position: fixed ;
-	top: 0 ;
-	right: 0 ;
+	top: 1% ;
+	right: 260px ;
 	padding: 5px ;
-	margin: 10px ;
+	z-index: 1 ;
 }
 #back {
 	position: fixed ;
-	bottom: 0 ;
-	right: 0 ;
-	padding: 5px ;
-	margin: 10px ;
+	top: 1% ;
+	left: 260px ;
+	padding-right: 5px ;
 }
 /* Log & Stats common + animation */
 #stats, #tournament {
 	position: fixed ;
 	width: 250px ;
-	top: 5% ;
-	height: 90% ;
-	transition: all 0.2s ;
-	-moz-transition: all 0.2s ;
-	-webkit-transition: all 0.2s ;
-	-o-transition: all 0.2s ;
-	-ms-transition: all 0.2s ;
-	transition-timing-function: ease ;
-	-moz-transition-timing-function: ease ;
-	-webkit-transition-timing-function: ease ;
-	-o-transition-timing-function: ease ;
-	-ms-transition-timing-function: ease ;
-/*
-ease : Rapide sur le début et ralenti sur la fin.
-linear : La vitesse est constante sur toute la durée de l'animation.
-ease-in : Lent sur le début et accélère de plus en plus vers la fin.
-ease-out : Rapide sur le début et décèlere sur la fin.
-ease-in-out : Le départ et la fin sont lents.
-*/
+	top: 3% ;
+	height: 94% ;
+	z-index: 15 ;
 }
 /* Stats */
 #stats {
 	left: -230px ;
 }
-#stats:hover { /* It's hidden, let's show it */
+#stats:hover, #stats.highlight { /* It's hidden, let's show it */
 	left: -1px ;
 }
 /* Log */
@@ -89,18 +53,21 @@ ease-in-out : Le départ et la fin sont lents.
 #tournament form {
 	position: absolute ;
 	bottom: 0 ;
+	/*width: 100% ;*/
 }
-#log_ul {
+#tournament form input {
+	width: 240px ;
+}
+#tournament_log {
 	overflow-y: auto ;
-	height: 70% ;
 	padding: 0;
 	margin: 0;
 	list-style-type: none ;
 	font-style: italic ;
 }
-#log_ul li.chat {
+#tournament_log li.chat {
 	font-style: normal ;
 }
-#log_ul .linetime {
-	display: none ;
+#tournament_log li:hover {
+	background-color: #F4ECD2 ;
 }

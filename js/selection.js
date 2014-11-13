@@ -383,8 +383,12 @@ function Selection() {
 		// Automatically place
 		if ( ! isn(xzone) )
 			xzone = 0 ;
-		if ( ! isn(yzone) )
-			yzone = this.cards[0].place_row() ;
+		if ( ! isn(yzone) ) {
+			if ( this.cards.length > 1 )
+				yzone = 0 ;
+			else
+				yzone = this.cards[0].place_row() ; // Have to know before sending
+		}
 		// Client part
 		result = this.changezone_recieve(zone, visible, index, xzone, yzone) ;
 		// Server part

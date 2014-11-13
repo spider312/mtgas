@@ -17,8 +17,12 @@ $(function() { // On page load
 		return eventStop(ev) ;
 	}, false) ;
 	document.getElementById('filter').addEventListener('submit', function(ev) {
+		var sortobj = {} ;
 		if ( ev.target.rarity.value != '' )
-			update_list({'rarity' : ev.target.rarity.value}) ;
+			sortobj.rarity = ev.target.rarity.value ;
+		if ( ev.target.text.value != '' )
+			sortobj.text = ev.target.text.value ;
+		update_list(sortobj) ;
 		return eventStop(ev) ;
 	}, false) ;
 	// Cards management

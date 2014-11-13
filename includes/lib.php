@@ -27,14 +27,34 @@ function p($obj) {
 function d($obj) {
 	die(l($obj));
 }
-// Object
-function object() {
-	return new simple_object() ;
-}
-class simple_object {
-	function __construct() {
+function debug($object) {
+	$result = gettype($object)." : \n" ;
+	switch ( true ) {
+		case is_object($object) :
+			$reflect = new ReflectionClass($object);
+			$props = $reflect->getProperties();
+			foreach ( $props as $i => $val )
+				$result .= "\t->".$val->name.' : '.$val->class."\n" ;
+			break ;
+		case is_array($object) :
+			foreach ( $object as $i => $val ) {
+				$result .= "\t[".$i.'] : ' ;
+				if ( is_object($val) )
+					$result .= gettype($val) ;
+				else
+					$result .= $val ;
+				$result .= "\n" ;
+			}
+			break ;
+		default : 
+			$result.= print_r($object, true) ;
 	}
+	return $result ;
 }
+function now($offset = 0) {
+	return date('Y-m-d H:i:s', time() + $offset) ;
+}
+// Object
 function obj_compare($a, $b) { // Returns if $a has exactly the same structure and values as $b
 	if ( gettype($a) != gettype($b) )
 		return false ;
@@ -65,7 +85,7 @@ function arr_diff($new, $old) { // Returns $new without values that didn't chang
 	return $result ;
 }
 function obj_diff($new, $old) { // Returns only properties that changed between new and old value
-	$result = new simple_object() ;	
+	$result = new stdClass() ;	
 	foreach ( $new as $key => $value ) { // Each value in new
 		if ( isset($old->$key) ) {  // Key is present in old
 			$oldvalue = $old->$key ;
@@ -98,6 +118,18 @@ function addOrdinalNumberSuffix($num) {
 		}
 	}
 	return $num.'th';
+}
+// File
+function sorted_scandir($dir, $field='mtime') {
+	$files = scandir($dir) ;
+	$data = array() ;
+	foreach ( $files as $file )
+		if ( ( $file != '.' ) && ( $file != '..' ) ) {
+			$stat = stat($dir.'/'.$file) ;
+			$data[$file] = $stat[$field] ;
+		}
+	asort($data) ;
+	return array_keys($data) ;
 }
 //File size
 function human_filesize($bytes, $decimals = 2) {
@@ -157,14 +189,16 @@ function add_rss($args) {
 	}
 }
 function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
-	global $appname, $theme ;
+	global $appname, $index_image ;
 	echo '<!DOCTYPE html>
 <html lang="en">
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <title>'.$appname.' : '.$title.'</title>
-  <link type="image/jpg" rel="icon" href="/themes/'.$theme.'/favicon.jpg">'."\n" ;
+  <link type="image/jpg" rel="icon" href="'.theme_image($index_image).'">'."\n" ;
+  	$css[] = 'debug.css' ;
 	add_css($css) ;
+	$js[] = 'debug.js' ;
 	add_js($js) ;
 	add_rss($rss) ;
 	echo ' </head>'."\n" ;
@@ -190,9 +224,11 @@ function menu_add($name, $url, $title='') {
 	return $menu_entries ;
 }
 function html_menu($additionnal_entries=null) {
-	global $menu_entries, $url ;
+	global $menu_entries, $url, $index_image ;
 	echo '   <header class="section">'."\n" ;
-	echo '    <a title="'.__('menu.main.title').'" href="'.$url.'">'.__('menu.main').'</a> - '."\n" ;
+	echo '    <a id="mainpage" title="'.__('menu.main.title').'" href="'.$url.'">
+	<img src="'.theme_image($index_image).'" alt="'.__('menu.main.title').'">
+	</a> - '."\n" ;
 	foreach ( $menu_entries as $i => $entry ) {
 		if ( $i == count($menu_entries)-1 )
 			$separator = '' ;
@@ -202,6 +238,9 @@ function html_menu($additionnal_entries=null) {
 	}
 	echo '    <a id="identity_shower" title="'.__('menu.identity_shower.title').'">Nickname</a>'."\n" ;
 	echo '   </header>'."\n\n" ;
+}
+function ws_indicator() {
+	echo '<img id="wsci" title="Connexion : not initialized" alt="Connexion : not initialized" src="'.theme_image('sphere/black.png').'">' ;
 }
 // HTML Generation
 function html_option($value, $disp, $selected) {
@@ -222,24 +261,31 @@ function html_pre($str) {
 	return '<pre>'.$str.'</pre>' ;
 }
 // JSON
-function json_verbose_error($i) {
+function json_verbose_error($i=-1) {
+	if ( $i == -1 )
+		$i = json_last_error() ;
 	switch ( $i ) {
 		case JSON_ERROR_NONE:
 			return 'Aucune erreur' ;
 		case JSON_ERROR_DEPTH:
 			return 'Profondeur maximale atteinte' ;
 		case JSON_ERROR_STATE_MISMATCH:
-			return 'Inadéquation des modes ou underflow' ;
+			return 'JSON invalide ou mal formé' ;
 		case JSON_ERROR_CTRL_CHAR:
 			return 'Erreur lors du contrôle des caractères' ;
 		case JSON_ERROR_SYNTAX:
-			return 'Erreur de syntaxe ; JSON malformé' ;
+			return 'Erreur de syntaxe' ;
 		case JSON_ERROR_UTF8:
 			return 'Caractères UTF-8 malformés, probablement une erreur d\'encodage' ;
+		case JSON_ERROR_RECURSION:
+			return 'Une ou plusieurs références récursives sont présentes dans la valeur à encoder' ;
+		case JSON_ERROR_INF_OR_NAN:
+			return 'Une ou plusieurs valeurs NAN ou INF sont présentes dans la valeurs à encoder' ;
+		case JSON_ERROR_UNSUPPORTED_TYPE:
+			return 'Une valeur d\'un type qui ne peut être encodée a été fournie' ;
 		default:
-			return 'Erreur inconnue' ;
+			return 'Erreur inconnue : '.$i ;
 	}
-	return 'Hu ?' ;
 }
 // Theme
 function theme_image($name) {

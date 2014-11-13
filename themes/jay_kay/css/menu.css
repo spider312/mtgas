@@ -1,6 +1,6 @@
 /* ========== Menu ========== */
 .menu {
-	z-index: 2 ;
+	z-index: 1000 ;
 	position: absolute ;
 	margin: 0 ;
 	padding: 0 ;

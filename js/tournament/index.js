@@ -1,298 +1,241 @@
+// tournament/index.js
 function start(tournament_id) {
-	var player_id = $.cookie(session_id) ;
-	// Error management
-	ajax_error_management() ; 
-	timeleft = document.getElementById('timeleft') ;
+	tournament_info = document.getElementById('tournament_info') ;
 	html_status = document.getElementById('status') ;
+	timeleft = document.getElementById('timeleft') ;
 	players_table = document.getElementById('players_table') ;
-	past_rounds = document.getElementById('past_rounds') ;
-	current_round = document.getElementById('current_round') ;
-	prev_data = '' ;
-	me = null ;
-	data = {} ;
-	last_id = 0 ;
-	$.ajaxSetup({ cache: false });
-	game = {} ;
-	game.last_log_id = '' ; // Refresh log only when updated
+	rounds = document.getElementById('rounds') ;
+	tournament_log = document.getElementById('tournament_log') ;
+	Tournament.prototype = new TournamentIndex() ;
+	Player.prototype = new PlayerIndex() ;
+	Log.prototype = new LogIndex() ;
+	game = {}
 	game.options = new Options(true) ;
-	tournament_log_init(tournament_id) ;
-	timer(tournament_id, player_id, data, last_id, true) ;
-}
-function update(g, l) { // Update global fields with local values
-	for ( var i in l )
-		if ( iso(l[i]) && iso(g[i]))
-			update(g[i], l[i]) ;
-		else
-			g[i] = l[i] ;
-}
-function timer(tournament_id, player_id, data, last_id, firsttime) {
-	var param = {'id': tournament_id, 'last_id': last_id, 'firsttime': firsttime} ;
-	$.getJSON('json/tournament.php', param, function(rdata) { // Get time left
-		var game = window.game ;
-		if ( iss(rdata.msg) )
-			alert(rdata.msg) ;
-		if ( iss(rdata.data) )
-			try {
-				var tdata = JSON.parse(rdata.data) ;
-				rdata.data = tdata ;
-			} catch (e) {
-				//alert(e+' : \n'+res);
-				alert('catch '+e);
-				return null ;
-			}
-		update(data, rdata) ;
-		// Spectactor
-		tournament_spectactors(rdata.log, spectactors) ; // Populate from log
-		if ( ( ! firsttime ) && ( player_get(data.players, player_id) == null ) && ( spectactors.get(player_id) == null ) )
-			$.getJSON('json/spectactor.php', {'id': tournament_id, 'nick': window.game.options.get('profile_nick')}, function(data) {
-				if ( data.nb != 1 )
-					alert(data.nb+' affected rows') ;
-			}) ;
-		//
-		var t_status = parseInt(data.status) ; // Tournament's status
-		// List players and their scores
-		if ( iso(data.players) && ( prev_data != JSON.stringify(data.players) ) ) {
-			prev_data = JSON.stringify(data.players) ;
-			node_empty(players_table) ;
-			for ( var i in data.players ) {
-				var player = data.players[i] ;
-				var tr = create_tr(players_table) ;
-				tr.player = player ;
-				if ( player_id == player.player_id ) {
-					tr.classList.add('self') ;
-					me = player ;
-				}
-				create_td(tr, player.order) ;
-				var td = create_td(tr, create_a(player.nick, '../player.php?id='+data.players[i].player_id)) ;
-				if ( player.avatar.substr(0, 4) == 'http' )
-					var img = create_img(player.avatar) ;
-				else
-					var img = create_img('../'+player.avatar) ;
-				img.height = 50 ;
-				create_td(tr, img) ;
-				create_td(tr, player_status(player.status, player.ready)) ;
-				if ( data.data.score ) {
-					if ( data.data.score[player.player_id] ) {
-						var score = data.data.score[player.player_id] ;
-						create_td(tr, getGetOrdinal(score.rank)) ;
-						create_td(tr, score.matchpoints) ;
-						if ( isn(score.opponentmatchwinpct) )
-							create_td(tr, Math.round(score.opponentmatchwinpct*100)+'%') ;
-						else
-							create_td(tr, 'N/A') ;
-						if ( isn(score.opponentgamewinpct) )
-							create_td(tr, Math.round(score.opponentgamewinpct*100)+'%') ;
-						else
-							create_td(tr, 'N/A') ;
-						create_td(tr, Math.round(score.matchwinpct*100)+'%') ;
-						create_td(tr, Math.round(score.gamewinpct*100)+'%') ;
-					} else
-						create_td(tr, 'Player has no score Oo', 6) ;
-				} else
-					create_td(tr, 'Not available before first round\'s end', 6) ;
-				var s = spectactors.get(player_id) ;
-					var button_save = create_button('Save as ...', function(ev) {
-					var name = data.name ;
-					var player = ev.target.parentNode.parentNode.parentNode.player ;
-					if ( player_id != player.player_id )
-						name += '_'+player.nick ;
-					name = prompt('Deck name', name) ;
-					if ( name != null )
-						deck_set(name, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+data.name+'\n// CREATOR : '+player.nick+'\n// FORMAT : '+data.type+'\n'+player.deck) ;
-				}, 'Save deck in decklist') ;
-				if ( ( t_status == 6 ) || ( player_id == player.player_id ) ) { // tournament ended or self
-					var actions = create_div(button_save) ;
-					var button_edit = create_submit('edit', 'Edit') ;
-					button_edit.title = 'Enter in deck builder mode with this deck. Will ONLY be saved in your deck list' ;
-					var form_edit = create_form('build.php', 'post'
-						, create_hidden('deck', player.deck)
-						, create_hidden('name', data.type+'_'+data.name+'_'+player.nick)
-						, button_edit
-					) ;
-					actions.appendChild(form_edit) ;
-					if ( t_status < 6 ) { // Not finished (so only on 'self' line)
-						var button_drop = create_button('Drop', function(ev) {
-							if ( confirm('This action is irremediable, are you sure you want to end your participation in this tournament ?') ) {
-								$.getJSON('json/drop.php', {'id': tournament_id}, function(data) {
-									alert(data.msg) ;
-								}) ;
-							}
-						}, 'End your participation in this tournament') ;
-						actions.appendChild(button_drop) ;
-					}
-				} else if ( ( s != null ) && ( s.is_allowed(player.player_id) ) ) { // Allowed spectactor
-					var actions = create_div(button_save) ;
-					var button_view = create_submit('view', 'View') ;
-					button_view.title = 'View deck while player builds it' ;
-					var view_form = create_form('build.php', 'get'
-						, create_hidden('id', tournament_id)
-						, create_hidden('pid', player.player_id)
-						, button_view
-					) ;
-					actions.appendChild(view_form) ;
-				} else // Unallowed spectactor
-					actions = 'No action' ;
-				create_td(tr, actions) ;
-			}
-			var nbpl = parseInt(data.min_players) ;
-			if ( data.players.length < nbpl ) {
-				var tr = create_tr(players_table) ;
-				var td = create_td(tr, (nbpl-data.players.length)+' open slots', 12) ;
-				if ( ( t_status == 1 ) && ( me == null ) ) { // Tournament pending : registration form
-					// Normal form for clients not trigering events
-					var form = create_form('json/join.php', 'post', 
-						create_hidden('id', tournament_id),
-						create_hidden('nick', game.options.get('profile_nick')),
-						create_hidden('avatar', game.options.get('profile_avatar')),
-						create_hidden('deck', deck_get(game.options.get('deck'))),
-						create_submit('submit', 'Register')
-					) ;
-					td.appendChild(form) ;
-					// Submit override for the form, replacing its sumbission by an AJAJ query
-					form.addEventListener('submit', function(ev) {
-						$.post(ev.target.action, {
-							'id' : ev.target.id.value, 
-							'nick' : ev.target.nick.value, 
-							'avatar' : ev.target.avatar.value, 
-							'deck' : ev.target.deck.value
-						}, function(data) {
-							if ( data.msg != '' )
-								alert(data.msg) ;
-							document.location = document.location ;
-						}, 'json');
-						ev.preventDefault() ;
-						return false ;
-					}, false) ;
-				}
-			}
-		}
-		// Display current round's score
-		node_empty(current_round) ;
-		var mygame = null ;
-		if ( data.current_round ) {
-			current_round.appendChild(create_h(2, 'Current round : '+data.round)) ;
-			var table = document.createElement('table') ;
-			current_round.appendChild(table) ;
-			for ( var i in data.current_round ) {
-				var game = data.current_round[i] ;
-				var creator = player_get(data.players, game.creator_id) ;
-				var joiner = player_get(data.players, game.joiner_id) ;
-				var tr = game_table(creator, joiner, data, game, table, player_id) ;
-				if ( ( joiner != null ) && ( ( player_id == creator.player_id ) || ( player_id == joiner.player_id ) ) ) {
-					mygame = game ;
-					tr.insertCell(tr.cells.length).appendChild(create_a('Play', '../play.php?id='+game.id)) ;
-				} else 
-					if ( game.joiner_id != '' ) // Not a BYE
-						tr.insertCell(tr.cells.length).appendChild(create_a('View', '../play.php?id='+game.id)) ;
-			}
-		}
-		// Display past round's score
-		if ( iso(data.data) && iso(data.data.results) ) {
-			node_empty(past_rounds) ;
-			if ( data.data.results )
-				past_rounds.appendChild(create_h(2, 'Past rounds')) ;
-			for ( var i in data.data.results ) { // For each past round
-				var round = data.data.results[i] ;
-				past_rounds.appendChild(create_h(3, 'Round '+i)) ;
-				var table = document.createElement('table') ;
-				past_rounds.appendChild(table) ;
-				for ( var j in round ) {
-					var tr = game_table(
-						player_get(data.players, round[j].creator_id)
-						, player_get(data.players, round[j].joiner_id)
-						, data
-						, round[j]
-						, table
-						, player_id
-					) ;
-					if ( round[j].joiner_id != '' ) // Not a BYE
-						tr.insertCell(tr.cells.length).appendChild(create_a('Replay', '../play.php?id='+round[j].id)) ;
-				}
-			}
-		}
-		// Manage top link
-		var url = '' ;
-		var toplink = document.getElementById('toplink') ;
-		toplink.href = '' ;
-		var notabene = '' ; ;
-		html_status.value = 'Tournament status : '+tournament_status(data.status) ;
-		var int_timeleft = parseInt(data.timeleft)
-		var int_age = parseInt(data.age)
-		var register = document.getElementById('register') ;
-		register.textContent = '' ;
-		switch ( t_status ) {
-			case 1 : // Pending
-				register.textContent = 'Registered' ;
-				break ;
-			case 0 : // Canceled
-			case 2 : // Redirecting
-				html_status.value += ' for ' + time_disp(int_age) ;
-				break ;
-			case 3 : // Drafting
-				html_status.value += ' for ' + time_disp(int_age) ;
-				url = 'draft.php?id='+tournament_id ;
-				break ;
-			case 4 : // Building
-				html_status.value += ', ' + time_disp(int_timeleft) + ' remaining' ;
-				url = 'build.php?id='+tournament_id ;
-				break ;
-			case 5 : // Tournament running
-				html_status.value += ', ' + time_disp(int_timeleft) + ' remaining' ;
-				if ( mygame != null ) {
-					if ( player_id == mygame.creator_id )
-						notabene = ' against '+mygame.joiner_nick ;
-					else
-						notabene = ' against '+mygame.creator_nick ;
-					url = '../play.php?id='+mygame.id ;
-				} else {
-					notabene = ' against nobody. Yes, this is a bug' ;
-					url = '' ;
-				}
-				break ;
-			case 6 : // Ended
-				html_status.value += ' for ' + time_disp(int_age) ;
-				break ;
-			default :
-				html_status.value += ', ' + time_disp(int_age) + ' remaining' ;
-				alert('Unknown status '+data.status+' ('+typeof data.status+')') ;
-		}
-		if ( me == null ) { // No player corresponding to client's ID : it's a spectactor
-			toplink.textContent = 'Just watching' ;
-		} else if ( parseInt(me.status) > 6 ) { // Player dropped or banned
-			toplink.textContent = player_status(parseInt(me.status)) ;
-		} else {
-			// Redirection
-			if ( url != '' ) { // Client should be on another page
-				p_status = parseInt(me.status) ;
-				toplink.href = url ;
-				if ( p_status != t_status - 1 ) { // And did not already get there : redirect
-					toplink.textContent = 'Redirecting' ;
-					window.location.replace(url) ;
-				} else // And has ever been ther : only show a link
-					toplink.textContent = 'Currently, you should be '+tournament_status(p_status+1)+notabene ;
-			}
-		}
-		if ( iso(rdata.log) )
-			tournament_log_ul(tournament_log, rdata.log, data.players, spectactors) ;
-		window.setTimeout(timer, tournament_timer, tournament_id, player_id, data, last_id, false) ; // Refresh in 1 sec
+	game.tournament = new Tournament(tournament_id) ;
+	// Spectators
+	spectactor = true ;
+	game.spectators = new Spectators(function(msg, span) { // Message display
+		// Messages are managed via the "log" mechanism which triggers after spectator recieving
+		//debug(msg) ;
+	}, function(id) { // I'm a player allowing a spectator
+		game.connection.send('{"type": "allow", "value": "'+id+'"}') ;
+	}, function(player) { // I'm allowed spectator
+		var p = game.tournament.get_player(player.player_id) ;
+		if ( p != null )
+			p.display() ;
 	}) ;
+	var button = document.getElementById('spectators') ;
+	button.addEventListener('click', function(ev) {
+		var menu = game.spectators.menu() ;
+		menu.start(ev) ;
+	}, false) ;
+	// Websockets
+	game.connection = new Connexion('tournament', function(data, ev) { // OnMessage
+		switch ( data.type ) {
+			// Base
+			case undefined :
+			case 'msg' :
+				if ( iss(data.msg) )
+					debug(data.msg) ;
+				else
+					debug(data) ;
+				break ;
+			case 'pending_tournament' :
+			case 'running_tournament' :
+			case 'ended_tournament' :
+				game.tournament.recieve(data) ;
+				break ;
+			case 'redirect' :
+				switch ( parseInt(game.tournament.status) ) {
+					case 2 : // Waiting for other players to be redirected
+						break ;
+					case 3 :
+						window.location.replace('draft.php?id='+tournament_id) ;
+						break ;
+					case 4 :
+						window.location.replace('build.php?id='+tournament_id) ;
+						break ;
+					case 5 :
+						window.location.replace('../play.php?id='+data.game) ;
+						break ;
+					default :
+						debug('Unmanaged status '+game.tournament.status) ;
+				}
+				break ;
+			case 'save' :
+				var name = data.name ;
+				name = prompt('Deck name', name) ;
+				deck_set(name, data.deck) ;
+				break ;
+			default : 
+				debug('Unknown type '+data.type+' : '+JSON.stringify(data)) ;
+		}
+	}, function(ev) { // OnClose/OnConnect
+		// Clear everything
+		node_empty(html_status) ;
+		node_empty(players_table) ;
+		node_empty(rounds) ;
+		node_empty(tournament_log) ;
+	}, {'tournament': tournament_id}) ;
 }
-function game_table(creator, joiner, data, game, table, player_id) {
-	// Line
-	var tr_game = create_tr(table) ;
-	if ( creator != null )
-		var td_c = create_td(tr_game, creator.nick) ;
-	else
-		var td_c = create_td(tr_game, '<i>Nick unknown</i>') ;
-	if ( game.joiner_id != '' ) { // An opponent is present
-		create_td(tr_game, game.creator_score+' - '+game.joiner_score) ;
-		create_td(tr_game, joiner.nick) ;
-	} else // BYE
-		create_td(tr_game, 'BYE', 2) ;
-	if ( ( ( creator != null ) && ( player_id == creator.player_id ) ) || ( ( joiner != null ) && ( player_id == joiner.player_id ) ) )
-		tr_game.classList.add('self') ;
-	if ( joiner != null )
-		if ( player_id == joiner.player_id )
-			tr_game.classList.add('self') ;
-	return tr_game ;
+function TournamentIndex() {
+	this.display_field = function(fields, field, nodeId) {
+		if ( inarray(field, fields) ) {
+			var node = document.getElementById(nodeId) ;
+			if ( node == null ) {
+				debug('node '+nodeId+' not found') ;
+				return false ;
+			}
+			var value = ''+this[field] ;
+			node_empty(node) ;
+			node.appendChild(create_text(value)) ;
+		}
+	}
+	this.display = function(fields) {
+		this.display_field(fields, 'name', 'tournament_name') ;
+		this.display_field(fields, 'format', 'tournament_format') ;
+		this.display_field(fields, 'min_players', 'tournament_player_nb') ;
+		if ( inarray('data', fields) ) {
+			var fieldnames = {	'clone_sealed' : 'Clone sealed',
+								'boosters' : 'Boosters',
+								'rounds_duration' : 'Rounds duration (minutes)',
+								'rounds_number' : 'Number of rounds'} ;
+			node_empty(tournament_info) ;
+			for ( var i in this.data ) {
+				if ( inarray(i, ['players', 'results', 'score']) )
+					continue ;
+				var str = i ;
+				if ( iss(fieldnames[i]) )
+					str = fieldnames[i] ;
+				var div = create_div(str)
+				if ( ! isb(this.data[i]) ) {
+					div.appendChild(create_text(' : ')) ;
+					div.appendChild(create_element('strong', ''+this.data[i])) ;
+				} else if ( ! this.data[i] )
+					continue ;
+				tournament_info.appendChild(div) ;
+			}
+		}
+		if ( inarray('status', fields) ) {
+			node_empty(html_status) ;
+			var str = tournament_status(this.status)
+			switch ( this.status ) {
+				case 5:
+					str += ' (round '+this.round+')' ;
+					break ;
+				case 6:
+					html_status.nextSibling.nodeValue = ' for ' ;
+					break ;
+				default :
+			}
+			html_status.appendChild(create_text(str)) ;
+		}
+		if ( inarray('creation_date', fields) ) {
+			var tournament_created = document.getElementById('tournament_created') ;
+			var date = mysql2date(this.creation_date) ;
+			tournament_created.appendChild(create_text(date.toLocaleString())) ;
+		}
+		if ( inarray('due_time', fields) )
+			start_timer(timeleft, this.due_time, this.status!=6) ;
+		if ( inarray('games', fields) && ( this.games.length > 0 ) ) {
+			rounds.parentNode.classList.remove('hidden') ;
+			node_empty(rounds) ;
+			for ( var i = this.games.length-1 ; i >= 0 ; i-- ) {
+				rounds.appendChild(create_h(3, 'Round '+(i+1)+' : ')) ;
+				var table = create_element('table') ;
+				var round = this.games[i] ;
+				for ( var j = 0 ; j < round.length ; j++ ) {
+					var game = round[j] ;
+					var tr = table.insertRow() ;
+					tr.insertCell(-1).appendChild(create_text(game.creator_nick)) ;
+					tr.insertCell(-1).appendChild(create_text(game.creator_score+' - '+game.joiner_score)) ;
+					tr.insertCell(-1).appendChild(create_text(game.joiner_nick)) ;
+					var action = 'View' ;
+					if ( ( player_id == game.creator_id ) || ( player_id == game.joiner_id ) ) {
+						tr.classList.add('self') ;
+						action = 'Play' ;
+					}
+					tr.insertCell(-1).appendChild(create_a(action, '/play.php?id='+game.id)) ;
+				}
+				rounds.appendChild(table) ;
+			}
+		}
+		if ( inarray('data', fields) )
+			for ( var i = 0 ; i < this.players.length ; i++ )
+				this.players[i].display() ;
+	}
+}
+function PlayerIndex() {
+	this.display = function(fields) {
+		if ( this.node == null )
+			this.node = create_tr(players_table) ;
+		else
+			node_empty(this.node) ;
+		this.node.player = this ;
+		create_td(this.node, this.order) ;
+		var td = create_td(this.node,
+			create_a(this.nick, '../player.php?id='+this.player_id)) ;
+		var img = create_img(this.avatar_url()) ;
+		img.height = 50 ;
+		create_td(this.node, img) ;
+		create_td(this.node, this.verbose_status()) ;
+		var tr = this.node ; // Legacy
+		if ( iso(game.tournament.data) && iso(game.tournament.data.score) ) {
+			if ( game.tournament.data.score[this.player_id] ) {
+				var score = game.tournament.data.score[this.player_id] ;
+				create_td(tr, getGetOrdinal(score.rank)) ;
+				create_td(tr, score.matchpoints) ;
+				if ( isn(score.opponentmatchwinpct) )
+					create_td(tr, Math.round(score.opponentmatchwinpct*100)+'%') ;
+				else
+					create_td(tr, 'N/A') ;
+				if ( isn(score.opponentgamewinpct) )
+					create_td(tr, Math.round(score.opponentgamewinpct*100)+'%') ;
+				else
+					create_td(tr, 'N/A') ;
+				create_td(tr, Math.round(score.matchwinpct*100)+'%') ;
+			} else
+				create_td(tr, 'Player has no score Oo', 6) ;
+		} else
+			create_td(tr, 'Not available before first round\'s end', 5) ;
+		// Deck
+		create_td(this.node, this.deck_cards+' / '+this.side_cards+' cards') ;
+		// Actions
+		var allowed = ( player_id == this.player_id ) ; // Player can see its own deck
+		allowed = allowed || ( game.tournament.status > 6 ) ;
+		if ( ! allowed ) {
+			var s = game.spectators.get(player_id) ;
+			if ( ( s != null ) && ( s.allowed(this.player_id) ) )
+				allowed = true ;
+		}
+		if ( allowed ) {
+			var button_view = create_submit('view', 'View') ;
+			button_view.title = 'View deck while player builds it' ;
+			var view_form = create_form('build.php', 'get'
+				, create_hidden('id', game.tournament.id)
+				, create_hidden('pid', this.player_id)
+				, button_view
+			) ;
+			var td = create_td(this.node, view_form) ;
+			var player = this ;
+			var button_save = create_button('Save as ...', function(ev) {
+				game.connection.send('{"type": "save", "player": "'+player.player_id+'"}') ;
+			}, 'Save deck in decklist') ;
+			td.appendChild(button_save) ;
+		} else
+			create_td(this.node, 'none') ;
+		if ( player_id == this.player_id )
+			this.node.classList.add('self') ;
+	}
+}
+function LogIndex() {
+	this.display = function(fields) {
+		if ( fields.length == 0 )
+			return false ;
+		var li = this.generate() ;
+		var span = create_span(timeWithDays(mysql2date(this.timestamp))) ;
+		span.classList.add('linetime') ;
+		li.appendChild(span) ;
+		this.update_node(li, tournament_log) ;
+	}
 }

@@ -86,6 +86,9 @@ function load(body, deckname) {
 		search() ;
 		ev.preventDefault() ;
 	}, false) ;
+	document.getElementById('clear_search').addEventListener('click', function(ev) {
+		document.getElementById('cardname').value = '' ;
+	}, false) ;
 	document.getElementById('advanced_search').addEventListener('click', function(ev) { // Search form
 		var t = ev.currentTarget ;
 		t.classList.toggle('checked') ;  
@@ -317,11 +320,6 @@ function typescore(attrs) {
 		result = 2 ;
 	return result ;
 }
-function log(msg) {
-	var el = document.getElementById('log')
-	el.value += msg+'\n' ;
-	el.scrollTop = el.scrollHeight ;
-}
 function deck_line(row, savext, side) {
 	if ( side )
 		var content = 'SB: ' ;
@@ -369,7 +367,7 @@ function zoom(ext, card, attrs) {
 			zoom.width = img.naturalWidth ;
 		// Otherwise zoom has "timeout"
 	}, function(card, url) {
-		log(card+' : '+url) ;
+		debug(card+' : '+url) ;
 	}, card) ;
 }
 function select(element) {
@@ -430,8 +428,6 @@ function deck_stats() {
 		}
 	}
 	deck_stats_cc(cards) ;
-	var tl = document.getElementById('stats_color') ;
-	tl.insertBefore(create_text(cards.length+' cards'), tl.firstChild) ;
 }
 function deck_loaded(table) {
 	var decklist = document.getElementById(table) ;
@@ -502,8 +498,10 @@ function extension_select(card, orig_ext, orig_attrs) {
 				opt.title = card.ext[opt.value].name ;
 				if ( opt.attrs.nb )
 					opt.title += ' (Pic #'+opt.attrs.nb+')' ;
+				if ( ! iss(orig_ext) && iss(card.se) )
+					orig_ext = card.se ;
 				if ( iss(orig_ext) && ( orig_ext == card.ext[opt.value].se ) ) {
-					if ( !isn(orig_attrs.nb) )
+					if ( !iso(orig_attrs) || !isn(orig_attrs.nb) )
 						opt.selected = true ;
 					else {
 						if ( orig_attrs.nb == opt.attrs.nb )
@@ -538,7 +536,10 @@ function search() {
 }
 function page_submit(form, num, txt) {
 	num += '' ; // Transtyping
-	var but = create_button(num, function(ev) { ev.target.form.page.value = num ; }) ;
+	var but = create_button(num, function(ev) {
+		ev.target.form.page.value = num ;
+		search() ;
+	}) ;
 	but.title = 'Page '+num ;
 	if ( iss(txt) && ( txt != '' ) )
 		but.title += ' ('+txt+')' ;
@@ -687,9 +688,9 @@ function img_button(imgname, title, onclick) {
 }
 function add_card(ext, name, num, nb, to) {
 	changed = true ;
-	if ( ! nb )
+	if ( ! isn(nb) )
 		nb = 1 ;
-	if ( ! to )
+	if ( ! iss(to) )
 		to = 'maindeck' ;
 	var decklist = document.getElementById(to) ;
 	// Search for a card with same name & ext
@@ -713,14 +714,13 @@ function add_card(ext, name, num, nb, to) {
 		var result = null ;
 		if ( typeof this.extlist == 'string' )
 			result = this.extlist ;
-		else {
+		else
 			result = this.exts[this.extlist.value].se ;
-		}
 		return result ;
 	}
 	row.card = name ;
 	row.attrs = new Object() ;
-	if ( ( typeof num == 'number' ) && ( num > 0 ) )
+	if ( isn(num) && ( num > 0 ) )
 		row.attrs.nb = num ;
 	// Buttons
 	buttons.appendChild(img_button('edit_add', 'Add one', function(ev) { remove_card(row, -1) ; })) ;
@@ -732,15 +732,21 @@ function add_card(ext, name, num, nb, to) {
 		// Search given extension in list returned by server
 		var i = 0 ; // By default, take first extension in list if given extension doesn't exists for this card
 		if ( ! data.name )
-			log(name+' not found') ;
+			debug(name+' not found') ;
 		else {
 			if ( ! data.ext )
-				log(data.name+' has no ext') ;
+				debug(data.name+' has no ext') ;
 			else {
 				// Recieved a card, manage ext
 				var ext = extension_select(data, row.ext(), row.attrs) ;
 				row.extlist = ext ;
 				row.exts = data.ext ;
+				var cext = row.ext() ;
+				for ( var i = 0 ; i < data.ext.length ; i++ ) {
+					if ( data.ext[i].se == cext )
+						if ( ( data.ext[i].nbpics > 1 ) && ( ! isn(row.attrs.nb) ) )
+							row.attrs.nb = 1 ;
+				}
 				node_empty(row.cells[1]) ; 
 				if ( iss(ext) ) {
 					row.cells[1].appendChild(document.createTextNode(ext)) ;

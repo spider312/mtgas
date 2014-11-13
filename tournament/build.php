@@ -1,160 +1,77 @@
 <?php
 include '../lib.php' ;
-include '../includes/db.php' ;
-include '../tournament/lib.php' ;
-$id = param($_GET, 'id', 0) ;
+$id = intval(param_or_die($_GET, 'id')) ;
 $pid = param($_GET, 'pid', '') ;
-$name = param($_POST, 'name', '') ;
-$deck = param($_POST, 'deck', '') ;
-unset($_SESSION['version']) ; // Used by deck_update mechanism
-if ( $id > 0 ) {
-	$tournament = query_oneshot("SELECT * FROM `tournament` WHERE `id` = '$id' ; ", 'Tournament get') ; // Used for deck saving name
-	query("UPDATE `registration` SET `status` = '3' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;
-	$title = $tournament->name ;
-	if ( $pid == '' ) {
-		$pid = $player_id ;
-		$title = 'Building '.$tournament->name ;
-	} else
-		$title = 'Spectacting '.$tournament->name ;
-	$registration = query_oneshot("SELECT * FROM `registration` WHERE `tournament_id` = '$id' AND `player_id` = '$pid'; ", 'Tournament get') ;
-} else
-	$title = 'Building a previous tournament\'s deck' ;
-html_head($title, 
+html_head('Building #'.$id,
 	array(
 		'style.css',
+		'options.css',
+		'menu.css',
 		'tournament.css',
 		'build.css'
-	), 
+	),
 	array(
 		'lib/jquery.js'
 		, 'lib/jquery.cookie.js'
-		, 'http://github.com/betamax/getImageData/raw/master/jquery.getimagedata.min.js'
 		, 'lib/Flotr2/flotr2.min.js'
 		, 'html.js'
 		, 'math.js'
 		, 'image.js'
 		, 'deck.js'
-		, 'stats.js'
 		, 'options.js'
-		, 'tournament/build.js'
+		, 'stats.js'
+		, 'websockets.js'
+		, 'menu.js'
+		, 'spectactor.js'
 		, 'tournament/lib.js'
+		, 'tournament/limited.js'
+		, 'tournament/build.js'
 		, '../variables.js.php'
 	)
 ) ;
-if ( $id > 0 ) {
-	if ( $pid == $player_id ) 
-		echo ' <body onload="start_tournament('.$id.')">'."\n" ;
-	else
-		echo ' <body onload="start_spectactor('.$id.", '".addslashes($registration->player_id)."') ; \">\n" ;
-} else
-	echo ' <body onload="start_standalone(\''.addslashes($name)."', '".str_replace("\r\n", "\\n\\\r\n", addslashes($deck)).'\') ; ">'."\n" ;
 ?>
-  <div id="filter-color" class="section">
-<?php
-foreach ( array('X', 'W', 'U', 'B', 'R', 'G') as $color ) {
-?>
-   <label class="manacheck">
-    <img src="/themes/<?php echo $theme ; ?>/ManaIcons/<?php echo $color ; ?>.png" height="20" alt="<?php echo $color ; ?>">
-    <input id="check_c_<?php echo $color ; ?>" type="checkbox" value="<?php echo $color ; ?>" checked>
-   </label>
-<?php
-}
-?>
-   <label class="manacheck">
-    all
-    <input id="check_c_all" type="checkbox" value="<?php echo $color ; ?>">
-   </label>
-  </div>
-
-  <div id="filter-rarity" class="section">
-<?php
-foreach ( array('C', 'U', 'R') as $rarity ) {
-?>
-   <label class="manacheck">
-    <img src="/themes/<?php echo $theme ; ?>/RarityIcons/<?php echo $rarity ; ?>.gif" height="20" alt="<?php echo $rarity ; ?>">
-    <input id="check_r_<?php echo $rarity ; ?>" type="checkbox" value="<?php echo $rarity ; ?>" checked>
-   </label>
-<?php
-}
-?>
-   <label class="manacheck">
-    all
-    <input id="check_r_all" type="checkbox" value="<?php echo $color ; ?>">
-   </label>
-  </div>
-
+ <body onload="start(<?=$id;?>, '<?=$pid;?>')">
   <div id="info" class="section">
-<?php
-if ( $id > 0 ) {
-	if ( $registration->ready == 0 )
-		$checked = '' ;
-	else
-		$checked = 'checked="checked"' ;
-?>
    <input id="timeleft" type="text" value="Initializing" disabled="disabled" title="Time left for building" size="8"><br>
    <label title="Tournament starts if every player check this box before timer ends"><input id="ready" type="checkbox" <?php echo $checked ?> disabled="disabled">I'm ready</label>
-<?php
-} else {
-?>
-   <input id="save" type="button" value="Save" title="Save modifications to your deck">
-<?php
-}
-?>
-   <!--br><a href="build_alt.php?id=<?php echo $id ?>">Try new builder</a-->
   </div>
 
   <div id="stats" class="section">
    <h2>Actions</h2>
-   <button id="clear_button" title="Send all cards from deck to sideboard" disabled>Clear deck</button>
+   <button id="base_lands" title="Manage basic lands" disabled>Basic lands</button>
+   <br><label><input id="smallres_check" type="checkbox">Small resolution</label>
    <h2>Stats</h2>
-   <div id="stats_color"></div>
-   <div id="stats_cost"></div>
-   <div id="stats_type"></div>
-   <div id="stats_provide"></div>
+   <label><input id="stats_side" type="checkbox">Stats side</label>
+   <div id="stats_graphs"></div>
   </div>
 
-  <div class="section group overscroll">
-   <h2>Pool</h2>
-   <table id="pool"></table>
+  <div id="selectors" class="section"></div>
+
+  <div id="div_side" class="section">
+   <h1>Sideboard <?=ws_indicator();?></h1>
+   <table id="table_side"></table>
   </div>
-  <div class="section group overscroll">
-   <h2>Deck</h2>
-   <table id="deck"></table>
+
+  <div id="div_main" class="section">
+   <h1>MainDeck
+   <button id="clear_button" title="Send all cards from maindeck to sideboard" disabled>Clear</button>
+   </h1>
+   <table id="table_main"></table>
   </div>
-  <div class="section group overscroll">
-   <h2>Basic lands</h2>
-   <table id="land"></table>
-  </div>
-<?php
-if ( $id > 0 ) {
-?> 
+
   <div id="tournament" class="section">
-   <h2>Tournament</h2>
-   <h3>Players</h3>
+   <h2>Players</h2>
    <ul id="players_ul"></ul>
-   <h3>Log</h3>
-   <ul id="log_ul"></ul>
-   <form id="chat" action="json/log.php"><input type="text" name="msg"></form>
+   <h2>Log</h2>
+   <ul id="tournament_log"></ul>
+   <form id="chat"><input type="text" name="msg"></form>
   </div>
-<?php
-}
-?> 
 
   <div id="back" class="section">
-   <a href="../">main page</a><?php
-if ( $id > 0 ) {
-?> &gt;
-   <a href="./?id=<?php echo $id ; ?>">tournament</a>
-<?php 
-}
-?>
+   <a id="mainpage" title="Main page" href="../"><img src="/themes/<?=$theme?>/<?=$index_image?>"></a>
+   <span id="aditional_link"></span>
   </div>
 
-  <div id="zoom" class="nowrap"><!-- hidden by CSS, displayed on card hover -->
-   <img id="zoomed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Zoom on hovered card">
-   <img id="fliped" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Fliped part for zoom on hovered card">
-   <img id="transformed" src="<?php echo $cardimages_default ; ?>/back.jpg" alt="Transformed part for zoom on hovered card">
-  </div>
-  <canvas id="rotated"></canvas>
+  <div id="zoom" class="hidden nowrap"><img src="<?php echo $cardimages_default ; ?>/back.jpg"><img src="" class="hidden"></div><!-- Spaces in HTML adds text nodes -->
 <?php
 html_foot() ;

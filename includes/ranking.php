@@ -21,8 +21,9 @@ function mingames_by_period($period='') {
 	}
 }
 function ranking($period='WEEK', $plength=1) {
+	global $db ;
 	$players = array() ;
-	$r = query_as_array("SELECT
+	$r = $db->select("SELECT
 		`creator_id`, `creator_nick`, `creator_avatar`, `creator_score`,
 		`joiner_id`,`joiner_nick`, `joiner_avatar`, `joiner_score`
 	FROM `round`
@@ -48,7 +49,7 @@ function manage_round(&$players, $round, $player, $other) {
 	if ( $pid == '' ) // BYE
 		return false ;
 	if ( ! array_key_exists($pid, $players) ) {
-		$p = new simple_object() ;
+		$p = new stdClass() ;
 		$p->matches = 0 ;
 		$p->score = 0 ;
 		$players[$pid] = $p ;

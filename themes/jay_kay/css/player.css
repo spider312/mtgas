@@ -1,5 +1,8 @@
-.section {
-	margin: 2%;
+div.section {
+	width: 96% ;
+	margin-left: 2% ;
+	margin-bottom: 2% ;
+	margin-top: 25px ;
 }
 td a {
 	display: block ;

@@ -10,6 +10,7 @@ theme = '<?php echo $theme ; ?>' ;
 cardimages = localStorage['cardimages'] ;
 cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 default_avatar = '<?php echo $default_avatar ; ?>' ;
+wsport = <?=$wsport;?> ;
 
 // Options
 	// Lang
@@ -69,7 +70,6 @@ if ( applangs[lang] )
 else
 	applang = 'en' ;
 
-
 // Index
 draft_formats = <?php echo JSON_encode($suggest_draft) ; ?> ;
 sealed_formats = <?php echo JSON_encode($suggest_sealed) ; ?> ;
@@ -108,10 +108,6 @@ cardheight = 80 ;
 cardhandspace = 30 ;
 place_offset = 2 ; // Offset on gris when "placing" cards (if "0, 0" is occupied, then try "0, offset", then "0, 2*offset" ... "offset, 0", "offset, offset"
 
-// Timers (in ms)
-game_list_timer = 1000 ;
-create_timer = 1000 ;
-ajax_interval = 1000 ; // ms between ajax calls
-tournament_timer = 1000 ; // Tournament index refresh
-draft_timer = 1000 ; // Draft refresh
-sealed_timer = 1000 ; // Sealed refresh, give 30 secs before redirects attempts (when player didn't finish build)
+// Ingame timers during tournament
+timer_notice_time = 20 ;
+timer_alert_time = 10 ;

@@ -1,23 +1,14 @@
-#log_ul {
-	overflow-y: auto ;
-	height: 70% ;
-	padding: 0;
-	margin: 0;
-	list-style-type: none ;
-	font-style: italic ;
+.column {
+	width: 48% ;
+	padding: 1% ;
+	float: left ;
 }
-#log_ul li.chat {
-	font-style: normal ;
-}
-#log_ul li:hover {
-	background-color: #F4ECD2 ;
-}
-#log_ul .linetime {
+#tournament_log .linetime {
 	display: inline ;
 	float: right ;
 	font-style: normal ;
 	color: #907C6C ;
 }
-#log_ul li:hover span {
+#tournament_log li:hover .linetime { /* Change linetime color on li hover */
 	color: black ;
 }

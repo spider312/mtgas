@@ -11,7 +11,7 @@ else
   <title>MTGAS : Avatars gallery</title>
 <script type="text/javascript">
 function select(file) {
-	var field = window.opener.document.getElementById('profile_avatar') ;
+	var field = window.opener.document.getElementById('option_profile_avatar') ;
 	field.value = file ;
 	var e = document.createEvent('HTMLEvents');
 	e.initEvent('change', true, true);

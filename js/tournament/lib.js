@@ -1,77 +1,4 @@
-// Tournament specific methods (shared between index and tournament play page)
-function tournament_constructed(type) {
-	switch ( type ) {
-		case 'draft' :
-		case 'sealed' :
-			return false ;
-		case 'vintage' :
-		case 'legacy' :
-		case 'modern' :
-		case 'extend' :
-		case 'standard' :
-		case 'edh' :
-			return true ;
-		default :
-			return null ;
-	}
-}
-function tournament_limited(type) {
-	switch ( type ) {
-		case 'draft' :
-		case 'sealed' :
-			return true ;
-		case 'vintage' :
-		case 'legacy' :
-		case 'modern' :
-		case 'extend' :
-		case 'standard' :
-		case 'edh' :
-			return false ;
-		default :
-			return null ;
-	}
-}
-function player_status(stat, ready) {
-	var result = 'Initializing' ;
-	switch ( parseInt(stat) ) {
-		case 0 :
-			result = 'Waiting' ;
-			break;
-		case 1 :
-			result = 'Redirecting' ;
-			break;
-		case 2 :
-			if ( ready == 1 )
-				result = 'Finished drafting' ;
-			else
-				result = 'Drafting' ;
-			break;
-		case 3 :
-			if ( ready == 1 )
-				result = 'Finished building' ;
-			else
-				result = 'Building' ;
-			break;
-		case 4 :
-			if ( ready == 1 )
-				result = 'Finished playing' ;
-			else
-				result = 'Playing' ;
-			break;
-		case 5 :
-			result = 'Ended' ;
-			break;
-		case 6 :
-			result = 'BYE' ;
-			break;
-		case 7 :
-			result = 'Dropped' ;
-			break;
-		default : 
-			result = 'Unknown status : '+stat ;
-	}
-	return result ;
-}
+// tournament/lib.js
 function tournament_status(stat) {
 	var result = 'Initializing' ;
 	switch ( parseInt(stat) ) {
@@ -101,245 +28,265 @@ function tournament_status(stat) {
 	}
 	return result ;
 }
-function tournament_init(id) {
-	players_ul = document.getElementById('players_ul') ;
-	loglength = 0 ;
-	document.getElementById('tournament').addEventListener('mouseover', function(ev) {
-		ev.target.classList.remove('highlight') ;
-	}, false) ;
-	tournament_log_init(id) ;
-}
-function tournament_players_update(data) {
-	if ( iso(data.players)) {
-		node_empty(players_ul) ;
-		for ( var i = 0 ; i < data.players.length ; i++ ) {
-			var player = data.players[i] ;
-			var cb = create_checkbox('', player.ready != '0') ;
-			cb.disabled = true ;
-			var li = create_li(cb) ;
-			var txt = player.nick ;
-			if ( isn(player.deck_obj.main.length) )
-				txt += ' : '+player.deck_obj.main.length
-			li.appendChild(document.createTextNode(txt)) ;
-			if ( player.player_id == player_id )
-				li.classList.add('self') ;
-			players_ul.appendChild(li) ;
-		}
-	}
-}
-tid = 0 ;
-function tournament_log_init(id) {
-	tid = id ;
-	tournament_log = document.getElementById('log_ul') ;
-	document.getElementById('chat').addEventListener('submit', function(ev) {
-		ev.preventDefault() ;
-		if ( ev.target.msg.value == '' )
-			return false ;
-		$.getJSON(ev.target.action, {'id': id, 'msg': ev.target.msg.value}, function(data) {
-			if ( data.nb != 1 )
-				alert(data.nb+' affected rows') ;
-			else
-				ev.target.msg.value = '' ;
-		}) ;
-	}, false) ;
-	spectactors = new Spectactors() ;
-}
-function tournament_log_update(data) {
-	if ( iso(data.log) && ( data.log.length > loglength ) ) {
-		if ( tournament_log.children.length != 0 ) // Some messages already recieved
-			document.getElementById('tournament').classList.add('highlight') ;
-		loglength = data.log.length ;
-		tournament_spectactors(data.log, spectactors) ; // Populate from log
-		tournament_log_ul(tournament_log, data.log, data.players, spectactors) ;
-	}
-}
-function tournament_log_li(line, nick, players, spectactors) {
-	var msg = 'default message' ;
-	var className = null ;
-	switch ( line.type ) {
-		case 'create' :
-			if ( iss(line.value) && ( line.value != '' ) )
-				nick = line.value ;
-			else
-				nick = '['+nick+']' ;
-			msg = 'Tournament created by '+nick ;
-			break ;
-		case 'register' :
-			if ( iss(line.value) && ( line.value != '' ) )
-				nick = line.value ;
-			else
-				nick = '['+nick+']' ;
-			msg = nick+' registered' ;
-			break ;
-		case 'unregister' :
-			if ( iss(line.value) && ( line.value != '' ) )
-				nick = line.value ;
-			else
-				nick = '['+nick+']' ;
-			msg = nick+' unregistered' ;
-			break ;
-		case 'players' :
-			msg = 'Tournament has enough players' ;
-			break ;
-		case 'spectactor' :
-			var li = create_li(nick+' joined as spectactor') ;
-			var p = player_get(players, $.cookie(session_id)) ;
-			var s = spectactors.get(line.sender) ;
-			var cb = null ;
-			var allow_button_callback = function(ev) {
-				if ( s == null )
-					return false ;
-				s.allow($.cookie(session_id)) ;
-				$.getJSON('json/allow.php', {'id': tid, 'spectactor': line.sender}, function(data) {
-					if ( data.nb != 1 )
-						alert(data.nb+' affected rows') ;
-				}) ;
-				if ( (cb != null ) && cb.checked ) // Allow forever
-					spectactor_allow_forever(line.sender, line.value) ;
-			}
-			if ( ( p != null ) && ( ! s.is_allowed($.cookie(session_id)) ) ) {
-				if ( spectactor_is_allowed_forever(line.sender) )
-					allow_button_callback() ;
-				else {
-					cb = create_checkbox('allow') ;
-					var button = create_button(create_text('Allow'), allow_button_callback) ;
-					span = create_span(
-						button, 
-						create_label(null, cb, 'Forever')
-					) ;
-					li.appendChild(span) ;
-				}
-			}
-			//return li ;
-			break ;
-		case 'allow' :
-			var s = spectactors.get(line.value) ;
-			msg = nick+' allowed '+s.nick ;
-			break ;
+function tournament_constructed(type) {
+	switch ( type ) {
 		case 'draft' :
-			msg = 'Draft started' ;
-			break ;
-		case 'build' :
-			msg = 'Build started' ;
-			startdate = mysql2date(line.timestamp) ;
-			break ;
-		case 'save' :
-			msg = nick+' saved a deck' ;
-			break ;
-		case 'ready' :
-			if ( line.value == '1' )
-				msg = nick+' is ready ('+time_disp(Math.round((mysql2date(line.timestamp)-startdate)/1000))+')' ;
-			else
-				msg = nick+' isn\'t ready anymore' ;
-			break ;
-		case 'start' :
-			msg = 'Tournament started' ;
-			break ;
-		case 'win' :
-			msg = nick+' won its match' ;
-			break ;
-		case 'round' :
-			msg = 'Round '+line.value+' started' ;
-			break ;
-		case 'end' :
-			msg = 'Tournament ended' ;
-			if ( line.sender != '' ) // Old fashion winner
-				msg += ', congratulations to '+nick ;
-			else
-				msg += ', can\'t fnid a winner' ;
-			break ;
-		case 'msg' :
-			msg = nick+': '+line.value ;
-			className = 'chat' ;
-			break ;
+		case 'sealed' :
+			return false ;
+		case 'vintage' :
+		case 'legacy' :
+		case 'modern' :
+		case 'extend' :
+		case 'standard' :
+		case 'edh' :
+			return true ;
 		default :
-			msg = line.type+' : '+line.value+' (raw)' ;
+			return null ;
 	}
-	if ( ! li )
-		var li = create_li(msg, className) ;
-	var span = create_span(timeWithDays(mysql2date(line.timestamp))) ;
-	span.classList.add('linetime') ;
-	li.appendChild(span) ;
-	//li.title = mysql2date(line.timestamp).toLocaleTimeString() ;
-	return li ;
-
 }
-function tournament_log_ul(tournament_log, log, players, spectactors) {
-	if ( log[log.length-1].id == game.last_log_id ) // Cache last log id, only refresh log when it change
-		return false ;
-	var scrbot = tournament_log.scrollHeight - ( tournament_log.scrollTop + tournament_log.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
-	node_empty(tournament_log) ;
-	var startdate = new Date(0) ;
-	while ( log.length > 0 ) {
-		line = log.shift() ;
-		last_id = parseInt(line.id) ;
-		if ( line.sender == '' )
-			nick = 'Server' ;
-		else {
-			nick = line.sender ;
-			var p = player_get(players, line.sender) ;
-			if ( p != null )
-				nick = p.nick ;
-			else {
-				var s = spectactors.get(line.sender) ;
-				if ( s != null )
-					nick = s.nick ;
+// Class
+function Tournament(id) {
+	this.id = id ;
+	this.fields = ['id', 'creation_date', 'format', 'name', 'min_players', 'status', 'round', 'update_date', 'due_time', 'data', 'games'] ;
+	this.players = [] ;
+	this.me = null ;
+	this.logs = [] ;
+	this.hook_recieve = [] ;
+	if ( isf(this.recieved) )
+		this.hook_recieve.push(this.recieved) ;
+	if ( isf(this.display) )
+		this.hook_recieve.push(this.display) ;
+	this.recieve = function(data) {
+		// Players
+		for ( var i = 0 ; i < data.players.length ; i++ ) {
+			var player = this.get_player(data.players[i].player_id) ;
+			if ( player == null ) {
+				player = new Player(data.players[i])
+				this.players.push(player) ;
+			} else
+				player.recieve(data.players[i]) ;
+			if ( player.me ) {
+				this.me = player ;
+				spectactor = false ;
+				game.player = player ;
 			}
 		}
-		tournament_log.appendChild(tournament_log_li(line, nick, players, spectactors)) ;
-		game.last_log_id = line.id ;
-	}
-	// Scroll
-	if ( scrbot == 0 )
-		tournament_log.scrollTop = tournament_log.scrollHeight
-}
-function tournament_spectactors(log, spectactors) {
-	for ( var i = 0 ; i < log.length ; i++ ) {
-		var line = log[i] ;
-		if ( line.type == 'spectactor' )
-			spectactors.add(line.sender, line.value) ; // Duplicate managed in add
-		if ( line.type == 'allow' ) {
-			var s = spectactors.get(line.value) ;
-			s.allow(line.sender) ;
+		// Spectators
+		for ( var i = 0 ; i < data.spectators.spectators.length ; i++ ) {
+			var spectator = data.spectators.spectators[i] ;
+			game.spectators.add(spectator.player_id, spectator.nick) ;
 		}
+		var button = document.getElementById('spectators') ;
+		if ( button != null )
+			button.disabled = ( i == 0 ) ;
+		// Logs
+		for ( var i = 0 ; i < data.logs.length ; i++ ) {
+			var lid = data.logs[i].id ;
+			if ( this.logs[lid] )
+				this.logs[lid].recieve(data.logs[i]) ;
+			else
+				this.logs[lid] = new Log(data.logs[i]) ;
+		}
+		// Fields + display
+		recieve.call(this, data) ; // After the rest as it will access to players
 	}
-}
-function player_get(players, id) {
-	for ( var i in players )
-		if ( players[i].player_id == id )
-			return players[i] ;
-	return null ;
-}
-function Spectactor(id, nick) {
-	this.id = id ;
-	this.nick = nick ;
-	this.joined = false ;
-	this.allowed = [] ;
-	this.allow = function(player) {
-		if ( this.is_allowed(player) ) 
-			return false ;
-		this.allowed.push(player) ;
-		prev_data = '' ; // Reinit cache, in order timer to rebuild players table, adding the 'view' option
-		return true ;
-	}
-	this.is_allowed = function(player) {
-		return ( this.allowed.indexOf(player) != -1 ) ;
-	}
-}
-function Spectactors() {
-	this.spectactors = [] ;
-	this.add = function(id, nick) {
-		var s = this.get(id) ; // Don't create if already in list
-		if ( s != null )
-			return s ;
-		var s = new Spectactor(id, nick) ;
-		this.spectactors.push(s) ;
-		return s ;
-	}
-	this.get = function (id) {
-		for ( var i in this.spectactors )
-			if ( this.spectactors[i].id == id )
-				return this.spectactors[i] ;
+	this.get_player = function(id) {
+		for ( var i = 0 ; i < this.players.length ; i++ )
+			if ( id == this.players[i].player_id )
+				return this.players[i] ;
 		return null ;
 	}
+	this.toString = function() { return 'Tournament('+this.id+')' ; }
+	// Initialise chat
+	var chat = document.getElementById('chat')
+	chat.addEventListener('submit', function(ev) {
+		ev.preventDefault() ;
+		ev.target.msg.focus() ;
+		if ( ev.target.msg.value == '' )
+			return false ;
+		game.connection.send('{"type": "msg", "msg": '+JSON.stringify(ev.target.msg.value)+'}') ;
+		ev.target.msg.value = '' ;
+	}, false) ;
+	chat.focus() ;
+}
+function Player(data) {
+	// Methods
+	this.recieve = recieve ;
+	this.avatar_url = function() {
+		if ( this.avatar.substr(0, 4) == 'http' )
+			return this.avatar ;
+		else
+			return '../'+this.avatar ;
+	}
+	this.verbose_status = function() {
+		var statuses = ['Waiting', 'Redirecting', 'Drafting', 'Building', 'Playing',
+			'Ended', 'BYE', 'Dropped'] ;
+		var idx = parseInt(this.status) ;
+		if ( statuses[idx] ) {
+			var result = statuses[idx] ;
+			if ( this.ready == 1 )
+				result = 'Finished '+result ;
+		} else
+			return  'Unknown status : '+this.status ;
+		return result ;
+	}
+	this.toString = function() { return 'Player('+this.nick+')' ; }
+	this.get_name = function() { return this.nick ; }
+	// Init
+	this.fields = ['player_id', 'nick', 'avatar', 'deck', 'deck_obj', 'deck_cards', 'side_cards',
+		'order', 'type', 'status', 'ready'] ;
+	this.node = null ;
+	this.me = ( data.player_id == player_id ) ;
+	this.hook_recieve = [] ;
+	if ( isf(this.recieved) )
+		this.hook_recieve.push(this.recieved) ;
+	if ( isf(this.display) )
+		this.hook_recieve.push(this.display) ;
+	this.recieve(data) ;
+	this.id = this.player_id ;
+}
+function Log(data) {
+	this.fields = ['id', 'sender', 'type', 'value', 'timestamp'] ;
+	this.node = null ;
+	this.recieve = recieve ;
+	this.toString = function() { return 'Log('+this.id+')' ; }
+	this.update_node = function(node, parentNode) {
+		if ( this.node == null )
+			parentNode.appendChild(node) ;
+		else
+			this.node.parentNode.replaceChild(node, this.node) ;
+		this.node = node ;
+	}
+	this.generate = function() {
+		var nick = this.sender ;
+		if ( nick == '' )
+			nick = 'Server' ;
+		else {
+			var p = game.tournament.get_player(this.sender) ;
+			if ( p )
+				nick = p.nick ;
+			else {
+				var s = game.spectators.get(this.sender) ;
+				if ( s != null )
+					nick = s.name ;
+			}
+		}
+		var span = create_span() ;
+		var li = create_li(span) ;
+		li.title = mysql2date(this.timestamp).toLocaleTimeString() ;
+		switch ( this.type ) {
+			case 'create' :
+				if ( iss(this.value) && ( this.value != '' ) )
+					nick = this.value ;
+				else
+					nick = '['+nick+']' ;
+				msg = 'Tournament created by '+nick ;
+				break ;
+			case 'register' :
+				if ( iss(this.value) && ( this.value != '' ) )
+					nick = this.value ;
+				else
+					nick = '['+nick+']' ;
+				msg = nick+' registered' ;
+				break ;
+			case 'unregister' :
+				if ( iss(this.value) && ( this.value != '' ) )
+					nick = this.value ;
+				else
+					nick = '['+nick+']' ;
+				msg = nick+' unregistered' ;
+				break ;
+			case 'players' :
+				msg = 'Tournament has enough players' ;
+				break ;
+			case 'spectactor' :
+				msg = nick+' joined as spectactor' ;
+				if ( iso(s) && ( game.tournament.get_player(player_id) != null ) )
+					li.insertBefore(s.allow_span('Allow'), span.nextSibling);
+				break ;
+			case 'allow' :
+				var s = game.spectators.get(this.value) ;
+				if ( s != null )
+					s.allow(p) ;
+				msg = nick+' allowed '+s.name ;
+				break ;
+			case 'draft' :
+				msg = 'Draft started' ;
+				break ;
+			case 'build' :
+				msg = 'Build started' ;
+				startdate = mysql2date(this.timestamp) ;
+				break ;
+			case 'save' :
+				msg = nick+' saved a deck' ;
+				break ;
+			case 'ready' :
+				if ( this.value == '1' )
+					msg = nick+' is ready' ;
+					// ('+time_disp(Math.round((mysql2date(this.timestamp)-startdate)/1000))+')' ;
+				else
+					msg = nick+' isn\'t ready anymore' ;
+				break ;
+			case 'start' :
+				msg = 'Tournament started' ;
+				break ;
+			case 'win' :
+				msg = nick+' won its match' ;
+				break ;
+			case 'round' :
+				msg = 'Round '+this.value+' started' ;
+				break ;
+			case 'end' :
+				msg = 'Tournament ended' ;
+				if ( this.sender != '' ) // Old fashion winner
+					msg += ', congratulations to '+nick ;
+				else
+					msg += ', can\'t fnid a winner' ;
+				break ;
+			case 'cancel' :
+				msg = 'Tournament canceled : '+this.value ;
+				break ;
+			case 'msg' :
+				msg = nick+': '+this.value ;
+				li.classList.add('chat') ;
+				break ;
+			default :
+				msg = this.type+' : '+this.value+' (raw)' ;
+		}
+		span.appendChild(create_text(msg)) ;
+		return li ;
+	}
+	this.hook_recieve = [] ;
+	if ( isf(this.recieved) )
+		this.hook_recieve.push(this.recieved) ;
+	if ( isf(this.display) )
+		this.hook_recieve.push(this.display) ;
+	this.recieve(data) ;
+}
+function recieve(data) { // Recieved updated object
+	var changed = [] ;
+	for ( var i = 0 ; i < this.fields.length ; i++ ) {
+		var field = this.fields[i] ;
+		if ( ! isset(data[field]) ) // Didn't recieved wanted field (recieved only deck)
+			continue ;
+		if ( iso(this[field]) && iso(data[field]) ) { // Compare JSON way
+			var lf = JSON.stringify(this[field]) ;
+			var df = JSON.stringify(data[field]) ;
+		} else {
+			var lf = this[field] ;
+			var df = data[field] ;
+		}
+		if ( lf != df ) {
+			this[field] = data[field] ; // Update field
+			changed.push(field) ;
+		}
+	}
+	for ( var i = 0 ; i < this.hook_recieve.length ; i++ ) {
+		var func = this.hook_recieve[i] ;
+		if ( isf(func) )
+			func.call(this, changed) ;
+		else
+			debug(func+' is not a function') ;
+	}
+	return changed ;
 }

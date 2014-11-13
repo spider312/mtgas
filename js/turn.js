@@ -238,6 +238,7 @@ function Turn(game) {
 					menu.addline('Flip a coin',	flip_coin) ;
 					menu.addline() ;
 					menu.addline('Watch sideboard',	card_list_edit,	game.player.sideboard) ;
+					menu.addline('Spectators', game.spectators.menu()) ;
 					menu.addline() ;
 					if ( tournament > 0 )
 						menu.addline('Tournament', function() { window.open('tournament/?id='+tournament) ; }) ;
@@ -420,6 +421,8 @@ function Turn(game) {
 							card.boost_bf_enable(card.attrs.boost_bf[j]) ;
 			}
 		}
+		game.player.battlefield.refresh_pt() ;
+		game.opponent.battlefield.refresh_pt() ;
 		// Targets
 		game.target.clean(3) ;
 		// Set turn
@@ -809,8 +812,10 @@ function steps_init(turn) {
 			if ( ! spectactor )
 				func_draw = function(plop) {
 					nb = prompt_int('Number of cards to draw on draw step', game.player.attrs.draw) ;
-					if ( nb >= 0 )
+					if ( nb >= 0 ) {
 						game.player.attrs.draw = nb ;
+						game.player.sync() ;
+					}
 				}
 			menu.addline('Cards drawn : '+game.player.attrs.draw, func_draw, this.thing) ;
 		})
@@ -971,7 +976,7 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 		for ( var i in defending_player.battlefield.cards ) { // Sum
 			var card = defending_player.battlefield.cards[i] ;
 			if ( card.attacking && // Attacking creatures
-			card.has_attr('lifelink') ) { // With lifelink's
+			card.has_attr('lifelink') && card.lifelink ) { // With lifelink
 				var pow = card.get_pow_total() ;
 				if ( card.attrs.double_strike )
 					pow *= 2 ;

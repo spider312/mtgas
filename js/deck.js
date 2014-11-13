@@ -112,7 +112,7 @@ function deck_set(name, content) {
 		return false ;
 	name = name.replace(/([,'\s]+)/g, '_') ;
 	// Content checking
-	content = deck_xml_to_mw(content) ;
+	//content = deck_xml_to_mw(content) ;
 	// Deck creation
 	var decks = decks_get() ;
 	if ( decks.indexOf(name) == -1 ) {

@@ -10,13 +10,7 @@
 	transition: all 0.2s ;
 	transition-timing-function: ease ;
 }
-#options_hider * { /* Option window animations */
-	overflow: hidden ;
-}
-#options_hider #options_content {
-	overflow: visible ;
-}
-input, button {
+input, button, .noanim, .menu {
 	transition: none 0s ;
 }
 body {
@@ -59,6 +53,7 @@ h2{
 h3, h4, h5, h6 {
 	padding-left: 10px ;
 	margin-top: 5px ;
+	margin-bottom: 1px ;
 }
 p > input, p > button {
 	margin-left: 5px ;
@@ -79,9 +74,7 @@ a:visited {
 a:hover {
 	color: dimgrey ;
 }
-/*
- *
- **/
+/* Mogg specific generic classes */
 header {
 	background:url('../images/header_bar.png') repeat-x center;
 	border-width: 0 0 1px !important ;
@@ -104,6 +97,10 @@ header a:hover {
 header a:active {
 	color : #1F1A14 !important ;
 }
+#mainpage img {
+	height: 48px ;
+	vertical-align: middle ;
+}
 #identity_shower {
 	float: right ;
 	cursor: pointer ;
@@ -111,6 +108,11 @@ header a:active {
 #identity_shower img#avatar {
 	vertical-align: middle ;
 	height: 30px ;
+}
+.section { /* Colorized background */
+	background-color: #b89f8b ;
+	border: 1px solid #d5c2b3 ;
+	box-shadow: 0 0 5px 3px #000000;
 }
 /***************************
  * General purpose classes *
@@ -121,22 +123,11 @@ header a:active {
 .nowrap {
 	white-space: nowrap ;
 }
-.section { /* Colorized background */
-	background-color: #b89f8b ;
-	border: 1px solid #d5c2b3 ;
-	box-shadow: 0 0 5px 3px #000000;
-}
 .overscroll {
 	overflow: auto ;
 }
 .hidden {
 	display: none ;
-}
-/*
-
-*/
-#tail td {
-	background-color: #EADAA2 ;
 }
 .yes, .yes * {
 	background-color: lightgreen !important ;
@@ -150,3 +141,4 @@ header a:active {
 .duno, .duno * {
 	background-color: lightgray !important ;
 }
+

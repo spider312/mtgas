@@ -21,13 +21,6 @@ menu_add(__('menu.gui'), '/doc/GUI.php', __('menu.gui.title')) ;
 menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title')) ;
 menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title')) ;
 
-// MySQL
-$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
-if ( ! $mysql_connection )
-	die('Connection failed : '.mysql_error()) ;
-if ( ! mysql_select_db($mysql_db, $mysql_connection) )
-	die('Selection failed : '.mysql_error()) ;
-
 // Session
 $session_id = $appname.'playerid' ;
 session_name($session_id) ;

@@ -1,647 +1,702 @@
-function start_spectactor(id, pid) {
-	player_id = pid
-	init() ;
-	$.getJSON('json/deck.php', {'id': id, 'player_id': player_id}, function(obj) { // Get deck as JS object
-		obj.side = obj.side.filter(filter_lands, 'sb') ;
-		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
-		disp_side(obj.side, pool) ;
-		obj.main = obj.main.filter(filter_lands, 'md') ;
-		disp_side(obj.main, deck) ;
-		poolcards = obj ;
-		tournament_init(id) ;
-		timer(id, true) ;
-	}) ;
-}
-function start_tournament(id) { // Start all that is only related to current tournament
-	init() ;
-	player_id = $.cookie(session_id) ;
-	// Events
-	ready.addEventListener('change', function(ev) {
-		$.getJSON('json/ready.php', {'id': id, 'ready': ev.target.checked+0}) ;
-	}, false) ;
-	var ready_label = ready.parentNode ;
-	ready_label.addEventListener('click', function(ev) {
-		if ( ready.disabled && confirm('Are you sure you are ready ? ('+poolcards.main.length+'cards in your library)') )
-			ready.disabled = false ;
-	}, false) ;
-	// Deck mw -> json (after creating lands because they will be filtered)
-	$.getJSON('json/deck.php', {'id': id}, function(obj) { // Get deck as JS object
-		obj.side = obj.side.filter(filter_lands, 'sb') ;
-		obj.side.sort(alpha_sort) ; // In limited, sort pool cards alphabetically to regroup them
-		obj.main = obj.main.filter(filter_lands, 'md') ;
-		disp_side(obj.side, pool) ;
-		disp_side(obj.main, deck) ;
-		poolcards = obj ;
-		tournament_init(id) ;
-		// Apply at startup what is applied after each save
-		if ( poolcards.main.length > 39 )
-			ready.removeAttribute('disabled') ;
-		else
-			if ( ready.checked ) {
-				ready.checked = false ;
-				$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
-			}
-		timer(id, false) ;
-	}) ;
-	clear_button.disabled = false ;
-}
-function start_standalone(deckname, deckcontent) {
-	init() ;
-	document.getElementById('save').addEventListener('click', function(ev) {
-		deckname = prompt('Deck name', deckname) ;
-		if ( name != null )
-			deck_set(deckname, '// Deck file for Magic Workstation created with mogg.fr\n// NAME : '+deckname+'\n'+obj2deck(clone_deck(poolcards))) ;
-	}, false) ;
-	$.post('json/deck.php', {'deck': deckcontent}, function(obj) { // Get deck as JS object
-		obj.side = obj.side.filter(filter_lands, 'sb') ;
-		disp_side(obj.side, pool) ;
-		obj.main = obj.main.filter(filter_lands, 'md') ;
-		disp_side(obj.main, deck) ;
-		poolcards = obj ;
-	}, 'json') ;
-	clear_button.disabled = false ;
-}
-function init() {
-	// Initialisations
-	game = new Object() ;
-	game.image_cache = new image_cache() ;
-	game.options = new Options() ;
-	pool = document.getElementById('pool') ;
-	deck = document.getElementById('deck') ;
+function start(id, pid) {
+	table_side = document.getElementById('table_side') ;
+	table_main = document.getElementById('table_main') ;
 	land = document.getElementById('land') ;
 	zoom = document.getElementById('zoom') ;
-	zoomed = document.getElementById('zoomed') ;
-	fliped = document.getElementById('fliped') ;
-	transformed = document.getElementById('transformed') ;
-	zoomed.width = cardimagewidth ;
-	fliped.width = cardimagewidth ;
-	transformed.width = cardimagewidth ;
 	ready = document.getElementById('ready') ;
-	tournament = null ;
-	ajax_error_management() ;
-	poolcards = null ;
-	spectactor = true ;
-	clear_button = document.getElementById('clear_button') ;
-	if ( clear_button != null )
-		clear_button.addEventListener('click', function(ev) {
-			poolcards.side = poolcards.side.concat(poolcards.main) ;
-			poolcards.main = [] ;
-			disp_side(poolcards.side, pool) ;
-			disp_side(poolcards.main, deck) ;
-			silent_save() ;
-		}, false)
-	// Link between mana colors array and mana color checks
-	manacolors = ['X', 'W', 'U', 'B', 'R', 'G'] ;
-	active_color = {} ;
-	for ( var i in manacolors ) {
-		var color = manacolors[i] ;
-		var check = document.getElementById('check_c_'+color) ;
-		active_color[color] = check.checked ;
-		label_check(check) ;
-		check.addEventListener('change', function(ev) {
-			active_color[ev.target.value] = ev.target.checked ;
-			label_check(ev.target) ;
-			disp_side(poolcards.side, pool) ;
-			check_all_c() ;
-		}, false) ;
-		check.previousElementSibling.addEventListener('dblclick', function(ev) { // Double click : select only that one
-			for ( var i in manacolors ) {
-				var color = manacolors[i] ;
-				var check = document.getElementById('check_c_'+color) ;
-				check.checked = ( check == ev.target.nextElementSibling ) ;
-				active_color[check.value] = check.checked ;
-				label_check(check) ;
-			}
-			disp_side(poolcards.side, pool) ;
-			ev.preventDefault() ;
-		}, false) ;
-		check.previousElementSibling.addEventListener('contextmenu', function(ev) { // Right click : select all but that one
-			for ( var i in manacolors ) {
-				var color = manacolors[i] ;
-				var check = document.getElementById('check_c_'+color) ;
-				check.checked = ( check != ev.target.nextElementSibling ) ;
-				active_color[check.value] = check.checked ;
-				label_check(check) ;
-			}
-			disp_side(poolcards.side, pool) ;
-			ev.preventDefault() ;
-		}, false) ;
-	}
-		// Link between mana colors checks and "all" check
-	check_all_c() ;
-	label_check(document.getElementById('check_c_all')) ;
-	document.getElementById('check_c_all').addEventListener('change', function(ev) {
-		label_check(ev.target) ;
-		for ( var i in manacolors ) {
-			var color = manacolors[i] ;
-			var check = document.getElementById('check_c_'+color) ;
-			check.checked = ev.target.checked ;
-			label_check(check) ;
-			active_color[color] = check.checked ;
-		}
-		disp_side(poolcards.side, pool) ;
-	}, false) ;
-		// Link between rarities array and rarity check
-	rarities = ['C', 'U', 'R'] ;
-	active_rarity = {} ;
-	for ( var i in rarities ) {
-		var rarity = rarities[i] ;
-		var check = document.getElementById('check_r_'+rarity) ;
-		active_rarity[rarity] = check.checked ;
-		label_check(check) ;
-		check.addEventListener('change', function(ev) {
-			active_rarity[ev.target.value] = ev.target.checked ;
-			label_check(ev.target) ;
-			disp_side(poolcards.side, pool) ;
-			check_all_r() ;
-		}, false) ;
-	}
-		// Link between rarity checks and "all" check
-	check_all_r() ;
-	label_check(document.getElementById('check_r_all')) ;
-	document.getElementById('check_r_all').addEventListener('change', function(ev) {
-		label_check(ev.target) ;
-		for ( var i in rarities ) {
-			var rarity = rarities[i] ;
-			var check = document.getElementById('check_r_'+rarity) ;
-			check.checked = ev.target.checked ;
-			label_check(check) ;
-			active_rarity[rarity] = check.checked ;
-		}
-		disp_side(poolcards.side, pool) ;
-	}, false) ;
-		// Basic lands
-	lands = [] ;
-	function landbase(id, name, mana) {
-		return {'id': id, 'name': name, 'ext': 'UNH', 'rarity': 'L', 'attrs': {'color': 'X', 'color_index': 1, 'types': ['land'], 'supertypes': ['basic'], 'provide': [mana]}, toString: function() { return this.name+"\n" ; } } ;
-	}
-	arr = [
-		landbase(3332, 'Forest', 'G'),
-		landbase(4621, 'Island', 'U'),
-		landbase(6020, 'Mountain', 'R'),
-		landbase(6871, 'Plains', 'W'),
-		landbase(9266, 'Swamp', 'B')
-	] ;
-	var land_main = create_tr(land) ;
-	var land_side = create_tr(land) ;
-	for ( var i in arr ) {
-		var card = arr[i] ;
-		lands.push(card) ;
-		var td = create_td(land_main, land_div(card, 'md')) ;
-		td.title = 'Maindeck '+arr[i].name ;
-		td.title += ', click to add, right click to remove one, middle click to remove all' ;
-		var td = create_td(land_side, land_div(card, 'sb')) ;
-		td.title = 'Sideboard '+arr[i].name ;
-		td.title += ', click to add, right click to remove one, middle click to remove all' ;
-	}
-}
-// Timer loop
-started = null ; // Is tournament already started when user loads page
-function timer(id, s) {
-	spectactor = s ;
-	$.getJSON('json/tournament.php', {'id': id, 'firsttime': true}, function(data) { // Get time left
-		tournament = data ;
-		if ( ( ! spectactor ) && ( data.status != 4 ) ) // If tournament isn't in "building" status, go back to tournament index (that will normally redirect to build)
-			window.location.replace('index.php?id='+id) ;
-		else {
-			window.setTimeout(timer, sealed_timer, id, spectactor) ; // Refresh in 30 secs
-			document.getElementById('timeleft').value = time_disp(parseInt(data.timeleft)) ;
-			tournament_players_update(data) ;
-			tournament_log_update(data) ;
-			if ( data.log.length > 0 ) { // First recieved object doesn't contain log
-				for ( var i = 0 ; i < data.log.length ; i++ )
-					if ( data.log[i].type == 'start' ) {
-						if ( started == null )
-							started = true ; // tournament is already started
-						else if ( ! started ) // Not started yet, but recieving this means we need redirection
-							window.location.replace('index.php?id='+id) ;
-					}
-				if ( started == null )
-					started = false // After reading all log messages, we know if game is already started at page load
-			}
-			if ( spectactor )
-				for ( var i = 0 ; i < data.players.length ; i++ ) {
-					var player = data.players[i] ;
-					if ( player.player_id == player_id ) { // Self
-						var rdeck = clone_deck(poolcards) ; // poolcards doesn't count land base
-						rdeck.main.sort(alpha_sort) ;
-						rdeck.side.sort(alpha_sort) ;
-						player.deck_obj.main.sort(alpha_sort) ;
-						player.deck_obj.side.sort(alpha_sort) ;
-						var dt1 = obj2deck(player.deck_obj) ;
-						var dt2 = obj2deck(rdeck) ;
-						if ( dt1 != dt2 ) {
-							// Reinit lands (filled by filter_lands)
-							for ( var i in lands ) {
-								document.getElementById('md'+lands[i].name).value = 0 ;
-								document.getElementById('sb'+lands[i].name).value = 0 ;
-							}
-							poolcards = player.deck_obj ;
-							poolcards.side = poolcards.side.filter(filter_lands, 'sb') ;
-							disp_side(poolcards.side, pool) ;
-							poolcards.main = poolcards.main.filter(filter_lands, 'md') ;
-							disp_side(poolcards.main, deck) ;
-						}
-					}
-				}
-		}
+	TournamentBuild.prototype = new TournamentLimited() ;
+	Tournament.prototype = new TournamentBuild() ;
+	PlayerBuild.prototype = new PlayerLimited() ;
+	Player.prototype = new PlayerBuild() ;
+	LogBuild.prototype = new LogLimited() ;
+	Log.prototype = new LogBuild() ;
+	game = {} ;
+	game.image_cache = new image_cache() ;
+	game.options = new Options() ;
+	game.tournament = new Tournament(id) ;
+	game.spectators = new Spectators(function(msg, span) { // Message display
+		// Messages are managed via the "log" mechanism which triggers after spectator recieving
+		//debug(msg) ;
+	}, function(id) { // I'm a player allowing a spectator
+		game.connection.send('{"type": "allow", "value": "'+id+'"}') ;
+	}, function(player) { // I'm allowed spectator
+		// Nothing appends on a build page when another player allows you
 	}) ;
-}
-// Functions
-sending = false ; // Goes to true between ajax sending and response
-delay = false ; // Tell the response trigger to resend new version of the deck
-version = 0 ;
-function silent_save() {
-	if ( spectactor )
-		return false ;
-	delay = sending ; // delay current save
-	if ( delay ) // already sending a deck
-		return false ;
-	localpool = clone_deck(poolcards) ;
-	localpool.version = version++ ;
-	if ( ready.checked && ( localpool.main.length < 40 ) ) {
-		ready.checked = false ; // Removed 40th card, uncheck ready
-		$.getJSON('json/ready.php', {'id': tid, 'ready': ready.checked+0}) ;
+	var wsregistration = {'tournament': id} ;
+	if ( pid != '' ) {
+		game.tournament.follow = pid ;
+		wsregistration.follow = pid ;
 	}
-	localpool.side.sort(color_sort) ; // In order side to be sorted by color in limited
-	ready.setAttribute('disabled', 'true') ; // Don't send save while previous sent saved isn't recieved
-	sending = true ;
-	$.post('json/deck_update.php', {'id': tid, 'deck': JSON.stringify(localpool)}, function(data) { // Deck content is too heavy for GET
-		sending = false ;
-		if ( iss(data.msg) && data.msg != '' )
-			alert(data.msg) ;
-		if ( localpool.main.length > 39 )
-			ready.removeAttribute('disabled') ; // Don't send save while previous sent saved isn't recieved
-		if ( delay ) // an save was delayed
-			silent_save() ; // resend ;
-	}, 'json') ;
-}
-function clone_deck(poolcards) { // Returns a copy of a deck
-	var localpool = {} ; // Local copy of the pool that will be added lands
-	// If we clone poolcards, then localpool.main is the same object instance than poolcards.main, so it's not local
-	localpool.main = clone(poolcards.main) ;
-	localpool.side = clone(poolcards.side) ;
-	for ( var i in lands ) {
-		var card = lands[i] ;
-		for ( var j = 0 ; j < land_nb('md'+card.name) ; j++ )
-			localpool.main.push(card) ;
-		for ( var j = 0 ; j < land_nb('sb'+card.name) ; j++ )
-			localpool.side.push(card) ;
+	game.connection = new Connexion('build', function(data, ev) { // OnMessage
+		switch ( data.type ) {
+			case 'msg' :
+				alert(data.msg) ;
+				break ;
+			case 'redirect' :
+				window.location.replace('index.php?id='+id) ;
+				break ;
+			case 'running_tournament' :
+			case 'ended_tournament' :
+				game.tournament.recieve(data) ;
+				break ;
+			case 'deck' :
+				if ( pid != '' )
+					game.tournament.me = game.tournament.get_player(pid) ;
+				if ( game.tournament.me != null ) {
+					game.tournament.me.me = true ; // Spectator overrides "me"
+					game.tournament.me.recieve({'deck_obj': data}) ;
+				} else
+					debug('player is null') ;
+				break ;
+			default : 
+				debug('Unknown type '+data.type) ;
+				debug(data) ;
+		}
+	}, function(ev) { // OnClose/OnConnect
+	}, wsregistration) ;
+	if ( pid == '' ) {
+		var landbase = function(id, name, mana) {
+			return {
+				'id': id, 'name': name,
+				'ext': 'UNH', 'rarity': 'L', 'ext_img': 'UNH',
+				'attrs': {
+					'manas': [], 'converted_cost': 0, 'color': 'X', 'color_index': 1,
+					'types': ['land'], 'supertypes': ['basic'],
+					'provide': [mana]
+				},
+				toString: function() { return this.name+"\n" ; } } ;
+		}
+		arr_base_land = [
+			landbase(6871, 'Plains', 'W'),
+			landbase(4621, 'Island', 'U'),
+			landbase(9266, 'Swamp', 'B'),
+			landbase(6020, 'Mountain', 'R'),
+			landbase(3332, 'Forest', 'G')
+		] ;
+		// GUI events
+		ready.addEventListener('change', function(ev) { // On click
+			game.connection.send({"type": "ready", "ready": ev.target.checked}) ;
+		}, false) ;
+		generate_base_land() ;
+		clear_button = document.getElementById('clear_button') ;
+		if ( clear_button != null ) {
+			clear_button.disabled = false ;
+			clear_button.addEventListener('click', function(ev) {
+				if ( ! confirm('Are you sure you want to clear your deck ?') )
+					return true ;
+				var cards = game.tournament.me.pool.main.cards ;
+				for ( var i = cards.length-1 ; i >= 0 ; i-- )
+					game.tournament.me.pool.toggle(cards[i], true) ;
+				game.tournament.me.pool.display() ;
+			}, false) ;
+		}
 	}
-	return localpool ;
+	// Recompute columns number on resize
+	window.addEventListener('resize', function(ev) {
+		pool = game.tournament.me.pool ;
+		var cols = pool.maxcols
+		pool.calc_maxcols()
+		if ( cols != pool.maxcols )
+			pool.display() ;
+	},	false) ;
+	// Checkbox to get stats about side instead of maindeck
+	stats_side = document.getElementById('stats_side')
+	stats_side.addEventListener('change', function(ev) {
+		game.tournament.me.pool.stats() ;
+	}, false) ;
+	//
+	smallres_check = document.getElementById('smallres_check')
+	smallres_check.addEventListener('change', function(ev) {
+		game.tournament.me.pool.set_smallres(this.checked) ;
+		game.tournament.me.pool.display() ;
+	}, false) ;
 }
-function alpha_sort(card1, card2) {
-	b = color_sort(card1, card2) ; // First sort by color
-	if ( b != 0 )
-		return b ;
-	// Then inside same color, sort by name
-	if ( card1.name == card2.name )
-		return 0 ;
-	if ( card1.name > card2.name )
-		return 1 ;
-	return -1 ;
+function TournamentBuild() {}
+function PlayerBuild() {
+	this.recieved = function(fields) {
+		if ( this.me ) {
+			if ( inarray('deck_obj', fields) ) {
+				if ( this.pool == null )
+					this.pool = new Pool(this) ;
+				this.pool.recieve(this.deck_obj) ;
+				this.pool.display() ;
+			}
+			if ( this.pool != null ) {
+				if ( this.pool.main.cards.length < 40 )
+					ready.disabled = true ;
+				else
+					ready.disabled = false ;
+			}
+		}
+	}
+	this.remove = function(card) {
+		for ( var i = 0 ; i < this.deck_obj.main.length ; i++ )
+			if ( this.deck_obj.main[i].name == card.name )
+				this.deck_obj.main.splice(i, 1) ;
+	}
+	this.toggle = function(card, strfrom) {
+		var from = this.deck_obj[strfrom] ;
+		for ( var i = 0 ; i < from.length ; i++ )
+			if ( from[i].occurence == card.card.occurence ) {
+				var to = (from==this.deck_obj.side) ? this.deck_obj.main : this.deck_obj.side ;
+				var spl = from.splice(i, 1) ;
+				to.push(spl[0]) ;
+				return true ;
+			}
+		debug(card.name+' not found in '+strfrom) ;
+	}
+	this.pool = null ;
 }
-function color_sort(card1, card2) {
-	return card1.attrs.color_index - card2.attrs.color_index ;
-}
-function label_check(target) {
-	if ( target.checked )
-		target.parentNode.classList.add('checked') ;
-	else
-		target.parentNode.classList.remove('checked') ;
-}
-function check_all_c() { // If all manacolor check are checked, check the "all", idem if they are unchecked
-	var do_check = true ;
-	var do_uncheck = true ;
-	for ( var i in manacolors )
-		if ( active_color[manacolors[i]] )
-			do_uncheck = false ;
+function LogBuild() {}
+// Build specific object ;
+function Pool(player) {
+	this.recieve = function(pool) {
+		this.main.recieve(pool.main) ;
+		this.side.recieve(pool.side) ;
+	}
+	this.display = function() {
+		if ( this.smallres )
+			document.body.classList.add('smallres') ;
 		else
-			do_check = false ;
-	if ( do_check )
-		document.getElementById('check_c_all').checked = true ;
-	if ( do_uncheck )
-		document.getElementById('check_c_all').checked = false ;
-	if ( do_check || do_uncheck )
-		label_check(document.getElementById('check_c_all')) ;
-}
-function check_all_r() { // Idem for rarity
-	var do_check = true ;
-	var do_uncheck = true ;
-	for ( var i in rarities ) {
-		var rarity = rarities[i] ;
-		if ( active_rarity[rarity] )
-			do_uncheck = false ;
-		if ( ! active_rarity[rarity] )
-			do_check = false ;
+			document.body.classList.remove('smallres') ;
+		this.main.display() ;
+		this.side.display() ;
+		this.stats() ;
 	}
-	if ( do_check )
-		document.getElementById('check_r_all').checked = true ;
-	if ( do_uncheck )
-		document.getElementById('check_r_all').checked = false ;
-	if ( do_check || do_uncheck )
-		label_check(document.getElementById('check_r_all')) ;
-}
-function land_div(card, prefix) { // Returns visual representation of a land-card
-	var div = create_div() ;
-	div.classList.add(card.rarity) ;
-	if ( window.innerHeight < 800 )
-		div.classList.add('sr') ; // Small resolutions
-	div.align = 'center' ;
-	div.addEventListener('mouseup', function(ev) {
-		switch ( ev.button ) {
-			case 0 : 
-				ev.target.firstChild.value++ ;
-				break ;
-			case 1 : 
-				ev.target.firstChild.value = 0 ;
-				break ;
-			case 2 : 
-				if ( ev.target.firstChild.value > 0 )
-					ev.target.firstChild.value-- ;
-				break ;
-			default: 
-				alert('Button '+ev.button+' unmanaged') ;
+	this.stats = function() {
+		var cards = this.main.cards ;
+		if ( stats_side.checked )
+			cards = this.side.filtered() ;
+		this.stats_results = deck_stats_cc(cards) ; // [color, mana, cost, type, provide]
+	}
+	// Basic lands in main
+	this.add = function(card, nb) {
+		game.connection.send({"type": "add", "cardname": card.name, "nb": nb}) ;
+		for ( var j = 0 ; j < nb ; j++ ) {
+			this.player.deck_obj.main.push(card) ;
+			this.main.cards.push(new Card(card)) ;
+		}
+	}
+	this.remove = function(card) {
+		for ( var i = 0 ; i < this.main.cards.length ; i++ )
+			if ( this.main.cards[i].name == card.name ) {
+				this.toggle(this.main.cards[i]) ;
+				return true ;
+			}
+		debug(card.name+' not found for removal') ;
+		return false ;
+	}
+	this.toggle = function(card, multiple) {
+		var i = this.main.cards.indexOf(card) ;
+		if ( i < 0 ) {
+			var i = this.side.cards.indexOf(card) ;
+			if ( i < 0 ) {
+				debug('Card '+card.name+' not in main nor side') ;
 				return false ;
-		}
-		silent_save() ;
-		disp_side(poolcards.main, deck) ;
-	}, false) ;
-	div.addEventListener('contextmenu', function(ev) {
-		ev.preventDefault() ;
-	}, false)
-	div.addEventListener('change', function(ev) {
-		silent_save() ;
-		disp_side(poolcards.main, deck) ;
-	}, false) ;
-	// Image loading
-	game.image_cache.load(card_images(card_image_url(card.ext, card.name, card.attrs)), function(img, tag) {
-		tag.url = img.src ;
-		tag.style.backgroundImage = 'url('+img.src+')' ;
-	}, function(tag, url) {
-		tag.appendChild(document.createTextNode(div.firstChild.name)) ;
-	}, div) ;
-	var val = 0 ;
-	var input = create_input(prefix+card.name, val, prefix+card.name) ;
-	input.size = 2 ;
-	div.appendChild(input) ;
-	return div
-}
-function land_nb(land) {
-	var input = document.getElementById(land) ;
-	if ( input == null ) {
-		alert('Missing input for '+land) ;
-		return -1 ;
-	} else
-		return parseInt(input.value) ;
-}
-function filter_lands(card, index, cards) {
-	for ( var i in lands) {
-		if ( card.name == lands[i].name ) {
-			document.getElementById(this+card.name).value++ ;
-			return false
-		}
-	}
-	return true ;
-}
-function card_div(card) { // Returns visual representation of a card
-	var div = create_div() ;
-	if ( window.innerHeight < 800 )
-		div.classList.add('sr') ; // Small resolutions
-	div.id = card.id ;
-	div.card = card ;
-	div.classList.add(card.rarity) ;
-	div.title = card.name+' , click to add/remove from deck, right or middle click to get infos' ;
-	div.url = '' ;
-	div.transformed_url = '' ;
-	// Image loading
-	var urls = card_images(card_image_url(card.ext, card.name, card.attrs)) ;
-	if ( iso(card.attrs.split) ) { // Security workaround for cross-site image loading
-		for ( var i in urls )
-			urls[i] = '/proxy.php?url='+urls[i] ;
-	}
-	game.image_cache.load(urls, function(img, tag) {
-		var src = img.src ;
-		tag.url = src ;
-		if ( iso(tag.card.attrs.split) ) {
-			var rotated = create_canvas(img.height, img.width) ;
-			rotated.style.border = '1px solid red' ;
-			var ctx = rotated.getContext("2d") ;
-			ctx.rotate(Math.PI/2) ;
-			ctx.drawImage(img, 0, -img.height) ;
-			tag.style.backgroundImage = 'url('+rotated.toDataURL()+')';
+			} else
+				var from = this.side ;
 		} else
-			tag.style.backgroundImage = 'url('+src.replace('\'', '\\\'')+')' ; // Chromium & Opera don't like apostrophes
-	}, function(tag, url) {
-		tag.appendChild(document.createTextNode('['+tag.card.ext+']'+tag.card.name)) ;
-	}, div) ;
-	// Transformed image loading
-	if ( iso(card.attrs.transformed_attrs) ) {
-		game.image_cache.load(card_images(card_image_url(card.ext, card.attrs.transformed_attrs.name, card.attrs)), function(img, tag) {
-			tag.transformed_url = img.src ;
-		}, function(tag, url) {
-			tag.appendChild(document.createTextNode(tag.card.attrs.transformed_attrs.name)) ;
-		}, div) ;
+			var from = this.main ;
+		var to = (from==this.side) ? this.main : this.side ;
+		from.cards.splice(i, 1) ;
+		if ( inarray('basic', card.card.attrs.supertypes) ) {
+			game.connection.send({"type": "remove", "cardname": card.name}) ;
+			this.player.deck_obj.main.splice(i, 1) ;
+			this.player.remove(card) ;
+		} else {
+			to.cards.push(card) ;
+			var strfrom = (from==this.side) ? 'side' : 'main' ;
+			this.player.toggle(card, strfrom) ;
+			// Send
+			game.connection.send({"type": "toggle", "cardname": card.name, "from": strfrom}) ;
+		}
+		if ( ! multiple )
+			this.display() ;
 	}
-	// Events
-	div.addEventListener('mouseover', function(ev) { // Initialize zoom
-		zoomed.src = ev.target.url ; // "Main" image
+	this.calc_maxcols = function() {
+		// colwidth = imgwidth + 2 * borderwidth
+		if ( this.smallres )
+			var colwidth = 192 ;
+		else
+			var colwidth = 239 ;
+		this.maxcols = Math.floor(table_main.parentNode.clientWidth/colwidth) ;
+	}
+	this.set_smallres = function(val) {
+		this.smallres = val ;
+		this.calc_maxcols() ;
+	}
+	this.player = player ;
+	this.main = new Zone(this, table_main, 'Deck', 'converted_cost') ;
+	this.side = new Zone(this, table_side, 'Sideboard', 'color_index') ;
+	this.set_smallres(game.options.get('smallres')) ;
+	smallres_check.checked = this.smallres ;
+	this.limitcols = ! this.smallres ;
+	this.stats_results = null ;
+	// Selectors
+	var selectors = document.getElementById('selectors') ;
+	var func = function(zone) {
+		return function(ev) {
+			if ( zone.reset_color_filter() )
+				zone.sort('color_index') ;
+			else
+				zone.sort('converted_cost') ;
+		}
+	}
+	var input = create_select('sort', 'sort_side') ;
+	for ( var i in this.side.fields )
+		input.add(create_option(this.side.fields[i], i)) ;
+	input.value = 'color_index' ;
+	input.addEventListener('change', function(ev) {
+		game.tournament.me.pool.side.sort(ev.target.value) ;
+	}, false) ;
+	selectors.appendChild(input) ;
+	var input = create_button('All', func(this.side)) ;
+	selectors.appendChild(input) ;
+	for ( var i in this.side.color_filter ) {
+		var input = create_checkbox(i, this.side.color_filter[i], 'check_'+i) ;
+		var func = function(zone, input) {
+			return function(ev) {
+				zone.toggle_color_filter(input.name) ;
+			}
+		}
+		input.addEventListener('click', func(this.side, input), false) ;
+		var label = create_label(input.id, input) ;
+		label.classList.add('selector') ;
+		label.style.backgroundImage = 'url('+theme_image('ManaIcons/'+i+'.png')[0]+')' ;
+		var func = function(zone, input) {
+			return function(ev) {
+				zone.field = 'converted_cost' ;
+				zone.set_color_filter(input.name) ;
+			}
+		}
+		label.addEventListener('dblclick', func(this.side, input), false) ;
+		selectors.appendChild(label) ;
+	}
+}
+function Zone(pool, node, name, sort) {
+	this.pool = pool ;
+	this.node = node ;
+	this.name = name ;
+	this.cards = [] ;
+	this.color_filter = {'X': true, 'W': true, 'U': true, 'B': true, 'R': true, 'G': true} ;
+	this.field = sort ;
+	this.fields = {
+		'converted_cost': 'Converted cost',
+		'color_index': 'Color',
+		'types': 'Types',
+		'rarity': 'Rarity'
+	} ;
+	this.fields_func = {
+		'color_index': function(cols) {
+			var names = ['Purple', 'Colorless', 'White', 'Blue', 'Black', 'Red', 'Green', 'Multicolor'] ;
+			var result = [] ;
+			for ( var i = 1 ; i < names.length ; i++ ) {
+				if ( cols[i] ) {
+					result[names[i]] = cols[i] ;
+					delete cols[i] ;
+				}
+			}
+			var lastcol = names[names.length-1] ;
+			for ( var i in cols )
+				if ( ! iso(result[lastcol]) )
+					result[lastcol] = cols[i] ;
+				else
+					result[lastcol] = result[lastcol].concat(cols[i]) ;
+			return result ;
+		},
+		'types': function(cols) {
+			var types = ['planeswalker', 'creature', 'land', 'artifact', 'enchant', 'sorcery', 'instant', 'tribal'] ;
+			var result = [] ;
+			for ( var i = 0 ; i < types.length ; i++ ) {
+				if ( cols[types[i]] )
+					result[types[i]] = cols[types[i]] ;
+			}
+			return result ;
+		},
+		'converted_cost': null,
+		'rarity': function(cols) {
+			var rarities = ['L', 'C', 'U', 'R', 'M', 'S'] ;
+			var result = [] ;
+			for ( var i = 0 ; i < rarities.length ; i++ ) {
+				if ( cols[rarities[i]] )
+					result[rarities[i]] = cols[rarities[i]] ;
+			}
+			return result ;
+		}
+	} ;
+	var me = this ;
+	// Node events
+	this.node.parentNode.addEventListener('mouseenter', function(ev) {
+		if ( me.name == 'Sideboard' )
+			div_main.classList.remove('highlight') ;
+		else
+			div_main.classList.add('highlight') ;
+	}, false) ;
+	this.node.addEventListener('mousedown', function(ev) { // Image selection on mousedown bug
+		ev.preventDefault() ; // eventStop also forbids propagation to menu events
+	}, false) ;
+	this.node.addEventListener('mouseup', function(ev) {
+		switch ( ev.button ) {
+			case 1 :
+				if ( ev.target.card )
+					ev.target.card.info() ;
+				break ;
+		}
+	}, false) ;
+	this.node.addEventListener('click', function(ev) {
+		if ( ( ! game.tournament.follow ) && ( ev.button == 0 ) && ( ev.target.card ) ) {
+			ev.target.card.zoom_out(ev) ;
+			me.pool.toggle(ev.target.card) ;
+		}
+	}, false) ;
+	this.node.parentNode.addEventListener('contextmenu', function(ev) {
+		me.menu(ev) ;
+	}, false) ;
+	// Methods
+		// Filter
+	this.set_filter = function(color, val) {
+		this.color_filter[color] = val ;
+		document.getElementById('check_'+color).checked = val ;
+	}
+	this.toggle_color_filter = function(color) {
+		this.set_filter(color, ! this.color_filter[color]) ;
+		this.display() ;
+	}
+	this.reset_color_filter = function() {
+		var onefalse = false ;
+		for ( var i in this.color_filter )
+			if ( ! this.color_filter[i] ) {
+				onefalse = true ;
+				break ;
+			}
+		if ( onefalse ) {
+			for ( var i in this.color_filter )
+				this.set_filter(i, true) ;
+			this.display() ;
+			return true ;
+		}
+		this.set_color_filter('') ;
+		return false ;
+	}
+	this.set_color_filter = function(color) {
+		for ( var i in this.color_filter )
+			this.set_filter(i, i == color) ;
+		this.display() ;
+	}
+		// Sort
+	this.sort = function(field) {
+		this.field = field ;
+		this.display() ;
+		var sort_side = document.getElementById('sort_side') ;
+		if ( sort_side != null )
+			sort_side.value = field ;
+	}
+	this.filtered = function() {
+		var result = [] ;
+		for ( var i = 0 ; i < this.cards.length ; i++ )
+			for ( var j in this.color_filter )
+				if ( this.color_filter[j] && inarray(j, this.cards[i].attrs.color) ) {
+					result.push(this.cards[i]) ;
+					break ;
+				}
+		return result ;
+	}
+	this.sorted = function(field) { // Return an array of "columns" sorted by field
+		var result = {} ;
+		var cards = this.filtered()
+		for ( var i = 0 ; i < cards.length ; i++ ) {
+			var card = cards[i] ;
+			switch ( field ) {
+				case 'rarity': 
+					var val = card.rarity ;
+					break ;
+				case 'types': 
+					var val = card.attrs.types[0] ;
+					break ;
+				default :
+					var val = card.attrs[field] ;
+			}
+			if ( ! result[val] )
+				result[val] = [] ;
+			result[val].push(card) ;
+		}
+		if ( isf(this.fields_func[field]) )
+			result = this.fields_func[field](result) ;
+		return result
+	}
+	// Display
+	this.menu = function(ev) {
+		var poolmenu = new menu_init(this) ;
+		poolmenu.addline(this.name) ;
+		poolmenu.addline('Limit columns', function(pool) {
+			this.pool.limitcols = ! this.pool.limitcols ;
+			this.display() ;
+		}).checked = this.pool.limitcols ;
+		var sortmenu = new menu_init(this) ;
+		for ( var i in this.fields )
+			sortmenu.addline(this.fields[i], this.sort, i).checked = (this.field==i) ;
+		poolmenu.addline('Sort', sortmenu) ;
+		var filtermenu = new menu_init(this) ;
+		filtermenu.addline('Show all', this.reset_color_filter) ;
+		filtermenu.addline('Colorless', this.toggle_color_filter, 'X').checked = this.color_filter['X'];
+		filtermenu.addline('White', this.toggle_color_filter, 'W').checked = this.color_filter['W'] ;
+		filtermenu.addline('Blue', this.toggle_color_filter, 'U').checked = this.color_filter['U'] ;
+		filtermenu.addline('Black', this.toggle_color_filter, 'B').checked = this.color_filter['B'] ;
+		filtermenu.addline('Red', this.toggle_color_filter, 'R').checked = this.color_filter['R'] ;
+		filtermenu.addline('Green', this.toggle_color_filter, 'G').checked = this.color_filter['G'] ;
+		poolmenu.addline('Filter', filtermenu) ;
+		if ( ! iso(ev.target.card) )
+			var menu = poolmenu ;
+		else {
+			var menu = new menu_init(this) ;
+			menu.addline(ev.target.card.name) ;
+			menu.addline('Include', function(card){
+				this.pool.toggle(card) ;
+			}, ev.target.card) ;
+			menu.addline('Informations (MagicCards.Info)', function(card){
+				card.info() ;
+			}, ev.target.card) ;
+			menu.addline() ;
+			menu.addline(this.name, poolmenu) ;
+		}
+		menu.start(ev) ;
+	}
+	this.display = function() {
+		node_empty(this.node) ;
+		var cards = this.sorted(this.field) ;
+		var th = create_tr(this.node) ;
+		var tr = create_tr(this.node) ;
+		var n = 0 ;
+		for ( var i in cards ) {
+			if ( ! this.pool.limitcols || ( n < this.pool.maxcols ) ) {
+				var h = create_td(th, i) ;
+				h.classList.add('th') ;
+				var td = create_td(tr, '') ;
+			} else
+				h.appendChild(create_text('+')) ;
+			var col = cards[i] ;
+			for ( var j = 0 ; j < col.length ; j++ )
+				td.appendChild(cards[i][j].div()) ;
+			n++ ;
+		}
+		if ( stats_side.checked ) // If we stats side, we want stats refresh on each display
+			this.pool.stats() ;
+	}
+		// Network
+	this.recieve = function(cards) {
+		this.cards = [] ;
+		for ( var i = 0 ; i < cards.length ; i++ )
+			this.cards.push(new Card(cards[i])) ;
+	}
+}
+function Card(card) {
+	this.toString = function() {
+		var ext = this.card.ext ;
+		if ( ext != this.card.ext_img )
+			ext += '/'+this.card.ext_img ;
+		var name = '['+ext+']'+this.card.name ;
+		if ( isn(this.card.attrs.nb) )
+			name += ' ('+this.card.attrs.nb+')' ;
+		return name ;
+	}
+	this.div = function() {
+		if ( this.node != null )
+			var div = this.node ;
+		else {
+			var name = this.toString() ;
+			var div = create_div(name) ;
+			div.draggable = false ;
+			div.title = name ;
+			div.classList.add('card') ;
+			div.classList.add(card.rarity) ;
+			div.card = this ;
+			div.transformed_url = '' ;
+			if ( iso(card.attrs.split) )
+				div.classList.add('split') ;
+			// Image loading
+			var urls = card_images(card_image_url(this.card.ext_img, this.card.name, this.card.attrs)) ;
+			game.image_cache.load(urls, function(img, div) {
+				node_empty(div) ; // Erase name wrotten while loading
+				var img = create_img(img.src) ;
+				img.draggable = false ;
+				img.card = div.card ;
+				div.card.img = img ;
+				div.appendChild(img) ;//.replace('\'', '\\\'')// Chromium & Opera don't like apostrophes
+			}, function(div, url) {
+				debug(url+' not found') ;
+			}, div) ;
+			// Transformed image loading
+			if ( iso(card.attrs.transformed_attrs) ) {
+				game.image_cache.load(card_images(card_image_url(card.ext_img, card.attrs.transformed_attrs.name, card.attrs)), function(img, tag) {
+					tag.transformed_url = img.src ;
+				}, function(tag, url) {
+					tag.appendChild(document.createTextNode(tag.card.attrs.transformed_attrs.name)) ;
+				}, div) ;
+			}
+			// Events
+			div.addEventListener('mouseover', this.zoom_in, false) ;
+			div.addEventListener('mousemove', this.move_zoom, false) ;
+			div.addEventListener('mouseout', this.zoom_out, false) ;
+			this.node = div ;
+		}
+		return div ;
+	}
+	this.zoom_in = function(ev) {
+		if ( ! iso(ev.target.card) || ! iso(ev.target.card.img) )
+			return true ;
+		var div = ev.target.card.node ;
+		// Place zoom
+		div.card.move_zoom(ev) ;
+		// Load image
+		var zoomed = zoom.firstElementChild ;
+		var card = div.card.card ;
+		zoomed.src = div.card.img.src ;
+		// Prepare special cases
+		var alt = zoomed.nextElementSibling ;
+		if ( alt.src != '' )
+			alt.src = '' ;
 		// Split
-		if ( iso(ev.target.card.attrs.split) )
+		if ( iso(card.attrs.split) )
 			zoomed.classList.add('split') ;
 		else
 			zoomed.classList.remove('split') ;
 		// Flip
-		if ( iso(ev.target.card.attrs.flip_attrs) ) {
-			fliped.src = ev.target.url ;
-			fliped.classList.add('disp') ;
+		if ( iso(card.attrs.flip_attrs) ) {
+			alt.src = div.card.img.src ;
+			alt.classList.add('flip') ;
 		} else
-			fliped.classList.remove('disp') ;
+			alt.classList.remove('flip') ;
 		// Transformed
-		if ( ev.target.transformed_url != '' ) {
-			transformed.src = ev.target.transformed_url ;
-			transformed.classList.add('disp') ;
-		} else
-			transformed.classList.remove('disp') ;
-		zoom.classList.add('disp') ; // Container
-	}, false) ;
-	div.addEventListener('mousemove', function(ev) { // Update zoom
+		if ( div.transformed_url != '' )
+			alt.src = div.transformed_url ;
+		// Needs to display a second image
+		if ( ( alt.src != '' ) && ( alt.src != document.location.href ) )
+			alt.classList.remove('hidden') ;
+		else
+			alt.classList.add('hidden') ;
+		// Show zoom
+		zoom.classList.remove('hidden') ;
+	}
+	this.zoom_out = function(ev) {
+		zoom.classList.add('hidden') ;
+	}
+	this.move_zoom = function(ev) {
 		// Image is displayed on cursor's bottom right by default
-		// If it would make it appear outside "inner" displayed window, display it on cursor's left and/or top
-		// The goal of this behaviour is to never display zoom on top of cursor (it would interact with mouse* events)
-		// and make cards always readable
-		var x = ev.clientX + 5 ; // 5px on cursor's right
-		if ( iso(ev.target.card.attrs.split) ) // Split
-			x += zoomed.clientHeight ;
+		// If it would make it appear outside "inner" displayed window, display it on cursor's
+		// left and/or top
+		// never display zoom on top of cursor (it would interact with mouse* events) and make cards 
+		// always readable
+		var xoffset = 10 ;
+		zoomed = zoom.firstElementChild ;
+		var x = ev.clientX + xoffset ; // cursor's right
 		if ( x + zoom.clientWidth > window.innerWidth ) // Outside inner screen
-			x = ev.clientX - zoom.clientWidth - 5 ; // 5px on cursor's left
+			x = ev.clientX - zoom.clientWidth - xoffset ; // cursor's left
 		zoom.style.left = max(x, 0)+'px' ;
-		var y = ev.clientY + 5 ;// 5px on cursor's bottom
-		if ( y + zoom.clientHeight > window.innerHeight ) { // Outside inner screen
-			y = ev.clientY - zoom.clientHeight - 5 ; // 5px on cursor's top
-			if ( iso(ev.target.card.attrs.split) ) // Split
-				y += zoomed.height - zoomed.width ;
-		}
+		var yoffset = 10 ;
+		var y = ev.clientY + yoffset ; // cursor's bottom
+		if ( y + zoom.clientHeight > window.innerHeight ) // Outside inner screen
+			y = ev.clientY - zoom.clientHeight - yoffset ; // cursor's top
 		zoom.style.top = max(y, 0)+'px' ;
-	}, false) ;
-	div.addEventListener('mouseout', function(ev) { // Clear zoom
-		zoom.classList.remove('disp') ;
-	}, false) ;
-	div.addEventListener('mouseup', function(ev) {
-		if ( ! spectactor )
-			switch ( ev.button ) {
-				case 0 :
-					card_toggle(ev.target.card) ;
-					zoom.classList.remove('disp') ; // toggling card with a dblclick implies mouse is over div
-					// but the toggle won't fire mouseout, doing it by hand here
-					break ;
-				case 1 :
-				case 2 :
-					window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
-					break ;
-			}
-	}, false) ;
-	div.addEventListener('contextmenu', function(ev) {
-		window.open('http://magiccards.info/query?q=!'+ev.target.card.name+'&v=card&s=cname') ;
-		eventStop(ev) ;
-	}, false) ;
-	return div ;
-}
-function card_toggle(card) { // If card is in side, move it in deck, vice versa
-	var from = null ;
-	var to = poolcards.main ;
-	var i = poolcards.side.indexOf(card) ;
-	if ( i > -1 ) { // Card found in side
-		from = poolcards.side ;
-	} else {
-		i = poolcards.main.indexOf(card) ;
-		if ( i > -1 ) { // Card found maindeck
-			from = poolcards.main ;
-			to = poolcards.side ;
-		}
 	}
-	var topush = from.splice(i, 1)[0] ;
-	if ( to != null )
-		to.push(topush) ;
-	// Refresh displays
-	if ( ( from == poolcards.side ) | ( to == poolcards.side ) )
-		disp_side(poolcards.side, pool) ;
-	if ( ( from == poolcards.main ) | ( to == poolcards.main ) )
-		disp_side(poolcards.main, deck) ;
-	silent_save() ;
-}
-function disp_side(originaldeck, table) {
-	var side = clone(originaldeck) ; // Working on a clone of original array
-	node_empty(table) ;
-	var trb = create_tr(table) ;
-	var trc = create_tr(table) ;
-	var cc = 0 ; // Current converted cost computing
-	var nb = 0 ; // Number of cards displayed
-	var types = {'creature': 0} ;
-	var total = 0 ;
-	var cards = [] ;
-	do { // Loop on columns while there are cards left
-		var beginnb = nb ;
-		var tdb = create_td(trb, '') ;
-		for ( var i = 0 ; i < side.length ; i++ ) { // Card loop
-			if ( i >= side.length ) // Must be done here because of "continue"
-				break ;
-			var card = side[i] ;
-			if ( table == pool ) { // If displaying in pool, only display checked color's cards
-				// Count checked colors
-				var nbc = 0 ;
-				var color = '' ;
-				for ( var j in manacolors )
-					if ( active_color[manacolors[j]] ) { // Checked
-						if ( ++nbc == 1 )
-							color = manacolors[j] ;
-					}
-				// Only one : display golds/hybrids if any of its colors is checked one
-				if ( nbc == 1 ) {
-					if ( card.attrs.color.indexOf(color) == -1 ) {
-						side.splice(i, 1) ; // Remove card from list
-						i-- ; // Card n removed, we must go back one step to continue over next card
-						continue ;
-					}
-				} else {
-				// More than one : display golds/hybrids only if all of its colors are checked
-					var shall_continue = false ; // Indicate if we should go next card
-					for ( var j in manacolors ) { // Foreach colors
-						var color = manacolors[j] ;
-						if ( ! active_color[color] ) // Unchecked
-							if ( card.attrs.color.indexOf(color) > -1 ) { // Current card has current color
-								side.splice(i, 1) ; // Remove card from list
-								i-- ; // Card n removed, we must go back one step to continue over next card
-								shall_continue = true ; // After the color loop, continue card loop
-								break ; // No need to continue this for
-							}
-					}
-					if ( shall_continue )
-						continue ;
-				}
-				// Filter by rarity
-				var r = card.rarity ; // modify this rarity will change border color
-				if ( r == 'L' ) // Lands don't appear in deck as their rarity isn't managed
-					r = 'C' ; // Consider them as commons
-				if ( r == 'M' ) // Consider mythics as rares for selector
-					r = 'R' ;
-				if ( ( r != 'S' ) && ( ! active_rarity[r] ) ) {
-					side.splice(i, 1) ;
-					i-- ;
-					continue ;
-				}
-			}
-			if ( ! card.attrs )
-				log2(card) ;
-			else {
-				if ( card.attrs.converted_cost == cc ) {
-					total++ ;
-					side.splice(i, 1) ;
-					i-- ; // Card n removed, we must go back one step to continue over next card
-					nb++ ; // One card displayed
-					card.toString = function() {
-						return this.name+"\n" ;
-					}
-					tdb.appendChild(card_div(card)) ;
-					for ( var j = 0 ; j < card.attrs.types.length ; j++ ) { // Count types for stats
-						var type = card.attrs.types[j] ;
-						if ( ! types[type] )
-							types[type] = 1 ;
-						else
-							types[type]++ ;
-					}
-					cards.push(card) ;
-				}
-			}
-		}
-		create_td(trc, (nb-beginnb)+' cards') ;
-		if ( beginnb == nb ) { // No cards were added in current column (for current casting cost), removing column
-			var div = create_div('No cards with CC = '+cc) ;
-			if ( window.innerHeight < 800 )
-				div.classList.add('sr') ; // Small resolutions
-			div.classList.add('emptycol') ;
-			tdb.appendChild(div) ;
-		} else
-			beginnb = nb ;
-		cc++ ; // Next converted cost
-	} while ( ( side.length > 0 ) ) ;
-	var trc = create_tr(table) ;
-	var nblands = 0 ;
-	if ( table == deck ) {
-		for ( var i in lands) {
-			var nb = parseInt(document.getElementById('md'+lands[i].name).value) ;
-			for ( var j = 0 ; j < nb ; j++ )
-				cards.push(lands[i]) ;
-			nblands += nb ;
-		}
-		// Stats
-		deck_stats_cc(cards) ;
+	this.info = function() {
+		window.open('http://magiccards.info/query?q=!'+this.name) ;
 	}
-	// Text line at bottom of table resuming content
-	create_td(trc, cards.length+' total cards ('+nblands+' basic lands)') ;
-	var line = '' ;
-	for ( var i in types )
-		line += i+' : '+types[i]+', ' ;
-	line = line.substr(0, line.length-2)
-	create_td(trc, line, cc-1) ;
+	this.node = null ;
+	this.card = card ;
+	this.name = card.name ;
+	this.attrs = card.attrs ;
+	this.rarity = card.rarity ;
+}
+function generate_base_land() {
+	base_lands = document.getElementById('base_lands') ;
+	if ( base_lands == null )
+		return false ;
+	base_lands.disabled = false ;
+	base_lands.addEventListener('click', function(ev) {
+		base_lands.disabled = true ;
+		stats.classList.add('highlight') ;
+		div_main.classList.add('highlight') ;
+		// Container
+		var container = create_div() ;
+		container.id = 'basic_lands' ;
+		container.classList.add('section') ;
+		// Hider
+		var hider = create_div(container) ;
+		hider.classList.add('hider') ;
+		document.body.appendChild(hider) ;
+		// Title
+		container.appendChild(create_h(1,'Basic lands'))
+		// Table
+		var table = create_element('table') ;
+		// Count lands and basic lands in deck
+		var blindeck = {}
+		for ( var i = 0 ; i < arr_base_land.length ; i++ )
+			blindeck[arr_base_land[i].name] = 0 ;
+		for ( var i = 0 ; i < game.tournament.me.pool.main.cards.length ; i++ ) {
+			var card = game.tournament.me.pool.main.cards[i] ;
+			if ( inarray('land', card.attrs.types) && inarray('basic', card.attrs.supertypes) )
+				blindeck[card.name]++
+		}
+		container.appendChild(table) ;
+		for ( var i = 0 ; i < arr_base_land.length ; i++ ) {
+			var land = arr_base_land[i] ;
+			var tr = table.insertRow(-1) ;
+			// Image
+			var td = tr.insertCell(-1) ;
+			var land_div = create_div(land.name) ;
+			td.appendChild(land_div)
+			land_div.classList.add('card') ;
+			land_div.classList.add('L') ;
+			var urls = card_images(card_image_url(land.ext_img, land.name, land.attrs)) ;
+			game.image_cache.load(urls, function(img, div) {
+				node_empty(div) ; // Erase name wrotten while loading
+				img.draggable = false ;
+				div.appendChild(img) ;
+			}, function(div, url) {}, land_div) ;
+			// Buttons & input
+			var add = function(land, input) {
+				return function(ev) {
+					game.tournament.me.pool.add(land, 1) ;
+					input.value = parseInt(input.value)+1 ;
+					game.tournament.me.pool.display() ;
+				}
+			}
+			var del = function(land, input) {
+				return function(ev) {
+					var val = parseInt(input.value) ;
+					if ( val > 0 ) {
+						game.tournament.me.pool.remove(land) ;
+						input.value = val-1 ;
+					}
+				}
+			}
+			var input = create_input() ;
+			land.input = input ;
+			input.size = 2 ;
+			input.value = blindeck[land.name] ;
+			input.tabIndex = i+1 ;
+			var td = tr.insertCell(-1) ;
+			td.appendChild(create_button('-', del(land, input))) ;
+			td.appendChild(input) ;
+			td.appendChild(create_button('+', add(land, input))) ;
+			if ( i == 0 )
+				input.select() ;
+			// Events on image
+			land_div.addEventListener('contextmenu', del(land, input), false) ;
+			land_div.addEventListener('click', add(land, input), false) ;
+			land_div.addEventListener('mousedown', eventStop, false) ;
+		}
+		// Close button
+		var button = create_button(create_img(theme_image('deckbuilder/button_cancel.png')[0]), function(ev) {
+			var hider = document.getElementById('basic_lands').parentNode ;
+			hider.parentNode.removeChild(hider) ;
+			stats.classList.remove('highlight') ;
+			base_lands.disabled = false ;
+		}, 'Close') ;
+		container.appendChild(button) ;
+		// Center
+		var style = container.style ;
+		style.marginLeft = '-'+Math.ceil(container.clientWidth/2)+'px' ;
+		style.marginTop = '-'+Math.ceil(container.clientHeight)+'px' ;
+	}, false) ;
 }

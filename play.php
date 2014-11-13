@@ -5,7 +5,8 @@ include 'includes/db.php' ;
 // Guess game data by comparing client data with mysql data
 $id = param_or_die($_GET, 'id') ;
 $replay = param($_GET, 'replay', 0) ; // Defaults to no replay, may be changed by tournament status
-$row = query_oneshot("SELECT * FROM `round` WHERE `id` = '$id'") ;
+$row = $db->select("SELECT * FROM `round` WHERE `id` = '$id'") ;
+$row = $row[0] ;
 $client_status = 'Unknown' ; // Is client creator, joiner, goldfish, or spectactor ?
 $goldfish = 'false' ;
 $creator = 'false' ;
@@ -78,19 +79,27 @@ if ( $replay == 1 ) {
 	$player_score = 0 ; // In order to trigger score changes
 	$opponent_score = 0 ;
 }
+/*
 if ( $status != $row->status )
-	$query = query("UPDATE `$mysql_db`.`round` SET  `status` =  '$status' WHERE `id` = '$id'") ;
+	$query = $db->update("UPDATE `$mysql_db`.`round` SET  `status` =  '$status' WHERE `id` = '$id'") ;
 if ( $row->tournament != 0 ) 
 	query("UPDATE `registration` SET `status` = '4' WHERE `tournament_id` = '".$row->tournament."' AND `player_id` = '$player_id' ; ") ;
+*/
+if ( $row->tournament > 0 ) {
+	$tournament = $db->select("SELECT * FROM `tournament` WHERE `id` = '{$row->tournament}'") ;
+	$tournament_data = json_encode($tournament[0]) ;
+} else
+	$tournament_data = null ;
 ?>
 <!DOCTYPE html>
 <html>
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <title>MTGAS : <?php echo $row->name.' ('.$client_status.')' ; ?></title>
-  <link rel="icon" type="image/jpg" href="/themes/<?php echo $theme ; ?>/favicon.jpg">
+  <link type="image/jpg" rel="icon" href="/themes/<?=$theme?>/Mogg Maniac.crop.png">
 <?php
 add_css(array(
+	'debug.css',
 	'play.css',
 	'list.css',
 	'side.css',
@@ -101,11 +110,14 @@ add_css(array(
 ?>
   <script type="text/javascript" src="js/lib/jquery.js"></script>
   <script type="text/javascript" src="js/lib/jquery.cookie.js"></script>
+  <script type="text/javascript" src="js/debug.js"></script>
   <script type="text/javascript" src="js/play.js"></script>
   <script type="text/javascript" src="js/dnd.js"></script>
   <script type="text/javascript" src="js/player.js"></script>
   <script type="text/javascript" src="js/canvas.js"></script>
+  <script type="text/javascript" src="js/events.js"></script>
   <script type="text/javascript" src="js/network.js"></script>
+  <script type="text/javascript" src="js/websockets.js"></script>
   <script type="text/javascript" src="js/canvasutilities.js"></script>
   <script type="text/javascript" src="js/image.js"></script>
   <script type="text/javascript" src="js/card.js"></script>
@@ -137,6 +149,7 @@ $(function() { // When page is loaded : initialize everything
 	spectactor_id = '<?php echo $spectactor_id ; ?>' ; // Am i a spectactor ?
 	replay = <?php echo $replay ; ?> ; // Replay
 	tournament = <?php echo $row->tournament ; ?> ;
+	tournament_data = <?php echo ($tournament_data==null)?'null':$tournament_data ; ?> ;
 	round = <?php echo $row->round ; ?> ;
 	// Init all that must be inited before "game" (+canvas) creation (for now, log messages, depending on chat)
 	var options = new Options() ;
@@ -144,6 +157,7 @@ $(function() { // When page is loaded : initialize everything
 	game = new Game(
 		// Game
 			<?php echo $id."\n" ; ?>
+			, '<?=$row->creation_date;?>'
 			, options
 		// Player
 			, '<?php echo $player_id ; ?>'
@@ -173,7 +187,7 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
   <canvas id="paper"></canvas>
   <div id="rightframe">
    <img id="zoom" draggable="false" src="<?php echo $cardimages_default ; ?>/back.jpg" oncontextmenu="event.preventDefault() ; ">
-   <div id="timeleft">Timeleft</div>
+   <div id="timeleft"><img id="wsci" title="Connexion indicator" src="/themes/<?=$theme;?>/redled.png"><span>Timeleft</span></div>
    <div id="info">Game infos</div>
    <div id="chatbox">
     <table id="chattable">
@@ -202,8 +216,4 @@ if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during
    <button id="log_clear">Clear</button>
   </div>
 <?php
-if ( is_file('footer.php') )
-	include 'footer.php' ;
-?>
- </body>
-</html>
+html_foot() ;

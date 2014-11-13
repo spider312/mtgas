@@ -1,8 +1,8 @@
 // card.js : Class and prototype for cards (and tokens, and duplicates) management
-function Card(id, extension, name, zone, attributes) {
+function Card(id, extension, name, zone, attributes, exts) {
 	Widget(this) ;
 	this.type = 'card' ; // Used in right DND
-	this.init('c_' + id, extension, name, zone, attributes, false) ;
+	this.init('c_' + id, extension, name, zone, attributes, exts) ;
 	this.image_url = card_image_url(this.ext, this.name, this.attrs) ;
 	this.bordercolor = 'black' ;
 	this.setzone(zone) ; // Initial zone initialisation
@@ -22,7 +22,7 @@ function Card(id, extension, name, zone, attributes) {
 function card_prototype() {
 	// Methods
 		// Purely object
-	this.init = function(id, extension, name, zone, attributes) { // Common initialisation code between card and token
+	this.init = function(id, extension, name, zone, attributes, exts) { // Common initialisation code between card and token
 		// Basic data
 		this.id = id ;
 		this.zone = zone ;
@@ -32,6 +32,7 @@ function card_prototype() {
 		this.controler = zone.player ;
 		this.name = name ;
 		this.ext = extension ;
+		this.exts = exts ; 
 		// Canvas display
 		this.w = cardwidth ;
 		this.h = cardheight ;
@@ -78,6 +79,7 @@ function card_prototype() {
 		}
 	}
 	this.toString = function() { return this.id } ;
+	this.toJSON = function() { return this.id } ;
 	this.del = function() {
 		// Remove linked data
 		game.target.del_by_target(this) ;
@@ -702,7 +704,8 @@ function card_prototype() {
 				// Create living weapon token
 				if ( this.attrs.living_weapon )
 					this.living_weapon() ;
-				this.stonehewer_giant() ;
+				if ( game.stonehewer && this.is_creature() )
+					tk.mojosto('stonehewer', this) ;
 				break ;
 			default :
 				log('Impossible to dbclick a card in '+this.zone.type) ;
@@ -734,7 +737,7 @@ function card_prototype() {
 				var xoffset = this.IndexInZone() ;
 				for ( var i = 0 ; i < game.selected.cards.length ; i++ ) {
 					var mycard = game.selected.cards[i] ;
-					mycard.xoffset = xoffset - mycard.IndexInZone()  ;
+					mycard.xoffset = place_offset * ( xoffset - mycard.IndexInZone() ) ;
 					mycard.yoffset = 0 ;
 				}
 				break ;
@@ -762,6 +765,15 @@ function card_prototype() {
 		game.player.battlefield.refresh_pt() ;
 		game.opponent.battlefield.refresh_pt() ;
 	}
+	this.mojosto = function(avatar, param) {
+		var obj = {'avatar': avatar}
+		if ( iso(param) ) { // Stonehewer giant
+			obj.cc = param.attrs.converted_cost ;
+			obj.target = param.toString() ;
+		} else
+			obj.cc = param ;
+		action_send('mojosto', obj) ;
+	}
 	this.menu = function(ev) {
 		var card = this ;
 		switch ( card.zone.type ) {
@@ -785,15 +797,15 @@ function card_prototype() {
 									cardmenu.addline('Creature ...', function() {
 										cc = prompt_int('Converted cost', def) ;
 										if ( cc != null ) {
-											$.get('json/rand_card.php', {'game':game.id, 'avatar': 'momir', 'cc': cc}) ;
+											this.mojosto('momir', cc) ;
 											if ( game.nokiou )
-												$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+												this.mojosto('nokiou', cc) ;
 										}
 									}) ;
 									cardmenu.addline('Nonland, noncreature permanent ...',    function() {
 										cc = prompt_int('Converted cost', def) ;
 										if ( cc != null )
-											$.get('json/rand_card.php', {'game':game.id, 'avatar': 'nokiou', 'cc': cc}) ;
+											this.mojosto('nokiou', cc) ;
 									}) ;
 									cardmenu.addline('Momir also puts a noncreature permanent',    function() {
 										game.nokiou = ! game.nokiou ;
@@ -802,10 +814,10 @@ function card_prototype() {
 									break ;
 								case 'jhoira' :
 									cardmenu.addline('Instants', function() {
-										$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-instant'}) ;
+										this.mojosto('jhoira-instant', cc) ;
 									}) ;
 									cardmenu.addline('Sorceries', function() {
-										$.get('json/rand_card.php', {'game':game.id, 'avatar': 'jhoira-sorcery'}) ;
+										this.mojosto('jhoira-sorcery', cc) ;
 									}) ;
 									break ;
 								case 'stonehewer' :
@@ -851,14 +863,14 @@ function card_prototype() {
 							var name = tokens[i].name ;
 							var attrs = tokens[i].attrs ;
 							var img = token_image_name(name, ext, attrs) ;
-							ext = token_extention(img, ext) ;
+							ext = token_extention(img, ext, this.exts) ;
 							if ( isn(attrs.pow) && isn(attrs.thou) )
 								var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
 							else
 								var txt = name ;
 							if ( tokens[i].nb > 1 )
 								txt += ' x '+tokens[i].nb
-							var l = cardmenu.addline(txt, create_token, ext, name, card.zone, attrs, tokens[i].nb) ;
+							var l = cardmenu.addline(txt, create_token, ext, name, game.player.battlefield, attrs, tokens[i].nb) ;
 							l.moimg = card_images('/TK/'+ext+'/'+img) ;
 						}
 						// Animate
@@ -928,14 +940,14 @@ function card_prototype() {
 					menu.addline('Move', submenu) ;
 					menu.addline() ;
 					// P/T
-					var pt = menu.addline('Set P/T', 		card.ask_powthou) ;
+					var pt = menu.addline('Set Power/Toughness', card.ask_powthou) ;
 					pt.buttons.push({'text': '+1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou(1, 1) ;
 					}}) ;
 					pt.buttons.push({'text': '-1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou(-1, -1) ;
 					}}) ;
-					var pteot = menu.addline('Change P/T until EOT',	card.ask_powthou_eot) ;	
+					var pteot = menu.addline('Change P/T until EOT', card.ask_powthou_eot) ;	
 					pteot.buttons.push({'text': '+1', 'callback': function(ev, cards) {
 						(new Selection(cards)).add_powthou_eot(1, 1) ;
 					}}) ;
@@ -943,7 +955,7 @@ function card_prototype() {
 						(new Selection(cards)).add_powthou_eot(-1, -1) ;
 					}}) ;
 					// Counters
-					var c = menu.addline('Set counters',		card.setcounter) ;
+					var c = menu.addline('Set counters', card.setcounter) ;
 					if ( card.attrs.transformed && card.transformed_attrs)
 						var steps = clone(card.transformed_attrs.steps) ;
 					else
@@ -1097,15 +1109,15 @@ function card_prototype() {
 		if ( this.zone.type != 'hand' )
 			menu.addline('To hand',			sel.changezone, player.hand).override_target = sel ;
 		if ( this.zone.type != 'library' ) {
-			menu.addline('To top deck',		sel.changezone, player.library).override_target = sel ;
-			menu.addline('To bottom deck',		sel.changezone, player.library, null, 0).override_target = sel ;
+			menu.addline('To library top',		sel.changezone, player.library).override_target = sel ;
+			menu.addline('To library bottom',		sel.changezone, player.library, null, 0).override_target = sel ;
 		} else {
 			var i = card.IndexInZone() ;
 			var j = card.zone.cards.length - 1 ;
 			if ( i != j )
-				menu.addline('To top deck',		sel.moveinzone, j).override_target = sel ;
+				menu.addline('To library top',		sel.moveinzone, j).override_target = sel ;
 			if ( i != 0 )
-				menu.addline('To bottom deck',		sel.moveinzone, 0).override_target = sel ;
+				menu.addline('To library bottom',		sel.moveinzone, 0).override_target = sel ;
 		}
 		if ( this.zone.type != 'graveyard' )
 			menu.addline('To graveyard',		sel.changezone, player.graveyard).override_target = sel ;
@@ -1389,6 +1401,13 @@ function card_prototype() {
 		}
 	}
 // === [ ATTRIBUTES + SYNCHRONISATION ] ========================================
+	this.syncfilter = function(key, value) {
+		if ( iso(value) && ( value != null ) && 
+			( ( value.type == "card" ) || ( value.type == "token" ) ) ) {
+			return value.id ;
+		}
+		return value ;
+	}
 	this.sync = function() { // Send
 		var result = false ; // By default, no action will be done
 		// Send only difference between last synched attrs and current attrs
@@ -1399,15 +1418,19 @@ function card_prototype() {
 			// Workaround for the loop of siding synchronisation
 			if ( ( i == 'siding' ) && ( this != game.player ) ) // I am the lone who can change my siding status
 				continue ;
-			if ( JSON.stringify(this.attrs[i]) != JSON.stringify(this.sync_attrs[i]) ) { // Compare JSON for objects/arrays
+			// Compare JSON for objects/arrays
+			var previous = JSON.stringify(this.sync_attrs[i]/*, this.syncfilter*/) ;
+			var current = JSON.stringify(this.attrs[i]/*, this.syncfilter*/) ;
+			if ( previous != current ) {
 				attrs[i] = this.attrs[i] ;
+				this.sync_attrs[i] = this.attrs[i] ;
 				if ( ! result ) 
 					result = true ; // At least one attribute will be sync
 			}
 		}
 		// Reclone for next synch
 		if ( result ) {
-			this.sync_attrs = clone(this.attrs, true) ;
+			//this.sync_attrs = clone(this.attrs, true) ;
 			action_send('attrs', {'card': this.id, 'attrs': attrs}) ; // this.attrs for full sync, attrs for diff sync
 		}
 		return attrs ;
@@ -1526,7 +1549,7 @@ function card_prototype() {
 				} else
 					this.uncopy_recieve() ;
 			}
-		var boost = false ;
+		//var boost = false ;
 		if ( typeof attrs.boost_bf != 'undefined' ) {
 			this.attrs.boost_bf = attrs.boost_bf ;
 			game.player.battlefield.refresh_pt() ;
@@ -2350,7 +2373,7 @@ function card_prototype() {
 		this.duplicate_attrs('transformed_attrs', attrs) ;
 		var duplicate = new Token(id, this.ext, this.name, this.zone, attrs, this.imgurl_relative()) ;
 		duplicate.get_name = function() {
-			return 'copy of '+this.name ; // Default is token, overriding
+			return this.name+' (copy)' ; // Default is token, overriding
 		}
 		//duplicate.place(0, duplicate.place_row()) ;
 		message(active_player.name+' duplicates '+this.get_name(), 'zone') ;
@@ -2371,6 +2394,7 @@ function card_prototype() {
 		}
 		message(this.get_name()+' becomes a copy of '+card.get_name()) ; // get it without "copy of ..." suffix
 		this.attrs = clone(card.orig_attrs, true) ;
+		this.sync_attrs = clone(this.attrs) ;
 		this.attrs.copy = card ;
 		// Refresh data linked to attrs
 		this.refreshpowthou() ; // Own
@@ -2418,6 +2442,7 @@ function card_prototype() {
 			this.disp_powthou_eot(animate.pow, animate.tou) ;
 		else
 			this.disp_powthou(animate.pow, animate.tou) ;
+		this.zone.refresh_pt() ;
 	}
 	this.suspend = function() {
 		if ( ! isn(this.attrs.suspend) )
@@ -2486,10 +2511,6 @@ function card_prototype() {
 		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
 			tk.attach(lw) ;
 		}, this) ;
-	}
-	this.stonehewer_giant = function() {
-		if ( game.stonehewer && this.is_creature() )
-			$.get('json/rand_card.php', {'game':game.id, 'avatar': 'stonehewer', 'cc': this.attrs.converted_cost, 'target': this+''}, function(pwet) {}) ;
 	}
 }
 function refresh_cards_in_zone(zone) {

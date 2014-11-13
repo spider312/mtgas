@@ -37,7 +37,9 @@ html_menu() ;
    <form id="search_cards" method="get">
     <input type="hidden" name="page" value="1">
     <input id="cardname" type="text" name="name" placeholder="name" autocomplete="off" title="Search inside card name, use % as a joker">
+	<button id="clear_search" type="button">X</button>
     <div id="hidden_form" class="hidden">
+     <input id="cardext" type="text" name="ext" placeholder="extension" autocomplete="off" title="Limit cards to given extension code or name (begin)">
      <input id="cardtypes" type="text" name="types" placeholder="supertype - type - subtype" autocomplete="off" title="Search inside card supertypes (legendary, basic, snow), types (creature, land ...) or subtypes (elf, equipment, aura), use % as a joker">
      <input id="cardtext" type="text" name="text" placeholder="text" autocomplete="off" title="Search inside card text, use % as a joker">
      <input id="cardcost" type="text" name="cost" placeholder="cost" autocomplete="off" title="Search inside card cost, use % as a joker">
@@ -134,15 +136,8 @@ html_menu() ;
    <!-- Deck stats -->
    <div id="stats" class="section">
     <h1 class="hideable">Stats</h1>
-    <div id="stats_color"></div>
-    <div id="stats_cost"></div>
-    <div id="stats_typelist"></div>
-    <div id="stats_type"></div>
-   <div id="stats_provide"></div>
+    <div id="stats_graphs"></div>
    </div>
-
-  <!-- Logs -->
-  <textarea id="log" class="hidden"></textarea>
 
   </div>
 <?php

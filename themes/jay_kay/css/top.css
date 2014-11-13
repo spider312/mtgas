@@ -1,13 +1,56 @@
 table {
 	display: inline ;
 	border: 0px solid black ;
+	caption-side: bottom;
 }
-#stats {
+#top {
 	width: 96% ;
 	margin-left: 2% ;
 	margin-bottom: 2% ;
 	margin-top: 25px ;
+	text-align: center ;
+}
+/* Tabs */
+#tabs_div {
+	margin-top: 15px ;
+	margin-bottom: 15px ;
+}
+#tabs_div span {
+	font-size: 18px ;
+	background-color: #907c6c ;
+	cursor: pointer ;
+	padding: 5px ;
+	margin: 5px ;
+}
+#tabs_div span.selected {
+	border: 1px solid black ;
+	background-color: #F4ECD2 ;
+}
+/* Players list */
+#table img, #table td {
+	height: 30px ;
 }
 .self {
 	background-color: #F4ECD2 ;
+}
+/* Player list header */
+.sortable {
+	cursor: pointer ;
+	text-decoration: underline ;
+	padding-left: 10px ;
+	padding-right: 10px ;
+}
+.sorted {
+	background: url(../sort/asc.png) top right no-repeat ;
+	padding-right: 20px ;
+}
+.desc .sorted {
+	background: url(../sort/desc.png) top right no-repeat ;
+}
+/* Unselectability for tabs and table header */
+#tabs_div span, thead td {
+	-webkit-user-select: none;  /* Chrome all / Safari all */
+	-moz-user-select: none;     /* Firefox all */
+	-ms-user-select: none;      /* IE 10+ */
+	user-select: none;  
 }

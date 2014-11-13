@@ -1,3 +1,4 @@
+/* Window  */
 #side_window {
 	z-index: 2 ;
 	position: absolute ;
@@ -9,27 +10,41 @@
 	border: 3px outset black ;
 	background-color: white ;
 }
-#deck, #side {
+/* Columns + Titles */
+#deck_title, #side_title, #deck, #side, #land {
 	position: absolute ;
-	top: 5px ;
 	width: 290px ;
 	margin: 0 ;
 	padding: 0 ;
-
-	overflow-y: auto ;
-	overflow-x: hidden ;
 }
-#deck {
-	height: 98% ; /* Nearly all height */
+#deck, #deck_title {
 	left: 5px ;
 	text-align: left ;
 }
-#side {
-	height: 92% ; /* Keep space for buttons */
+#side, #side_title {
 	right: 5px ;
 	text-align: right ;
 }
-#deck li, #side li {
+/* Columns Titles */
+#deck_title, #side_title {
+	top: 5px ;
+	height: 20px ;
+	width: 287px ;
+	border: 1px solid black ;
+	text-align: center ;
+}
+/* Columns */
+#deck, #side {
+	top: 28px ;
+	/* Height is defined by javascript */
+	overflow-y: scroll ;
+	overflow-x: hidden ;
+}
+#deck {
+	direction: rtl ; /* Scrollbar on left side */
+}
+/* Cards */
+#deck li, #side li, #land li {
 	margin: 1px ;
 	list-style-type: none ;
 	border: 1px solid black ;
@@ -38,6 +53,8 @@
 	background-repeat: no-repeat ;
 	background-position: center -11px ;
 	background-size: 250px auto ;
+	cursor: pointer ;
+	/*direction: ltr ;*/
 }
 #deck li {
 	background-position: right -11px ;
@@ -48,13 +65,29 @@
 #deck li.selected, #side li.selected {
 	outline: 2px solid red !important ;
 }
+/* Buttons */
 #button_switch {
 	position: absolute ;
 	top: 32px ;
-	left: 300px ;
+	left: 296px ;
 }
 #side_buttons {
 	position: absolute ;
 	bottom: 5px ;
 	right: 5px ;
+}
+#side_buttons img {
+	height: 32px ;
+}
+/* Lands */
+#land {
+	background-color: white ;
+	border: 2px solid black ;
+	bottom: 55px ;
+	right: 55px ;
+	width: 255px ;
+	padding: 5px ;
+}
+#land li {
+	background-position: center 0px ;
 }

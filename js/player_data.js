@@ -15,7 +15,8 @@ function start(pid) {
 	save_restore('past_tournaments_delay') ;
 	get_past_games() ;
 	get_past_tournaments() ;
-	options = new Options(true) ;
+	game = {} ;
+	game.options = new Options(true) ;
 }
 function get_past_games() {
 	var past_games = document.getElementById('past_games') ;

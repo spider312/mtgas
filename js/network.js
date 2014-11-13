@@ -1,123 +1,109 @@
 // network.js : functions for communicating with server, let's try to well modularize choice between AJAJ and WebSocket
 // + chat utils
 function network_loop() { // Things to do regulary
-	active_player = game.player ; // Used to distinguish actions initiated by current player and those initiated by its opponent and transmitted by net
-	if ( ! game.websockets ) { // Ajax
-		toid = null ;
-		querydate = new Date() ;
-		$.getJSON('json/actions.php', {'game': game.id, 'from': last_recieved_action}, manage_actions) ; // Get all new actions from server and send them to manage
-	} else { // Websockets
-		//window.WebSocket = window.WebSocket || window.MozWebSocket;
-		if ( ! window["WebSocket"] ) {
-			log('No support for websockets in browser') ;
-			return false ;
-		}
-		// Init websocket and connect
-		game.connection = new WebSocket('ws://dev.mogg.fr:1337/server');
-		// Add event handlers
-		game.connection.onopen = function (ev) {
-			log('Connection opened') ;
-			game.socket_registration.from = last_recieved_action ;
-			game.connection.send(JSON.stringify(game.socket_registration)) ; // Register to server
-		};
-		game.connection.onerror = function (ev) { // Just get an event error containing no info, but triggers onclose
-			log('Error, reconnecting in 10 sec') ;
-			setTimeout(retry_connection, 10000) ;
-			ev.preventDefault() ;
-		};
-		game.connection.onclose = function (ev) {
-			log('Connection closed : ' + ev.reason + ' ('+ev.code+')') ;
-			ev.preventDefault() ;
-		};
-		game.connection.onmessage = function (message) {
-			try {
-				var json = JSON.parse(message.data);
-			} catch (e) {
-				log('NOK : '+message.data) ;
+	//active_player = game.player ; // Used to distinguish actions initiated by current player and those initiated by its opponent and transmitted by net
+	if ( ! game.websockets ) // Ajax
+		log('Websockets should be enabled') ;
+	else { // Websockets
+		var registration = {'id': game.id} ;
+		game.connection = new Connexion('game', function(data, ev) { // OnMessage
+			// Guess active player
+			switch ( data.sender ) {
+				case '' : // Server (cards, first turn/phase)
+					active_player = game.server ;
+					break ;
+				case game.player.id : // Current player
+					active_player = game.player ;
+					break ;
+				case game.opponent.id : // Opponnent
+					active_player = game.opponent ;
+					break ;
+				default : // Spectator
+					var s = game.spectators.get(data.sender)
+					if ( s != null ) // Known
+						active_player = s ;
+					else {
+						if ( ( data.type != 'spectactor' ) ) {
+							log('Action "'+data.type+'" from unknown spectator') ;
+							return false ;
+						}
+					}
 			}
-			if ( json.type == 'recieve' ) { // Server informs us it recieved last sent stacked action
-				if ( json.val > last_recieved_action ) // Consider as last recieved action (for not reasking it if server restarts)
-					last_recieved_action = json.val ;
-				// Management result
-				if ( ( iss(json.msg) ) && ( json.msg != '' ) )
-					alert(data.msg) ;
-				if ( json.newround ) {
-					new_round() ;
-					return false ;
-				}
-				// Callback
-				if ( game.action_stack.length > 0 ) { // We recieve a response ton sending of action game.action_stack[0]
-					var action = game.action_stack.shift() ;
-					var param = JSON_parse(action[0]) ;
-					param.param = JSON_parse(param.param) ;
-					for ( var i in param ) // Merging sent object with results from server
-						json[i] = param[i] ;
-					var callback = action[1] ;
-					if ( callback != null )
-						callback(json) ;
-					// Manage next stacked action
-					if ( game.action_stack.length > 0 )
-						action_unstack() ;
-				} else
-					log('No action to unstack') ;
-			} else
-				manage_action(json) ;
-		};
+			// Manage action depending on type
+			switch ( data.type ) {
+				// Players/spectators
+				case 'register' :
+					message(active_player.name+' has join', 'join') ;
+					active_player.connect(true) ;
+					if ( active_player == game.player ) { // My own registration, recieved after prev actions
+						display_start() ;
+						if ( active_player.attrs.siding && ( game.lastwinner != null ) ) // End of "initial actions", if side should be opened, open it
+							side_start_recieve(active_player, game.lastwinner) ;
+					}
+					break ;
+				case 'unregister' :
+					message(active_player.name+' has quit', 'join') ;
+					active_player.connect(false) ;
+					break ;
+				case 'blur' :
+					active_player.focus(false) ;
+					break ;
+				case 'focus' :
+					active_player.focus(true) ;
+					break ;
+				case 'roundend' :
+					if ( tournament > 0 ) {
+						// Remove page closure confirmation
+						window.removeEventListener('beforeunload', onBeforeUnload, false) ;
+						alert('Round ended, going to tournament page') ;
+						document.location = 'tournament/?id='+tournament ;
+					} else
+						log('roundend on a game not in a tournament')
+					break ;
+				default :
+					// Recieving actions while tab has not focus : inform user
+					var hasfocus = false ;
+					if ( document.hasFocus )
+						hasfocus = document.hasFocus() ;
+					if ( ! hasfocus ) {
+						if ( unseen_actions == 0 ) { // Display last seen line
+							var rows = document.getElementById('chathisto').rows
+							for ( var i = 0 ; i < rows.length ; i++ )
+								rows[i].classList.remove('lastseen') ; // Remove previously marked
+							if ( rows.length > 0 )
+								rows[rows.length-1].classList.add('lastseen') ; // Mark last line
+						}
+						unseen_actions++
+						document.title = '('+unseen_actions+') '+init_title ;
+						//window.getAttention() ; // Doesn't work
+						//window.focus() ; // Neither
+					}
+					try {
+						manage_action(data, active_player) ;
+					} catch (e) {
+						log(e) ;
+					}
+					draw() ;
+			}
+			active_player = game.player ; // End of "recieve", all actions in context are from player
+		}, function(ev) { // OnClose/OnConnect
+			switch ( ev.type ) {
+				case 'open' :
+					message('Connected', 'join') ;
+					break ;
+				case 'close' :
+					var reason = ev.reason ;
+					if ( reason == '' )
+						reason = 'unknown reason' ;
+					message('Disconnected : ' + reason + ' ('+ev.code+')', 'join') ;
+					break ;
+				default :
+					log('Unknown open/close type : '+ev.type) ;
+					log(ev) ;
+			}
+		}, registration) ;
+		game.connection.events() ;
 	}
-}
-function manage_actions(round) {
-	ping = new Date() - querydate ;
-	// Display message transmitted by server
-	if ( ( iss(round.msg) ) && ( round.msg != '' ) )
-		alert(round.msg) ;
-	// Redirect to next round if in tournament
-	if ( round.status == 7 ) {
-		new_round()
-		return false ;
-	}
-	// Display opponent's lagometter
-	if ( round.opponent_lag > 5 )
-		game.infobulle.set('Opponent\'s inactivity : '+time_disp(round.opponent_lag)) ;
-	// Display round's time left / game's elapsed time
-	if ( round.timeleft )
-		var time = time_disp(round.timeleft)+ ' left in round' ;
-	else
-		var time = time_disp(round.age) ;
-	timeleft.firstChild.nodeValue = time ;
-	// Recieving actions while tab has not focus : inform user
-	var hasfocus = false ;
-	if ( document.hasFocus )
-		hasfocus = document.hasFocus() ;
-	if ( ( round.actions.length > 0 ) && ! hasfocus ) {
-		if ( unseen_actions == 0 ) { // Display last seen line
-			var rows = document.getElementById('chathisto').rows
-			for ( var i = 0 ; i < rows.length ; i++ )
-				rows[i].classList.remove('lastseen') ; // Remove previously marked
-			if ( rows.length > 0 )
-				rows[rows.length-1].classList.add('lastseen') ; // Mark last line
-		}
-		unseen_actions += round.actions.length ;
-		document.title = '('+unseen_actions+') '+init_title ;
-		//window.getAttention() ; // Doesn't work
-		//window.focus() ; // Neither
-	}
-	// For each action recieved : manage it
-	for ( var i in round.actions ) {
-		try {
-			manage_action(round.actions[i]) ;
-		} catch (e) {
-			log(e) ;
-		}
-	}
-	draw() ; // All recieved actions managed, refresh ping
-	active_player = game.player ; // Reinitialize, all actions intented outside this function was intented by current player
-	recieve_time = null ;
-	sent_time = null ;
-	toid = window.setTimeout(network_loop, ajax_interval) ; // Don't try to get new actions before all recieved are managed (to avoid multi-managing)
-}
-function retry_connection() {
-	log('Reconnecting') ;
-	network_loop() ;
 }
 /* Actions sending management */
 function action_send(type, obj, callback) {
@@ -127,44 +113,31 @@ function action_send(type, obj, callback) {
 		try {
 			param = JSON.stringify(obj) ;
 		} catch (e) {
+			log('exception in JSON.stringify in action sending') ;
 			var param = clone(obj) ; // obj will be stringified, do not modify original copy
 			for ( var i in param )
 				if ( ( typeof param[i] == 'object' ) && (param[i] != null ) )
 					for ( var j in param[i] )
 						if ( ( typeof param[i][j] == 'object' ) && (param[i][j] != null ) )
 							param[i][j] = param[i][j].toString() ; // Avoid deep stringification
-			var param = JSON.stringify(param) ;
+			param = JSON.stringify(param) ;
+			log(param) ;
 		}
-		params.param = param.replace(/\'/g,"\\\'") ;
+		//params.param = param.replace(/\'/g,"\\\'") ;
+		params.param = param
 	}
 	if ( ! isf(callback) )
 		callback = null ;
-	var l = game.action_stack.length ;
-	game.action_stack.push(new Array(params, callback)) ;
-	if ( l == 0 ) // Stack was empty, unstacking was disabled
-		return action_unstack() ;
-		//return $.getJSON('json/action_send.php', params, callback) ;
-}
-function action_unstack() {
-	var action = game.action_stack[0] ;
-	var params = action[0] ;
-	var callback = action[1] ;
-	if ( ! game.websockets ) {
-		return $.post('json/action_send.php', params, function(data) {
-			game.action_stack.shift() ;
-			if ( ( iss(data.msg) ) && ( data.msg != '' ) )
-				log(data.msg) ;
-			if ( data.newround ) {
-				new_round() ;
-				return false ;
-			}
-			if ( callback != null )
-				callback(data) ;
-			if ( game.action_stack.length > 0 )
-				action_unstack() ;
-		}, 'json') ;
-	} else
+	if ( ! game.websockets )
+		log('Websockets should be enabled') ;
+	else {
+		if ( isf(callback) ) {
+			game.callback_id++ ;
+			params.callback = game.callback_id ;
+			game.callbacks[game.callback_id] = callback ;
+		}
 		game.connection.send(JSON.stringify(params)) ;
+	}
 }
 /* Chat management */
 function txt_recieve(text) {
@@ -174,7 +147,7 @@ function txt_send(text) {
 	action_send('text', {'text': text}) ;
 	if ( spectactor ) {
 		var p = active_player ;
-		active_player = game.spectactors[$.cookie(session_id)] ;
+		active_player = game.spectators.get($.cookie(session_id)) ;
 	}
 	txt_recieve(text) ;
 	if ( spectactor )
@@ -193,7 +166,7 @@ function message_filter_contextmenu(ev) {
 	for ( var i in message_filter )
 		menu.addline(message_filter_name[i],  message_filter_toggle, i).checked = message_filter[i] ;
 	menu.start(ev) ;
-	ev.preventDefault() ;
+	return eventStop(ev) ;
 }
 function message_filter_toggle(type) {
 	message_filter[type] = ! message_filter[type] ;

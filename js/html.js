@@ -1,3 +1,44 @@
+// Notification granted, denied, default
+// 		https://developer.mozilla.org/en-US/docs/WebAPI/Using_Web_Notifications
+// 		https://developer.mozilla.org/en-US/docs/Web/API/Notification
+function notification_granted() {
+	return ( Notification && Notification.permission === "granted" ) ;
+}
+function notification_request(title, txt, tag) {
+	if ( window.Notification ) {
+		if ( ! notification_granted() ) {
+			Notification.requestPermission(function (status) {
+				if (Notification.permission !== status) {
+					Notification.permission = status;
+					if ( iss(title) )
+						notification_send(title, txt, tag) ;
+				}
+			});
+		}
+	} else
+		debug('Notification not supported') ;
+}
+function notification_send(title, txt, tag) {
+	if ( Notification ) {
+		if ( notification_granted() ) {
+			options = {} ;
+			options.body = txt ;
+			options.icon = '/themes/jay_kay/Mogg Maniac.crop.png' ;
+			if ( iss(tag) )
+				options.tag = tag
+			var n = new Notification(title, options) ;
+			// All browsers (chrome) not triggering those usefull events handlers
+			n.addEventListener('click', function(ev) { ev.target.close() ; }, false) ;
+			n.addEventListener('show', function(ev) {
+				window.setTimeout(function(n) { n.close() ; }, 5000, ev.target) ;
+			}, false) ;
+			return n ;
+		} else
+			return notification_request(title, txt, tag)
+	}
+	alert(txt) ;
+	return false ;
+}
 // Ajaj
 function ajax_error_management() {
 	$.ajaxSetup({'error': function(XMLHttpRequest, textStatus, errorThrown) {
@@ -8,7 +49,7 @@ function ajax_error_management() {
 // Events
 function eventStop(ev) { // Cancel event's management by browser, to avoid unwanted drag'n'drop for example
 	ev.preventDefault() ;
-	//ev.stopPropagation() ;
+	ev.stopPropagation() ;
 	return false ;
 }
 function eventLog(ev, from) {
@@ -19,6 +60,28 @@ function eventLog(ev, from) {
 	if ( iso(ev.target) && iso(ev.target.thing) )
 		res += ' ('+ev.target.thing+')' ;
 	log(res) ;
+}
+// Timer
+function start_timer(node, date, countdown) {
+	if ( node.timer )
+		window.clearInterval(node.timer) ;
+	update_timer(node, date, countdown) ;
+	node.timer = window.setInterval(update_timer, 1000, node, date, countdown) ;
+	return node.timer ;
+}
+function update_timer(node, date, countdown) {
+	now = new Date() ;
+	if ( countdown )
+		var duration = mysql2date(date) - now ;
+	else
+		var duration = now - mysql2date(date) ;
+	var disp = time_disp(Math.round(duration/1000)) ;
+	if ( node.nodeName == 'INPUT' ) {
+		node.value = disp ;
+	} else {
+		node_empty(node) ;
+		node.appendChild(create_text(disp)) ;
+	}
 }
 // Form
 function form2param(form) { // Returns an object of 'name -> value' for all elements of 'form' (without submit and unchanged values)
@@ -44,12 +107,15 @@ function document_add_css(doc, url) {
 	doc.documentElement.firstChild.appendChild(mycss)
 }
 // Basic node management
-function node_empty(node) {
-	if ( isf(node.hasChildNodes) ) {
-		while ( node.hasChildNodes() )
-			node.removeChild(node.firstChild) ;
-	} else
-		log2(node) ;
+function node_empty() {
+	for ( var i = 0 ; i < arguments.length ; i++) {
+		var node = arguments[i] ;
+		if ( isf(node.hasChildNodes) ) {
+			while ( node.hasChildNodes() )
+				node.removeChild(node.firstChild) ;
+		} else
+			log2(node) ;
+	}
 	return node ;
 }
 function node_parent_search(node, tagname) {
@@ -101,7 +167,10 @@ function create_div(content) {
 function create_span() {
 	var span = create_element('span', arguments[0]) ;
 	for ( var i = 1 ; i < arguments.length ; i++)
-		span.appendChild(arguments[i]) ;
+		if ( iso(arguments[i]) )
+			span.appendChild(arguments[i]) ;
+		else
+			span.appendChild(create_text(arguments[i])) ;
 	return span
 }
 function create_img(src, alt, title) {
@@ -138,7 +207,7 @@ function create_li(text, classname) {
 	var li = document.createElement('li') ;
 	if ( issn(text) )
 		li.appendChild(document.createTextNode(text)) ;
-	else
+	else if ( text )
 		li.appendChild(text) ;
 	if ( iss(classname) )
 		li.className = classname ;
@@ -191,8 +260,6 @@ function create_checkbox(name, checked, id, value) {
 		checkbox.id = id ;
 	if ( issn(value) )
 		checkbox.value = value ;
-	if ( issn(id) )
-		checkbox.id = id ;
 	return checkbox ;
 
 }
@@ -301,6 +368,7 @@ function create_label(target) {
 }
 function create_button(content, onclick, title, classname) {
 	var button = document.createElement('button') ;
+	button.type = 'button' ;
 	if ( issn(content) )
 		button.appendChild(document.createTextNode(content)) ;
 	else
@@ -331,16 +399,19 @@ function create_option(text, value) {
 function create_tr(table) {
 	// Search the table node (in case 'table' is a thead/foot/body)
 	var node = table ;
-	while ( node.tagName != 'TABLE' )
-		node = node.parentNode ;
-	// Search the columns number
-	var cols = 1 ;
-	if ( node.rows.length > 0 )
-		for ( var i = 0 ; i < node.rows.length ; i++ )
-			if ( node.rows[i].cells.length > cols )
-				cols = node.rows[0].cells.length ;
-	// Add wanted row to table
-	var row = table.insertRow(-1) ;
+	if ( node != null ) {
+		while ( node.tagName != 'TABLE' )
+			node = node.parentNode ;
+		// Search the columns number
+		var cols = 1 ;
+		if ( node.rows.length > 0 )
+			for ( var i = 0 ; i < node.rows.length ; i++ )
+				if ( node.rows[i].cells.length > cols )
+					cols = node.rows[0].cells.length ;
+		// Add wanted row to table
+		var row = table.insertRow(-1) ;
+	} else
+		var row = create_element('tr') ;
 	// Add cells to this row
 	for ( var i = 1 ; i < arguments.length ; i++ ) {
 		var colspan = false ;
@@ -429,61 +500,6 @@ function popup_li(card, ul) {
 function random_color() {
 	var rint = Math.round(0xffffff * Math.random());
 	return (/*'0x' +*/'#'+ rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1');
-}
-// Log within other pages than main
-function log2(arg) {
-	var text = '' ;
-	switch ( typeof arg ) {
-		case 'boolean' : // Display numbers "as-is"
-		case 'number' : // Display numbers "as-is"
-		case 'string' : // Display strings "as-is"
-			text += arg ;
-			break ;
-		case 'function' :
-			//text += functionname(arg) ;
-			break ;
-		case 'object' : // Detailed object display
-			if ( arg == null )
-				text += 'null' ;
-			else {
-				text += 'Properties of object : '
-				try {
-					text += arg.toString() ;
-				} catch ( e ) {
-					text += e ;
-				}
-				for ( var i in arg ) {
-					try {
-						text += "\n - " + typeof arg[i] + '\t' + i ;
-						switch ( typeof arg[i] ) {
-							case 'function' :
-								text += '()' ;
-								if ( ( arg[i].name != '') && ( i != arg[i].name ) )
-									text += '('+arg[i].name+')' ;
-								break ;
-							case 'object' :
-								if ( arg[i] == null )
-									text += ' = null' ;
-								else
-									text += ' = '+arg[i].toString() ;
-								break ;
-							case 'string' :
-								text += ' = "' + arg[i] + '"' ;
-								break ;
-							default :
-								text += ' = ' + arg[i] ;
-						}
-					} catch ( e ) {
-						alert('Exception : '+e) ;
-					}
-				}
-			}
-			break ;
-		default:
-			//text += '[' + functionname(log.caller) + '] ' ;
-			text += "Type unrecognized by loging engine :  "+typeof arg ;
-	}
-	alert(text);
 }
 // JSON
 function JSON_parse(text) { /* Wrapper to parse JSON with exception management */

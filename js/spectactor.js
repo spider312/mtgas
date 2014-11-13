@@ -1,65 +1,110 @@
-function Spectactor(id, name) {
-	this.toString = function() {
-		return 'Spectactor('+this.id+', '+this.name+')' ;
+function Spectators(msg_func, allow_func, allowed_func) {
+	this.spectators = [] ;
+	this.msg_func = msg_func ;
+	this.allow_func = allow_func ;
+	this.allowed_func = allowed_func ;
+	this.add = function(id, name) {
+		var s = this.get(id) ;
+		if ( s == null ) {
+			s = new Spectator(this, id, name) ;
+			this.spectators.push(s) ;
+			var msg = 'New spectator : '+name ;
+			var imspectator = ( this.get($.cookie(session_id)) != null ) ;
+			if  ( ! imspectator && spectactor_is_allowed_forever(id) ) {
+				this.msg_func(msg+' (alowed forever)') ;
+				this.allow(id) ;
+			} else {
+				var span = null ;
+				if ( ! imspectator )
+					span = s.allow_span('Show hand') ;
+				this.msg_func(msg, span) ;
+			}
+		} else
+			this.msg_func('Spectator '+s.name+' already added') ;
+		return s ;
 	}
-	this.allow_recieve = function(player) {
-		if ( this.is_allowed(player) )
-			message(player.get_name()+' already allowed '+this.name, this.msgtype) ;
+	this.get = function(id) {
+		for ( var i = 0 ; i < this.spectators.length ; i++ ) 
+			if ( this.spectators[i].id == id )
+				return this.spectators[i] ;
+		return null ;
+	}
+	this.allow = function(spectator_id) { // Send
+		var s = this.get(spectator_id) ;
+		if ( s == null )
+			this.msg_func('Unable to find spectator to allow') ;
 		else {
-			this.allowed.push(player.id) ;
-			if ( $.cookie(session_id) == this.id )  { // I am allowed spectator
-				var zone = player.hand ; // Show hand
-				zone.default_visibility = true ;
-				for ( var i = 0 ; i < zone.cards.length ; i++ )
-					zone.cards[i].load_image() ;
-				message(player.get_name()+' allowed you', this.msgtype) ;
-			} else
-				message(player.get_name()+' allowed '+this.name, this.msgtype) ;
+			this.allow_func(s.id) ;
+			s.allow(game.player) ;
 		}
 	}
-	this.allow = function() {
-		action_send('allow', {'spectactor': this.id}) ;
-		this.allow_recieve(game.player) ;
+	this.menu = function() {
+		var specmenu = new menu_init(this) ;
+		for ( var i in game.spectators.spectators ) {
+			var spec = game.spectators.spectators[i] ;
+			var name = spec.name ;
+			if ( ! spec.connected ) name += ' (off)' ;
+			else if ( ! spec.focused ) name += ' (out)' ;
+			var a = false ;
+			if ( iso(game.player) )
+				a = spec.allowed(game.player.id) ;
+			if ( a || spectactor )
+				var line = specmenu.addline(name) ;
+			else
+				var line = specmenu.addline(name, this.allow, spec.id) ;
+			if ( ! spectactor )
+				line.checked = a ;
+		}
+		return specmenu ;
 	}
-	this.is_allowed = function(player) {
-		return inarray(player.id, this.allowed) ;
-	}
-	// Self init
+}
+function Spectator(container, id, name) {
+	// Init
+	this.container = container ;
 	this.id = id ;
 	this.name = name ;
-	this.msgtype = 'join' ;
-	this.allowed = [] ; // Spectactors current player has allowed
-	// Global init
-	var spec = this ; // Local copy on which work, to modularize between spectactor creation and reutilisation
-	if ( ! game.spectactors[id] ) { // New spectactor
-		game.spectactors[id] = this ;
-		msg = name+' has join as spectactor'
-	} else { // Re-join
-		spec = game.spectactors[id] ;
-		msg = name+' has re-join as spectactor' ;
-		if ( name != game.spectactors[id].name ) { // Under another name
-			msg += ' under name '+name ;
-			game.spectactors[id].name = name ;
-		}
-	}
-	// Allow button
-	var span = null ;
-	if ( spectactor_is_allowed_forever(id) )
-		msg += ', allowed forever' ;
-	else if ( ! spectactor ) {
+	this.allowed_players = [] ;
+	this.connected = ( this.id == $.cookie(session_id) ) ;
+	this.focused = true ;
+	// Methods
+	this.toString = function() { return 'Spectactor('+this.id+', '+this.name+')' ; }
+	this.allowed = function(player_id) { return inarray(player_id, this.allowed_players) ; }
+	this.allow_span = function(value) {
 		var cb = create_checkbox('allow') ;
-		span = create_span(
-			create_button('Show hand', function(ev) {
-				spec.allow() ;
-				span.parentNode.removeChild(span) ;
+		var that = this ;
+		var span = create_span(
+			create_button(value, function(ev) {
+				game.spectators.allow(that.id) ;
 				if ( cb.checked )
-					spectactor_allow_forever(id, name) ;
+					spectactor_allow_forever(that.id, that.name) ;
 			}), 
 			create_label(null, cb, 'Forever')
 		) ;
+		span.classList.add('allow_'+that.id) ;
+		return span ;
 	}
-	game.infobulle.set(msg) ;
-	message(msg, 'join', span) ;
-	if ( spectactor_is_allowed_forever(id) && ! spec.is_allowed(game.player) )
-		spec.allow() ;
+	this.allow = function(player) { // Recieve
+		if ( this.allowed(player_id) )
+			this.container.msg_func('already allowed') ;
+		else {
+			this.allowed_players.push(player.id) ;
+			var msg = player.get_name()+' allowed ' ;
+			if ( $.cookie(session_id) == this.id ) { // I am allowed spectator
+				this.container.allowed_func(player) ;
+				var msg = msg+'you' ;
+			} else
+				var msg = msg+this.name ;
+			this.container.msg_func(msg) ;
+		}
+		if ( $.cookie(session_id) == player.id ) { // I am allowing player
+			var spans = document.getElementsByClassName('allow_'+this.id) ;
+			for ( var i = 0 ; i < spans.length ; i++ ) {
+				var span = spans[i] ;
+				span.parentNode.removeChild(span) ;
+			}
+
+		}
+	}
+	this.connect = function(val) { this.connected = val ; }
+	this.focus = function(val) { this.focused = val ; }
 }

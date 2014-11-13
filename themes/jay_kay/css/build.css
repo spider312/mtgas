@@ -1,161 +1,160 @@
-body {
-	overflow-x: hidden ;
+#selectors {
+	position: fixed ;
+	top: 1% ;
+	right: 380px ;
+	padding: 5px ;
+	z-index: 1 ;
 }
-table {
-	border-collapse:collapse;
+#selectors button {
+	float: left ;
+	height: 30px ;
 }
-td {
+#selectors select {
+	padding-top: 4px ;
+	float: left ;
+	height: 30px ;
+	text-align: center ;
+	vertical-align: middle ;
+}
+#selectors option {
+	text-align: left ;
+}
+#selectors label {
+	position: relative ;
+	width: 30px ;
+	height: 30px ;
+	background-size: 30px ;
+	display: block ;
+	float: left ;
+}
+#selectors input {
+	position: absolute ;
+	bottom: 0 ;
+	right: 0 ;
+	cursor: pointer ;
+}
+/* Main / side */
+#div_side, #div_main {
+	position: fixed ;
+	width: 96% ;
+	left: 2% ;
+	margin: 0 ;
+	padding-bottom: 10px ;
+}
+#div_side  {
+	top: 2% ;
+	height: 86% ;
+	overflow-y: scroll ;
+}
+#div_main {
+	top: 90% ;
+	min-height: 33%/*100px*/ ;
+	max-height: 95% ;
+	z-index: 11 ;
+}
+/*#div_main:hover, */#div_main.highlight {
+	top: auto ;
+	bottom: 0 ;
+	height: auto ;
+}
+/* Table inside */
+#table_side, #table_main {
+	border-width: 0 ;
+	margin-left: auto ;
+	margin-right: auto ;
+}
+#table_side td, #table_main td {
+	vertical-align: top ; /* Otherwise, each columns is vertically centered in table */
 	padding: 0 ;
+	border-width: 0 ;
 }
 td.th {
 	text-align: center ;
 	font-weight: bold ;
 }
-#build_div {
-	height: 94% ;
-	width: 96% ;
-	z-index: -1 ;
-	position: absolute ;
-	padding: 0 ;
-}
-canvas {
-	margin: 0 ;
-	padding: 0 ;
-	float: left ;
-}
-#bottom {
-	clear: left ;
-}
-#resume {
-	float: left ;
-	padding: 3px ;
-}
-#lands {
-	float: left ;
-}
-#lands div {
-	float: left ;
-	cursor: pointer ;
-	width: 235px ;
-	background-position: center -5px ; /* show only card name in their frame */
-	background-repeat: no-repeat ;
-	background-size: 255px auto ;
-	text-align: right ;
-	padding-right: 10px ;
-	height: 25px ;
-}
-#pool td, #deck td {
-	vertical-align: top ; /* Otherwise, each columns is vertically centered in table */
-}
-#pool div, #deck div, #land div {
+/* Cards */
+.card {
 	cursor: pointer ;
 	width: 235px ;
 	height: 25px ;
-	border: 2px solid lime ; /* Stupid default color, to see errors. should be replaced by class just under*/
-	background-position: center -11px ; /* show only card name + cost in their frame */
-	background-repeat: no-repeat ;
-	background-size: 250px auto ;
+	overflow: hidden ;
+	border: 2px solid lime ; /* Stupid default color, replaced by class just under*/
 }
-#land div {
-	text-align: right ;
-	padding-right: 10px ;
-	padding-top: 2px ;
-	background-position: center -4px ; /* Black Border */
-	background-size: 255px auto ; /* UNH */
-}
-.emptycol {
-	width: 235px ;
-	border-color: transparent !important ;
-	font-style:italic ;
-}
-/* Small resolutions hack */
-div.sr {
-	width: 165px !important ;
-	background-size: 180px auto !important ;
-	background-position: center -8px !important ;
-	height: 16px !important ;
-}
-#land div.sr {
-	background-position: center -2px !important ;
-}
-.emptycol.sr {
-	width: 165px !important ;
-}
-/* / Small resolutions hack */
-div.L {
+.card.L {
 	border-color: sienna !important ;
 }
-div.C {
+.card.C {
 	border-color: black !important ;
 }
-div.U {
+.card.U {
 	border-color: lightgray !important ;
 }
-div.R {
+.card.R {
 	border-color: GoldenRod !important ;
 }
-div.M {
+.card.M {
 	border-color: OrangeRed !important ;
 }
-div.S {
+.card.S {
 	border-color: purple !important ;
 }
-#filter-color {
-	position: fixed ;
-	top: 0 ;
-	left: 200px ;
-	padding: 5px ;
+.card img, #zoom img {
+	width: 250px ;
 }
-#filter-rarity {
-	position: fixed ;
-	top: 0 ;
-	left: 500px ;
-	padding: 5px ;
+.card img {
+	margin-left: -8px ;
+	margin-top: -10px ;
 }
-.manacheck {
-	display: inline-block ;
-	background-color: white ;
-	border: 2px outset darkgray ;
+div.split img { /* Rotated */
+	height: 240px ;
+	width: auto ;
+	margin-left: 34px ;
+	margin-top: -38px ;
+	transform: rotate(90deg) ;
 }
-.checked {
-	background-color: lightgray ;
-	border-style: inset ;
+/* Lands */
+.hider {
+	z-index: 14 ;
 }
-.manacheck input {
-	display: none ;
+#basic_lands > button {
+	float: right ;
+}
+#basic_lands td {
+	text-align: center ;
+	padding-left: 2px ;
+	padding-right: 2px ;
+}
+#basic_lands .card img {
+	margin-top: -5px !important ;
 }
 /* Zoom */
-#zoom { /* Div containing images */
-	display: none ;
-}
-#zoom.disp {
-	display: inline !important ;
+#zoom {
 	position: fixed ;
+	transition: none !important ; /* Transition makes mouse hovers zoom and 'leave' main_div */
+	z-index: 11 ;
 }
-#zoomed.split {
-	transform: rotate(90deg);
-	transform-origin: left top ;
+#zoom img.split {
+	transform: rotate(90deg) ;
+	/*transition: all 0.2s !important ;*/
 }
-#transformed, #fliped {
-	display: none ;
+#zoom img.flip {
+	transform: rotate(180deg) ;
 }
-#transformed.disp, #fliped.disp {
-	display: inline !important ;
-	position: fixed ;
+/* Small image resolution*/
+.smallres .card {
+	width: 188px ;
+	height: 20px ;
 }
-#fliped.disp {
-	transform: rotate(180deg);
+.smallres .card img, .smallres #zoom img {
+	width: 203px ;
 }
-/* Card stats inside zoom */
-#cardstats {
-	position: absolute ;
-	left: 20px ;
-	top: 45px ;
-	background-color: rgba(255, 255, 255, .70) ;
-	border: 1px solid black ;
-	padding: 5px ;
+.smallres .card img {
+	margin-left: -7px ;
+	margin-top: -9px ;
 }
-#cardstats ul {
-	list-style-type: none ;
-	padding-left: 0 ;
+.smallres div.split img {
+	height: 196px ;
+	width: auto ;
+	margin-left: 25px ;
+	margin-top: -32px ;
 }

@@ -1,30 +1,12 @@
 <?php
 include '../lib.php' ;
-include '../includes/db.php' ;
-include '../tournament/lib.php' ;
 $id = intval(param_or_die($_GET, 'id')) ;
-$tournament = query_oneshot("SELECT * FROM `tournament` WHERE `id` = '$id' ; ", 'Tournament get') ;
-query("UPDATE `registration` SET `status` = '2' WHERE `tournament_id` = '$id' AND `player_id` = '$player_id' ; ") ;
-
-$data = json_decode($tournament->data) ;
-foreach ( $data->players as $i => $player )
-	if ( $player->player_id == $player_id ) {
-		if ( $i > 0 )
-			$previous = $data->players[$i-1] ;
-		else
-			$previous = $data->players[count($data->players)-1] ;
-		if ( $i < count($data->players)-1 )
-			$next = $data->players[$i+1] ;
-		else
-			$next = $data->players[0] ;
-		break ;
-	}
-
-html_head('Drafting '.$tournament->name,
+html_head('Drafting #'.$id,
 	array(
 		'style.css',
 		'tournament.css',
-		'draft.css'
+		'draft.css',
+		'options.css'
 	),
 	array(
 		'lib/jquery.js'
@@ -36,9 +18,12 @@ html_head('Drafting '.$tournament->name,
 		, 'deck.js'
 		, 'options.js'
 		, 'stats.js'
-		, 'tournament/draft.js'
+		, 'spectactor.js'
 		, 'tournament/lib.js'
+		, 'tournament/limited.js'
+		, 'tournament/draft.js'
 		, '../variables.js.php'
+		, 'websockets.js'
 	)
 ) ;
 ?>
@@ -49,18 +34,18 @@ html_head('Drafting '.$tournament->name,
    <label title="Boosters are switched if every player check this box before timer ends"><input id="ready" type="checkbox">I'm ready</label>
   </div>
 
-  <div class="section group">
-   <h1>Draft</h1>
+  <div class="section central">
+   <h1>Draft <?=ws_indicator();?></h1>
    <div id="booster_cards"></div>
-   <div>On your left : <?php echo $next->nick ; ?>, on your right : <?php echo $previous->nick ; ?></div>
+   <table id="tournament_info"></table>
   </div>
 
-  <div class="section group">
+  <div class="section central">
    <h1>Deck</h1>
    <div id="drafted_cards"></div>
   </div>
 
-  <div class="section group">
+  <div class="section central">
    <h1>Side</h1>
    <div id="sided_cards"></div>
   </div>
@@ -68,24 +53,20 @@ html_head('Drafting '.$tournament->name,
 
   <div id="stats" class="section">
    <h2>Stats</h2>
-   <div id="stats_color"></div>
-   <div id="stats_cost"></div>
-   <div id="stats_type"></div>
-   <div id="stats_provide"></div>
+   <div id="stats_graphs"></div>
   </div>
 
   <div id="tournament" class="section">
-   <h2>Tournament</h2>
-   <h3>Players</h3>
+   <h2>Players</h2>
    <ul id="players_ul"></ul>
-   <h3>Log</h3>
-   <ul id="log_ul"></ul>
-   <form id="chat" action="json/log.php"><input type="text" name="msg"></form>
+   <h2>Log</h2>
+   <ul id="tournament_log"></ul>
+   <form id="chat"><input type="text" name="msg"></form>
   </div>
 
   <div id="back" class="section">
-   <a href="../">main page</a> &gt;
-   <a href="./?id=<?php echo $id ; ?>">tournament</a>
+   <a id="mainpage" title="Main page" href="../"><img src="/themes/<?=$theme?>/<?=$index_image?>"></a>
+   <span id="aditional_link"></span>
   </div>
 <?php
 html_foot() ;

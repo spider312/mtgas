@@ -198,13 +198,24 @@ function bench() {
 	return date.getMilliseconds() + date.getSeconds()*1000 ;
 }
 function mysql2date(mysqldate) {
+	var date = new Date() ;
+	if ( !iss(mysqldate) )
+		return date ;
+	// Solve UTC problems between FF and other browsers (expected GMT+1 from mysql)
+	var offset = - Math.ceil(date.getTimezoneOffset()/60) ;
+	mysqldate += (offset?'+':'-')+'0'+Math.abs(offset)+':00' ;
 	return new Date(mysqldate.replace(' ', 'T')) ;
 }
 function timeWithDays(msgdate) {
 	var date = new Date() ;
 	var time = msgdate.toLocaleTimeString() ;
-	if ( date.toDateString() != msgdate.toDateString() )
-		time = ceil((date-msgdate)/(1000*60*60*24), 0) + 'd ago ' + time ;
+	if ( date.toDateString() != msgdate.toDateString() ) {
+		var days = ceil((date-msgdate)/(1000*60*60*24), 0)  ;
+		if ( days == 1 )
+			time = 'yesterday '+time ;
+		else
+			time = days+ 'd ago ' + time ;
+	}
 	return time ;
 }
 
@@ -304,12 +315,19 @@ function fixlength(str,length) {
 function clone(srcInstance, recursive) {
 	if( typeof(srcInstance) != 'object' || srcInstance == null ) // Only clone non-null objects, other vars are passed by value
 		return srcInstance ;
-	var newInstance = new srcInstance.constructor() ;
+
+	try {
+		var newInstance = new srcInstance.constructor() ;
+	} catch (e) {
+		log(e) ;
+		var newInstance = {} ;
+	}
+
 	for( var i in srcInstance )
 		if ( srcInstance[i] === srcInstance ) // Property is a self reference, change it for a reference to new instance
 			newInstance[i] = newInstance ;
 		else // Not a self reference, copy address/value
-			if ( recursive )
+			if ( recursive && ( srcInstance[i] != null ) && ! isf(srcInstance[i].toJSON) ) // toJSON is an anti-cyclic mech
 				newInstance[i] = clone(srcInstance[i], recursive) ;
 			else
 				newInstance[i] = srcInstance[i] ;

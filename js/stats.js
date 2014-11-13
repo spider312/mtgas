@@ -1,14 +1,12 @@
 function deck_stats_cc(cards) {
-	if ( cards.length <= 0 ) {
-		node_empty(document.getElementById('stats_color')) ;
-		node_empty(document.getElementById('stats_cost')) ;
-		node_empty(document.getElementById('stats_type')) ;
-		node_empty(document.getElementById('stats_provide')) ;
+	var statsdiv = document.getElementById('stats_graphs') ;
+	node_empty(statsdiv) ;
+	statsdiv.appendChild(create_text(cards.length+' cards')) ;
+	if ( cards.length <= 0 )
 		return false ;
-	}
 	// Data computing
-		// Raw
 	var raw_color = {} ;
+	var raw_mana = {} ;
 	var raw_cost = [] ;
 	var raw_type = {} ;
 	var raw_provide = {} ;
@@ -20,6 +18,20 @@ function deck_stats_cc(cards) {
 				raw_color[color] += 1 ;
 			else
 				raw_color[color] = 1 ;
+		}
+		for ( var j = 0 ; j < card.attrs.manas.length ; j++ ) {
+			var mana = card.attrs.manas[j] ;
+			for ( var k = 0 ; k < mana.length ; k++ ) { // Hybrid mana
+				var color = mana[k] ;
+				if ( isn(parseInt(color)) )
+					color = 'X' ;
+				if ( ['P', 'X'].indexOf(color) > -1 ) // Phyrexian part of mana, X in costs
+					continue ;
+				if ( isn(raw_mana[color]) )
+					raw_mana[color] += 1
+				else
+					raw_mana[color] = 1 ;
+			}
 		}
 		var cc = card.attrs.converted_cost ;
 		if ( isn(raw_cost[cc]) )
@@ -36,85 +48,101 @@ function deck_stats_cc(cards) {
 		if ( iso(card.attrs.provide) )
 			for ( var j = 0 ; j < card.attrs.provide.length ; j++ ) {
 				var color = card.attrs.provide[j] ;
+				if ( isn(parseInt(color)) ) // For permanents giving several colorless
+					color = 'X' ;
 				if ( isn(raw_provide[color]) )
 					raw_provide[color] += 1 ;
 				else
 					raw_provide[color] = 1 ;
 			}
 	}
-		// Color
-	var data_color = [] ;
-	if ( raw_color['X'] )
-		data_color.push({'label': 'Colorless', 'data': [['Colorless', raw_color['X']]], pie: {'explode': 5, 'fillColor': 'Olive', 'color': 'Olive'}}) ;
-	if ( raw_color['W'] )
-		data_color.push({'label': 'White', 'data': [['White', raw_color['W']]], pie: {'fillColor': 'white', 'color': 'white'}}) ;
-	if ( raw_color['U'] )
-		data_color.push({'label': 'Blue', 'data': [['Blue', raw_color['U']]], pie: {'fillColor': 'blue', 'color': 'blue'}}) ;
-	if ( raw_color['B'] )
-		data_color.push({'label': 'Black', 'data': [['Black', raw_color['B']]], pie: {'fillColor': 'black', 'color': 'black'}}) ;
-	if ( raw_color['R'] )
-		data_color.push({'label': 'Red', 'data': [['Red', raw_color['R']]], pie: {'fillColor': 'red', 'color': 'red'}}) ;
-	if ( raw_color['G'] )
-		data_color.push({'label': 'Green', 'data': [['Green', raw_color['G']]], pie: {'fillColor': 'green', 'color': 'green'}}) ;
-		// Cost
+	// Graph color data
+	var colormatch = {
+		'X': {'label': 'Colorless', 'pie': {'explode': 5, 'fillColor': 'Olive', 'color':'Olive'}},
+		'W': {'label': 'White', 'pie': {'fillColor': 'white', 'color': 'white'}},
+		'U': {'label': 'Blue', 'pie': {'fillColor': 'blue', 'color': 'blue'}},
+		'B': {'label': 'Black', 'pie': {'fillColor': 'black', 'color': 'black'}},
+		'R': {'label': 'Red', 'pie': {'fillColor': 'red', 'color': 'red'}},
+		'G': {'label': 'Green', 'pie': {'fillColor': 'green', 'color': 'green'}}
+	} ;
+	var typematch = {
+		'artifact': {'label': 'Artifact', 'pie': {'fillColor': 'blue', 'color': 'blue'}},
+		'creature': {'label': 'Creature', 'pie': {'fillColor': 'green', 'color': 'green'}},
+		'enchantment': {'label': 'Enchantment', 'pie': {'fillColor': 'white', 'color': 'white'}},
+		'instant': {'label': 'Instant', 'pie': {'fillColor': 'black', 'color': 'black'}},
+		'land': {'label':  'Land', 'pie': {'fillColor': 'olive', 'color': 'olive'}},
+		'planeswalker': {'label': 'Planeswalker', 'pie': {'fillColor': 'violet', 'color': 'violet'}},
+		'sorcery': {'label': 'Sorcery', 'pie': {'fillColor': 'red', 'color': 'red'}},
+		'tribal': {'label': 'Tribal', 'pie': {'fillColor': 'orange', 'color': 'orange'}}
+	} ;
+	function data(match, raw) {
+		var result = [] ;
+		for ( var i in match )
+			if ( raw[i] ) {
+				var val = raw[i] ;
+				var label = match[i].label+' - '+disp_percent(val/cards.length) ;
+				result.push({'label': match[i].label,
+					'data': [[label, val]],
+					'pie': match[i].pie}) ;
+			}
+		return result ;
+	}
+	// Graph data
+	var data_color = data(colormatch, raw_color) ;
+	var data_mana = data(colormatch, raw_mana) ;
+	var data_type = data(typematch, raw_type) ;
+	var data_provide = data(colormatch, raw_provide) ;
 	var data_cost = [] ;
 	for ( var i = 0 ; i < raw_cost.length ; i++ )
 		data_cost.push([i, raw_cost[i]]) ;
-		// Type
-	var data_type = [] ;
-	for ( var i in raw_type )
-		data_type.push({'label': i, 'data': [[i, raw_type[i]]]}) ;
-		// Provide
-	var data_provide = [] ;
-	if ( raw_provide['X'] )
-		data_provide.push({'label': 'Colorless', 'data': [['Colorless', raw_provide['X']]], pie: {'explode': 5, 'fillColor': 'Olive', 'color': 'Olive'}}) ;
-	if ( raw_provide['W'] )
-		data_provide.push({'label': 'White', 'data': [['White', raw_provide['W']]], pie: {'fillColor': 'white', 'color': 'white'}}) ;
-	if ( raw_provide['U'] )
-		data_provide.push({'label': 'Blue', 'data': [['Blue', raw_provide['U']]], pie: {'fillColor': 'blue', 'color': 'blue'}}) ;
-	if ( raw_provide['B'] )
-		data_provide.push({'label': 'Black', 'data': [['Black', raw_provide['B']]], pie: {'fillColor': 'black', 'color': 'black'}}) ;
-	if ( raw_provide['R'] )
-		data_provide.push({'label': 'Red', 'data': [['Red', raw_provide['R']]], pie: {'fillColor': 'red', 'color': 'red'}}) ;
-	if ( raw_provide['G'] )
-		data_provide.push({'label': 'Green', 'data': [['Green', raw_provide['G']]], pie: {'fillColor': 'green', 'color': 'green'}}) ;
-
 	// Display
-		// Color pie
-	var div = document.getElementById('stats_color') ;
-	node_empty(div) ;
-	div.appendChild(create_div('Color pie')) ;
-	var content = create_div() ;
-	content.style.height = '100px' ;
-	div.appendChild(content) ;
-	Flotr.draw(content, data_color, {
+	if ( raw_type['land'] ) {
+		var active = cards.length - raw_type['land'] ;
+		statsdiv.appendChild(create_text(' ('+active+' active, '+raw_type['land']+' land)')) ;
+	}
+	pie_options = {
 		HtmlText: false,
-		grid: {
-			verticalLines: false,
-			horizontalLines: false
-		},
-		xaxis: {
-			showLabels: false
-		},
-		yaxis: {
-			showLabels: false
-		},
+		grid: { verticalLines: false, horizontalLines: false },
+		xaxis: { showLabels: false },
+		yaxis: { showLabels: false },
 		pie: {
 			show: true,
 			explode: 2,
 			shadowSize: 0,
 			labelFormatter: function (total, value) {
-				return (100 * value / total).toFixed(0)+'%';
+				return value ;
+				var pct = (100 * value / total).toFixed(0)+'%' ;
+				//return  pct ;
+				//return value+' ('+pct+')';
+				//return pct+' ('+value+')';
+
 			}
 		},
-		mouse: {
-			track: true,
-			trackDecimals: 0
+		mouse: { track: true, trackDecimals: 0 },
+		legend: { show: false }
+	} ;
+	bar_options = {
+		xaxis : {
+			max : data_cost[data_cost.length-1][0] + .5, // Max CC
+			min : -.5,
+			tickDecimals: 0
+		}, 
+		yaxis : { min : 0, tickDecimals: 0 }, 
+		bars: {
+			show: true,
+			shadowSize: 0,
+			lineWidth: 1,
+			barWidth: .9,
+			fillColor: 'white',
+			fillOpacity: .9,
+			color: 'black',
 		},
-		legend: {
-			show: false
-		}
-	});
+		centered: false,
+		mouse: { track: true, trackDecimals: 0 }
+	} ;
+	//pie(statsdiv, 'stats_color', 'Cards colors', data_color) ; // Color pie
+	pie(statsdiv, 'stats_mana', 'Mana symbols', data_mana) ; // Mana pie
+	pie(statsdiv, 'stats_provide', 'Mana color providers', data_provide) ; // Provide pie
 		// Mana curve
 	if ( data_cost.length > 0 ) {
 		var sum = 0 ;
@@ -126,107 +154,29 @@ function deck_stats_cc(cards) {
 				nb += c[1] ;
 			}
 		}
-		var div = document.getElementById('stats_cost') ;
-		node_empty(div) ;
-		div.appendChild(create_div('Mana curve (mean = '+round(sum/nb, 2)+')')) ;
+		var div = create_div() ;
+		statsdiv.appendChild(div) ;
+		div.id = 'stats_cost' ;
+		var mean = 0 ;
+		if ( nb > 0 )
+			mean = round(sum/nb, 2) ;
+		div.appendChild(create_div('Mana curve (mean = '+mean+')')) ;
 		var content = create_div() ;
 		content.style.height = '100px' ;
 		div.appendChild(content) ;
-		Flotr.draw(content, [data_cost], {
-		   xaxis : {
-		     max : data_cost[data_cost.length-1][0] + .5, // Max CC
-		     min : -.5,
-		     tickDecimals: 0
-		   }, 
-		   yaxis : {
-		     min : 0,
-		     tickDecimals: 0
-		   }, 
-			bars: {
-				show: true,
-				shadowSize: 0,
-				lineWidth: 1,
-				barWidth: .9,
-				fillColor: 'white',
-				fillOpacity: .9,
-				color: 'black',
-			},
-			centered: false,
-			mouse: {
-				track: true,
-				trackDecimals: 0
-			}
-		}) ;
+		Flotr.draw(content, [data_cost], bar_options) ;
 	}
-		// Type pie
-	var div = document.getElementById('stats_type') ;
-	node_empty(div) ;
-	div.appendChild(create_div('Types pie')) ;
-	var content = create_div() ;
-	content.style.height = '100px' ;
-	div.appendChild(content) ;
-	Flotr.draw(content, data_type, {
-		HtmlText: false,
-		grid: {
-			verticalLines: false,
-			horizontalLines: false
-		},
-		xaxis: {
-			showLabels: false
-		},
-		yaxis: {
-			showLabels: false
-		},
-		pie: {
-			show: true,
-			explode: 2,
-			shadowSize: 0,
-			labelFormatter: function (total, value) {
-				return (100 * value / total).toFixed(0)+'%';
-			}
-		},
-		mouse: {
-			track: true,
-			trackDecimals: 0
-		},
-		legend: {
-			show: false
-		}
-	});
-		// Provide pie
-	var div = document.getElementById('stats_provide') ;
-	node_empty(div) ;
-	div.appendChild(create_div('Provide pie')) ;
-	var content = create_div() ;
-	content.style.height = '100px' ;
-	div.appendChild(content) ;
-	Flotr.draw(content, data_provide, {
-		HtmlText: false,
-		grid: {
-			verticalLines: false,
-			horizontalLines: false
-		},
-		xaxis: {
-			showLabels: false
-		},
-		yaxis: {
-			showLabels: false
-		},
-		pie: {
-			show: true,
-			explode: 2,
-			shadowSize: 0,
-			labelFormatter: function (total, value) {
-				return (100 * value / total).toFixed(0)+'%';
-			}
-		},
-		mouse: {
-			track: true,
-			trackDecimals: 0
-		},
-		legend: {
-			show: false
-		}
-	});
+	pie(statsdiv, 'stats_type', 'Cards types', data_type) ; // Type pie
+	return [raw_color, raw_mana, raw_cost, raw_type, raw_provide] ;
 
+}
+function pie(statsdiv, id, name, data) {
+	var div = create_div() ;
+	div.id = id ;
+	div.appendChild(create_div(name)) ;
+	var content = create_div() ;
+	content.style.height = '100px' ;
+	div.appendChild(content) ;
+	statsdiv.appendChild(div) ;
+	Flotr.draw(content, data, pie_options) ;
 }

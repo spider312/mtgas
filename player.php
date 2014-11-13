@@ -1,5 +1,4 @@
 <?php
-//ini_set('memory_limit','128M') ;
 include 'lib.php' ;
 include 'includes/db.php' ;
 

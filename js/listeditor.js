@@ -45,7 +45,7 @@ function card_list_edit(zone, dest, n) {
 	}
 	m += zone.player.name+'\'s '+zone.type ;
 	if ( spectactor )
-		message(game.spectactors[spectactor_id].name+' '+m) ;
+		message(game.spectators.get(spectactor_id).name+' '+m) ;
 	else
 		message_send(m) ;
 	// Display
@@ -62,7 +62,7 @@ function card_list_edit(zone, dest, n) {
 		div.parentNode.removeChild(div) ;
 		m = 'stops looking at '+zone.player.name+'\'s '+zone.type ;
 		if ( spectactor )
-			message(game.spectactors[spectactor_id].name+' '+m) ;
+			message(game.spectators.get(spectactor_id).name+' '+m) ;
 		else
 			message_send(m) ;
 		for ( var i = 0 ; i < zone.cards.length ; i++ ) {

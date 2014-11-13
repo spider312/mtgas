@@ -16,6 +16,9 @@
 	width: 250px ;
 	left: 20px ;
 }
+label {
+	display: block ;
+}
 /* Buttons */
 #builder_buttons {
 	top: 90px ;
@@ -32,7 +35,7 @@
 	top: 70px ;
 	left: 800px ;
 }
-#zoombox, #stats, #log {
+#zoombox, #stats {
 	float: left ;
 	margin-right: 20px ;
 	margin-bottom: 20px ;
@@ -41,11 +44,6 @@
 	left: 1000px ;
 	width: 200px ;
 }
-#log {
-	width: 500px ;
-	height: 500px ;
-}
-
 /* Inside Search */
 #advanced_search {
 	width: 16px;

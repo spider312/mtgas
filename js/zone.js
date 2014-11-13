@@ -299,7 +299,7 @@ function unselzone(result) { // Common
 						card.draw(context, card.x - this.x, card.y - this.y) ;
 					}
 				var card = game.card_under_mouse ;
-				if ( ( card != null ) && ( card.zone == this ) )
+				if ( ( game.widget_under_mouse == this ) && ( card != null ) && ( card.zone == this ) )
 					card.draw(context, card.x - this.x, card.y - this.y) ;
 			}
 		}
@@ -346,8 +346,8 @@ function virtual_unselzones(result) { // Unselzones + life
 		}
 	}
 	result.mouseout = function(ev) {
-		//if ( game.card_under_mouse != null )
-			//this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
+		if ( ( game.card_under_mouse != null ) && ( isf(this.mousemove) ) )
+			this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
 		game.settittle('') ;
 		if ( game.target.tmp != null )
 			game.target.tmp.out(this) ;
@@ -609,7 +609,7 @@ function selzone(result) { // Common
 	result.dblclick = function(ev) {
 		var card = this.card_under_mouse(ev) ;
 		if ( card == null )
-			this.selectall(ev) ;
+			this.selectline(ev) ;
 		else
 			card.dblclick(ev) ;
 	}
@@ -786,6 +786,7 @@ function hand(player) {
 		for ( var i in this.cards )
 			game.selected.add(this.cards[i]) ;
 	}
+	myhand.selectline = myhand.selectall ;
 	myhand.index_at = function(x) { // Indexes : 0 = right, this.cards.length -1 = left
 		for ( var i = 0 ; i < this.cards.length ; i++ )
 			if ( x > this.cards[i].x + this.cards[i].w/2 )
@@ -1007,6 +1008,10 @@ function battlefield(player) {
 			this.cards[i].refreshpowthou() ;
 	}
 	mybf.selectall = function(ev) {
+		for ( var i in this.cards )
+			game.selected.add(this.cards[i]) ;
+	}
+	mybf.selectline = function(ev) {
 		var pos = this.grid_at(ev.clientX, ev.clientY) ;
 		for ( var i in this.cards ) {
 			var card = this.cards[i] ;
@@ -1070,6 +1075,7 @@ function Life(player) {
 	}, function(widget) {
 		log('Unable to load image for '+widget) ;
 	}, this) ;
+	this.cnximg = null ;
 	// Methods
 	this.toString = function() {
 		return this.player+'.life' ; // string representing basic variable's name (game.player.zonename)
@@ -1111,8 +1117,15 @@ function Life(player) {
 		var mw = this.w - 2 * margin ;
 		var fontsize = 12 ;
 		context.font = fontsize+"pt Arial";
+			// Connexion icon
+		var iconw = 0 ;
+		if ( ! this.player.me ) {
+			var iconw = 20 ;
+			if ( this.cnximg != null )
+				context.drawImage(this.cnximg, margin, margin, iconw, iconw) ;
+		}
 			// Nick
-		canvas_framed_text_tl(context, this.player.name, margin, margin, bordercolor, mw, 'black', fontsize) ;
+		canvas_framed_text_tl(context, this.player.name, margin+iconw, margin, bordercolor, mw, 'black', fontsize) ;
 			// Life
 		canvas_framed_text_tr(context, this.player.attrs.life, this.w - margin, margin + 20, bordercolor, mw, 'black', fontsize) ;
 		// Damages

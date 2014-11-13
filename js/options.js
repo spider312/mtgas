@@ -49,27 +49,9 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 		// Rendering
 	this.render = function() { // Returns a form element adequate for option type
 		var myoption = this ; // for triggers
-		if ( this.choices == null ) {
-			if ( isb(this.def) ) {
-				this.input = create_checkbox(name, this.get(), name) ;
-				this.input.addEventListener('click', function (ev) {
-					ev.target.option.set(ev.target.checked) ;
-					if ( isf(ev.target.option.onChange) )
-						ev.target.option.onChange(myoption) ;
-				}, false) ;
-			} else {
-				this.input = create_input(name, this.get(), name) ;
-				this.input.addEventListener('change', function (ev) {
-					ev.target.option.set(ev.target.value) ;
-					if ( isf(ev.target.option.onChange) )
-						ev.target.option.onChange(myoption) ;
-				}, false) ;
-				this.input.addEventListener('keypress', function(ev) {
-					ev.stopPropagation() ; // Overrides play.js keypress interception
-				}, false) ;
-			}
-		} else {
-			this.input = create_select(name, name) ;
+		// Create input depending on option value type
+		if ( this.choices != null ) { // Choices : select
+			this.input = create_select(name) ;
 			for ( var i in choices ) {
 				var txt = choices[i] ;
 				var opt = create_option(txt, i) ;
@@ -82,8 +64,30 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 				if ( isf(ev.target.option.onChange) )
 					ev.target.option.onChange(myoption) ;
 			}, false) ;
+		} else {
+			if ( isb(this.def) ) {
+				// Boolean: checkbox input
+				this.input = create_checkbox(name, this.get()) ;
+				this.input.addEventListener('click', function (ev) {
+					ev.target.option.set(ev.target.checked) ;
+					if ( isf(ev.target.option.onChange) )
+						ev.target.option.onChange(myoption) ;
+				}, false) ;
+			} else {
+
+				this.input = create_input(name, this.get()) ;
+				this.input.placeholder = desc ;
+				this.input.addEventListener('change', function (ev) {
+					ev.target.option.set(ev.target.value) ;
+					if ( isf(ev.target.option.onChange) )
+						ev.target.option.onChange(myoption) ;
+				}, false) ;
+				this.input.addEventListener('keypress', function(ev) {
+					ev.stopPropagation() ; // Overrides play.js keypress interception
+				}, false) ;
+			}
 		}
-		this.input.id = this.name ;
+		this.input.id = 'option_'+this.name ;
 		this.input.option = this ;
 		if ( ( this.choices != null ) || !isb(this.def) )
 			this.label = create_label(this.input, this.desc+' : ', this.input) ;
@@ -153,19 +157,19 @@ function Options(check_id) {
 	}
 	this.close = function() { // Checks if everything OK then hide option window
 		// Nick checking
-		var nick = game.options.get('profile_nick') ;
-		if ( ( nick == '' ) || ( nick == 'Nickname' ) ) {
+		var nick = this.get('profile_nick') ;
+		if ( nick == '' ) {
 			var nickfield = document.getElementById('profile_nick') ;
 			if ( nickfield == null ) { // Options opened on another tab
-				game.options.select_tab('Identity') ;
+				this.select_tab('Identity') ;
 				nickfield = document.getElementById('profile_nick') ;
 			}
 			nickfield.classList.add('errored') ;
 			nickfield.select() ;
 			return false ;
 		}
-		game.options.identity_apply() ;
-		game.options.hide() ;
+		this.identity_apply() ;
+		this.hide() ;
 	}
 	this.show = function(tab) {
 		// Container
@@ -297,6 +301,9 @@ function Options(check_id) {
 				ev.target.src = last_working_avatar ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
+		fieldset.appendChild(create_a('Unexpectedly reset and using CCleaner ?',
+			'http://img.mogg.fr/scrot/ccleaner.png', null, 
+			'Screenshot showing how to configure CCleaner to never erase mogg data')) ;
 	}
 		// Options
 	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset
@@ -320,6 +327,7 @@ function Options(check_id) {
 		// Profile
 	this.tab_profile = function(container) {
 		// Server side
+		/*
 		if ( $.cookie && ( $.cookie('login') != null ) )  // Already logged-in
 			// Log out button
 			container.appendChild(
@@ -331,23 +339,12 @@ function Options(check_id) {
 		else { // Not logged in
 			// Login form
 			var fieldset = profile_form('Login', 'json/account/login.php', function(data, ev) {
-				// If asked by server (profile creation) or client (overwrite checkbox), send all stored data
-				/*if ( ev.target.overwrite.checked )
-					profile_upload() ;
-				else*/
 				// If server sent data, store them
 				if ( ( typeof data.recieve == 'string' ) && ( data.recieve != '' ) )
 					profile_downloaded(JSON_parse(data.recieve)) ;
 				else
 					alert('Your online profile was empty') ;
 			}) ;
-			/*
-			var form = fieldset.firstChild.nextElementSibling ;
-			var overwrite = create_checkbox('overwrite', false, 'overwrite') ;
-			var overwrite_l = create_label(overwrite, 'Overwrite : ', overwrite) ;
-			overwrite_l.title = 'Overwrite your server profile with your local profile instead of fetching your server profile' ;
-			form.insertBefore(overwrite_l, form.submit_button) ;
-			*/
 			container.appendChild(fieldset) ;
 			// Register form
 			var fieldset = profile_form('Register', 'json/account/register.php', function(data, ev) {
@@ -355,7 +352,7 @@ function Options(check_id) {
 				profile_upload() ;
 			}) ;
 			container.appendChild(fieldset) ;
-		}
+		}*/
 		// Local
 		var fieldset = create_fieldset('Local') ;
 			// Backup
@@ -407,12 +404,12 @@ function Options(check_id) {
 		is.appendChild(create_text(this.get('profile_nick'))) ;
 		// Check nickname validity or open identity window
 		var nick = this.get('profile_nick')
-		if ( ( nick == null ) || ( nick == '' ) || ( nick == 'Nickname' ) )
+		if ( ( nick == null ) || ( nick == '' ) )
 			this.show('Identity') ;
 	}
 	// Data
 		// Identity
-	this.add('Identity', 'profile_nick', 'Nickname', 'A nickname identifying you in game interface and chat', 'Nickname') ; 
+	this.add('Identity', 'profile_nick', 'Nickname', 'A nickname identifying you in game interface and chat', '') ; 
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', default_avatar) ;
 		// Options
 			// Appearence
@@ -434,16 +431,17 @@ function Options(check_id) {
 	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
 	this.add('Appearence', 'transparency',		'Transparency',			'Activate transparency, nicer but slower',								true) ;
 	this.add('Appearence', 'helpers',		'Helpers',			'Display right click\'s drag\'n\'drop helper',								true) ;
+	this.add('Appearence', 'smallres', 'Small resolution', 'Display card images in small size (builder)', false)
 			// Behaviour
 	var positions = {'top':'Top', 'middle':'Middle', 'bottom':'Bottom'} // Positions for placing
-	this.add('Behaviour', 'library_doubleclick_action', 'Library double-click action', 'Choose what happend when you doubleclick on library', 'look_top_n', {'look_top_n': 'Look top N cards', 'edit': 'Search in library', 'draw': 'Draw a card'}) ;
+	this.add('Behaviour', 'library_doubleclick_action', 'Library double-click', 'Choose what happend when you doubleclick on library', 'look_top_n', {'look_top_n': 'Look top N cards', 'edit': 'Search in library', 'draw': 'Draw a card'}) ;
 	this.add('Behaviour', 'auto_draw', 'Auto draw', 'Draw your starting hand after toss and sides', true) ;
 	this.add('Behaviour', 'sounds', 'Sound', 'Play sounds on events', true) ;
 	this.add('Behaviour', 'remind_triggers', 'Remind triggers', 'Display a message when a triggered ability may be triggered. Beware, not every trigger is managed, and most of them just display a message', true) ;
 	this.add('Behaviour', 'place_creatures', 'Place creature', 'Where to place creature cards by default (when double clicked) on battlefield', 'middle', positions) ; 
 	this.add('Behaviour', 'place_noncreatures', 'Place non-creature', 'Where to place non-creature cards by default (when double clicked) on battlefield', 'top', positions) ; 
 	this.add('Behaviour', 'place_lands', 'Place land', 'Where to place land cards by default (when double clicked) on battlefield', 'bottom', positions) ;
-	this.add('Behaviour', 'draft_auto_ready', 'Auto-mark as ready after picking', 'You will automatically be marked as ready after picking a card. If unchecked, you\'ll have to double click the card you want or check the "ready" box to mark as ready.', true) ;
+	//this.add('Behaviour', 'draft_auto_ready', 'Auto-mark as ready after picking', 'You will automatically be marked as ready after picking a card. If unchecked, you\'ll have to double click the card you want or check the "ready" box to mark as ready.', true) ;
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
@@ -456,20 +454,31 @@ function Options(check_id) {
 	this.add('Tournament', 'draft_boosters', '', '', 'CUB*3') ;
 	this.add('Tournament', 'sealed_boosters', '', '', 'CUB*6') ;
 	// Init
-	if ( check_id ) // Object was created with checking
-		this.identity_apply() ;
 	var is = document.getElementById('identity_shower')
-	if ( is != null )
+	if ( is != null ) {
 		is.addEventListener('click', function(ev) {
 			game.options.show('Identity') ;
 		}, false) ;
+		this.identity_apply() ;
+	}
+	// Synchronize PHPSESSID cookie with stored player ID
+	player_id = $.cookie(session_id) ;
+	if ( ( localStorage['player_id'] == null ) || ( localStorage['player_id'] == '' ) )// No player ID
+		store('player_id', player_id) ; // Store actual PHPSESSID
+	else if ( player_id != localStorage['player_id'] ) { // Player ID different from PHPSESSID
+		if ( confirm('Restore previous player_id ? (yes if you don\'t know)') ) {
+			$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID
+			window.location = window.location ; // Curent web page isn't informed ID changed
+		}
+	}
 	// Debug info
 	if ( this.get('debug') ) {
 		var footer = document.getElementById('footer') ;
 		if ( footer != null ) {
 			footer.appendChild(create_div(create_text('session id : '+player_id))) ;
 			footer.appendChild(create_div(create_text('cookie login : '+$.cookie('login')))) ;
-			footer.appendChild(create_div(create_text('cookie password : '+$.cookie('password')))) ;
+			footer.appendChild(create_div(
+				create_text('cookie password : '+$.cookie('password')))) ;
 		}
 	}
 }
@@ -477,20 +486,7 @@ function gallery() {
 	window.open('/avatars.php') ;
 }
 // Code copied from index.js, TODO : include it in new management
-
-$(function() { // On page load
-	// Synchronize PHPSESSID cookie with stored player ID (in case player ID comes from profile importing)
-	player_id = $.cookie(session_id) ;
-	if ( ( localStorage['player_id'] == null ) || ( localStorage['player_id'] == '' ) ) // No player ID
-		store('player_id', player_id) ; // Store actual PHPSESSID
-	else if ( player_id != localStorage['player_id'] ) { // Player ID different from PHPSESSID
-		if ( confirm('Restore previous player_id ? (yes if you don\'t know)') ) {
-			$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
-			window.location = window.location ; // Curent web page isn't informed ID changed, reload
-		}
-	}
-}) ;
-// Other saved fields
+// Other saved fields (not displayed in options, mostly index fields save)
 function save_restore(field, onsave, onrestore) {
 	var myfield = document.getElementById(field) ;
 	if ( myfield != null ) {
