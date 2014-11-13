@@ -1,85 +1,20 @@
 <?php
 include 'lib.php' ;
-include 'includes/db.php' ;
-include 'includes/ranking.php' ;
-$period = param($_GET, 'p', '') ;
-function disp_ranking($players, $nb, $caption, $legend) {
-	global $player_id, $default_avatar ;
-	echo '  <table title="'.$legend.'">
-   <caption>'.$caption.'</caption>
-   <tr>
-    <th>#</th>
-    <th>Avatar</th>
-    <th>Nick</th>' ;
-	switch ( $caption ) {
-		case 'Top playing' ;
-			echo '    <th>Games</th>' ;
-			break ;
-		case 'Top winning' ;
-			echo '    <th>Score</th>' ;
-			break ;
-		case 'Better ratio' ;
-			echo '    <th>Ratio</th>' ;
-			break ;
-	}
-echo '   </tr>
-' ;
-	$i = 0 ;
-	foreach ( $players as $id => $player ) {
-		if ( $player->matches < 2 ) // Player must have played enough games to appear in ranks
-			continue ;
-		if ( ( $player->nick == 'Nickname' ) && ( $player->avatar == 'img/avatar/kuser.png' ) )
-			continue ;
-		if ( ( $nb < 1 ) | ( $i++ < $nb ) ) {
-				if ( $player_id == $id )
-					$class = 'self' ;
-				else
-					$class = '' ;
-		switch ( $caption ) {
-			case 'Top playing' ;
-				$column = '<td>'.$player->matches.'</td>' ;
-				break ;
-			case 'Top winning' ;
-				$column = '<td>'.$player->score.'</td>' ;
-				break ;
-			case 'Better ratio' ;
-				$column = '<td>'.round(($player->score/$player->matches), 2).'</td>' ;
-				break ;
-		}
-
-		echo '   <tr class="'.$class.'">
-    <td>'.$i.'</td>
-    <td><img src="'.($player->avatar==''?$default_avatar:$player->avatar).'" height="30"></td>
-    <td><a href="player.php?id='.$id.'">'.$player->nick.'</a></td>
-    '.$column.'
-   </tr>
-' ;
-		}
-	}
-	if ( $nb == 0 )
-		$txt = 'All ' ;
-	else
-		$txt = 'Top '.$nb.' of ' ;
-	echo '   <tr><td colspan="6">'.$txt.$i.' players</td></tr>
-  </table>' ;
-}
-function disp_rankings($period, $nb) {
-	echo '<h2>'.$period.'</h2>' ;
-	echo '<p>Players having more than '.mingames_by_period($period).' games</p>' ;
-	$filename = $period.'.json' ;
-	$players = (array)json_decode(file_get_contents('ranking/'.$filename)) ;
-	uasort($players, 'sort_matches') ;
-	disp_ranking($players, $nb, 'Top playing', 'This list is sorted by number of games played by the player') ;
-	uasort($players, 'sort_score') ;
-	disp_ranking($players, $nb, 'Top winning', 'This list is sorted by total player score') ;
-	uasort($players, 'sort_ratio') ;
-	disp_ranking($players, $nb, 'Better ratio', 'This list is sorted by player\'s average score per game') ;
-	echo '<p>Updated : '.date("F d Y H:i:s.", filemtime('ranking/'.$filename)).'</p>' ;
-}
 html_head('Top players ', 
 	array(
 		'style.css', 
+		'options.css',
 		'top.css'
+	), 
+	array(
+		'lib/jquery.js'
+		, 'lib/jquery.cookie.js'
+		, '../variables.js.php'
+		, 'options.js'
+		, 'html.js' 
+		, 'math.js'
+		, 'image.js'
+		, 'top.js'
 	)
 ) ;
 ?>
@@ -87,27 +22,36 @@ html_head('Top players ',
 <?php
 html_menu(true) ;
 ?>
-  <div id="stats" class="section">
+  <div id="top" class="section">
    <h1>Top players</h1>
+   <div id="tabs"></div>
+   <table>
+    <thead>
+	 <tr>
+	  <td>#</td>
+	  <td>Avatar</td>
+	  <td>Nick</td>
+	  <td id="matches" class="sortable">Games</td>
+	  <td id="score" class="sortable">Score</td>
+	  <td id="ratio" class="sortable">Ratio</td>
+	 </tr>
+	</thead>
+	<tbody id="table"></tbody>
+   </table>
+  </div>
+  <script type="text/javascript">
 <?php
-if ( $period == '' ) {
-	$d = dir('ranking') ;
-	/*
-	$files = array() ;
+	$folder = 'ranking' ;
+	$d = dir($folder) ;
 	while ( false !== ( $entry = $d->read() ) )
-		if ( ( $entry != '.' ) && ( $entry != '..' ) ) 
-			$files[] = $entry
-	*/
-	//$files = glob("ranking/*.json") ;
-	$periods = array('week', 'month', 'year') ; // Hardcoded for sorting
-	foreach ( $periods as $period ) {
-		disp_rankings($period, 10) ;
-		echo '<p><a href="?p='.$period.'">View full ranking for last '.$period.'</a></p>' ;
-	}
-} else
-	disp_rankings($period, 0) ;
-if ( is_file('footer.php') )
-	include 'footer.php' ;
+		if ( ( $entry != '.' ) && ( $entry != '..' ) ) {
+			$period = substr($entry, 0, strlen($entry)-5) ;
+			$path = $folder.'/'.$entry ;
+			//date("F d Y H:i:s.",) ;
+			echo 'ranking_import("'.$period.'", '.file_get_contents($path).', '.filemtime($path).') ;'."\n" ;
+		}
 ?>
- </body>
-</html>
+	init() ;
+  </script>
+<?
+html_foot() ;
