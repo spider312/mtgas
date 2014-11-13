@@ -2,8 +2,6 @@
 caption {
 	text-align: left ;
 }
-th {
-}
 </style>
 <?php
 include_once 'lib.php' ;
@@ -16,6 +14,10 @@ $html = cache_get($url, 'cache/mci_extras', $verbose) ;
 $exts = preg_split ('/<a name="/', $html) ;
 $i = 0 ;
 array_shift($exts) ; // First part is begining of page, useless
+function getimagepixels($url) {
+	list($width, $height, $type, $attr) = getimagesize($url);
+	return $width * $height ;
+}
 ?>
 <table border="1">
  <tr>
@@ -54,10 +56,15 @@ $pimp = array( // Extension redirection for promo tokens
 	'player-rewards-2004/spirit' => 'CHK',
 	'avacyn-restored-the-helvault-experience/angel' => 'AVR', 
 	'avacyn-restored-the-helvault-experience/demon' => 'AVR', 
+	'league/soldier-1' => 'GTC', 
+	'league/sliver' => 'M14', 
 	'league/knight' => 'RTR', 
 	'league/goblin' => 'M13', 
 	'league/soldier' => 'GTC', 
-	'league/bird' => 'DGM'
+	'league/bird' => 'DGM',
+	//'league/soldier-2' => 'THS', // Ugly resolution
+	'judge/centaur' => 'RTR',
+	//'judge/golem' => 'THS' // Same as THS one
 ) ;
 
 foreach ( $exts as $ext ) {
@@ -70,11 +77,11 @@ foreach ( $exts as $ext ) {
 		$notoken[$matches['code']] = $matches['name'] ;
 		continue ;
 	}
-	$query = query("SELECT * FROM extension WHERE `name` = '".mysql_real_escape_string($matches['name'])."' ; ") ;
+	$query = query("SELECT * FROM extension WHERE `name` LIKE '".mysql_real_escape_string($matches['name'])."%' ; ") ;
 	if ( $res = mysql_fetch_object($query) ) {
 	} else {
 		$nodb[$matches['code']] = $matches['name'] ;
-		$res = new simple_object() ;
+		$res = new stdClass() ;
 		$res->se = $matches['code'] ;
 	}
 	echo '<tr><th colspan="4">'.(isset($res->name)?'Found':'Not found').' in DB : <a href="'.$url.'#'.$matches['code'].'">'.$matches['name'].' ('.$res->se.') '.'</a></th></tr>' ;
@@ -135,7 +142,8 @@ foreach ( $exts as $ext ) {
 							$match_name['pow'] = '3' ;
 							$match_name['thou'] = '3' ;
 						}
-						( $match_name['pow'] == '*' ) && $match_name['pow'] = '0' ; // */* creatures have 0/0 in tk name
+						// */* creatures have 0/0 in tk name
+						( $match_name['pow'] == '*' ) && $match_name['pow'] = '0' ;
 						( $match_name['thou'] == '*' ) && $match_name['thou'] = '0' ;
 						$pname = $match_name['name'].'.'.$match_name['pow'].'.'.$match_name['thou'] ;
 					} else {
@@ -145,14 +153,17 @@ foreach ( $exts as $ext ) {
 						if ( count($parts) > 1 )
 							$pname = 'Emblem.'.$parts[0] ;
 						else
-							echo 'Not a creature token nor emblem' ;
+							//echo 'Not a creature token nor emblem : '.$match['name'] ;
+							$pname = $match['name'] ;
 					}
 
 			}
 			$iurl = 'HIRES/TK/'.$res->se.'/'.$pname.'.jpg' ;
 			$lurl = $base_image_dir.$iurl ;
+			$mcisize = getimagepixels('cache/'.$matches['code'].'_'.$match['url']) ;
 			echo '<td><a href="http://img.mogg.fr/'.$iurl.'">'.$pname.'</a></td>' ;
-			echo '<td>'.human_filesize(strlen($img)) ;
+			//echo '<td>'.human_filesize(strlen($img)) ;
+			echo '<td>'.$mcisize ;
 			$oldumask = umask(0) ;
 			if ( ! file_exists($lurl) ) {
 				if ( ! file_exists(dirname($lurl)) && $apply) {
@@ -169,9 +180,11 @@ foreach ( $exts as $ext ) {
 				} else
 					echo '[Creation]' ;
 			} else {
-				if ( $force || ( strlen($img) > filesize($lurl) ) ) {
-				//if ( $force ) { // To only overwrite base tokens with pimp ones
-					echo ' > '.human_filesize(filesize($lurl)) ;
+				$localsize = getimagepixels($lurl) ;
+				//if ( $force || ( strlen($img) > filesize($lurl) ) ) {
+					//echo ' > '.human_filesize(filesize($lurl)) ;
+				if ( $force || ( $localsize < $mcisize ) ) {
+					echo ' > '.$localsize ;
 					if ( $apply ) {
 						if ( copy('cache/'.$matches['code'].'_'.$match['url'], $lurl) )
 							echo '[Updated]' ;
@@ -180,7 +193,8 @@ foreach ( $exts as $ext ) {
 					} else
 						echo '[Update]' ;
 				} else
-					echo ' < '.human_filesize(filesize($lurl)) ;
+					//echo ' < '.human_filesize(filesize($lurl)) ;
+					echo ' < '.$localsize ;
 			}
 			umask($oldumask) ;
 			echo '</td>' ;

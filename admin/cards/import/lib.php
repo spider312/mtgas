@@ -85,12 +85,43 @@ function rmkdir($dir) { // mkdir recursively without umask bug
 		return $result ;
 	}
 }
-
+// Common between MagicVille and MythicSpoiler
+function mv2txt($tmp) {
+	// Costs parsing before strip_tags
+	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.)(.).gif alt="%\1\2">#', '{$1/$2}', $tmp) ; // Hybrid
+	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%\1">#', '{$1}', $tmp) ; // Normal
+	$tmp = str_replace(' : ', ': ', $tmp) ; // Stick to MCI policy
+	$tmp = strip_tags($tmp) ; // Purify
+	$tmp = trim($tmp) ; // Cleanup
+	return $tmp ;
+}
+function mv2cost($tmp) {
+	$cost = '' ;
+	if ( isset($tmp) && preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.{1,2})\.gif>#', $tmp, $matches_cost, PREG_SET_ORDER) > 0 ) {
+		foreach ( $matches_cost as $match_cost )
+			if ( strlen($match_cost['mana']) == 1 )
+				$cost .= $match_cost['mana'] ;
+			else
+				$cost .= '{'.implode('/', str_split($match_cost['mana'])).'}' ;
+	}
+	return $cost ;
+}
 // Debug
-function string_detail($str) {
-	$result = '' ;
-	for ( $i=0 ; $i < strlen($str) ; $i++ )
-		$result .= '['.$str[$i].'] : '.ord($str[$i])."\n" ;
+function strdebug($str, $index=false) {
+	$arr = preg_split('/(?<!^)(?!$)/u', $str ); 
+	$result = '<table>' ;
+	$indexes = '' ;
+	$letters = '' ;
+	$ords = '' ;
+	for ( $i=0 ; $i < count($arr) ; $i++ ) {
+		$indexes .= '<td>'.$i.'</td>' ;
+		$letters .= '<td>'.$arr[$i].'</td>' ;
+		$ords .= '<td>'.ord($arr[$i]).'</td>' ;
+	}
+	$result = "<table>" ;
+	if ( $index )
+		$result .= "<tr>$indexes</tr>" ;
+	$result .= "<tr>$letters</tr><tr>$ords</tr></table>\n" ;
 	return $result ;
 }
 function string_detail_disp($str) {
@@ -159,6 +190,12 @@ class ImportExtension {
 		$this->cards[] = $card ;
 		return $card ;
 	}
+	function search($name) {
+		foreach ( $this->cards as $card )
+			if ( $card->name == $name )
+				return $card ;
+		return null ;
+	}
 	function addtoken($card_url, $type, $pow, $tou, $image_url) {
 		$this->tokens[] = array('card_url' => $card_url, 'type' => $type, 'pow' => $pow, 'tou' => $tou, 'image_url' => $image_url) ;
 	}
@@ -193,7 +230,7 @@ class ImportExtension {
 				echo 'Card number wrongly reported as card nb + token nb, accepted'."\n" ; // Magic-ville sometimes do that
 			else {
 				echo $nbcards.' card images found despite '.$this->nbcards.' expected'."\n" ;
-				return false ;
+				//return false ;
 			}
 		}
 		return true ;
@@ -222,9 +259,7 @@ class ImportExtension {
 				$ext_id = $res->id ;
 				$code = $res->se ;
 				$this->dbcode = strtoupper($code) ;
-				if ( $code != $res->sea )
-					$code .= '/'.$res->sea ;
-				echo 'Extension found : '.$code.' - '.$res->name."\n" ;
+				echo 'Extension found : <a href="../extension.php?ext='.$code.'">'.$code.' - '.$res->name."</a>\n" ;
 				echo mysql_num_rows(query("SELECT * FROM `card_ext` WHERE `ext` = '$ext_id'")).' cards linked to extension'."\n" ;
 				if ( $apply) {
 					query("DELETE FROM `card_ext` WHERE `ext` = '$ext_id'") ;
@@ -247,21 +282,33 @@ class ImportExtension {
 			$card_obj = $card['card'] ;
 			$query = query("SELECT * FROM card_ext WHERE `card` = '$card_id' AND `ext` = '$ext_id' ;") ;
 			if ( $res = mysql_fetch_object($query) ) {
-				if ( $apply ) {
-					query("UPDATE card_ext SET
-						`rarity` = '".$card_obj->rarity."', `nbpics` = '".$card_obj->nbimages."',
-						`multiverseid` = '".$card_obj->multiverseid."'
-						WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
-					$card['action'] = 'updated' ;
-				} else
-					$card['action'] = 'to update' ;
+				// Check which fields need updating
+				$upd = array() ; // Field names for report
+				$updates = array() ; // String query generation
+				$card_obj->nbpics = $card_obj->nbimages ; // Workaround in order import card obj has the same name as in DB
+				foreach ( array('rarity', 'nbpics', 'multiverseid') as $field ) {
+					if ( $res->$field != $card_obj->$field ) {
+						$upd[$field] = $res->$field ; // Mark filed as updated, saving old value for returning
+						$updates[] = "`$field` = '".mysql_real_escape_string($card_obj->$field)."'" ;
+					}
+				}
+				if ( count($updates) == 0 ) {
+					$card['action'] = 'up to date' ;
+				} else {
+					$card['updates'] = array_merge($upd, $card['updates']) ;
+					if ( $apply ) { // Actually, we do never enter that, as when $apply, links are all deleted at the begining of import
+						query("UPDATE card_ext SET ".implode(', ', $updates)." WHERE `card` = $card_id AND `ext` = $ext_id ;") ;
+						$card['action'] = 'updated' ;
+					} else
+						$card['action'] = 'to update' ;
+				}
 			} else {
 				if ( $apply ) {
 					query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`, `multiverseid`)
 						VALUES ('$card_id', '$ext_id', '".$card_obj->rarity."',
 						'".$card_obj->nbimages."', '".$card_obj->multiverseid."') ;") ;
 					$card['action'] = 'inserted' ;
-				}else
+				} else
 					$card['action'] = 'to insert' ;
 			}
 			$result[] = $card ;
@@ -276,7 +323,7 @@ class ImportExtension {
 					WHERE `card_id` = '$card_id' AND `lang` = '$code' ;") ;
 				if ( $res = mysql_fetch_object($query) ) {
 					if ( $res->card_name != $localname ) {
-						$toupdate[] = $code.' : '.$res->card_name.' -> '.$localname ;
+						$toupdate[] = $code.' : '.$res->card_name.' -> '.$localname.strdebug($res->card_name).strdebug($localname) ;
 						if ( $apply ) {
 							$query = query("UPDATE `mtg`.`cardname`
 							SET `card_name` = '".mysql_real_escape_string($localname)."'
@@ -436,7 +483,7 @@ class ImportCard {
 	function addurl($url) {
 		foreach ( $this->urls as $card_url )
 			if ( $url == $card_url )
-				return $this->ext->adderror('Empty name', $this) ; // Triggered in MV for coloured artifacts, as they are in art + color
+				return $this->ext->adderror('URL already added (normal for coloured artifacts on MV)', $this) ;
 		$this->urls[] = $url ;
 		return true ;
 
@@ -457,7 +504,8 @@ class ImportCard {
 	}
 	function addlang($code, $name, $url=null) {
 		if ( isset($this->langs[$code]) ) {
-			$this->langs[$code]['name'] .= ' / '.$name ;
+			if ( $name != $this->langs[$code]['name'] )
+				$this->langs[$code]['name'] .= ' / '.$name ;
 			if ( $url != null )
 				$this->langs[$code]['images'][] = $url ;
 		} else
@@ -487,7 +535,7 @@ class ImportCard {
 		if ( $found ) { // Card found in DB, update
 			$card_id = $arr['id'] ; // Return for linking
 			// Check which fields need updating
-			foreach ( array('cost', 'types', 'text') as $f) {
+			foreach ( array('name', 'cost', 'types', 'text') as $f) {
 				if ( $arr[$f] != $this->$f ) {
 					$upd[$f] = $arr[$f] ; // Mark filed as updated, saving old value for returning
 					$arr[$f] = $this->$f ; // Override current DB record copy for attrs compiling

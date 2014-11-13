@@ -10,26 +10,6 @@ $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 function card_image_url($url) {
 	return 'http://www.magic-ville.com/pics/big/'.$url.'.jpg' ;
 }
-function mv2txt($tmp) {
-	// Costs parsing before strip_tags
-	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.)(.).gif alt="%\1\2">#', '{$1/$2}', $tmp) ; // Hybrid
-	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%\1">#', '{$1}', $tmp) ; // Normal
-	$tmp = str_replace(' : ', ': ', $tmp) ; // Stick to MCI policy
-	$tmp = strip_tags($tmp) ; // Purify
-	$tmp = trim($tmp) ; // Cleanup
-	return $tmp ;
-}
-function mv2cost($tmp) {
-	$cost = '' ;
-	if ( isset($tmp) && preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.{1,2})\.gif>#', $tmp, $matches_cost, PREG_SET_ORDER) > 0 ) {
-		foreach ( $matches_cost as $match_cost )
-			if ( strlen($match_cost['mana']) == 1 )
-				$cost .= $match_cost['mana'] ;
-			else
-				$cost .= '{'.implode('/', str_split($match_cost['mana'])).'}' ;
-	}
-	return $cost ;
-}
 
 // Get
 $html = cache_get($importer->url, 'cache/'.$source.'_'.$ext_source, $verbose) ;
@@ -56,20 +36,22 @@ foreach ( $matches_list as $match ) { //
 	$url = 'http://www.magic-ville.com/fr/'.$match['url'] ;
 	$path = 'cache/'.str_replace('/', '_', $url) ;
 	$html = cache_get($url, $path, $verbose) ;
-	// Name, cost, type and text
-	$nb = preg_match_all('#<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>.*?
-\s*<div style=".*?".*?'.'></div>
-\s*<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
+	// Name, cost, type, text and image
+	$info_regex = '' ;
+	$info_regex .= '<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>' ; // Cost
+	$info_regex .= '.*?<div class=S16>(?<frname>.*?) </div>.*?' ; // French name
+	$info_regex .= '<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
 \s*<div class=G12 style="padding-top:4px;padding-bottom:\dpx;">(?<type>[^<>]*?)</div>
 \s*<div align=center>
 \s*<div id=EngShort style="display:block;" class=S1\d align=justify>(?<text>.*?)</div>(
-.*?<div align=right class=G14 style="padding-right:\dpx;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>)?#s', $html, $matches, PREG_SET_ORDER) ;
+.*?<div align=right class=G14 style="padding-right:\dpx;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>)?' ;
+	$info_regex .= '.*<img src=scan\?(?<imgurl>.*?)></td></tr>' ;
+	$nb = preg_match_all("#$info_regex#s", $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
 		continue ;
 		return false ;
 	}
-
 	// Text
 		// Type specific
 	$text = '' ;
@@ -85,8 +67,18 @@ foreach ( $matches_list as $match ) { //
 	// Name
 	$name = card_name_sanitize($matches[0]['name']) ;
 	$card = null ;
-	if ( ! preg_match('#<div>\d{1,2}/\d{1,2}</div>#', $html) ) { // Tokens are numbered
-		$type = trim($matches[0]['type']) ;
+	$type = trim($matches[0]['type']) ;
+	$cost = mv2cost($matches[0]['cost']) ;
+	//if ( preg_match('#<div>\d{1,2}/\d{1,2}</div>#', $html) ) { // Tokens are numbered
+	if ( ( $cost == '' ) && ( strpos($type, 'Land') === false ) ) { // Token number missing in initial KTK import
+		$pow = '' ;
+		$tou = '' ;
+		if ( isset($matches[0]['pow']) )
+			$pow = $matches[0]['pow'] ;
+		if ( isset($matches[0]['tou']) )
+			$tou = $matches[0]['tou'] ;
+		$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+	} else {
 		// Rarity
 		$rarity = '' ;
 		if ( strpos($type, 'Gate') != false ) // DGM Gates must be considered as a land in DB
@@ -107,7 +99,8 @@ foreach ( $matches_list as $match ) { //
 			}
 		}
 		// Image (scan-lowres / hires)
-		$img_url = card_image_url($mv_ext_name.'/'.$mv_card_id) ; // Default Hires but not always managed in early imports
+		//$img_url = card_image_url($mv_ext_name.'/'.$mv_card_id) ; // Default Hires but not always managed in early imports
+		$img_url = 'http://www.magic-ville.com/fr/scan?'.$matches[0]['imgurl'] ;
 		/*
 		if ( preg_match('#<img src=..(?<img>/pics/big/.*?.jpg)>#', $html, $match_img) )
 			$img_url = 'http://www.magic-ville.com/'.$match_img['img'] ;
@@ -115,15 +108,8 @@ foreach ( $matches_list as $match ) { //
 			if ( preg_match('#background:url\(scan\?(?<scan>.*)\)#', $html, $match_img) )
 				$img_url = 'http://www.magic-ville.com/fr/scan?'.$match_img['scan'] ;
 		}*/
-		$card = $importer->addcard($url, $rarity, $name, mv2cost($matches[0]['cost']), $type, $text, $img_url) ;
-	} else {
-		$pow = '' ;
-		$tou = '' ;
-		if ( isset($matches[0]['pow']) )
-			$pow = $matches[0]['pow'] ;
-		if ( isset($matches[0]['tou']) )
-			$tou = $matches[0]['tou'] ;
-		$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+		$card = $importer->addcard($url, $rarity, $name, $cost, $type, $text, $img_url) ;
+		$card->addlang('fr', html_entity_decode($matches[0]['frname'], ENT_COMPAT, 'UTF-8')) ;
 	}
 
 	// Second part

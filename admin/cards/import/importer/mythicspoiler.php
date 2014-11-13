@@ -2,7 +2,7 @@
 // Init
 $importer->init('http://mythicspoiler.com/'.$ext_source.'/index.html') ; // Sort by color
 //$importer->init('http://mythicspoiler.com/'.$ext_source.'/numbercrunch.html') ; // Sort by number, does not seem up to date
-$list_regex = '#<a href="cards/(?<url>.*?).html"><img width="200" align="left" hspace="0" jace src="cards/(?<img>.*?).jpg"></a>#' ;
+$list_regex = '#<a href="cards/(?<url>.*?).html"><img width="200" align="left" hspace="0" src="cards/(?<img>.*?).jpg"></a>#' ;
 //$list_regex = '#[<a href="cards/(?<name>.*).html"><img width="200" align="left" hspace="0" jace src="cards/(?<img>.*).jpg"></a>|<a href="cards/(?<name>.*).html"><img align="left" hspace="0" width="200" src="cards/(?<img>.*).jpg"></a>]#' ;
 
 // Get

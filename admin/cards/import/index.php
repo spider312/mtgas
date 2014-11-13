@@ -3,7 +3,7 @@ include_once 'lib.php' ;
 include 'HtmlDiff.php' ;
 // Args
 $ext_local = param($_GET, 'ext_local', '') ;
-$source = param($_GET, 'source', 'mci') ;
+$source = param($_GET, 'source', 'mtgjson') ;
 $ext_source = param($_GET, 'ext_source', $ext_local) ;
 $apply = param($_GET, 'apply', false) ;
 if ( $apply !== false )
@@ -43,9 +43,9 @@ html_menu() ;
     <fieldset>
      <legend>From</legend>
      <label>Source : <select name="source">
+      <?=html_option('mtgjson', 'MTGJSON', $source) ; ?>
       <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
       <?=html_option('mv', 'Magic Ville', $source) ; ?>
-      <?=html_option('mythicspoiler', 'Mythic Spoiler', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
@@ -99,10 +99,15 @@ foreach ( $importer->cards as $i => $card ) {
 	echo '     <tr title="'.htmlentities($card->text).'">
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
-      <td><ul>' ;
-	foreach ( $card->urls as $url )
-		echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>'."\n" ;
-	echo '</ul></td>
+      <td>'."\n      " ;
+	if ( count($card->urls) > 1 ) {
+		echo '      <ul>' ;
+		foreach ( $card->urls as $url )
+			echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>' ;
+		echo '</ul>'."\n" ;
+	} else
+		echo '      <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a>'."\n" ;
+	echo '</td>
       <td>'.$card->cost.'</td>
       <td>'.$card->types.'</td>
       <td>'.$card->nbimages.'</td>
@@ -165,13 +170,14 @@ $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
 $actions = array() ;
+//      <td>'.$log['found'].'</td>
 foreach ( $import_log as $i => $log ) {
 	$card = $log['card'] ;
 	if ( count($log['updates']) > 0 ) {
 		$updates++ ;
 		echo '     <tr>
       <td>'.$i.' : '.$card->name.'</td>
-      <td>'.$log['found'].'</td>
+      <td><img src="'.$card->images[0].'"></td>
       <td>' ;
 		foreach ( $log['updates'] as $field => $upd ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
@@ -216,9 +222,9 @@ foreach ( $actions as $i => $action ) {
 
   <div class="section">
    <h2>Pics</h2>
-<?php
+<pre><?php
 $_SESSION['importer'] = $importer ; // May need to comment 'session_name()' in /lib.php
-?>
+?></pre>
    <a href="images.php" target="img_dl">Download</a><br>
    <iframe name="img_dl" class="fullwidth">
    </iframe>

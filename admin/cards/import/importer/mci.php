@@ -75,8 +75,13 @@ foreach ( $matches as $match ) {
 	// Cost
 	if ( preg_match('/(?<cost>.*) \((?<cc>\d*)\)/', $cost, $cost_matches) )
 		$cost = $cost_matches['cost'] ;
+		// Colors are inverted in MCI
+	$from = array('WR', 'WG', 'UG') ;
+	$to = array_map('strrev', $from) ;
+	$cost = str_replace($from, $to, $cost) ;
 	// Text
 	$text = str_replace('<br><br>', "\n", $card_matches['text']) ; // Un-HTML-ise text
+	$text = str_replace('−', '-', $text) ; // UTF minus used in planeswalkers
 	$text = trim($text) ;
 		// Type-specific
 			// Creature
