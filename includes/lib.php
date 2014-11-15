@@ -204,8 +204,9 @@ function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
 	echo ' </head>'."\n" ;
 }
 function html_foot() {
-	if ( is_file('../footer.php') )
-		include '../footer.php' ;
+	global $dir ;
+	if ( is_file($dir.'/footer.php') )
+		include $dir.'/footer.php' ;
 	else
 		echo "  <!-- No 'footer.php' file found, you may create one if you want to include something on each page of your site -->\n" ;
 	echo ' </body>

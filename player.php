@@ -122,5 +122,5 @@ html_head(
    </table>
 
   </div>
- </body>
-</html>
+<?php
+html_foot() ;
