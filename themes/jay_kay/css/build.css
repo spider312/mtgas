@@ -39,7 +39,6 @@
 	width: 96% ;
 	left: 2% ;
 	margin: 0 ;
-	padding-bottom: 10px ;
 }
 #div_side  {
 	top: 2% ;
@@ -50,12 +49,21 @@
 	top: 90% ;
 	min-height: 33%/*100px*/ ;
 	max-height: 95% ;
+	padding-bottom: 30 ;
 	z-index: 11 ;
+	padding-bottom: 30px ;
 }
 /*#div_main:hover, */#div_main.highlight {
 	top: auto ;
 	bottom: 0 ;
 	height: auto ;
+}
+#div_main > div {
+	position: fixed ;
+	bottom: 0 ;
+	left: 0 ;
+	width: 100% ;
+	text-align: center ;
 }
 /* Table inside */
 #table_side, #table_main {

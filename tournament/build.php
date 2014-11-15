@@ -38,7 +38,6 @@ html_head('Building #'.$id,
 
   <div id="stats" class="section">
    <h2>Actions</h2>
-   <button id="base_lands" title="Manage basic lands" disabled>Basic lands</button>
    <br><label><input id="smallres_check" type="checkbox">Small resolution</label>
    <h2>Stats</h2>
    <label><input id="stats_side" type="checkbox">Stats side</label>
@@ -53,10 +52,14 @@ html_head('Building #'.$id,
   </div>
 
   <div id="div_main" class="section">
-   <h1>MainDeck
-   <button id="clear_button" title="Send all cards from maindeck to sideboard" disabled>Clear</button>
+   <h1>
+   MainDeck
    </h1>
    <table id="table_main"></table>
+   <div>
+    <button id="base_lands" title="Manage basic lands" disabled>Basic lands</button>
+    <button id="clear_button" title="Send all cards from maindeck to sideboard" disabled>Clear</button>
+   </div>
   </div>
 
   <div id="tournament" class="section">
