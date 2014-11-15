@@ -97,10 +97,10 @@ $(function() { // On page load
 				if ( tr != null ) { // Found in pending : tournament starting, redirect
 					for ( var i = 0 ; i < data.players.length ; i++ )
 						if ( data.players[i].player_id == player_id ) {
+							window.focus() ;
 							if (! document.hasFocus() )
 								notification_send('Mogg Tournament starting',
 									'Starting : '+data.format+' '+data.name, 'start') ;
-							window.focus() ;
 							document.location = 'tournament/?id='+data.id ;
 						}
 				}
