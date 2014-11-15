@@ -46,7 +46,7 @@ $round_duration = 60 * 60 ; // 60 mins for rounds as there are no additionnal tu
 // Shouldn't change
 $appname = 'MTGAS' ; // Must be different on servers hosted behind the same hostname
 $default_theme = 'jay_kay' ;
-$index_image = 'Mogg Maniac.crop.jpg' ; // Relative to theme folder
+$index_image = 'Mogg Maniac.crop.png' ; // Relative to theme folder
 $log = false ; // Daemon returning data
 $wsport = 1337 ;
 // MTG rules to be tweaked
