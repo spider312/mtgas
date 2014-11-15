@@ -147,8 +147,9 @@ td.th {
 #zoom.split.displaytop { /* When displayed on top of mouse */
 	transform: rotate(90deg) translate(52px, -52px) ;
 }
-#zoom.flip {
+#zoom .flip {
 	transform: rotate(180deg) ;
+
 }
 /* Small image resolution*/
 .smallres .card {
