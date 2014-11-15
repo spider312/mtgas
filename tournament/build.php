@@ -33,7 +33,7 @@ html_head('Building #'.$id,
  <body onload="start(<?=$id;?>, '<?=$pid;?>')">
   <div id="info" class="section">
    <input id="timeleft" type="text" value="Initializing" disabled="disabled" title="Time left for building" size="8"><br>
-   <label title="Tournament starts if every player check this box before timer ends"><input id="ready" type="checkbox" <?php echo $checked ?> disabled="disabled">I'm ready</label>
+   <label title="Tournament starts if every player check this box before timer ends"><input id="ready" type="checkbox" disabled="disabled">I'm ready</label>
   </div>
 
   <div id="stats" class="section">
