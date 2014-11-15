@@ -419,11 +419,11 @@ class Tournament {
 		shuffle($this->players) ; // Give random numbers to players
 		foreach ( $this->players as $i => $player )
 			$player->insert($i) ;
-		$this->status = 2 ;
-		$this->due_time = $this->update_date ;
 		//$this->data->players = $this->players ;
-		$this->commit('status', 'due_time', 'data') ;
+		$this->set_status(2) ;
 		$this->log('', 'players', '') ;
+		global $wait_duration ;
+		$this->timer_goon($wait_duration) ;
 		// Broadcast
 		$this->send() ;
 	}
