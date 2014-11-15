@@ -104,12 +104,6 @@ function start(id, pid) {
 	stats_side.addEventListener('change', function(ev) {
 		game.tournament.me.pool.stats() ;
 	}, false) ;
-	//
-	smallres_check = document.getElementById('smallres_check')
-	smallres_check.addEventListener('change', function(ev) {
-		game.tournament.me.pool.set_smallres(this.checked) ;
-		game.tournament.me.pool.display() ;
-	}, false) ;
 }
 function TournamentBuild() {}
 function PlayerBuild() {
@@ -229,7 +223,6 @@ function Pool(player) {
 	this.main = new Zone(this, table_main, 'Deck', 'converted_cost') ;
 	this.side = new Zone(this, table_side, 'Sideboard', 'color_index') ;
 	this.set_smallres(game.options.get('smallres')) ;
-	smallres_check.checked = this.smallres ;
 	this.limitcols = ! this.smallres ;
 	this.stats_results = null ;
 	// Selectors
@@ -326,6 +319,10 @@ function Zone(pool, node, name, sort) {
 	} ;
 	var me = this ;
 	// Node events
+	this.node.parentNode.addEventListener('mouseover', function(ev) {
+		zoom.classList.add('hidden') ; // Managed in zone in order not to trigger when going from a card
+		/// to a card
+	}, false) ;
 	this.node.parentNode.addEventListener('mouseenter', function(ev) {
 		if ( me.name == 'Sideboard' )
 			div_main.classList.remove('highlight') ;
@@ -432,6 +429,10 @@ function Zone(pool, node, name, sort) {
 			this.pool.limitcols = ! this.pool.limitcols ;
 			this.display() ;
 		}).checked = this.pool.limitcols ;
+		poolmenu.addline('Small resolution', function(pool) {
+			this.pool.set_smallres(! this.pool.smallres) ;
+			this.pool.display() ;
+		}).checked = this.pool.smallres ;
 		var sortmenu = new menu_init(this) ;
 		for ( var i in this.fields )
 			sortmenu.addline(this.fields[i], this.sort, i).checked = (this.field==i) ;
@@ -536,7 +537,7 @@ function Card(card) {
 			// Events
 			div.addEventListener('mouseover', this.zoom_in, false) ;
 			div.addEventListener('mousemove', this.move_zoom, false) ;
-			div.addEventListener('mouseout', this.zoom_out, false) ;
+			//div.addEventListener('mouseout', this.zoom_out, false) ; // Managed by zone
 			this.node = div ;
 		}
 		return div ;
@@ -557,9 +558,9 @@ function Card(card) {
 			alt.src = '' ;
 		// Split
 		if ( iso(card.attrs.split) )
-			zoomed.classList.add('split') ;
+			zoom.classList.add('split') ;
 		else
-			zoomed.classList.remove('split') ;
+			zoom.classList.remove('split') ;
 		// Flip
 		if ( iso(card.attrs.flip_attrs) ) {
 			alt.src = div.card.img.src ;
@@ -576,10 +577,14 @@ function Card(card) {
 			alt.classList.add('hidden') ;
 		// Show zoom
 		zoom.classList.remove('hidden') ;
+		//this.target.card.move_zoom(ev) ;
+		return eventStop(ev) ; // Zone shouldn't hide zoom
 	}
+	/*
 	this.zoom_out = function(ev) {
 		zoom.classList.add('hidden') ;
 	}
+	*/
 	this.move_zoom = function(ev) {
 		// Image is displayed on cursor's bottom right by default
 		// If it would make it appear outside "inner" displayed window, display it on cursor's
@@ -587,15 +592,17 @@ function Card(card) {
 		// never display zoom on top of cursor (it would interact with mouse* events) and make cards 
 		// always readable
 		var xoffset = 10 ;
-		zoomed = zoom.firstElementChild ;
 		var x = ev.clientX + xoffset ; // cursor's right
 		if ( x + zoom.clientWidth > window.innerWidth ) // Outside inner screen
 			x = ev.clientX - zoom.clientWidth - xoffset ; // cursor's left
 		zoom.style.left = max(x, 0)+'px' ;
 		var yoffset = 10 ;
 		var y = ev.clientY + yoffset ; // cursor's bottom
-		if ( y + zoom.clientHeight > window.innerHeight ) // Outside inner screen
+		if ( y + zoom.clientHeight > window.innerHeight ) { // Outside inner screen
 			y = ev.clientY - zoom.clientHeight - yoffset ; // cursor's top
+			zoom.classList.add('displaytop') ;
+		} else
+			zoom.classList.remove('displaytop') ;
 		zoom.style.top = max(y, 0)+'px' ;
 	}
 	this.info = function() {

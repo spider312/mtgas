@@ -37,8 +37,6 @@ html_head('Building #'.$id,
   </div>
 
   <div id="stats" class="section">
-   <h2>Actions</h2>
-   <br><label><input id="smallres_check" type="checkbox">Small resolution</label>
    <h2>Stats</h2>
    <label><input id="stats_side" type="checkbox">Stats side</label>
    <div id="stats_graphs"></div>

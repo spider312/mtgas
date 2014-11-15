@@ -47,13 +47,12 @@
 }
 #div_main {
 	top: 90% ;
-	min-height: 33%/*100px*/ ;
+	min-height: 33% ;
 	max-height: 95% ;
-	padding-bottom: 30 ;
 	z-index: 11 ;
 	padding-bottom: 30px ;
 }
-/*#div_main:hover, */#div_main.highlight {
+#div_main.highlight {
 	top: auto ;
 	bottom: 0 ;
 	height: auto ;
@@ -113,7 +112,7 @@ td.th {
 	margin-left: -8px ;
 	margin-top: -10px ;
 }
-div.split img { /* Rotated */
+.card.split img { /* Rotated */
 	height: 240px ;
 	width: auto ;
 	margin-left: 34px ;
@@ -138,14 +137,17 @@ div.split img { /* Rotated */
 /* Zoom */
 #zoom {
 	position: fixed ;
-	transition: none !important ; /* Transition makes mouse hovers zoom and 'leave' main_div */
+	transition-property: transform ; /* Transition makes mouse hovers zoom and 'leave' main_div
+	and add a laggy effect, use it only for rotate */
 	z-index: 11 ;
 }
-#zoom img.split {
-	transform: rotate(90deg) ;
-	/*transition: all 0.2s !important ;*/
+#zoom.split {
+	transform: rotate(90deg) translate(-52px, -52px) ;
 }
-#zoom img.flip {
+#zoom.split.displaytop { /* When displayed on top of mouse */
+	transform: rotate(90deg) translate(52px, -52px) ;
+}
+#zoom.flip {
 	transform: rotate(180deg) ;
 }
 /* Small image resolution*/
