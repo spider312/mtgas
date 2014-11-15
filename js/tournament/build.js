@@ -580,11 +580,9 @@ function Card(card) {
 		//this.target.card.move_zoom(ev) ;
 		return eventStop(ev) ; // Zone shouldn't hide zoom
 	}
-	/*
 	this.zoom_out = function(ev) {
 		zoom.classList.add('hidden') ;
 	}
-	*/
 	this.move_zoom = function(ev) {
 		// Image is displayed on cursor's bottom right by default
 		// If it would make it appear outside "inner" displayed window, display it on cursor's
