@@ -1,4 +1,17 @@
 <?php
+$langs = array( // Langs for cards ( => images)
+	'en' => 'English',
+	'de' => 'German',
+	'fr' => 'French',
+	'it' => 'Italian',
+	'es' => 'Spanish',
+	'pt' => 'Portuguese',
+	'jp' => 'Japanese',
+	'cn' => 'Simplified Chinese',
+	'ru' => 'Russian',
+	'tw' => 'Traditional Chinese',
+	'ko' => 'Korean'
+) ;
 // Params management
 function param_or_die($arr, $param, $name=null) {
 	if ( $name == null )

@@ -1,7 +1,8 @@
 <?php
+// Before config inclusion as it should need it
+include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'includes/lib.php' ;
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'config.php' ;
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'includes/lang.php' ;
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'includes/lib.php' ;
 
 // Globals
 $cr = "\n" ;
