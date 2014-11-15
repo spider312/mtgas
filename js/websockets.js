@@ -66,7 +66,6 @@ function Connexion(url, onmessage, onclose, registration_data) {
 			if ( isf(connexion.onclose) )
 				connexion.onclose(ev) ;
 			connexion.connexion = null ;
-			connexion.registered = false
 		}, false) ;
 		this.connexion.addEventListener('message', function (ev) {
 			var data = null ;
@@ -83,9 +82,6 @@ function Connexion(url, onmessage, onclose, registration_data) {
 				case 'ping' :
 					connexion.pingtime(new Date() - connexion.ping_sent) ;
 					setTimeout.call(connexion, connexion.ping, connexion.ping_delay) ;
-					break ;
-				case 'registered': 
-					connexion.registered = true ;
 					break ;
 				default : 
 					if ( isf(connexion.onmessage) )
@@ -176,7 +172,6 @@ function Connexion(url, onmessage, onclose, registration_data) {
 		this.registration_data = {} ;
 	this.registration_data.type = 'register' ;
 	this.registration_data.player_id = $.cookie(session_id) ;
-	this.registered = false ;
 		// actions
 	if ( ! window["WebSocket"] )
 		alert('No support for websockets in browser') ;

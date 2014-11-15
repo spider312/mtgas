@@ -65,12 +65,12 @@ $(function() { // On page load
 				li.appendChild(create_span(' '+timeWithDays(mysql2date(data.time)))) ;
 				shouts.appendChild(li) ;
 				shouts.scrollTop = shouts.scrollHeight ;
-				if ( game.connection.registered && ! document.hasFocus() )
+				if ( ! document.hasFocus() )
 					notification_send('Mogg Shout', data.player_nick+' : '+data.message, 'shout') ;
 				break ;
 			// Duels
 			case 'pendingduel' :
-				if ( game.connection.registered && ! document.hasFocus() )
+				if ( ! document.hasFocus() )
 					notification_send('Mogg Duel', 'New duel : '+data.name, 'duel') ;
 				pending_duel_add(data) ;
 				break ;
@@ -89,7 +89,7 @@ $(function() { // On page load
 				break ;
 			// Tournaments
 			case 'pending_tournament' :
-				if ( pending_tournament_add(data) && game.connection.registered && ( data.min_players > 1 ) && ! document.hasFocus() )
+				if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
 					notification_send('Mogg Tournament', 'New tournament : '+data.format+' '+data.name, 'tournament');
 				break ;
 			case 'running_tournament' :
@@ -97,7 +97,9 @@ $(function() { // On page load
 				if ( tr != null ) { // Found in pending : tournament starting, redirect
 					for ( var i = 0 ; i < data.players.length ; i++ )
 						if ( data.players[i].player_id == player_id ) {
-							notification_send('Mogg Tournament starting', 'Starting : '+data.format+' '+data.name, 'start') ;
+							if (! document.hasFocus() )
+								notification_send('Mogg Tournament starting',
+									'Starting : '+data.format+' '+data.name, 'start') ;
 							window.focus() ;
 							document.location = 'tournament/?id='+data.id ;
 						}
