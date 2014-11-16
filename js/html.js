@@ -27,10 +27,12 @@ function notification_send(title, txt, tag) {
 			if ( iss(tag) )
 				options.tag = tag
 			var n = new Notification(title, options) ;
-			// All browsers (chrome) not triggering those usefull events handlers
-			n.addEventListener('click', function(ev) { ev.target.close() ; }, false) ;
+			// All browsers (chrome) don't clean notifications, add ways to close
 			n.addEventListener('show', function(ev) {
-				window.setTimeout(function(n) { n.close() ; }, 5000, ev.target) ;
+				n.addEventListener('click', function(ev) { ev.target.close() ; }, false) ;
+				window.setTimeout(function(n) { n.close() ;	}, notification_duration, ev.target) ;
+				// On window close (as it cancels timeout)
+				window.addEventListener('beforeunload', function(ev) { n.close() ; }, false) ;
 			}, false) ;
 			return n ;
 		} else
