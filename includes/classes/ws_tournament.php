@@ -329,8 +329,9 @@ class Tournament {
 		$this->status = $status ;
 		$this->round = 1 ;
 		$this->commit('status', 'round') ;
-		foreach ( $this->players as $player )
-			$player->set_status($status-1) ;
+		if ( $status > 0 )
+			foreach ( $this->players as $player )
+				$player->set_status($status-1) ;
 		//$this->send() ;
 	}
 	public function players_ready() {
@@ -671,9 +672,9 @@ class Tournament {
 			$action = $game->addAction('', 'roundend', '') ;
 			$this->observer->game->broadcast(json_encode($action), $game) ;
 		}
-		$this->score_games() ;
 		$this->round++ ;
 		if ( $this->round <= $this->data->rounds_number ) {
+			$this->score_games() ;
 			$this->commit('round') ;
 			foreach ( $this->get_players() as $player )
 				$player->set_ready(false) ;
@@ -702,17 +703,19 @@ class Tournament {
 			$result = $player2->score->matchpoints - $player1->score->matchpoints ;
 		else {
 			if ( 
-				! property_exists($player1->score, 'opponentmatchwinpct')
-				|| ! property_exists($player2->score, 'opponentmatchwinpct')
-				|| ! property_exists($player1->score, 'opponentgamewinpct')
-				|| ! property_exists($player2->score, 'opponentgamewinpct')
-			)
-				return 0 ; // Computed after each round, may crash if called before first round end
+				   property_exists($player1->score, 'opponentmatchwinpct')
+				&& property_exists($player2->score, 'opponentmatchwinpct')
+				&& property_exists($player1->score, 'opponentgamewinpct')
+				&& property_exists($player2->score, 'opponentgamewinpct')
+			) {
 			if ( $player1->score->opponentmatchwinpct != $player2->score->opponentmatchwinpct )
 				$result = $player2->score->opponentmatchwinpct - $player1->score->opponentmatchwinpct ;
 			else
 				$result = $player2->score->opponentgamewinpct - $player1->score->opponentgamewinpct ;
+			}
 		}
+		if ( $result == 0 )
+			$result = $player1->status - $player2->status ; // Droped players after
 		if ( $result != 0 )
 			$result = $result / abs($result) ; // Return -1, 0 or 1
 		return $result ;
@@ -748,18 +751,19 @@ class Tournament {
 	public function end() { // Last round ended normally
 		$this->observer->move_tournament($this, 'running', 'ended') ;
 		$this->set_status(6) ;
-		$this->log($this->players[0]->player_id, 'end', '') ;
 		$this->terminate() ;
+		$this->log($this->players[0]->player_id, 'end', '') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
 		$this->observer->move_tournament($this, substr($this->type, 0, 7), 'ended') ;
-		$this->log('', 'cancel', $reason) ;
 		$this->set_status(0) ;
+		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
 		debug("Canceled ($reason)") ;
 		$this->send() ;
 	}
-	private function terminate() { // Common between end and cancel
+private function terminate() { // Common between end and cancel
+		$this->score_games() ;
 		$this->due_time = now() ;
 		$this->commit('due_time') ;
 		$this->timer_cancel() ;

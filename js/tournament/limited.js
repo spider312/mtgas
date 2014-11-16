@@ -35,6 +35,13 @@ function TournamentLimited() {
 // Right column
 function PlayerLimited() {
 	this.display = function(fields) { // Display in right column
+		if ( this.status > 6 ) {
+			if ( this.node != null ) {
+				this.node.parentNode.removeChild(this.node) ;
+				this.node = null ;
+			}
+			return false ;
+		}
 		var player = this ;
 		var cb = create_checkbox('', this.ready != '0') ;
 		cb.disabled = true ;

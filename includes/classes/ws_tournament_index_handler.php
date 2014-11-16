@@ -66,8 +66,7 @@ class TournamentIndexHandler extends TournamentHandler {
 					$player->set_status(7) ;
 					if ( count($user->tournament->get_players()) < 2 )	
 						$user->tournament->end() ;
-					else
-						$user->tournament->send() ;
+					$user->tournament->send() ;
 				}
 				break ;
 			default :
