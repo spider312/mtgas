@@ -12,10 +12,12 @@ function card_search($get, $connec=null) {
 		unset($get['limit']) ;
 	} else
 		$data->limit = 30 ;
+	$get['name'] = card_name_sanitize($get['name']) ;
 	$from = ($data->page-1)*$data->limit ;
+	$where = '' ;
 	if ( isset($get['ext']) && ( $get['ext'] != '' ) ) {
 		$select = 'SELECT `card`.*, `extension`.`se` FROM `card` LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
-		$where = 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' OR `extension`.`name` LIKE \''.$get['ext'].'%\' )' ;
+		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' OR `extension`.`name` LIKE \''.$get['ext'].'%\' )' ;
 		unset($get['ext']) ;
 	} else {
 		$select = 'SELECT * FROM `card` ' ;
@@ -23,34 +25,19 @@ function card_search($get, $connec=null) {
 	}
 	$order = ' ORDER BY `card`.`name`' ;
 	if ( isset($get['lang']) ) {
-		if ( $get['lang'] == 'en' )
-			unset($get['lang']) ;
-		else {
+		if ( $get['lang'] != 'en' ) {
 			$data->lang = $get['lang'] ;
 			$select = 'SELECT * FROM `card` LEFT JOIN `cardname`
 			ON `card`.`id` = `cardname`.`card_id`' ;
+			$get['card_name'] = $get['name'] ; // Search in lang table
+			$where .= ' AND `cardname`.`lang` = "'.$data->lang.'"' ;
 			$order = ' ORDER BY `cardname`.`card_name`' ;
-			//$where = " AND ( `cardname`.`card_name` LIKE '%".mysql_real_escape_string($get['name'])."%'
-			// OR `card`.`name` LIKE '%".mysql_real_escape_string($get['name'])."%')" ;
-			$get['card_name'] = $get['name'] ;
-			unset($get['name']) ;
+			unset($get['name']) ; // Search only in lang table
 		}
+		unset($get['lang']) ;
 	}
-	// First, search exactly
-	//d($select.get2where($get, 'LIKE', '%', '%').$where.$order) ;
-	/*
-	$data->mode = 'exact' ;
-	$result = query($select.get2where($get, 'LIKE', '', '').$where.$order, 'Card listing', $connec) ;
-	if ( mysql_num_rows($result) == 0 ) { // No results
-		$data->mode = 'begin' ;
-		// Search by begin of word
-		$result = query($select.get2where($get, 'LIKE', '', '%').$where.$order, 'Card listing', $connec) ;
-		if ( mysql_num_rows($result) == 0 ) { // No results*/
-			$data->mode = 'whole' ;
-			// Search part of word
-			$result = query($select.get2where($get, 'LIKE', '%', '%', 'card').$where.$order, 'Card listing', $connec) ;
-		/*
-	}*/
+	// Search part of word
+	$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
 	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )

@@ -1,5 +1,6 @@
 function load(body, deckname) {
 	// Init
+	ajax_error_management() ;
 	selected = null ;
 	selected_deck = null ;
 	game = {}
@@ -23,7 +24,7 @@ function load(body, deckname) {
 		var sideboard = document.getElementById('sideboard') ;
 		for ( var i = 0 ; i < sideboard.rows.length ; i++ )
 			update_row_language(sideboard.rows[i], sideboard) ;
-		search() ;
+		auto_search() ;
 	}, false)
 	// If a deck was passed in param, parse it and fill card list with its data
 	if ( deckname != '' ) {
@@ -78,8 +79,7 @@ function load(body, deckname) {
 	document.getElementById('cardname').addEventListener('keyup', function(ev) {
 		if ( ev.target.previous_value != ev.target.value ) {
 			ev.target.previous_value = ev.target.value ;
-			if ( ev.target.value.length > 2 )
-				search() ;
+			auto_search() ;
 		}
 	}, false) ;
 	search_cards.addEventListener('submit', function(ev) { // Search form
@@ -495,6 +495,8 @@ function extension_select(card, orig_ext, orig_attrs) {
 				opt.value = pics[k][0] ;
 				opt.text = card.ext[opt.value].se ;
 				opt.attrs = pics[k][1] ; ;
+				if ( isn(opt.attrs.nb) )
+					opt.text += ' '+opt.attrs.nb ;
 				opt.title = card.ext[opt.value].name ;
 				if ( opt.attrs.nb )
 					opt.title += ' (Pic #'+opt.attrs.nb+')' ;
@@ -524,7 +526,8 @@ function search() {
 	var params = {} ;
 	for ( var i = 0 ; i < search_cards.elements.length ; i++ ) {
 		var item = search_cards.elements.item(i) ;
-		params[item.name] = item.value
+		if ( item.name != '' )
+			params[item.name] = item.value
 	}
 	params.lang = deck_language.value ;
 	// Send search request
@@ -533,6 +536,16 @@ function search() {
 	selected = null ;
 	node_empty(cardlist) ;
 	create_tr(cardlist, 'Searching ...') ;
+}
+function auto_search() {
+	for ( var i = 0 ; i < search_cards.length ; i++ ) {
+		var field = search_cards[i] ;
+		if ( ( field.nodeName == 'INPUT' ) && ( field.type == 'text' ) && ( field.value.length > 2 ) ) {
+			search() ;
+			return true ;
+		}
+	}
+	return false ;
 }
 function page_submit(form, num, txt) {
 	num += '' ; // Transtyping
@@ -679,7 +692,7 @@ function found(data) {
 	var from = to - data.limit + 1 ;
 	if ( to > data.num_rows )
 		to = data.num_rows ;
-	create_tr(cardlist, txt = from+' - '+to+' / '+data.num_rows+' ('+data.mode+')') ;
+	create_tr(cardlist, txt = from+' - '+to+' / '+data.num_rows) ;
 }
 function img_button(imgname, title, onclick) {
 	var img = create_img(theme_image('deckbuilder/'+imgname+'.png')[0], 'imgname', title) ;
@@ -743,9 +756,12 @@ function add_card(ext, name, num, nb, to) {
 				row.exts = data.ext ;
 				var cext = row.ext() ;
 				for ( var i = 0 ; i < data.ext.length ; i++ ) {
-					if ( data.ext[i].se == cext )
+					if ( data.ext[i].se == cext ) { // Current extension
 						if ( ( data.ext[i].nbpics > 1 ) && ( ! isn(row.attrs.nb) ) )
 							row.attrs.nb = 1 ;
+						if ( isn(row.attrs.nb) && ( row.attrs.nb > data.ext[i].nbpics) )
+							row.attrs.nb = data.ext[i].nbpics ;
+					}
 				}
 				node_empty(row.cells[1]) ; 
 				if ( iss(ext) ) {
