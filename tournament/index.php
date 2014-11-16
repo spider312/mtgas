@@ -39,6 +39,7 @@ html_head('Tournament #'.$id,
 	<div>Format : <strong id="tournament_format"></strong></div>
 	<div>Players : <strong id="tournament_player_nb"></strong></div>
     <div id="tournament_info"></div>
+	<button id="drop">Drop tournament</button>
     <p id="register"></p>
     <h2>Players</h2>
     <table>

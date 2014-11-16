@@ -77,6 +77,10 @@ function start(tournament_id) {
 		node_empty(rounds) ;
 		node_empty(tournament_log) ;
 	}, {'tournament': tournament_id}) ;
+	var drop = document.getElementById('drop')
+	drop.addEventListener('click', function (ev) {
+		game.connection.send('{"type": "drop"}') ;
+	}, false) ;
 }
 function TournamentIndex() {
 	this.display_field = function(fields, field, nodeId) {

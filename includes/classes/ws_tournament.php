@@ -77,6 +77,14 @@ class Tournament {
 		$this->observer->say($msg) ;
 	}
 	// Accessors
+	public function get_players($all=false) {
+		$result = array() ;
+		foreach ( $this->players as $player )
+			if ( $all || ( $player->status < 7 ) )
+				array_push($result, $player) ;
+		return $result ;
+	}
+
 	public function get_player($id, $by='player_id') {
 		foreach ( $this->players as $player )
 			if ( $player->$by == $id )
@@ -161,7 +169,6 @@ class Tournament {
 		FROM `registration`
 		WHERE
 			`tournament_id` = '".$this->id."'
-			AND `status` <= 6
 		ORDER BY `order` ASC ; ") ;
 		foreach ( $this->players as $i => $player )
 			$this->players[$i] = new Registration($player, $this) ;
@@ -327,7 +334,7 @@ class Tournament {
 		//$this->send() ;
 	}
 	public function players_ready() {
-		foreach ( $this->players as $player )
+		foreach ( $this->get_players() as $player )
 			if ( ! $player->ready )
 				return false ;
 		// All players are ready, don't wait for timer
@@ -546,7 +553,8 @@ class Tournament {
 		return 0 ;
 	}
 	public function start() {
-		$nbplayers = count($this->players) ;
+		$players = $this->get_players() ; // Copy array
+		$nbplayers = count($players) ;
 		if ( $nbplayers < 2 )
 			return $this->end() ;
 		$theorical = Tournament::rounds_number($nbplayers) ;
@@ -559,7 +567,6 @@ class Tournament {
 		$this->set_status(5) ;
 		$this->log('', 'start', '') ;
 		// Start first round
-		$players = $this->players ; // Copy array
 		shuffle($players) ;
 		$matches = array() ;
 		while ( count($players) > 1 ) {
@@ -668,7 +675,7 @@ class Tournament {
 		$this->round++ ;
 		if ( $this->round <= $this->data->rounds_number ) {
 			$this->commit('round') ;
-			foreach ( $this->players as $player )
+			foreach ( $this->get_players() as $player )
 				$player->set_ready(false) ;
 			$this->start_games($this->find_player_order()) ;
 		} else
@@ -713,15 +720,19 @@ class Tournament {
 	private function find_player_order() {
 		// Players
 		$player_ids = array() ;
-		foreach ( $this->players as $player )
+		foreach ( $this->get_players() as $player )
 			$player_ids[] = array("id"=> $player->player_id) ;
 		if ( count($player_ids) % 2 != 0 )
 			$player_ids[] = array("id"=> '') ; // Bye
 		// Played matches
 		$matches = array() ;
 		foreach ( $this->games as $round )
-			foreach ( $round as $game )
-				$matches[] = array('team1' => $game->creator_id, 'team2' => $game->joiner_id) ;
+			foreach ( $round as $game ) {
+				$creator = $this->get_player($game->creator_id) ;
+				$joiner = $this->get_player($game->joiner_id) ;
+				if ( ( $creator->status < 7 ) && ( $joiner->status < 7 ) )
+					$matches[] = array('team1' => $game->creator_id, 'team2' => $game->joiner_id) ;
+			}
 		// Generate
 		$oRoundGenerator = new RoundGenerator($player_ids, $matches, $this->round);
 		$aPossibleMatches = $oRoundGenerator->execute();

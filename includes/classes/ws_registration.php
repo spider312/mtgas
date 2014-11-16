@@ -175,20 +175,22 @@ class Registration {
 		$this->commit('deck') ;
 	}
 	public function set_status($status) {
-		$this->status = $status ;
-		$this->commit('status') ;
-		$this->set_ready(false) ;
-	}
-	public function set_ready($ready=true) {
-		if ( $this->ready != $ready ) {
-			$this->ready = $ready ;
-			$this->commit('ready') ;
-			// Tournament consequences
-			if ( $this->tournament->status == 4 )
-				$this->tournament->log($this->player_id, 'ready', $this->ready) ;
-			if ( $ready )
-				$this->tournament->players_ready() ;
+		if ( $this->status < 6 ) {
+			$this->status = $status ;
+			$this->commit('status') ;
+			$this->set_ready(false) ;
 		}
+	}
+	public function set_ready($ready=true) { // Return if value changed
+		if ( $this->ready == $ready )
+			return false ;
+		$this->ready = $ready ;
+		$this->commit('ready') ;
+		// Tournament consequences
+		if ( $this->tournament->status == 4 )
+			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
+		$this->tournament->players_ready() ;
+		return true ;
 	}
 	public function insert($i) {
 		$this->order = $i ;

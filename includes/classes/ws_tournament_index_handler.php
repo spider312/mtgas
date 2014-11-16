@@ -59,6 +59,17 @@ class TournamentIndexHandler extends TournamentHandler {
 					$user->sendString('{"type": "save", "name": "'.$name.'", "deck": '.$deck.'}') ;
 				}
 				break ;
+			case 'drop' :
+				$player = $user->tournament->get_player($user->player_id) ;
+				if ( ( $player != null ) && ( $player->status < 7 ) ) {
+					$user->tournament->log($user->player_id, 'drop', '') ;
+					$player->set_status(7) ;
+					if ( count($user->tournament->get_players() < 2 )	
+						$user->tournament->end() ;
+					else
+						$user->tournament->send() ;
+				}
+				break ;
 			default :
 				$this->observer->say('Unknown type : '.$data->type) ;
 				print_r($data) ;

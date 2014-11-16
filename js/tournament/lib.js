@@ -199,6 +199,9 @@ function Log(data) {
 			case 'players' :
 				msg = 'Tournament has enough players' ;
 				break ;
+			case 'drop' :
+				msg = nick+' droped tournament' ;
+				break
 			case 'spectactor' :
 				msg = nick+' joined as spectactor' ;
 				if ( iso(s) && ( game.tournament.get_player(player_id) != null ) )
