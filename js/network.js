@@ -198,6 +198,7 @@ function message(text, meaning, dom) {
 		title += 'Sent '+r.getHours()+':'+r.getMinutes()+':'+r.getSeconds() ;
 	} else
 		title += 'Sent '+sent_time.getHours()+':'+sent_time.getMinutes()+':'+sent_time.getSeconds() ;
+	var recieve_time = new Date() ;
 	if ( recieve_time != null ) {
 		var r = recieve_time ;
 		title += ', Recieved '+recieve_time.getHours()+':'+recieve_time.getMinutes()+':'+recieve_time.getSeconds() ;

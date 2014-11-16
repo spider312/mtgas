@@ -140,7 +140,6 @@ add_css(array(
 $(function() { // When page is loaded : initialize everything
 	init_title = document.title ;
 	unseen_actions = 0 ;
-	recieve_time = null ;
 	sent_time = null ;
 	// Current game globals
 	creator = <?php echo $creator ; ?> ; // Am i that game's creator ?

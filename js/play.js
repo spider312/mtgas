@@ -143,8 +143,6 @@ function start() { // When page is loaded : initialize everything
 	}
 }
 function manage_action(action, active_player) {
-	recieve_time = new Date() ;
-	sent_time = new Date(parseInt(action.local_index)*1000) ;
 	var id = parseInt(action.id) ;
 	param = JSON_parse(action.param) ;
 	if ( ! iso(param) || ( param == null ) ) {
@@ -156,6 +154,7 @@ function manage_action(action, active_player) {
 			return false ; // Don't manage this action
 		}
 	}
+	sent_time = new Date(parseInt(action.local_index)*1000) ;
 	// Eval objects passed by name
 	if ( param.zone )
 		param.zone = eval(param.zone) ;
