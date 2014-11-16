@@ -70,6 +70,8 @@ function Tournament(id) {
 				spectactor = false ;
 				game.player = player ;
 			}
+			if ( ( player.node != null ) && ( player.node.parentNode != null ) )
+				player.node.parentNode.appendChild(player.node) ;
 		}
 		// Spectators
 		for ( var i = 0 ; i < data.spectators.spectators.length ; i++ ) {
