@@ -95,7 +95,7 @@ if ( $row->tournament > 0 ) {
 <html>
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <title>MTGAS : <?php echo $row->name.' ('.$client_status.')' ; ?></title>
+  <title><?=$appname?> : <?php echo $row->name.' ('.$client_status.')' ; ?></title>
   <link type="image/jpg" rel="icon" href="/themes/<?=$theme?>/Mogg Maniac.crop.png">
 <?php
 add_css(array(
