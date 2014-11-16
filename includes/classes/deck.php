@@ -4,7 +4,7 @@ class Deck {
 	public $type = 'deck' ; // JSON
 	public $main = array() ;
 	public $side = array() ;
-	private $sort_fields = array('color_index', 'name') ;
+	private $sort_fields = array('color_index', 'converted_cost', 'name') ;
 	public function __construct($deck=null, $ext='') {
 		if ( is_string($deck) ) {
 			$reg_comment = '/\/\/(.*)/' ;
