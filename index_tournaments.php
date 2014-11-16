@@ -27,7 +27,7 @@
        <optgroup label="<?=__('index.tournaments.create.constructed');?>">
         <option value="vintage"><?=__('index.tournaments.create.vintage');?></option>
         <option value="legacy"><?=__('index.tournaments.create.legacy');?></option>
-        <option value="extended"><?=__('index.tournaments.create.modern');?></option>
+        <option value="modern"><?=__('index.tournaments.create.modern');?></option>
         <option value="standard"><?=__('index.tournaments.create.standard');?></option>
         <option value="edh"><?=__('index.tournaments.create.edh');?></option>
        </optgroup>
