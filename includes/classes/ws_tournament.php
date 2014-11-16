@@ -369,7 +369,7 @@ class Tournament {
 			case 1 : // Pending
 				$this->cancel('Goon with status pending') ;
 				break ;
-			case 2 : // Called by setready on last player tournament index join
+			case 2 : // Waiting players being redirected from index to tournament page
 				$this->begin() ;
 				break ;
 			case 3 : // Drafting
@@ -400,6 +400,13 @@ class Tournament {
 				}
 				break ;
 			case 4 : // Building
+				foreach ( $this->players as $player ) {
+					$count = count($player->get_deck()->main) ;
+					if ( $count < 40 ) {
+						$this->log($player->player_id, 'drop', $count.' cards') ;
+						$player->set_status(7) ;
+					}
+				}
 				$this->start() ;
 				break ;
 			case 5 : // Playing

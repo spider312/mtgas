@@ -201,6 +201,8 @@ function Log(data) {
 				break ;
 			case 'drop' :
 				msg = nick+' droped tournament' ;
+				if ( iss(this.value) && ( this.value != '' ) )
+					msg += ' ('+this.value+')' ;
 				break
 			case 'spectactor' :
 				msg = nick+' joined as spectactor' ;
