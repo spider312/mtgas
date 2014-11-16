@@ -405,9 +405,7 @@ function pending_tournament_add(tournament) {
 	var tr = create_tr(pending_tournaments, 
 		tournament.format,
 		name,
-		'', '', '',
-		create_a('View', 'tournament/?id='+tournament.id, null,
-			'Go to tournament page without register for playing')
+		'', '', ''
 	) ;
 	if ( current_line != null )
 		pending_tournaments.replaceChild(tr, current_line) ;
@@ -415,7 +413,6 @@ function pending_tournament_add(tournament) {
 	tr.timer = start_timer(tr.cells[2], tournament.creation_date) ;
 	tr.cells[3].classList.add('nowrap') ;
 	tr.cells[4].classList.add('nowrap') ;
-	tr.cells[5].addEventListener('click', function(ev) {ev.stopPropagation() ;}, false) ;
 	update_tournament_players(tr) ;
 	tr.addEventListener('click', function(ev) {
 		game.connection.send({

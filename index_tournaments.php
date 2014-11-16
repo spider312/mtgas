@@ -10,7 +10,6 @@
         <td><?=__('index.tournaments.age');?></td>
         <td><?=__('index.tournaments.slots');?></td>
         <td><?=__('index.tournaments.players');?></td>
-        <td><?=__('index.tournaments.view');?></td>
        </tr>
       </thead>
       <tbody id="pending_tournaments"></tbody>
