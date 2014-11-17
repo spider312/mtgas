@@ -20,10 +20,15 @@ function Widget(obj) {
 			obj.cache.height = h ;
 	}
 	obj.get_coords_center = function() {
-		if ( isf(this.get_attachedto) && ( this.get_attachedto() != null ) )
-			return {'x': this.x + Math.round(this.w/2), 'y': this.y + 5} ;
-		else
-			return {'x': this.x + Math.round(this.w/2), 'y': this.y + Math.round(this.h/2)} ;
+		var result = {'x': this.x + Math.round(this.w/2), 'y': this.y} ;
+		if ( isf(this.get_attachedto) && ( this.get_attachedto() != null ) ) {
+			if ( game.options.get('invert_bf') && ( this.zone.player == game.opponent ) )
+				result.y += this.h-5 ;
+			else
+				result.y += 5 ;
+		} else
+			result.y += Math.round(this.h/2) ;
+		return result ;
 	}
 	// Drawing cache
 	obj.cache = document.createElement('canvas') ;
