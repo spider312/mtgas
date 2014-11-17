@@ -1,31 +1,43 @@
 <?php
 include_once '../lib.php' ;
-include_once '../includes/db.php' ;
 html_head(
 	'Admin',
 	array(
 		'style.css'
+		, 'options.css'
 		, 'admin.css'
 	),
-	array('html.js')
+	array(
+		'lib/jquery.js'
+		, 'lib/jquery.cookie.js'
+		, '../variables.js.php'
+		, 'math.js'
+		, 'html.js'
+		, 'image.js'
+		, 'options.js'
+	)
 ) ;
 ?>
 
  <body>
   <script language="javascript">
-function statsform(el) {
-	var spl = el.value.split('|') ;
-	if ( spl.length < 5 )
-		alert('Not 5 parts in '+el.value) ;
-	var form = document.getElementById('stats_create') ;
-	var i = 0 ;
-	form.name.value = spl[i++] ;
-	form.date.value = spl[i++] ;
-	form.format.value = spl[i++] ;
-	form.exts.value = spl[i++] ;
-	form.mask.value = spl[i++] ;
-	form.imask.value = spl[i++] ;
-}
+$(function() { // On page load
+	game = {} ;
+	game.options = new Options(true) ;
+	function statsform(el) {
+		var spl = el.value.split('|') ;
+		if ( spl.length < 5 )
+			alert('Not 5 parts in '+el.value) ;
+		var form = document.getElementById('stats_create') ;
+		var i = 0 ;
+		form.name.value = spl[i++] ;
+		form.date.value = spl[i++] ;
+		form.format.value = spl[i++] ;
+		form.exts.value = spl[i++] ;
+		form.mask.value = spl[i++] ;
+		form.imask.value = spl[i++] ;
+	}
+}) ;
   </script>
 <?php
 html_menu() ;
@@ -104,17 +116,6 @@ if ( count($reports) > 0 ) {
 }
 ?>
    <li><a href="/sealed_top.php">See result</a> (public)</li>
-
-   <h2>Current</h2>
-   <ul>
-<?php
-$t = query_as_array("SELECT `id`, `name` FROM `tournament` WHERE `status` > 0 AND `status` < 6 ;", 'tournament list', $mysql_connection) ;
-if ( count($t) == 0 )
-	echo '    <li>No running tournament</li>' ;
-foreach ( $t as $tournament )
-	echo '    <li><a href="tournament/?id='.$tournament->id.'">'.$tournament->name.'</a></li>'
-?>
-   </ul>
   </div>
 <?php // === [ Cards ] ========================================================= ?>
   <div class="section">
