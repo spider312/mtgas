@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-05-04 21:17+0100\n"
-"PO-Revision-Date: 2013-08-18 11:38+0100\n"
+"PO-Revision-Date: 2014-11-17 14:49+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: fr_FR\n"
@@ -31,7 +31,7 @@ msgstr "ID"
 
 #: ../../.././index_tournaments.php:9 ../../.././index_tournaments.php:88
 msgid "index.tournaments.type"
-msgstr "Type"
+msgstr "Format"
 
 #: ../../.././index_tournaments.php:10 ../../.././index_tournaments.php:89
 msgid "index.tournaments.name"
