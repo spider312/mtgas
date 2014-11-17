@@ -390,6 +390,7 @@ function Options(check_id) {
 			return false ;
 		// Replace its content
 		node_empty(is) ;
+		/*
 		if ( $.cookie && ( $.cookie('login') != null ) ) {
 			var img = create_img(theme_image('greenled.png')[0]) ;
 			img.title = 'Logged in as '+$.cookie('login')
@@ -398,6 +399,7 @@ function Options(check_id) {
 			img.title = 'Logged out from server-side profile' ;
 		}
 		is.appendChild(img) ;
+		*/
 		var img = create_img(localize_image(this.get('profile_avatar'))) ;
 		img.id = 'avatar' ;
 		is.appendChild(img) ;
