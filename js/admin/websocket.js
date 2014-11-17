@@ -20,11 +20,15 @@ $(function() { // On page load
 					for ( var j = 0 ; j < handler.users.length ; j++ ) {
 						var user = handler.users[j] ;
 						var li = create_li(user.nick) ;
-						li.title = user.playter_id ;
-						delete user.nick ;
-						delete user.player_id ;
+						li.title = user.player_id ;
+						var button = create_button('Kick', function(ev) {
+							var data = '{"type": "kick", "handler": "'+i+'", "id": "'+user.player_id+'"}';
+							game.connection.send(data) ;
+						}, 'Disconnect user') ;
 						for ( var k in user )
-							li.appendChild(create_text(', '+k+' = '+user[k])) ;
+							if ( ( k != 'nick' ) && ( k != 'player_id' ) )
+								li.appendChild(create_text(', '+k+' = '+user[k])) ;
+						li.appendChild(button) ;
 						ul.appendChild(li) ;
 					}
 					var li = create_li(i) ;

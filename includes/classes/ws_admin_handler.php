@@ -49,6 +49,17 @@ class AdminHandler extends ParentHandler {
 					$t->send() ;
 				}
 				break ;
+			case 'kick' :
+				if ( property_exists($data, 'handler') && property_exists($data, 'id') ) {
+					if ( property_exists($this->observer, $data->handler) ) {
+						$handler = $this->observer->{$data->handler} ;
+						foreach ( $handler->getConnections() as $cnx )
+							if ( isset($cnx->player_id) && ( $cnx->player_id == $data->id ) )
+								$cnx->close('Kicked') ;
+					} else
+						$this->say('Trying to kick from unexisting handler '.$data->handler) ;
+				}
+				break ;
 			default :
 				$this->say('Unknown type : '.$data->type) ;
 				print_r($data) ;
