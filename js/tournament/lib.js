@@ -70,8 +70,6 @@ function Tournament(id) {
 				spectactor = false ;
 				game.player = player ;
 			}
-			if ( ( player.node != null ) && ( player.node.parentNode != null ) )
-				player.node.parentNode.appendChild(player.node) ;
 		}
 		// Spectators
 		for ( var i = 0 ; i < data.spectators.spectators.length ; i++ ) {
@@ -91,6 +89,8 @@ function Tournament(id) {
 		}
 		// Fields + display
 		recieve.call(this, data) ; // After the rest as it will access to players
+		if ( isf(this.display) )
+			this.display(['players', 'logs']) ;
 	}
 	this.get_player = function(id) {
 		for ( var i = 0 ; i < this.players.length ; i++ )
@@ -200,6 +200,9 @@ function Log(data) {
 				break ;
 			case 'players' :
 				msg = 'Tournament has enough players' ;
+				break ;
+			case 'pending' :
+				msg = 'All players not redirected, back to pending' ;
 				break ;
 			case 'drop' :
 				msg = nick+' droped tournament' ;

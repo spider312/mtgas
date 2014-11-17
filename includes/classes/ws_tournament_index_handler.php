@@ -21,8 +21,7 @@ class TournamentIndexHandler extends TournamentHandler {
 		// Player redirected from index
 		if ( ( $tournament->status == 2 ) && ( $player != null ) )
 			$tournament->players[$i]->set_ready(true) ;
-		else
-			$tournament->send() ;
+		$tournament->send() ;
 		if ( $player == null )
 			$tournament->register_spectator($user) ;
 		else {
@@ -61,7 +60,7 @@ class TournamentIndexHandler extends TournamentHandler {
 				break ;
 			case 'drop' :
 				$player = $user->tournament->get_player($user->player_id) ;
-				if ( ( $player != null ) && ( $player->status < 7 ) ) {
+				if ( ( $player != null ) && ( $player->status < 5 ) ) {
 					$user->tournament->log($user->player_id, 'drop', '') ;
 					$player->set_status(7) ;
 					if ( count($user->tournament->get_players()) < 2 )	

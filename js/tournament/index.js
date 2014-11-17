@@ -121,6 +121,8 @@ function TournamentIndex() {
 			}
 		}
 		if ( inarray('status', fields) ) {
+			if ( this.status == 1 )
+				window.location.replace('../') ;
 			node_empty(html_status) ;
 			var str = tournament_status(this.status)
 			switch ( this.status ) {
@@ -141,6 +143,9 @@ function TournamentIndex() {
 		}
 		if ( inarray('due_time', fields) )
 			start_timer(timeleft, this.due_time, this.status!=6) ;
+		if ( inarray('players', fields) )
+			for ( var i = 0 ; i < this.players.length ; i++ )
+				this.players[i].display() ;
 		if ( inarray('games', fields) && ( this.games.length > 0 ) ) {
 			rounds.parentNode.classList.remove('hidden') ;
 			node_empty(rounds) ;
@@ -164,9 +169,6 @@ function TournamentIndex() {
 				rounds.appendChild(table) ;
 			}
 		}
-		if ( inarray('data', fields) )
-			for ( var i = 0 ; i < this.players.length ; i++ )
-				this.players[i].display() ;
 	}
 }
 function PlayerIndex() {
@@ -206,7 +208,7 @@ function PlayerIndex() {
 		create_td(this.node, this.deck_cards+' / '+this.side_cards+' cards') ;
 		// Actions
 		var allowed = ( player_id == this.player_id ) ; // Player can see its own deck
-		allowed = allowed || ( game.tournament.status > 6 ) ;
+		allowed = allowed || ( game.tournament.status > 5 ) ; // At the end, everybody can see everything
 		if ( ! allowed ) {
 			var s = game.spectators.get(player_id) ;
 			if ( ( s != null ) && ( s.allowed(this.player_id) ) )

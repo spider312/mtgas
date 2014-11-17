@@ -118,7 +118,7 @@ class Tournament {
 	// DB Interactions
 	private function commit() { // Update all DB fields in param with this object's data
 		if ( func_num_args() < 1 )
-			return debug('commit() wait at least 1 arg') ;
+			return $this->debug('commit() wait at least 1 arg') ;
 		$this->update_date = now() ;
 		$args = func_get_args() ;
 		$args[] = 'update_date' ; // Force updating this field
@@ -134,7 +134,7 @@ class Tournament {
 				else
 					$update .= "`$field` = '{$this->$field}'" ;
 			} else
-				return debug('cannot commit '.$field) ;
+				return $this->debug('cannot commit '.$field) ;
 		$db->query("UPDATE `tournament` SET $update WHERE `id` = '{$this->id}' ; ") ;
 	}
 	// Log
@@ -276,7 +276,7 @@ class Tournament {
 	}
 	public function register($data, $user) {
 		if ( $this->status != 1 )
-			return debug("Trying to register while in status {$this->status}") ;
+			return $this->debug("Trying to register while in status {$this->status}") ;
 		// Basic verifications
 		$msg = '' ;
 		if ( $data->nick == '' )
@@ -298,23 +298,23 @@ class Tournament {
 		}
 		if ( $msg != '' ) {
 			$user->sendString('{"type": "msg", "msg": "'.$msg.'"}') ;
-			return debug("{$player->nick} register : $msg") ;
+			return $this->debug("{$player->nick} register : $msg") ;
 		}
 		// Action
 		$this->log($user->player_id, 'register', $data->nick) ;
 		$this->players[] = new Registration($data, $this) ;
 		$this->send() ;
 		if ( count($this->players) >= $this->min_players )
-			$this->redirect() ;
+			$this->goon() ;
 		return true ;
 	}
 	public function unregister($user) {
-		if ( $this->status != 1 )
-			return debug("{$user->nick} trying to register while in status {$this->status}") ;
+		if ( ( $this->status != 1 ) && ( $this->status != 2 ) )
+			return $this->debug("{$user->nick} trying to unregister while in status {$this->status}") ;
 		if ( ( $i = $this->registered($user) ) === false ) {
 			$this->observer->index->sendString($user, '{"type": "msg", "msg": "'.$user->nick.
 				' not found in tournament '.$this->id.'"}') ;
-			return debug($user->nick.' not found for unregister') ;
+			return $this->debug($user->nick.' not found for unregister') ;
 		}
 		array_splice($this->players, $i, 1) ;
 		$this->log($user->player_id, 'unregister', $user->nick) ;
@@ -352,7 +352,7 @@ class Tournament {
 	}
 	public function timer_goon($delay) { // Run $this->goon() after $delay seconds
 		if ( $this->timer_cancel() )
-			debug('There is already a timer started') ;
+			$this->debug('There is already a timer started') ;
 		// Update due
 		$this->due_time = now($delay) ;
 		$this->commit('due_time') ;
@@ -367,10 +367,24 @@ class Tournament {
 		$status = $this->status ;
 		switch ( $this->status ) {
 			case 1 : // Pending
-				$this->cancel('Goon with status pending') ;
+				$this->observer->move_tournament($this, 'pending', 'running') ;
+				$this->set_status(2) ;
+				$this->log('', 'players', '') ;
+				global $wait_duration ;
+				$this->timer_goon($wait_duration) ;
+				$this->send() ;
 				break ;
 			case 2 : // Waiting players being redirected from index to tournament page
-				$this->begin() ;
+				foreach ( $this->players as $player ) // Unregister not redirected players
+					if ( ! $player->ready )
+						$this->unregister($player) ;
+				if ( count($this->players) < $this->min_players ) { // If players unregistered
+					$this->observer->move_tournament($this, 'running', 'pending') ;
+					$this->set_status(1) ; // Mark back tournament as pending
+					$this->log('', 'pending', '') ;
+					$this->send() ;
+				} else
+					$this->begin() ;
 				break ;
 			case 3 : // Drafting
 				$cardsleft = $this->draft() ; // Draft procedure
@@ -425,25 +439,11 @@ class Tournament {
 				$this->observer->build->broadcast($this, '{"type": "redirect"}') ;
 		}
 	}
-	public function redirect() { // Tournament : pending -> waiting players
-		if ( $this->status != 1 )
-			return debug("trying to redirect while in status {$this->status}") ; ;
-		// Move from pending to running
-		$this->observer->move_tournament($this, 'pending', 'running') ;
+	public function begin() { // Launch first step for tournament
 		// DB
 		shuffle($this->players) ; // Give random numbers to players
 		foreach ( $this->players as $i => $player )
 			$player->insert($i) ;
-		//$this->data->players = $this->players ;
-		$this->set_status(2) ;
-		$this->log('', 'players', '') ;
-		global $wait_duration ;
-		$this->timer_goon($wait_duration) ;
-		// Broadcast
-		$this->send() ;
-	}
-
-	public function begin() { // Launch first step for tournament
 		// Unicity
 		$upool = array() ; // All cards in current tournament's players pools
 			//that comes from a "uniq" extension
@@ -766,8 +766,8 @@ class Tournament {
 		$this->set_status(0) ;
 		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
-		debug("Canceled ($reason)") ;
 		$this->send() ;
+		$this->debug("Canceled ($reason)") ;
 	}
 private function terminate() { // Common between end and cancel
 		$this->score_games() ;

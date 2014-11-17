@@ -89,7 +89,9 @@ $(function() { // On page load
 				break ;
 			// Tournaments
 			case 'pending_tournament' :
-				if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
+				if ( pending_tournament_remove(data.id) == null )
+					running_tournament_remove(data.id)
+				if ( pending_tournament_add(data) /*&& ( data.min_players > 1 )*/ && ! document.hasFocus() )
 					notification_send('Mogg Tournament', 'New tournament : '+data.format+' '+data.name, 'tournament');
 				break ;
 			case 'running_tournament' :
@@ -101,7 +103,8 @@ $(function() { // On page load
 							if (! document.hasFocus() )
 								notification_send('Mogg Tournament starting',
 									'Starting : '+data.format+' '+data.name, 'start') ;
-							document.location = 'tournament/?id='+data.id ;
+							//if ( confirm('Tournament starting, redirect ?') )
+								document.location = 'tournament/?id='+data.id ;
 						}
 				}
 				running_tournament_add(data) ;
@@ -109,8 +112,6 @@ $(function() { // On page load
 			case 'ended_tournament' :
 				if ( pending_tournament_remove(data.id) == null )
 					running_tournament_remove(data.id)
-					//if ( running_tournament_remove(data.id) == null )
-						//debug('ended tournament not found '+data.id) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
