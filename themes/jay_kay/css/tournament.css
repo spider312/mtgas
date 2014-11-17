@@ -16,11 +16,17 @@ h2 {
 	padding: 5px ;
 	z-index: 1 ;
 }
+.smallres #info {
+	right: 10px ;
+}
 #back {
 	position: fixed ;
 	top: 1% ;
 	left: 260px ;
 	padding-right: 5px ;
+}
+.smallres #back {
+	left: 10px ;
 }
 /* Log & Stats common + animation */
 #stats, #tournament {
