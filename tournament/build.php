@@ -50,9 +50,7 @@ html_head('Building #'.$id,
   </div>
 
   <div id="div_main" class="section">
-   <h1>
-   MainDeck
-   </h1>
+   <h1>MainDeck <span id="cards_number"></span></h1>
    <table id="table_main"></table>
    <div>
     <button id="base_lands" title="Manage basic lands" disabled>Basic lands</button>

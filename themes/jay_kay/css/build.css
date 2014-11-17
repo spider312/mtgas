@@ -64,6 +64,11 @@
 	width: 100% ;
 	text-align: center ;
 }
+#cards_number {
+	font-family:verdana;
+	font-size:small;
+	font-variant: normal ;
+}
 /* Table inside */
 #table_side, #table_main {
 	border-width: 0 ;
