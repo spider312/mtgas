@@ -104,6 +104,9 @@ function start(id, pid) {
 	stats_side.addEventListener('change', function(ev) {
 		game.tournament.me.pool.stats() ;
 	}, false) ;
+	zoom.addEventListener('mouseenter', function(ev) {
+		zoom.classList.add('hidden') ;
+	}, false) ;
 }
 function TournamentBuild() {}
 function PlayerBuild() {
