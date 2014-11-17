@@ -1,10 +1,11 @@
 <?php
-// Parent class for all interface - not game - handlers (index, tournament index build draft, admin)
+// Parent class for all - not game - handlers (index, tournament index build draft, admin)
 use \Devristo\Phpws\Server\UriHandler\WebSocketUriHandler ;
 use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class ParentHandler extends WebSocketUriHandler {
 	public $observer = null ;
+	public $users_fields = array('player_id', 'nick') ;
 	protected $debug = false ;
 	public function __construct($logger, $observer) {
 		parent::__construct($logger) ;
@@ -12,6 +13,23 @@ class ParentHandler extends WebSocketUriHandler {
 	}
 	public function say($msg) {
 		$this->observer->say($msg) ;
+	}
+	public function list_users() {
+		$result = new stdClass() ;
+		$result->type = 'userlist' ;
+		$result->users = array() ;
+		foreach ( $this->getConnections() as $cnx ) {
+			if ( ! isset($cnx->player_id) )
+				continue ;
+			foreach ( $result->users as $user )
+				if ( $user->player_id == $cnx->player_id )
+					continue 2 ;
+			$obj = new stdClass() ;
+			foreach ( $this->users_fields as $field )
+				$obj->{$field} = $cnx->{$field} ;
+			$result->users[] = $obj ;
+		}
+		return $result ;
 	}
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
 		$data = json_decode($msg->getData()) ;

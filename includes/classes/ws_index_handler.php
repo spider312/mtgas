@@ -5,6 +5,7 @@ use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class IndexHandler extends ParentHandler {
 	protected $shouts = array() ;
 	protected $nbshouts = 50 ; // Max number of shouts to keep in cache
+	public $users_fields = array('player_id', 'nick', 'inactive', 'typing') ;
 	public function __construct($logger, $observer) {
 		parent::__construct($logger, $observer) ;
 		global $db ;
@@ -18,25 +19,6 @@ class IndexHandler extends ParentHandler {
 			FROM `shout`
 			ORDER BY `id` DESC
 			LIMIT {$this->nbshouts}")) ;
-	}
-	private function list_users() {
-		$result = new stdClass() ;
-		$result->type = 'userlist' ;
-		$result->users = array() ;
-		foreach ( $this->getConnections() as $cnx ) {
-			if ( ! isset($cnx->player_id) )
-				continue ;
-			foreach ( $result->users as $user )
-				if ( $user->player_id == $cnx->player_id )
-					continue 2 ;
-			$obj = new stdClass() ;
-			$obj->player_id = $cnx->player_id ;
-			$obj->nick = $cnx->nick ;
-			$obj->inactive = $cnx->inactive ;
-			$obj->typing = $cnx->typing ;
-			$result->users[] = $obj ;
-		}
-		return $result ;
 	}
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		$user->inactive = false ;

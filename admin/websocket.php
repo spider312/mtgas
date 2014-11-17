@@ -44,10 +44,8 @@ html_menu() ;
   </div>
 
   <div class="section">
-   <h1>Handlers</h1>
-   <h2>Index</h2>
-   <h3>Shouts</h3>
-   <h3>Shouters</h3>
+   <h1>Connected users</h1>
+   <ul id="connected_users"></ul>
   </div>
 
  </body>

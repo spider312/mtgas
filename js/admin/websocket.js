@@ -3,6 +3,7 @@ $(function() { // On page load
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
+	var connected_users = document.getElementById('connected_users') ;
 	game = {} ;
 	game.options = new Options(true) ;
 	// Websockets
@@ -13,6 +14,23 @@ $(function() { // On page load
 				fill_duel(joined_duels, data.joined_duels) ;
 				fill_tournament(pending_tournaments, data.pending_tournaments) ;
 				fill_tournament(running_tournaments, data.running_tournaments) ;
+				for ( var i in data.handlers ) {
+					var handler = data.handlers[i] ;
+					var ul = create_ul() ;
+					for ( var j = 0 ; j < handler.users.length ; j++ ) {
+						var user = handler.users[j] ;
+						var li = create_li(user.nick) ;
+						li.title = user.playter_id ;
+						delete user.nick ;
+						delete user.player_id ;
+						for ( var k in user )
+							li.appendChild(create_text(', '+k+' = '+user[k])) ;
+						ul.appendChild(li) ;
+					}
+					var li = create_li(i) ;
+					li.appendChild(ul) ;
+					connected_users.appendChild(li) ;
+				}
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;

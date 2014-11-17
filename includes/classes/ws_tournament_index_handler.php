@@ -3,6 +3,7 @@ use \Devristo\Phpws\Server\UriHandler\WebSocketUriHandler ;
 use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class TournamentIndexHandler extends TournamentHandler {
+	public $users_fields = array('player_id', 'nick', 'tournament') ;
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		// Get tournament
 		$tournament = Tournament::get($data->tournament) ;

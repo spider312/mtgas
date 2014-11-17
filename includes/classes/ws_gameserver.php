@@ -61,11 +61,12 @@ class GameServer {
 			$this->loop, $this->logger);
 		// Handlers
 		$this->index = new IndexHandler($this->logger, $this) ;
-		$this->game = new GameHandler($this->logger, $this) ;
 		$this->tournament = new TournamentIndexHandler($this->logger, $this) ;
 		$this->draft = new DraftHandler($this->logger, $this) ;
 		$this->build = new BuildHandler($this->logger, $this) ;
+		$this->game = new GameHandler($this->logger, $this) ;
 		$this->admin = new AdminHandler($this->logger, $this) ;
+		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game') ;
 		// Routes
 		$router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);
 		$router->addRoute('#^/index#i', $this->index);

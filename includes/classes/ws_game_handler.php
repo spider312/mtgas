@@ -5,10 +5,29 @@ use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class GameHandler extends WebSocketUriHandler {
 	public $observer = null ;
 	private $debug = false ;
+	public $users_fields = array('player_id', 'nick', 'game', 'focused') ;
 	public function __construct($logger, $observer) {
 		parent::__construct($logger) ;
 		$this->observer = $observer ;
 	}
+	public function list_users() {
+		$result = new stdClass() ;
+		$result->type = 'userlist' ;
+		$result->users = array() ;
+		foreach ( $this->getConnections() as $cnx ) {
+			if ( ! isset($cnx->player_id) )
+				continue ;
+			foreach ( $result->users as $user )
+				if ( $user->player_id == $cnx->player_id )
+					continue 2 ;
+			$obj = new stdClass() ;
+			foreach ( $this->users_fields as $field )
+				$obj->{$field} = $cnx->{$field} ;
+			$result->users[] = $obj ;
+		}
+		return $result ;
+	}
+
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
@@ -175,7 +194,7 @@ class GameHandler extends WebSocketUriHandler {
 				if ( $this->debug )
 					$this->observer->say(' -> '.$user->nick.' : '.$json->type) ;
 			}
-	}	
+	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( ! isset($user->player_id) ) { // Unregistered user
 			$this->observer->say('Disconnection from unregistered user') ;
@@ -187,4 +206,6 @@ class GameHandler extends WebSocketUriHandler {
 		if ( ! $this->displayed($user->game) ) 
 			$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}') ;
 	}
+
+
 }

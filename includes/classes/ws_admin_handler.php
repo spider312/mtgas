@@ -12,6 +12,12 @@ class AdminHandler extends ParentHandler {
 		$overall->pending_tournaments = $this->observer->pending_tournaments ;
 		$overall->running_tournaments = $this->observer->running_tournaments ;
 
+		$overall->handlers = new stdClass() ;
+		foreach ( $this->observer->handlers as $handler ) {
+			$h = $this->observer->{$handler} ;
+			$overall->handlers->{$handler} = $h->list_users() ;
+		}
+
 		$user->sendString(json_encode($overall)) ;
 	}
 	public function recieve(WebSocketTransportInterface $user, $data) {
@@ -37,7 +43,7 @@ class AdminHandler extends ParentHandler {
 									$user->sendString('{"type": "msg", "msg": "Can\'t set due to past time"}') ;
 							} else {
 								$t->$field = $value ;
-								$t->commit() ;
+								$t->commit($field) ;
 							}
 						}
 					$t->send() ;
