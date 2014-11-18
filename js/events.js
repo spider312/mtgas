@@ -129,18 +129,16 @@ function onKeyUp(ev) { // Key Up : trigger bound keys
 		keyActions[mkey](ev) ;
 	else if ( isf(keyActions[key]) ) // Key is bind without modifiers, for delegated modifiers
 		keyActions[key](ev) ;
-	//else { // Unbound
-		debug(ev.ctrlKey+' '+ev.altKey+' '+key.length+' '+(document.activeElement != sendbox)) ;
-		if ( // Focus to chat if not already and a char
-			( ! ev.ctrlKey ) && ( ! ev.altKey ) && // Not modified
-			( key.length == 1 ) && // Printable character
-			( document.activeElement != sendbox ) && // Not already focused
-			( document.activeElement.id != 'autotext_area' ) // Would interact with autotext
-		) {
-			sendbox.focus() ;
-			sendbox.value += key ;
-		}
-	//}
+	// Focus to chat if not already - even if bound for +-*/
+	if (
+		( ! ev.ctrlKey ) && ( ! ev.altKey ) && // Not modified
+		( key.length == 1 ) && // Printable character
+		( document.activeElement != sendbox ) && // Not already focused
+		( document.activeElement.id != 'autotext_area' ) // Would interact with autotext
+	) {
+		sendbox.focus() ;
+		sendbox.value += key ;
+	}
 }
 // Lib
 	// Multiple keys doing similar action modularisation
