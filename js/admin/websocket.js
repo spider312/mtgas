@@ -4,6 +4,7 @@ $(function() { // On page load
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
 	var connected_users = document.getElementById('connected_users') ;
+	var mtg_data = document.getElementById('mtg_data') ;
 	game = {} ;
 	game.options = new Options(true) ;
 	// Websockets
@@ -35,6 +36,8 @@ $(function() { // On page load
 					li.appendChild(ul) ;
 					connected_users.appendChild(li) ;
 				}
+				mtg_data.appendChild(create_li('Extensions : '+data.extensions.length)) ;
+				mtg_data.appendChild(create_li('Cards : '+data.cards.length)) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;

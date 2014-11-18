@@ -27,6 +27,11 @@ html_menu() ;
 ?>
 
   <div class="section">
+   <h1>MTG Data</h1>
+   <ul id="mtg_data"></ul>
+  </div>
+
+  <div class="section">
    <h1>Core <?=ws_indicator();?></h1>
 
    <h2>Games</h2>
