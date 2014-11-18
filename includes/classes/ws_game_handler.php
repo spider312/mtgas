@@ -27,7 +27,6 @@ class GameHandler extends WebSocketUriHandler {
 		}
 		return $result ;
 	}
-
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
@@ -200,12 +199,11 @@ class GameHandler extends WebSocketUriHandler {
 			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
-		$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
+		if ( ! $this->connected($user->player_id, $user->game) )
+			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
 		if ( $this->debug )
 			$this->observer->say($user->nick.' unregistered from game '.$user->game->id) ;
 		if ( ! $this->displayed($user->game) ) 
 			$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}') ;
 	}
-
-
 }
