@@ -744,8 +744,8 @@ function add_card(ext, name, num, nb, to) {
 	jQuery.getJSON('json/card.php', {'name': name, 'lang': deck_language.value}, function(data) {
 		// Search given extension in list returned by server
 		var i = 0 ; // By default, take first extension in list if given extension doesn't exists for this card
-		if ( ! data.name )
-			debug(name+' not found') ;
+		if ( ! iss(data.id) )
+			debug(data.name+' not found') ;
 		else {
 			if ( ! data.ext )
 				debug(data.name+' has no ext') ;
