@@ -1,32 +1,3 @@
-// Create deckfile from object deck
-function obj2deck(obj) {
-	var deck = "// Main deck\n" ;
-	deck += arr2deck(obj.main) ;
-	deck += "\n// Sideboard\n" ;
-	deck += arr2deck(obj.side, 'SB:') ;
-	return deck ;
-}
-function arr2deck(arrp, prefix) {
-	var arr = clone(arrp) ;
-	if ( ! iss (prefix) )
-		prefix = '   '
-	var deck = '' ;
-	while ( arr.length > 0 ) {
-		curval = arr.pop() //array_splice($arr, 0, 1) ; // Extract a card
-		nb = 1 ;
-		i = 0 ;
-		while ( i < arr.length ) { // Search for other exemplaries
-			value = arr[i] ;
-			if ( ( value.ext == curval.ext ) && ( value.name == curval.name ) ) {
-				arr.splice(i, 1) ; // Extract them
-				nb++ ; // And count
-			} else
-				i++ ;
-		}
-		deck += prefix+' '+nb+' ['+curval.ext+'] '+curval.name+"\n" ;
-	}
-	return deck ;
-}
 function deck_parse(deck) {
 	var reg_comment = /\/\/(.*)/ ;
 	var reg_empty = /^$/ ;
