@@ -169,9 +169,12 @@ function Pool(player) {
 		node_empty(cards_number) ;
 		if ( ! stats_side.checked ) {
 			cards_number.appendChild(create_text(cards.length+' cards')) ;
+			if ( !iso(this.stats_results[3]) )
+				return false ;
 			var lands = this.stats_results[3]['land'] ;
-			if ( isn(lands) )
-				cards_number.appendChild(create_text(' ('+(cards.length-lands)+' active, '+lands+' land)')) ;
+			if ( !isn(lands) )
+				return false ;
+			cards_number.appendChild(create_text(' ('+(cards.length-lands)+' active, '+lands+' land)')) ;
 		}
 	}
 	// Basic lands in main
