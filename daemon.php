@@ -4,7 +4,6 @@ include 'includes/db.php' ;
 include 'tournament/lib.php' ;
 include 'tournament/tournament.php' ;
 include 'tournament/limited.php' ;
-include $dir.'/includes/deck.php' ;
 include $dir.'/includes/card.php' ;
 include 'includes/ranking.php' ;
 include 'includes/ts3.php' ;
