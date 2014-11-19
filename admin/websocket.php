@@ -27,30 +27,30 @@ html_menu() ;
 ?>
 
   <div class="section">
+   <h1>Index <?=ws_indicator();?></h1>
+   <ul id="connected_users"></ul>
+  </div>
+
+
+  <div class="section">
+   <h1>Games</h1>
+   <h2>Pending</h2>
+   <ul id="pending_duels"></ul>
+   <h2>Running</h2>
+   <ul id="joined_duels"></ul>
+  </div>
+
+  <div class="section">
+   <h1>Tournament</h1>
+   <h2>Pending</h2>
+   <ul id="pending_tournaments"></ul>
+   <h2>Running</h2>
+   <ul id="running_tournaments"></ul>
+  </div>
+
+  <div class="section">
    <h1>MTG Data</h1>
    <ul id="mtg_data"></ul>
-  </div>
-
-  <div class="section">
-   <h1>Core <?=ws_indicator();?></h1>
-
-   <h2>Games</h2>
-   <h3>Pending</h3>
-   <ul id="pending_duels"></ul>
-   <h3>Running</h3>
-   <ul id="joined_duels"></ul>
-
-   <h2>Tournament</h2>
-   <h3>Pending</h3>
-   <ul id="pending_tournaments"></ul>
-   <h3>Running</h3>
-   <ul id="running_tournaments"></ul>
-
-  </div>
-
-  <div class="section">
-   <h1>Connected users</h1>
-   <ul id="connected_users"></ul>
   </div>
 
  </body>

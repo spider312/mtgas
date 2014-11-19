@@ -43,20 +43,23 @@ class GameServer {
 	public $running_tournaments = array() ;
 
 	public function __construct($wsport){
-		$this->say(date(DATE_RFC2822)) ;
-		$this->loop = \React\EventLoop\Factory::create();
-		// Create a logger which writes everything to the STDOUT
+		$this->say('Creating server') ;
+		// Logger (required for handlers)
 		$this->logger = new \Zend\Log\Logger();
+			// Log PHP errors
+		Zend\Log\Logger::registerErrorHandler($this->logger);
+			// Writes to stdout
 		$writer = new \Zend\Log\Writer\Stream("php://output");
-			// Filter by priority
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
-		$writer->addFilter($filter);
 		$this->logger->addWriter($writer);
 			// Also log to a file
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
-		//$writer2->addFilter($filter);
 		//$this->logger->addWriter($writer2);
+			// Filter log messages not showing debug
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
+		$writer->addFilter($filter);
+		//$writer2->addFilter($filter);
 		// WebSocket server
+		$this->loop = \React\EventLoop\Factory::create();
 		$this->server = new \Devristo\Phpws\Server\WebSocketServer("tcp://0.0.0.0:$wsport",
 			$this->loop, $this->logger);
 		// Handlers
@@ -75,48 +78,64 @@ class GameServer {
 		$router->addRoute('#^/draft#i', $this->draft);
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
+		$this->warn('Server created') ;
 	}
 	public function import() {
 		// Import MOGG Data from DB
 		global $db ;
-		// Running games
+			// Running games
 		$this->joined_duels = array() ;
 		foreach ( $db->select("SELECT id FROM `round`
 			WHERE
 				`status` = '3' AND `tournament` = '0'
 				AND TIMESTAMPDIFF(MINUTE, `last_update_date`, NOW()) < 10
 			ORDER BY `id` ASC") as $duel ) {
-
 			$g = Game::get($duel->id) ;
 			if ( $g != null ) {
 				$g->type = 'joineduel' ; // JSON communication
 				$this->joined_duels[] = $g ;
 			}
 		}
-		$this->say(count($this->joined_duels).' running duels imported') ; 
-		// Running tournaments
+		$this->warn("\t".count($this->joined_duels).' running duels imported') ; 
+			// Running tournaments
 		foreach ( $db->select("SELECT `id` FROM `tournament`
 			WHERE `status` > '1' AND `status` < '6'	ORDER BY `id` ASC") as $tournament ) {
 			$t = Tournament::get($tournament->id, 'running_tournament') ;
 			if ( $t )
 				$this->running_tournaments[] = $t ;
 		}
-		$this->say(count($this->running_tournaments).' running tournaments imported') ;
+			// Extensions
+		$this->warn("\t".count($this->running_tournaments).' running tournaments imported') ;
+		Extension::fill_cache() ;
+		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
+		$links = Card::fill_cache() ;
+		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
+		// Export
 		ranking_to_file('ranking/week.json', 'WEEK') ;
 		ranking_to_file('ranking/month.json', 'MONTH') ;
 		ranking_to_file('ranking/year.json', 'YEAR') ;
 		ranking_to_file('ranking/all.json', 'YEAR', 10) ;
-		$this->say('Ranking exported') ;
-		$this->say(date(DATE_RFC2822)) ;
+		$this->warn("\t".'Ranking exported') ;
 	}
 	public function start() {
 		// Bind the server
+		$this->warn('Opening port') ;
 		$this->server->bind();
 		// Start the event loop
+		$this->warn('Starting server') ;
 		$this->loop->run();
 	}
-	public function say($msg) {
-		echo $msg."\n" ;
+	// Log management
+	public function emerg($msg) { $this->logger->log(Zend\Log\Logger::EMERG, $msg) ; }
+	public function alert($msg) { $this->logger->log(Zend\Log\Logger::ALERT, $msg) ; }
+	public function crit($msg) { $this->logger->log(Zend\Log\Logger::CRIT, $msg) ; }
+	public function err($msg) { $this->logger->log(Zend\Log\Logger::ERR, $msg) ; }
+	public function warn($msg) { $this->logger->log(Zend\Log\Logger::WARN, $msg) ; }
+	public function notice($msg) { $this->logger->log(Zend\Log\Logger::NOTICE, $msg) ; }
+	public function info($msg) { $this->logger->log(Zend\Log\Logger::INFO, $msg) ; }
+	public function debug($msg) { $this->logger->log(Zend\Log\Logger::DEBUG, $msg) ; }
+	public function say($msg) { // Fake log messages for when it doesn't exist
+		echo date(DATE_ATOM).' SAY (-1): '.$msg."\n" ;
 	}
 	// Data accessors
 		// Duels

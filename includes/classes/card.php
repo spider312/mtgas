@@ -51,6 +51,13 @@ class Card {
 	}
 	public function extend($ext='', $pic_num=0) { // Get a card copy for an ext and a num
 		$result = clone $this ;
+		$result->ext = '' ;
+		$result->rarity = '' ;
+		$result->ext_img = '' ;
+		if ( count($this->extensions) == 0 ) {
+			echo "No extension for {$this->name}\n" ;
+			return $result ;
+		}
 		// Search given extension for rarity
 		$ext_row = null ;
 		if ( $ext == '' )
@@ -61,35 +68,28 @@ class Card {
 					$ext_row = $extension ;
 					break ;
 				}
+		if ( $ext_row == null )
+			$ext_row = $this->extensions[0] ;
+		$result->ext = $ext_row->se ;
+		$result->rarity = $ext_row->rarity ;
 		// Search an extension with pictures if given hasn't
-		$ext_img = $ext_row ;
-		if ( ( $ext_row == null ) || ( $ext_row->nbpics < 1 ) ) {
-			foreach ( $this->extensions as $extension ) {
+		if  ( $ext_row->nbpics > 0 ) 
+			$ext_img = $ext_row ;
+		else {
+			$ext_img = null ;
+			foreach ( $this->extensions as $extension )
 				if ( $extension->nbpics > 0 ) {
-					if ( $ext_row == null )
-						$ext_row = $extension ; // Highest priority image selected
 					$ext_img = $extension ;
 					break ;
 				}
-			}
-		}
-		if ( $ext_row != null ) {
-			$result->ext = $ext_row->se ;
-			$result->rarity = $ext_row->rarity ;
-		} else {
-			echo "Extension $ext not found for {$this->name}\n" ;
-			$result->ext = $ext ;
-			$result->rarity = 'S' ;
 		}
 		if ( $ext_img == null )
 			echo "No extension with image for {$this->name}\n" ;
 		else {
 			$result->ext_img = $ext_img->se ;
 			if ( $ext_img->nbpics > 1 ) {
-				if ( ( $pic_num < 1 ) || ( $pic_num > $ext_row->nbpics ) ) {
+				if ( ( $pic_num < 1 ) || ( $pic_num > $ext_row->nbpics ) )
 					$pic_num = rand(1, $ext_img->nbpics) ; // Random pic
-					//echo "Random nb $pic_num for {$result->name}\n" ;
-				}
 				$result->attrs->nb = $pic_num ;
 			}
 		}
@@ -107,16 +107,14 @@ class Card {
 	static $occurences = 0 ;
 	static function get($name, $ext='') {
 		$name = card_name_sanitize($name) ;
-		//$name = str_replace('/', ' / ', $name) ;
-		//$name = preg_replace('#\s+#', ' ', $name) ;
 		// Parse image number
 		$pic_num = 0 ;
-		if ( preg_match('/(.*) \((\d)\)/', $name, $matches) ) {
+		if ( preg_match('/(.*) \((\d*)\)/', $name, $matches) ) {
 			$name = $matches[1] ; // Remove it from name
 			$pic_num = intval($matches[2]) ;
 		}
 		// Search in cache
-		foreach (Card::$cache as $card)
+		foreach ( Card::$cache as $card )
 			if ( $card->name == $name )
 				return $card->extend($ext, $pic_num) ;
 		// Search in DB
@@ -132,5 +130,23 @@ class Card {
 		$card_obj = new Card($cards[0]) ;
 		Card::$cache[] = $card_obj ;
 		return $card_obj->extend($ext, $pic_num) ;
+	}
+	static function fill_cache() {
+		global $db_cards ;
+		$raw = $db_cards->select("SELECT * FROM `card` ORDER BY `id` DESC") ;
+		$links = 0 ;
+		foreach ( $raw as $card ) {
+			$card = new Card($card) ;
+			foreach ( $card->extensions as $ext ) {
+				$links++ ;
+				$extension = Extension::get($ext->se) ;
+				if ( $extension == null )
+					echo "Extension {$ext->se} not found for {$card->name}\n" ;
+				else
+					$extension->add_card($card, $ext->rarity) ;
+			}
+			Card::$cache[] = $card ;
+		}
+		return $links ;
 	}
 }

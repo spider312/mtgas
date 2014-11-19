@@ -18,8 +18,8 @@ class AdminHandler extends ParentHandler {
 			$overall->handlers->{$handler} = $h->list_users() ;
 		}
 		// MTG Data
-		$overall->extensions = Extension::$cache ;
-		$overall->cards = Card::$cache ;
+		$overall->extensions = count(Extension::$cache) ;
+		$overall->cards = count(Card::$cache) ;
 		// Broadcast
 		$user->sendString(json_encode($overall)) ;
 	}

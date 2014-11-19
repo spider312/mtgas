@@ -11,51 +11,51 @@ $(function() { // On page load
 	game.connection = new Connexion('admin', function(data, ev) { // OnMessage
 		switch ( data.type  ) {
 			case 'overall' :
+				for ( var i = 0 ; i < data.handlers.index.users.length ; i++ )
+					connected_users.appendChild(player_li(data.handlers.index.users[i], 'index')) ;
 				fill_duel(pending_duels, data.pending_duels) ;
 				fill_duel(joined_duels, data.joined_duels) ;
 				fill_tournament(pending_tournaments, data.pending_tournaments) ;
 				fill_tournament(running_tournaments, data.running_tournaments) ;
-				for ( var i in data.handlers ) {
-					var handler = data.handlers[i] ;
-					var ul = create_ul() ;
-					for ( var j = 0 ; j < handler.users.length ; j++ ) {
-						var user = handler.users[j] ;
-						var li = create_li(user.nick) ;
-						li.title = user.player_id ;
-						var button = create_button('Kick', function(ev) {
-							var data = '{"type": "kick", "handler": "'+i+'", "id": "'+user.player_id+'"}';
-							game.connection.send(data) ;
-						}, 'Disconnect user') ;
-						for ( var k in user )
-							if ( ( k != 'nick' ) && ( k != 'player_id' ) )
-								li.appendChild(create_text(', '+k+' = '+user[k])) ;
-						li.appendChild(button) ;
-						ul.appendChild(li) ;
-					}
-					var li = create_li(i) ;
-					li.appendChild(ul) ;
-					connected_users.appendChild(li) ;
-				}
-				mtg_data.appendChild(create_li('Extensions : '+data.extensions.length)) ;
-				mtg_data.appendChild(create_li('Cards : '+data.cards.length)) ;
+				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
+				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
 				debug(data) ;
 		}
 	}, function(ev) { // OnClose/OnConnect
-		node_empty(pending_duels, joined_duels, pending_tournaments, running_tournaments) ;
+		node_empty(mtg_data, pending_duels, joined_duels, pending_tournaments, running_tournaments) ;
 	}) ;
 })
+function player_li(user, handler) {
+	var li = create_li(user.nick) ;
+	li.title = user.player_id ;
+	var button = create_button('Kick', function(ev) {
+		var data = '{"type": "kick", "handler": "'+handler+'", "id": "'+user.player_id+'"}';
+		game.connection.send(data) ;
+	}, 'Disconnect user') ;
+	li.appendChild(button) ;
+	return li ;
+}
 function fill_duel(node, datas) {
 	if ( datas.length < 1 )
-		node.appendChild(create_li('none')) ;
-	else
-		for ( var i = 0 ; i < datas.length ; i++ ) {
-			var data = datas[i] ;
-			var li = create_li(data.name+' : '+data.creator_nick+' / '+data.joiner_nick) ;
-			node.appendChild(li)
+		return node.appendChild(create_li('none')) ;
+	var goldfish = 0 ;
+	for ( var i = 0 ; i < datas.length ; i++ ) {
+		var data = datas[i] ;
+		debug(data) ;
+		if ( data.creator_id == data.joiner_id ) { // Goldfish
+			goldfish++
+			continue ;
 		}
+		if ( data.tournament > 0 ) // Tournament
+			continue ;
+		var li = create_li(data.name+' : '+data.creator_nick+' / '+data.joiner_nick) ;
+		node.appendChild(li)
+	}
+	if ( goldfish > 0 )
+		node.appendChild(create_li('+ '+goldfish+' goldfishes'))
 }
 function fill_tournament(node, datas) {
 	if ( datas.length < 1 )

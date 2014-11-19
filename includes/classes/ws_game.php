@@ -193,11 +193,12 @@ class Game {
 	}
 	public function join($data) {
 		global $db ;
+		$this->status++ ;
 		$this->joiner_nick = $data->joiner_nick ;
 		$this->joiner_id = $data->joiner_id ;
 		$this->joiner_avatar = $data->joiner_avatar ;
 		$this->joiner_deck = $data->joiner_deck ;
-		$this->commit('joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck') ;
+		$this->commit('status', 'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck') ;
 		$this->deck('creator', $this->creator_deck) ;
 		$this->deck('joiner', $this->joiner_deck) ;
 		$starter = 'game.'.(mt_rand(0,1)?'creator':'joiner') ;

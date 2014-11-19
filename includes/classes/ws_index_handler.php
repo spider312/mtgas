@@ -39,6 +39,11 @@ class IndexHandler extends ParentHandler {
 			$user->sendString(json_encode($tournament)) ;
 		foreach ( $this->observer->running_tournaments as $tournament )
 			$user->sendString(json_encode($tournament)) ;
+		// Send extensions
+		$exts = new stdClass ;
+		$exts->type = 'extensions' ;
+		$exts->data = Extension::$cache ;
+		$user->sendString(json_encode($exts)) ;
 	}
 	public function recieve(WebSocketTransportInterface $user, $data) {
 		switch ( $data->type ) {

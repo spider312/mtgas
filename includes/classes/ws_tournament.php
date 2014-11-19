@@ -290,15 +290,15 @@ class Tournament {
 				 $msg = 'You must select a deck to register to constructed tournaments' ;
 		foreach ( $this->players as $player) {
 			if ( $player->player_id == $user->player_id )
-				 $msg = 'There is already a registered player with ID '.$user->player_id ;
+				 $msg = 'You are already registered to this tournament' ;
 			if ( $player->nick == $data->nick )
-				 $msg = 'There is already a registered player with nick '.$data->nick ;
+				 $msg = 'Change your nickname' ;
 			if ( $player->avatar == $data->avatar )
-				 $msg = 'There is already a registered player with avatar '.$data->avatar ;
+				 $msg = 'Change your avatar' ;
 		}
 		if ( $msg != '' ) {
 			$user->sendString('{"type": "msg", "msg": "'.$msg.'"}') ;
-			return $this->debug("{$player->nick} register : $msg") ;
+			return false ;
 		}
 		// Action
 		$this->log($user->player_id, 'register', $data->nick) ;
@@ -767,7 +767,6 @@ class Tournament {
 		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
 		$this->send() ;
-		$this->debug("Canceled ($reason)") ;
 	}
 private function terminate() { // Common between end and cancel
 		$this->score_games() ;
