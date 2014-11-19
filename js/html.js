@@ -391,10 +391,16 @@ function create_select(name, id) {
 		select.id = id ;
 	return select ;
 }
-function create_option(text, value) {
+function create_option(text, value, title) {
 	var option = document.createElement('option') ;
-	option.text = text ;
-	option.value = value ;
+	if ( iss(text) )
+		option.text = text ;
+	if ( iss(value) )
+		option.value = value ;
+	if ( iss(title) )
+		option.title = title ;
+	else
+		option.title = value ;
 	return option ;
 }
 	// Table
