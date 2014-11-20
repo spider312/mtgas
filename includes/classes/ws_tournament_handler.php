@@ -11,13 +11,8 @@ class TournamentHandler extends ParentHandler {
 				isset($user->tournament)
 				&& ( $user->tournament->id == $tournament->id )
 				&& ( $user != $sender )
-			) {
+			)
 				$user->sendString($msg) ;
-				if ( $this->debug ) {
-					$obj = json_decode($msg) ;
-					$this->observer->say(' -> '.$obj->type) ;
-				}
-			}
 	}
 	public function recieve(WebSocketTransportInterface $user, $data) {
 		switch ( $data->type ) {
@@ -32,6 +27,19 @@ class TournamentHandler extends ParentHandler {
 			default :
 				$this->recieved($user, $data) ;
 		}
+	}
+	public function onDisconnect(WebSocketTransportInterface $disco) {
+		if ( isset($disco->tournament) ) {
+			foreach ( $this->getConnections() as $user )
+				if (
+					isset($user->tournament)
+					&& ( $user->tournament->id == $disco->tournament->id )
+					&& ( $user->player_id ==  $disco->player_id )
+				)
+					return false ;
+			$disco->tournament->player_disconnect($disco->player_id, $this->type) ;
+		} else
+			$this->say('Disconection from unregistered user') ;
 	}
 
 }

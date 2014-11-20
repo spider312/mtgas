@@ -120,6 +120,16 @@ function Player(data) {
 		else
 			return '../'+this.avatar ;
 	}
+	this.connection = function() {
+		if ( this.connected.length > 0 ) {
+			var img = create_img(theme_image('greenled.png')[0]) ;
+			img.title = 'Connected to '+this.connected.join(', ') ;
+		} else {
+			var img = create_img(theme_image('redled.png')[0]) ;
+			img.title = 'Disconnected' ;
+		}
+		return img ;
+	}
 	this.verbose_status = function() {
 		var statuses = ['Waiting', 'Redirecting', 'Drafting', 'Building', 'Playing',
 			'Ended', 'BYE', 'Dropped'] ;
@@ -136,7 +146,7 @@ function Player(data) {
 	this.get_name = function() { return this.nick ; }
 	// Init
 	this.fields = ['player_id', 'nick', 'avatar', 'deck', 'deck_obj', 'deck_cards', 'side_cards',
-		'order', 'type', 'status', 'ready'] ;
+		'order', 'type', 'status', 'ready', 'connected'] ;
 	this.node = null ;
 	this.me = ( data.player_id == player_id ) ;
 	this.hook_recieve = [] ;

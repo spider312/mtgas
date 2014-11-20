@@ -768,7 +768,7 @@ class Tournament {
 		$this->terminate() ;
 		$this->send() ;
 	}
-private function terminate() { // Common between end and cancel
+	private function terminate() { // Common between end and cancel
 		$this->score_games() ;
 		$this->due_time = now() ;
 		$this->commit('due_time') ;
@@ -780,6 +780,17 @@ private function terminate() { // Common between end and cancel
 		$this->observer->tournament->broadcast($this, json_encode($this));
 		$this->observer->draft->broadcast($this, json_encode($this));
 		$this->observer->build->broadcast($this, json_encode($this));
+	}
+	// Players connexion management
+	public function player_connect($id, $type) {
+		$player = $this->get_player($id) ;
+		if ( $player != null )
+			$player->connect($type) ;
+	}
+	public function player_disconnect($id, $type) {
+		$player = $this->get_player($id) ;
+		if ( $player != null )
+			$player->disconnect($type) ;
 	}
 	// Lib
 	static function draft_time($cards=15, $lastround=false) {

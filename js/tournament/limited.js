@@ -50,6 +50,7 @@ function PlayerLimited() {
 		if ( isn(this.deck_cards) )
 			txt += ' : '+this.deck_cards+' / '+this.side_cards ;
 		li.appendChild(document.createTextNode(txt)) ;
+		li.appendChild(this.connection()) ;
 		if ( 
 			( this.player_id == player_id ) // Self
 			|| ( this.player_id == game.tournament.follow )

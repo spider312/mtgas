@@ -449,7 +449,7 @@ function running_tournament_add(t) {
 		create_a(name, url, null, title), 
 		create_a(tournament_status(t.status), url, null, title), 
 		create_a('', url, null, title), 
-		create_a(list_players(t), url, null, title)
+		create_a(list_players(t, true), url, null, title)
 	) ;
 	if ( table == null )
 		running_tournaments.replaceChild(tr, current_line) ;
@@ -479,10 +479,15 @@ function update_tournament_players(tr) {
 		}
 	tr.title = 'Click to '+word+' tournament : '+tr.tournament.name+' #'+tr.tournament.id ;
 }
-function list_players(tournament) {
+function list_players(tournament, connected) {
 	var ul = document.createElement('ol') ;
-	for ( var j in tournament.players )
-		ul.appendChild(create_li(tournament.players[j].nick)) ;
+	for ( var j in tournament.players ) {
+		var player = new Player(tournament.players[j]) ;
+		var li = create_li(player.nick+' ') ;
+		if ( connected )
+			li.appendChild(player.connection()) ;
+		ul.appendChild(li) ;
+	}
 	return ul ;
 }
 function tournament_remove(id, table, container) {

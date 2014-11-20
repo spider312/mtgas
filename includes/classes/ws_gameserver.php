@@ -63,12 +63,12 @@ class GameServer {
 		$this->server = new \Devristo\Phpws\Server\WebSocketServer("tcp://0.0.0.0:$wsport",
 			$this->loop, $this->logger);
 		// Handlers
-		$this->index = new IndexHandler($this->logger, $this) ;
-		$this->tournament = new TournamentIndexHandler($this->logger, $this) ;
-		$this->draft = new DraftHandler($this->logger, $this) ;
-		$this->build = new BuildHandler($this->logger, $this) ;
-		$this->game = new GameHandler($this->logger, $this) ;
-		$this->admin = new AdminHandler($this->logger, $this) ;
+		$this->index = new IndexHandler($this->logger, $this, 'index') ;
+		$this->tournament = new TournamentIndexHandler($this->logger, $this, 'tournament') ;
+		$this->draft = new DraftHandler($this->logger, $this, 'draft') ;
+		$this->build = new BuildHandler($this->logger, $this, 'build') ;
+		$this->game = new GameHandler($this->logger, $this, 'game') ;
+		$this->admin = new AdminHandler($this->logger, $this, 'admin') ;
 		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game') ;
 		// Routes
 		$router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);

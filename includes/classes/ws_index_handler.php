@@ -6,8 +6,8 @@ class IndexHandler extends ParentHandler {
 	protected $shouts = array() ;
 	protected $nbshouts = 50 ; // Max number of shouts to keep in cache
 	public $users_fields = array('player_id', 'nick', 'inactive', 'typing') ;
-	public function __construct($logger, $observer) {
-		parent::__construct($logger, $observer) ;
+	public function __construct($logger, $observer, $type) {
+		parent::__construct($logger, $observer, $type) ;
 		global $db ;
 		// Import shouts
 		$this->shouts = array_reverse($db->select("SELECT
@@ -149,6 +149,12 @@ class IndexHandler extends ParentHandler {
 				print_r($data) ;
 		}
 	}
+	// Send a message to each registered users other than the one in parameter
+	public function broadcast($msg, WebSocketTransportInterface $sender = null) {
+		foreach ( $this->getConnections() as $user )
+			if ( $user != $sender )
+				$user->sendString($msg) ;
+	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( isset($user->player_id) ) {
 			foreach ( $this->observer->clean_duels($user->player_id) as $duelid )
@@ -160,16 +166,5 @@ class IndexHandler extends ParentHandler {
 			$this->broadcast(json_encode($this->list_users())) ;
 		} else
 			$this->say('Disconection from unregistered user') ;
-	}
-	// Send a message to each registered users other than the one in parameter
-	public function broadcast($msg, WebSocketTransportInterface $sender = null) {
-		foreach ( $this->getConnections() as $user )
-			if ( $user != $sender ) {
-				$user->sendString($msg) ;
-				if ( $this->debug ) {
-					$obj = json_decode($msg) ;
-					$this->say(' -> '.$obj->type) ;
-				}
-			}
 	}
 }
