@@ -303,9 +303,12 @@ class Tournament {
 		// Action
 		$this->log($user->player_id, 'register', $data->nick) ;
 		$this->players[] = new Registration($data, $this) ;
-		$this->send() ;
-		if ( count($this->players) >= $this->min_players )
+		if ( count($this->players) >= $this->min_players ) {
+			if ( $this->min_players == 1 )
+				$this->send() ; // send solo tournament as pending once before sending as running
 			$this->goon() ;
+		} else
+			$this->send() ;
 		return true ;
 	}
 	public function unregister($user) {
@@ -332,7 +335,6 @@ class Tournament {
 		if ( $status > 0 )
 			foreach ( $this->players as $player )
 				$player->set_status($status-1) ;
-		//$this->send() ;
 	}
 	public function players_ready() {
 		foreach ( $this->get_players() as $player )
@@ -374,17 +376,19 @@ class Tournament {
 				$this->timer_goon($wait_duration) ;
 				$this->send() ;
 				break ;
-			case 2 : // Waiting players being redirected from index to tournament page
+			case 2 : // Timeout redirecting players from index to tournament page
 				foreach ( $this->players as $player ) // Unregister not redirected players
 					if ( ! $player->ready )
 						$this->unregister($player) ;
-				if ( count($this->players) < $this->min_players ) { // If players unregistered
-					$this->observer->move_tournament($this, 'running', 'pending') ;
-					$this->set_status(1) ; // Mark back tournament as pending
-					$this->log('', 'pending', '') ;
-					$this->send() ;
-				} else
-					$this->begin() ;
+				if ( $this->status == 2 ) { // Game not canceled by unregister
+					if ( count($this->players) < $this->min_players ) { // If players unregistered
+						$this->observer->move_tournament($this, 'running', 'pending') ;
+						$this->set_status(1) ; // Mark back tournament as pending
+						$this->log('', 'pending', '') ;
+						$this->send() ;
+					} else
+						$this->begin() ;
+				}
 				break ;
 			case 3 : // Drafting
 				$cardsleft = $this->draft() ; // Draft procedure
@@ -762,7 +766,8 @@ class Tournament {
 		$this->log($this->players[0]->player_id, 'end', '') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
-		$this->observer->move_tournament($this, substr($this->type, 0, 7), 'ended') ;
+		$from = substr($this->type, 0, strpos($this->type, '_')) ;
+		$this->observer->move_tournament($this, $from, 'ended') ;
 		$this->set_status(0) ;
 		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
