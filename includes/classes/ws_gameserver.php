@@ -41,6 +41,7 @@ class GameServer {
 	public $joined_duels = array() ;
 	public $pending_tournaments = array() ;
 	public $running_tournaments = array() ;
+	public $ended_tournaments = array() ;
 
 	public function __construct($wsport){
 		$this->say('Creating server') ;
@@ -177,13 +178,13 @@ class GameServer {
 		}
 		$idx = array_search($tournament, $this->{$from}, true) ;
 		if ( $idx === false ) {
-			$this->say($from.' has no tournament #'.$tournament->id) ;
+			$this->say($from.' has no tournament '.$tournament->id.' to move to '.$to) ;
 			return false ;
 		}
 		$tournament->type = $oto.'_tournament' ;
 		$spl = array_splice($this->{$from}, $idx, 1) ;
 		if ( ! property_exists($this, $to) ) {
-			//$this->say('Gameserver has no '.$to) ;
+			$this->say('Gameserver has no '.$to) ;
 			return false ;
 		}
 		$this->{$to}[] = $spl[0] ;
