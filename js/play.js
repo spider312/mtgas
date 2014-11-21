@@ -133,9 +133,10 @@ function start() { // When page is loaded : initialize everything
 		game.websockets = true ;
 		network_loop() ; // Recieve previous actions before sending spectactor / join
 		chat_start() ;
-		if ( spectactor ) // Declare itself as a spectactor
-			game.spectators.add($.cookie(session_id), game.options.get('profile_nick')) ;
-		else {
+		if ( spectactor ) { // Declare itself as a spectactor
+			game.me = game.spectators.add($.cookie(session_id), game.options.get('profile_nick')) ;
+		} else {
+			game.me = game.player ;
 			autotext_init() ;
 			player_events() ;
 		}

@@ -35,7 +35,7 @@ function network_loop() { // Things to do regulary
 				case 'register' :
 					message(active_player.name+' has join', 'join') ;
 					active_player.connect(true) ;
-					if ( active_player == game.player ) { // My own registration, recieved after prev actions
+					if ( active_player == game.me ) { // My own registration, recieved after prev actions
 						display_start() ;
 						if ( active_player.attrs.siding && ( game.lastwinner != null ) ) // End of "initial actions", if side should be opened, open it
 							side_start_recieve(active_player, game.lastwinner) ;
