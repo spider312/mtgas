@@ -95,7 +95,7 @@ $(function() { // On page load
 				var tr = pending_tournament_remove(data.id) ;
 				if ( tr == null ) {
 					running_tournament_remove(data.id)
-					if ( pending_tournament_add(data) && ! document.hasFocus() )
+					if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
 						notification_send('Mogg Tournament',
 							'New tournament : '+data.format+' '+data.name, 'tournament');
 				}
