@@ -35,11 +35,12 @@ foreach ( $data->suscribed_tournaments as $i => $tournament ) {
 		FROM `round`
 		WHERE `tournament` = {$tournament->id} ORDER BY `round` ASC" ;
 	$matches = query_as_array($query) ;
+		// By round
 	$results = array() ;
 	foreach ( $matches as $match ) {
-		if ( ! $results[$match->round] )
-			$results[$match->round] = array() ;
-		array_push($results[$match->round], $match) ;
+		while ( count($results) < $match->round )
+			array_push($results, array()) ;
+		array_push($results[$match->round-1], $match) ;
 	}
 	$tournament->results = $results ;
 }
