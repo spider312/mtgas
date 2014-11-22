@@ -7,7 +7,7 @@ div.section {
 td a {
 	display: block ;
 	text-decoration: none ;
-	color: black ;
+	color: black !important ;
 }
 #decks_table tbody tr:hover, #past_tournaments tr:hover {
 	background-color: #F4ECD2 ;
@@ -23,5 +23,4 @@ td a {
 }
 .noop {
 	font-style: italic ;
-	color: black ;
 }

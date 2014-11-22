@@ -1,23 +1,22 @@
 function start(pid) {
+	games_delay = document.getElementById('past_games_delay') ;
+	tournaments_delay = document.getElementById('past_tournaments_delay') ;
 	ajax_error_management() ;
+	game = {} ;
+	game.options = new Options(true) ;
 	if ( iss(pid) )
 		player_id = pid ;
+	get_past_games() ;
+	get_past_tournaments() ;
 	// Delays
-	games_delay = document.getElementById('past_games_delay') ;
 	games_delay.addEventListener('change', function(ev) {
 		get_past_games() ;
 	}, false) ;
-	tournaments_delay = document.getElementById('past_tournaments_delay') ;
 	tournaments_delay.addEventListener('change', function(ev) {
 		get_past_tournaments() ;
 	}, false) ;
-	//
 	save_restore('past_games_delay') ;
 	save_restore('past_tournaments_delay') ;
-	get_past_games() ;
-	get_past_tournaments() ;
-	game = {} ;
-	game.options = new Options(true) ;
 }
 function get_past_games() {
 	var past_games = document.getElementById('past_games') ;
