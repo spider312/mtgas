@@ -57,10 +57,14 @@ class GameHandler extends WebSocketUriHandler {
 				$user->nick = $data->nick ;
 				$user->focused = true ;
 				// Register user to game
-				$hadPlayer = $this->displayed($game) ;
-				$game->setUser($user, $this) ;
+				if ( $game->setUser($user, $this) ) {
+					$field = $game->which($user->player_id) ;
+					$field .= '_status' ;
+					if ( $game->{$field} < 1 )
+						$game->{$field} = 1 ;
+				}
 				// Join an empty game, make it appear on index
-				if ( ! $hadPlayer && $this->displayed($game) )
+				if ( $this->displayed($game) )
 					$this->observer->index->broadcast(json_encode($game)) ;
 				$data->sender = $data->player_id ;
 				$this->broadcast(json_encode($data), $game, $user) ;
@@ -192,15 +196,27 @@ class GameHandler extends WebSocketUriHandler {
 			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
-		if ( ! $this->connected($user->player_id, $user->game) )
+		if ( ! $this->connected($user->player_id, $user->game) ) {
+			// Send disconnection to game
 			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
-		if ( ! $this->displayed($user->game) ) 
-			$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}') ;
-
-
-		if ( $user->game->tournament > 0 ) {
-			$tournament = Tournament::get($user->game->tournament) ;
-			$tournament->player_disconnect($user->player_id, 'game_'.$user->game->id) ;
+			// Remove from index
+			if ( ! $this->displayed($user->game) ) 
+				$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}');
+			else {
+				// Update player status on index
+				$field = $user->game->which($user->player_id) ;
+				if ( $field != '' ) {
+					$field .= '_status' ;
+					if ( $user->game->{$field} > 0 )
+						$user->game->{$field} = 0 ;
+					$this->observer->index->broadcast(json_encode($user->game)) ;
+				}
+			}
+			// Update tournament player status
+			if ( $user->game->tournament > 0 ) {
+				$tournament = Tournament::get($user->game->tournament) ;
+				$tournament->player_disconnect($user->player_id, 'game_'.$user->game->id) ;
+			}
 		}
 	}
 }

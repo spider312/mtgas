@@ -83,6 +83,7 @@ $(function() { // On page load
 					document.location = 'play.php?id='+data.id ;
 				} else {
 					pending_duel_remove(data.id) ;
+					running_duel_remove(data.id) ;
 					running_duel_add(data) ;
 				}
 				break ;
@@ -371,12 +372,24 @@ function running_duel_add(round) {
 		create_a(time_disp(round.age), url)
 	) ;
 	player_cell(tr.cells[1].firstElementChild, round.creator_nick, round.creator_avatar) ;
+	tr.cells[1].firstElementChild.appendChild(connected(round.creator_status)) ;
 	player_cell(tr.cells[4].firstElementChild, round.joiner_nick, round.joiner_avatar) ;
+	tr.cells[4].firstElementChild.appendChild(connected(round.joiner_status)) ;
 	tr.timer = start_timer(tr.cells[5].firstElementChild, round.creation_date) ;
 	tr.round = round ;
 	tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
 	if ( ( round.creator_id == player_id ) || ( round.joiner_id == player_id ) )
 		tr.classList.add('registered') ;
+}
+function connected(status) {
+	if ( status > 0 ) {
+		var img = create_img(theme_image('greenled.png')[0]) ;
+		img.title = 'Connected' ;
+	} else {
+		var img = create_img(theme_image('redled.png')[0]) ;
+		img.title = 'Disconnected' ;
+	}
+	return img ;
 }
 function duel_remove(tbody, div, id) {
 	for ( var i = 0 ; i < tbody.rows.length ; i++ )

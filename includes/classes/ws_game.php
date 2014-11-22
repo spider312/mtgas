@@ -2,11 +2,11 @@
 class Game {
 	private $fields = array(
 		'id', 'status', 'creation_date', 'last_update_date', 'name', 'tournament', 'round',
-		'creator_nick', 'creator_id', 'creator_avatar',
-		'creator_deck', 'creator_score', 'creator_lastacti',
-		'joiner_nick', 'joiner_id', 'joiner_avatar',
-		'joiner_deck', 'joiner_score', 'joiner_lastacti'
+		'creator_nick', 'creator_id', 'creator_avatar', 'creator_deck', 'creator_score',
+		'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck', 'joiner_score',
 	) ;
+	public $creator_status = 0 ;
+	public $joiner_status = 0 ;
 	private $actions = array() ;
 	public $spectators = null ;
 	private $tournament_obj = null ;
@@ -125,6 +125,16 @@ class Game {
 	public function isJoiner($player_id) {
 		return ( $player_id == $this->joiner_id ) ;
 	}
+	public function which($player_id) {
+		switch ( $player_id ) {
+			case $this->creator_id :
+				return 'creator' ;
+			case $this->joiner_id :
+				return 'joiner' ;
+			default:
+				return '' ;
+		}
+	}
 	public function isPlayer($player_id) {
 		return ( $this->isCreator($player_id) || $this->isJoiner($player_id) ) ;
 	}
@@ -132,7 +142,7 @@ class Game {
 		if ( $this->isPlayer($user->player_id) )
 			return true ;
 		if ( $this->spectators->get($user->player_id) != null )
-			return true ;
+			return false ;
 		// This user hasn't registered yet as spectator, let's do it
 		$spectator = $this->spectators->add($user->player_id, $user->nick) ;
 		$action = $this->addAction($user->player_id, 'spectactor', $spectator) ;
