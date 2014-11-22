@@ -104,6 +104,9 @@ function start(id, pid) {
 	stats_side.addEventListener('change', function(ev) {
 		game.tournament.me.pool.stats() ;
 	}, false) ;
+	zoom.addEventListener('mouseenter', function(ev) {
+		zoom.classList.add('hidden') ;
+	}, false) ;
 }
 function TournamentBuild() {}
 function PlayerBuild() {
@@ -162,6 +165,17 @@ function Pool(player) {
 		if ( stats_side.checked )
 			cards = this.side.filtered() ;
 		this.stats_results = deck_stats_cc(cards) ; // [color, mana, cost, type, provide]
+		var cards_number = document.getElementById('cards_number') ;
+		node_empty(cards_number) ;
+		if ( ! stats_side.checked ) {
+			cards_number.appendChild(create_text(cards.length+' cards')) ;
+			if ( !iso(this.stats_results[3]) )
+				return false ;
+			var lands = this.stats_results[3]['land'] ;
+			if ( !isn(lands) )
+				return false ;
+			cards_number.appendChild(create_text(' ('+(cards.length-lands)+' active, '+lands+' land)')) ;
+		}
 	}
 	// Basic lands in main
 	this.add = function(card, nb) {

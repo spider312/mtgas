@@ -290,22 +290,25 @@ class Tournament {
 				 $msg = 'You must select a deck to register to constructed tournaments' ;
 		foreach ( $this->players as $player) {
 			if ( $player->player_id == $user->player_id )
-				 $msg = 'There is already a registered player with ID '.$user->player_id ;
+				 $msg = 'You are already registered to this tournament' ;
 			if ( $player->nick == $data->nick )
-				 $msg = 'There is already a registered player with nick '.$data->nick ;
+				 $msg = 'Change your nickname' ;
 			if ( $player->avatar == $data->avatar )
-				 $msg = 'There is already a registered player with avatar '.$data->avatar ;
+				 $msg = 'Change your avatar' ;
 		}
 		if ( $msg != '' ) {
 			$user->sendString('{"type": "msg", "msg": "'.$msg.'"}') ;
-			return $this->debug("{$player->nick} register : $msg") ;
+			return false ;
 		}
 		// Action
 		$this->log($user->player_id, 'register', $data->nick) ;
 		$this->players[] = new Registration($data, $this) ;
-		$this->send() ;
-		if ( count($this->players) >= $this->min_players )
+		if ( count($this->players) >= $this->min_players ) {
+			if ( $this->min_players == 1 )
+				$this->send() ; // send solo tournament as pending once before sending as running
 			$this->goon() ;
+		} else
+			$this->send() ;
 		return true ;
 	}
 	public function unregister($user) {
@@ -332,7 +335,6 @@ class Tournament {
 		if ( $status > 0 )
 			foreach ( $this->players as $player )
 				$player->set_status($status-1) ;
-		//$this->send() ;
 	}
 	public function players_ready() {
 		foreach ( $this->get_players() as $player )
@@ -374,17 +376,19 @@ class Tournament {
 				$this->timer_goon($wait_duration) ;
 				$this->send() ;
 				break ;
-			case 2 : // Waiting players being redirected from index to tournament page
+			case 2 : // Timeout redirecting players from index to tournament page
 				foreach ( $this->players as $player ) // Unregister not redirected players
 					if ( ! $player->ready )
 						$this->unregister($player) ;
-				if ( count($this->players) < $this->min_players ) { // If players unregistered
-					$this->observer->move_tournament($this, 'running', 'pending') ;
-					$this->set_status(1) ; // Mark back tournament as pending
-					$this->log('', 'pending', '') ;
-					$this->send() ;
-				} else
-					$this->begin() ;
+				if ( $this->status == 2 ) { // Game not canceled by unregister
+					if ( count($this->players) < $this->min_players ) { // If players unregistered
+						$this->observer->move_tournament($this, 'running', 'pending') ;
+						$this->set_status(1) ; // Mark back tournament as pending
+						$this->log('', 'pending', '') ;
+						$this->send() ;
+					} else
+						$this->begin() ;
+				}
 				break ;
 			case 3 : // Drafting
 				$cardsleft = $this->draft() ; // Draft procedure
@@ -762,14 +766,14 @@ class Tournament {
 		$this->log($this->players[0]->player_id, 'end', '') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
-		$this->observer->move_tournament($this, substr($this->type, 0, 7), 'ended') ;
+		$from = substr($this->type, 0, strpos($this->type, '_')) ;
+		$this->observer->move_tournament($this, $from, 'ended') ;
 		$this->set_status(0) ;
 		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
 		$this->send() ;
-		$this->debug("Canceled ($reason)") ;
 	}
-private function terminate() { // Common between end and cancel
+	private function terminate() { // Common between end and cancel
 		$this->score_games() ;
 		$this->due_time = now() ;
 		$this->commit('due_time') ;
@@ -781,6 +785,17 @@ private function terminate() { // Common between end and cancel
 		$this->observer->tournament->broadcast($this, json_encode($this));
 		$this->observer->draft->broadcast($this, json_encode($this));
 		$this->observer->build->broadcast($this, json_encode($this));
+	}
+	// Players connexion management
+	public function player_connect($id, $type) {
+		$player = $this->get_player($id) ;
+		if ( $player != null )
+			$player->connect($type) ;
+	}
+	public function player_disconnect($id, $type) {
+		$player = $this->get_player($id) ;
+		if ( $player != null )
+			$player->disconnect($type) ;
 	}
 	// Lib
 	static function draft_time($cards=15, $lastround=false) {

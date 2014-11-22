@@ -4,7 +4,6 @@ use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class GameHandler extends WebSocketUriHandler {
 	public $observer = null ;
-	private $debug = false ;
 	public $users_fields = array('player_id', 'nick', 'game', 'focused') ;
 	public function __construct($logger, $observer) {
 		parent::__construct($logger) ;
@@ -27,7 +26,6 @@ class GameHandler extends WebSocketUriHandler {
 		}
 		return $result ;
 	}
-
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
@@ -51,9 +49,8 @@ class GameHandler extends WebSocketUriHandler {
 			case 'register' :
 				// Search game
 				$game = $this->observer->joined_duel($data->id) ;
-				if ( $game === false ) {
-					$this->observer->say('game '.$data->id.' not registered') ;
-				}
+				if ( $game === false )
+					return $this->observer->say('game '.$data->id.' not registered') ;
 				// Register user to handler
 				$user->game = $game ;
 				$user->player_id = $data->player_id ;
@@ -85,9 +82,11 @@ class GameHandler extends WebSocketUriHandler {
 						if ( ! $connected->focused )
 							$user->sendString('{"type":"blur", "sender":"'.$connected->player_id.'"}') ;
 					}
-
-				if ( $this->debug )
-					$this->observer->say($user->nick.' registered to game '.$user->game->id) ;
+				if ( $game->tournament > 0 ) {
+					$tournament = Tournament::get($game->tournament) ;
+					if ( $tournament != null )
+						$tournament->player_connect($user->player_id, 'game_'.$game->id) ;
+				}
 				break ;
 			case 'recieve' :
 				$user->game->recieveAction($data->id) ;
@@ -140,8 +139,6 @@ class GameHandler extends WebSocketUriHandler {
 				$this->broadcast(json_encode($action), $user->game) ;
 				break ;
 			default :
-				if ( $this->debug )
-					$this->observer->say(' <- '.$user->nick.' : '.$data->type) ;
 				$action = $user->game->addAction($user->player_id, $data->type,
 					$data->param, $data->local_index) ;
 				if ( $action == null )
@@ -182,30 +179,28 @@ class GameHandler extends WebSocketUriHandler {
 	}
 	// Send a message to each user registered to $game, other than $sender
 	public function broadcast($msg, $game = null, WebSocketTransportInterface $sender = null) {
-		if ( $this->debug )
-			$json = json_decode($msg) ;
 		foreach ( $this->getConnections() as $user )
 			if (
 				isset($user->game)
 				&& ( $user->game->id == $game->id )
 				&& ( $user != $sender )
-			) {
+			)
 				$user->sendString($msg) ;
-				if ( $this->debug )
-					$this->observer->say(' -> '.$user->nick.' : '.$json->type) ;
-			}
 	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( ! isset($user->player_id) ) { // Unregistered user
 			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
-		$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
-		if ( $this->debug )
-			$this->observer->say($user->nick.' unregistered from game '.$user->game->id) ;
+		if ( ! $this->connected($user->player_id, $user->game) )
+			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
 		if ( ! $this->displayed($user->game) ) 
 			$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}') ;
+
+
+		if ( $user->game->tournament > 0 ) {
+			$tournament = Tournament::get($user->game->tournament) ;
+			$tournament->player_disconnect($user->player_id, 'game_'.$user->game->id) ;
+		}
 	}
-
-
 }

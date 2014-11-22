@@ -7,8 +7,8 @@ class Deck {
 	private $sort_fields = array('color_index', 'converted_cost', 'name') ;
 	public function __construct($deck=null, $ext='') {
 		if ( is_string($deck) ) {
-			$reg_comment = '/\/\/(.*)/' ;
-			$reg_empty = "/^\n$/" ;
+			$reg_comment = '/^\s*\/\/(.*)/' ;
+			$reg_empty = "/^\s*\n$/" ;
 			//$reg_card_mwd = '/(\d+)\s*\[(.*)\]\s*\b(.+)\b/' ; // replaced by trim
 			$reg_card_mwd = '/(\d+)\s*\[(.*)\]\s*(.+)$/' ;
 			$reg_card_apr = '/(\d+)\s*(.+)$/' ;

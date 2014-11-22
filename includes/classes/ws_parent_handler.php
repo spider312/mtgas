@@ -5,11 +5,13 @@ use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class ParentHandler extends WebSocketUriHandler {
 	public $observer = null ;
-	public $users_fields = array('player_id', 'nick') ;
+	public $type = 'parent' ;
+	public $users_fields = array('player_id', 'nick') ; // Data for user listing - default
 	protected $debug = false ;
-	public function __construct($logger, $observer) {
+	public function __construct($logger, $observer, $type) {
 		parent::__construct($logger) ;
 		$this->observer = $observer ;
+		$this->type = $type ;
 	}
 	public function say($msg) {
 		$this->observer->say($msg) ;

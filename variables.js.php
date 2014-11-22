@@ -90,6 +90,7 @@ largezonemargin = 50 ;
 smallzonemargin = 10 ;
 
 // Dimensions
+smallres_width = 1024 ;
 if ( window.innerHeight > 800 )
 	cardimagewidth = 250 ; // Width of card images in zoom, draft and build
 else

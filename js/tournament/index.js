@@ -184,7 +184,8 @@ function PlayerIndex() {
 		var img = create_img(this.avatar_url()) ;
 		img.height = 50 ;
 		create_td(this.node, img) ;
-		create_td(this.node, this.verbose_status()) ;
+		var st = create_td(this.node, this.verbose_status()) ;
+		st.appendChild(this.connection()) ;
 		var tr = this.node ; // Legacy
 		if ( iso(game.tournament.data) && iso(game.tournament.data.score) ) {
 			if ( game.tournament.data.score[this.player_id] ) {

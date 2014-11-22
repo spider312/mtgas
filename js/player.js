@@ -364,6 +364,7 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 			log('Unable to load image for '+widget) ;
 		}, this.life) ;
 	}
+	this.updatews() ;
 }
 function Sound() {
 	// Sounds

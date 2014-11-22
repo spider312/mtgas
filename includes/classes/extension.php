@@ -9,6 +9,7 @@ class Extension {
 	public $bloc ;
 	public $uniq ;
 	public $data ;
+	public $cards_nb = 0 ;
 	private $cards = array() ; // All cards
 	private $cards_rarity = array() ; // Cards grouped by rarity
 	private $cards_tr = array() ; // Transform cards
@@ -24,30 +25,40 @@ class Extension {
 		$this->uniq = $ext->uniq ;
 		$this->data = json_decode($ext->data) ;
 	}
+	public function add_card($card, $rarity='') {
+		if ( $card == null )
+			return false ;
+		$this->cards[] = $card ;
+		$this->cards_nb = count($this->cards) ;
+		if ( $this->get_data('transform', false) 
+			&& property_exists($card->attrs, 'transformed_attrs') )
+			$dest =& $this->cards_tr ;
+		else
+			$dest =& $this->cards_rarity ;
+		if ( $rarity == '' )
+			$rarity = $card->rarity ;
+		if ( ! array_key_exists($rarity, $dest) )
+			$dest[$rarity] = array() ;
+		$dest[$rarity][] = $card ;
+	}
 	private function get_cards() { // Import card list from DB and dispatch by rarity/transformability
 		if ( count($this->cards) > 0 )
 			return false ;
-		global $db_cards ;
-		if ( $this->get_data('all', false) )
-			$cards = $db_cards->select("SELECT `card`.`name` FROM `card` ORDER BY `card`.`id` ASC") ;
-		else
+		if ( $this->get_data('all', false) ) {
+			$this->cards = Card::$cache ;
+			$this->cards_rarity['C'] = $this->cards ;
+			//$cards = $db_cards->select("SELECT `card`.`name` FROM `card` ORDER BY `card`.`id` ASC") ;
+		} else {
+			echo 'Cache not fill' ;
+			global $db_cards ;
 			$cards = $db_cards->select("SELECT `card`.`name`
 			FROM `card_ext`, `card`
 			WHERE
 				`card_ext`.`card` = `card`.`id` AND
 				`card_ext`.`ext` = {$this->id}
 			ORDER BY `card`.`id` ASC") ;
-		foreach ( $cards as $card ) {
-			$card_obj = Card::get($card->name, $this->se) ;
-			$this->cards[] = $card_obj ;
-			if ( $this->get_data('transform', false) 
-				&& property_exists($card_obj->attrs, 'transformed_attrs') )
-				$dest =& $this->cards_tr ;
-			else
-				$dest =& $this->cards_rarity ;
-			if ( ! array_key_exists($card_obj->rarity, $dest) )
-				$dest[$card_obj->rarity] = array() ;
-			$dest[$card_obj->rarity][] = $card_obj ;
+			foreach ( $cards as $card )
+				$this->add_card(Card::get($card->name, $this->se)) ;
 		}
 	}
 	private function get_data($property, $value) { // Get a property of data object or a default value
@@ -170,7 +181,10 @@ class Extension {
 		return $ext ;
 	}
 	static function fill_cache() {
-		foreach ( $db_cards->select("SELECT * FROM `extension`") as $ext ) ;
+		global $db_cards ;
+		$raw = $db_cards->select("SELECT * FROM `extension` ORDER BY release_date DESC, priority DESC") ;
+		foreach ( $raw as $ext )
 			Extension::$cache[] = new Extension($ext) ;
+		return $raw ;
 	}
 }

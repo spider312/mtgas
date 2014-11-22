@@ -14,6 +14,7 @@ class Registration {
 	private $deck_obj = null ;
 	public $deck_cards = -1 ;
 	public $side_cards = -1 ;
+	public $connected = array() ;
 	public function __construct($obj, $tournament) {
 		$this->type = 'player' ; // JSON over WS
 		$this->tournament = $tournament ;
@@ -30,6 +31,18 @@ class Registration {
 	}
 	public function get_tournament_id() {
 		return $this->tournament->id ;
+	}
+	public function connect($from) {
+		if ( ( $i = array_search($from, $this->connected) ) === false ) {
+			array_push($this->connected, $from) ;
+			$this->tournament->send() ;
+		}
+	}
+	public function disconnect($from) {
+		if ( ( $i = array_search($from, $this->connected) ) !== false ) {
+			array_splice($this->connected, $i, 1) ;
+			$this->tournament->send() ;
+		}
 	}
 	/* Don't work for JSON, PHP 5.4 has JsonSerializable for that
 	public function __get($name) {} */

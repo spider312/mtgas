@@ -111,6 +111,8 @@ function card_name_sanitize($name) {
 	$name = str_replace('Æ', 'AE', $name) ;
 	//$name = str_replace("'", '‘', $name) ;
 	$name = str_replace(array('“', '”'), '"', $name) ;
+	// Lotus Noir
+	$name = preg_replace('/\s*\/+\s*/', ' / ', $name) ; // corrects "a // b", "a/b"
 	return $name ;
 }
 function card_text_sanitize($text) {

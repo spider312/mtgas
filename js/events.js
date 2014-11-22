@@ -1,11 +1,11 @@
 // events.js : Keyboard events management
 // Data
 deadKeys = [ // Keys which default action should be canceled
-	'control_d', 'control_i', 'control_n', 'control_o', 'control_p', 'control_s', 'control_u', // Basics
-	'f9', 'f10', 'f11', 'f12', 'alt_a', 'alt_d',
-	'control_+', 'control_-', // Zoom
-	'control_pageup', 'control_pagedown', // Tabs navigation
-	'+', '-' // Opera zoom
+	'control_d', 'control_i', 'control_n', 'control_o', 'control_p', 'control_s', 'control_u' // Basics
+	, 'f9', 'f10', 'f11', 'f12', 'alt_a', 'alt_d'
+	, 'control_+', 'control_-' // Zoom
+	, 'control_pageup', 'control_pagedown' // Tabs navigation
+//	, '+', '-' // Opera zoom
 ] ; // ctrl+n can't be canceled in chromium
 keyActions = { // Key <=> action association
 	// Delegated modifiers
@@ -99,20 +99,20 @@ function events() { // Handlers for events for all connexion type (player, spect
 	window.addEventListener('focus',	onFocus,	false) ;
 }
 function player_events() {
+	window.addEventListener('beforeunload',	onBeforeUnload,	false) ; // Confirm page closure
 	window.addEventListener('keydown', onKeyDown, false) ;
 	window.addEventListener('keyup', onKeyUp, false) ;
 	//window.addEventListener('keypress', onKeyPress, false) ;
-	window.addEventListener('beforeunload',	onBeforeUnload,	false) ; // Confirm page closure
 }
 // Event methods
+function onFocus(ev) { // On focus, clean window title
+	unseen_actions = 0 ;
+	document.title = init_title ;
+}
 function onBeforeUnload(ev) { // Confirm closure
 	var text = 'Sure you want to quit this page ?'
 	ev.returnValue = text ;
 	return text ;
-}
-function onFocus(ev) { // On focus, clean window title
-	unseen_actions = 0 ;
-	document.title = init_title ;
 }
 function onKeyDown(ev) { // Key Down : cancel dead keys
 	var key = eventKey(ev) ;
@@ -129,16 +129,15 @@ function onKeyUp(ev) { // Key Up : trigger bound keys
 		keyActions[mkey](ev) ;
 	else if ( isf(keyActions[key]) ) // Key is bind without modifiers, for delegated modifiers
 		keyActions[key](ev) ;
-	else { // Unbind
-		if ( // Focus to chat if not already and a char
-			( ! ev.ctrlKey ) && ( ! ev.altKey ) && // Not modified
-			( key.length == 1 ) && // Printable character
-			( document.activeElement != sendbox ) && // Not already focused
-			( document.activeElement.id != 'autotext_area' ) // Would interact with autotext
-		) {
-			sendbox.focus() ;
-			sendbox.value += key ;
-		}
+	// Focus to chat if not already - even if bound for +-*/
+	if (
+		( ! ev.ctrlKey ) && ( ! ev.altKey ) && // Not modified
+		( key.length == 1 ) && // Printable character
+		( document.activeElement != sendbox ) && // Not already focused
+		( document.activeElement.id != 'autotext_area' ) // Would interact with autotext
+	) {
+		sendbox.focus() ;
+		sendbox.value += key ;
 	}
 }
 // Lib

@@ -58,6 +58,9 @@ $(function() { // On page load
 					shouters.appendChild(option) ;
 				}
 				break ;
+			case 'extensions' :
+				get_extensions(data.data) ;
+				break ;
 			// Shoutbox
 			case 'shout' :
 				var li = create_li(create_a(data.player_nick, '/player.php?id='+data.player_id))
@@ -89,10 +92,13 @@ $(function() { // On page load
 				break ;
 			// Tournaments
 			case 'pending_tournament' :
-				if ( pending_tournament_remove(data.id) == null )
+				var tr = pending_tournament_remove(data.id) ;
+				if ( tr == null ) {
 					running_tournament_remove(data.id)
-				if ( pending_tournament_add(data) /*&& ( data.min_players > 1 )*/ && ! document.hasFocus() )
-					notification_send('Mogg Tournament', 'New tournament : '+data.format+' '+data.name, 'tournament');
+					if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
+						notification_send('Mogg Tournament',
+							'New tournament : '+data.format+' '+data.name, 'tournament');
+				}
 				break ;
 			case 'running_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
@@ -168,7 +174,6 @@ $(function() { // On page load
 		// Boosters
 	document.getElementById('tournament_type').addEventListener('change', function(ev) {
 		tournament_boosters(ev.target.selectedIndex) ;
-		get_extensions() ; // Refresh boosters nb
 		document.getElementById('tournament_name').focus() ;
 	}, false) ;
 	document.getElementById('tournament_suggestions').addEventListener('change', function(ev) {
@@ -317,7 +322,6 @@ $(function() { // On page load
 	}, false) ;
 	// Display decks list
 	decks_list() ;
-	get_extensions() ;
 }) ;
 // === [ Duels ] ==============================================================
 function player_cell(cell, nick, avatar) {
@@ -445,7 +449,7 @@ function running_tournament_add(t) {
 		create_a(name, url, null, title), 
 		create_a(tournament_status(t.status), url, null, title), 
 		create_a('', url, null, title), 
-		create_a(list_players(t), url, null, title)
+		create_a(list_players(t, true), url, null, title)
 	) ;
 	if ( table == null )
 		running_tournaments.replaceChild(tr, current_line) ;
@@ -475,10 +479,15 @@ function update_tournament_players(tr) {
 		}
 	tr.title = 'Click to '+word+' tournament : '+tr.tournament.name+' #'+tr.tournament.id ;
 }
-function list_players(tournament) {
+function list_players(tournament, connected) {
 	var ul = document.createElement('ol') ;
-	for ( var j in tournament.players )
-		ul.appendChild(create_li(tournament.players[j].nick)) ;
+	for ( var j in tournament.players ) {
+		var player = new Player(tournament.players[j]) ;
+		var li = create_li(player.nick+' ') ;
+		if ( connected )
+			li.appendChild(player.connection()) ;
+		ul.appendChild(li) ;
+	}
 	return ul ;
 }
 function tournament_remove(id, table, container) {
@@ -500,63 +509,50 @@ function running_tournament_remove(id) {
 	return tournament_remove(id, running_tournaments, tournament_view) ;
 }
 // === [ FIXED LISTS ] =========================================================
-function get_extensions() {
-	$.getJSON('json/extensions.php', null, function(data) {
-		var booster_suggestions = document.getElementById('booster_suggestions') ;
-		var si = booster_suggestions.selectedIndex ;
-		// Empty list
-		node_empty(booster_suggestions) ;
-		// Base editions
-		group = create_element('optgroup') ;
-		group.label = 'Base editions' ;
-		for ( var i = 0 ; i < data.base.length ; i++ )
-			group.appendChild(create_option(data.base[i].name, data.base[i].se)) ;
-		booster_suggestions.appendChild(group) ;
-		// Blocs
-		var bloc = -1 ;
-		var blocs = [] ;
-		for ( var i = 0 ; i < data.bloc.length ; i++ ) {
-			if ( typeof blocs[parseInt(data.bloc[i].bloc)] == 'undefined' ) { // First time bloc is encountered
-				var group = create_element('optgroup') ; // Create bloc's group
-				blocs[data.bloc[i].bloc] = group ;
-				booster_suggestions.appendChild(group) ;
-				bloc = data.bloc[i].bloc ;
-			}
-			group = blocs[data.bloc[i].bloc] ; // Get current bloc's group
-			group.appendChild(create_option(data.bloc[i].name, data.bloc[i].se)) ;
-			if ( data.bloc[i].bloc == data.bloc[i].id ) { // Main extension
-				group.label = data.bloc[i].name ;
-				var tt = document.getElementById('tournament_type') ;
-				var boostnb = 0 ;
-				if ( tt.value == 'draft' )
-					boostnb = 3 ;
-				else
-					if ( tt.value == 'sealed' )
-						boostnb = 6 ;
-				var nb = Math.round(boostnb/group.children.length) ; // Nb of each boosters
-				var b = '' ;
-				for ( var k = 0 ; k < group.children.length ; k++ ) {
-					//for ( var j = 0 ; j < nb ; j++ ) {
-					if ( b != '' )
-						b += '-' ;
-					b += group.children[k].value
-					if ( nb > 1 )
-						b += '*'+nb ;
-				}
-				group.appendChild(create_option('Bloc '+data.bloc[i].name, b)) ;
-			}
+function get_extensions(rdata) {
+	data = {'base': [], 'bloc': [], 'special': [], 'reprint': []} ;
+	for ( var i = 0 ; i < rdata.length ; i++ ) 
+		if ( rdata[i].bloc == 0 ) {
+			if ( rdata[i].release_date == '0000-00-00' )
+				data.special.push(rdata[i]) ;
+			else
+				data.base.push(rdata[i]) ;
+		} else if ( rdata[i].bloc > 0 )
+			data.bloc.push(rdata[i]) ;
+		else
+			data.reprint.push(rdata[i]) ;
+	var booster_suggestions = document.getElementById('booster_suggestions') ;
+	// Empty list
+	node_empty(booster_suggestions) ;
+	// Special
+	group = create_element('optgroup') ;
+	group.label = 'Special extensions' ;
+	for ( var i = 0 ; i < data.special.length ; i++ )
+		group.appendChild(create_option(data.special[i].name, data.special[i].se)) ;
+	booster_suggestions.appendChild(group) ;
+
+	// Base editions
+	group = create_element('optgroup') ;
+	group.label = 'Base editions' ;
+	for ( var i = 0 ; i < data.base.length ; i++ )
+		group.appendChild(create_option(data.base[i].name, data.base[i].se)) ;
+	booster_suggestions.appendChild(group) ;
+	// Blocs
+	var bloc = -1 ;
+	var blocs = [] ;
+	for ( var i = 0 ; i < data.bloc.length ; i++ ) {
+		if ( typeof blocs[parseInt(data.bloc[i].bloc)] == 'undefined' ) { // First time bloc is encountered
+			var group = create_element('optgroup') ; // Create bloc's group
+			blocs[data.bloc[i].bloc] = group ;
+			booster_suggestions.appendChild(group) ;
+			bloc = data.bloc[i].bloc ;
 		}
-		// Special
-		/*
-		group = create_element('optgroup') ;
-		group.label = 'Special' ;
-		for ( var i = 0 ; i < data.special.length ; i++ )
-			group.appendChild(create_option(data.special[i].name, data.special[i].se)) ;
-		booster_suggestions.appendChild(group) ;
-		*/
-		// Restore selected index
-		booster_suggestions.selectedIndex = si;
-	}) ;
+		group = blocs[data.bloc[i].bloc] ; // Get current bloc's group
+		group.appendChild(create_option(data.bloc[i].name, data.bloc[i].se)) ;
+		if ( data.bloc[i].bloc == data.bloc[i].id ) { // Main extension
+			group.label = data.bloc[i].name ;
+		}
+	}
 }
 // === [ FORMS ] ===============================================================
 function save_tournament_boosters(boosters) { // When saving tournament boosters, also save it as draft/sealed boosters

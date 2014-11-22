@@ -6,18 +6,21 @@ class AdminHandler extends ParentHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		$overall = new stdClass() ;
 		$overall->type = 'overall' ;
-
+		// Games & tournaments
 		$overall->pending_duels = $this->observer->pending_duels ;
 		$overall->joined_duels = $this->observer->joined_duels ;
 		$overall->pending_tournaments = $this->observer->pending_tournaments ;
 		$overall->running_tournaments = $this->observer->running_tournaments ;
-
+		// Handlers (connected users)
 		$overall->handlers = new stdClass() ;
 		foreach ( $this->observer->handlers as $handler ) {
 			$h = $this->observer->{$handler} ;
 			$overall->handlers->{$handler} = $h->list_users() ;
 		}
-
+		// MTG Data
+		$overall->extensions = count(Extension::$cache) ;
+		$overall->cards = count(Card::$cache) ;
+		// Broadcast
 		$user->sendString(json_encode($overall)) ;
 	}
 	public function recieve(WebSocketTransportInterface $user, $data) {

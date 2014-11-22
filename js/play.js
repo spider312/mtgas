@@ -133,9 +133,10 @@ function start() { // When page is loaded : initialize everything
 		game.websockets = true ;
 		network_loop() ; // Recieve previous actions before sending spectactor / join
 		chat_start() ;
-		if ( spectactor ) // Declare itself as a spectactor
-			game.spectators.add($.cookie(session_id), game.options.get('profile_nick')) ;
-		else {
+		if ( spectactor ) { // Declare itself as a spectactor
+			game.me = game.spectators.add($.cookie(session_id), game.options.get('profile_nick')) ;
+		} else {
+			game.me = game.player ;
 			autotext_init() ;
 			player_events() ;
 		}
@@ -283,12 +284,14 @@ function manage_action(action, active_player) {
 		// Card actions
 		case 'card' :
 			var card = new Card(id, param.ext_img, param.name, param.zone, param.attrs, param.exts) ;
-			if ( ( param.zone.player == game.player ) && ( game.stonehewer && ! card.is_land() ) )
-				game.stonehewer = false ;
-			if ( document.getElementById('side_window') != null ) {
-				deck_ul = document.getElementById('deck') ;
-				side_ul = document.getElementById('side') ;
-				side_lists_fill(active_player, deck_ul, side_ul, 'orig_zone') ;
+			if ( param.zone.player == game.player ) {
+				if ( game.stonehewer && ! card.is_land() )
+					game.stonehewer = false ;
+				if ( document.getElementById('side_window') != null ) {
+					deck_ul = document.getElementById('deck') ;
+					side_ul = document.getElementById('side') ;
+					side_lists_fill(active_player, deck_ul, side_ul, 'orig_zone') ;
+				}
 			}
 			break ;
 		case 'mojosto' :

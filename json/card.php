@@ -4,11 +4,11 @@ if ( array_key_exists('name', $_GET) ) {
 	include '../includes/db.php' ;
 	include '../includes/card.php' ;
 	$connec = card_connect() ;
-	$query = query("SELECT * FROM card WHERE `name`='".mysql_real_escape_string($_GET['name'])."'", 'Card search', $connec) ;
+	$query = query("SELECT * FROM card WHERE `name`='".mysql_real_escape_string(card_name_sanitize($_GET['name']))."'", 'Card search', $connec) ;
 	if ( $card = mysql_fetch_object($query) )
 		$id = $card->id ;
 	else
-		die('{}') ;
+		die('{"name": "'.$_GET['name'].'"}') ;
 	if ( array_key_exists('lang', $_GET) && ( $_GET['lang'] != 'en' ) ) {
 		if ( $lang = query_oneshot("SELECT * FROM cardname WHERE `lang` = '".$_GET['lang']."' AND `card_id` = '$id'", 'Card language', $connec) )
 			$card->card_name = $lang->card_name ;

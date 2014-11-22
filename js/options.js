@@ -390,6 +390,7 @@ function Options(check_id) {
 			return false ;
 		// Replace its content
 		node_empty(is) ;
+		/*
 		if ( $.cookie && ( $.cookie('login') != null ) ) {
 			var img = create_img(theme_image('greenled.png')[0]) ;
 			img.title = 'Logged in as '+$.cookie('login')
@@ -398,6 +399,7 @@ function Options(check_id) {
 			img.title = 'Logged out from server-side profile' ;
 		}
 		is.appendChild(img) ;
+		*/
 		var img = create_img(localize_image(this.get('profile_avatar'))) ;
 		img.id = 'avatar' ;
 		is.appendChild(img) ;
@@ -431,7 +433,7 @@ function Options(check_id) {
 	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
 	this.add('Appearence', 'transparency',		'Transparency',			'Activate transparency, nicer but slower',								true) ;
 	this.add('Appearence', 'helpers',		'Helpers',			'Display right click\'s drag\'n\'drop helper',								true) ;
-	this.add('Appearence', 'smallres', 'Small resolution', 'Display card images in small size (builder)', false)
+	this.add('Appearence', 'smallres', 'Small resolution', 'Display card images in small size (builder)', window.innerWidth < smallres_width) ;
 			// Behaviour
 	var positions = {'top':'Top', 'middle':'Middle', 'bottom':'Bottom'} // Positions for placing
 	this.add('Behaviour', 'library_doubleclick_action', 'Library double-click', 'Choose what happend when you doubleclick on library', 'look_top_n', {'look_top_n': 'Look top N cards', 'edit': 'Search in library', 'draw': 'Draw a card'}) ;

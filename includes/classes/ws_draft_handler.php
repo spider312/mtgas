@@ -16,6 +16,7 @@ class DraftHandler extends LimitedHandler {
 		if ( $player == null )
 			$this->observer->say('Player '.$user->player_id.' not found in draft') ;
 		else {
+			$player->connect($this->type) ;
 			$user->player = $player ;
 			if ( $tournament->status == 3 ) {
 				$booster = $tournament->get_booster($player) ;

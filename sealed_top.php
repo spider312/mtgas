@@ -2,7 +2,6 @@
 include 'lib.php' ;
 include 'includes/db.php' ;
 include 'includes/card.php' ;
-include 'includes/deck.php' ;
 $order = param($_GET, 'order', 'score_ratio') ;
 $report = param($_GET, 'report', '') ;
 $type = param($_GET, 'type', '') ;

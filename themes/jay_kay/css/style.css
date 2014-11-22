@@ -69,10 +69,10 @@ a {
 	color: black ;
 }
 a:visited {
-	color: darkred ;
+	color: #353535 ;
 }
 a:hover {
-	color: dimgrey ;
+	color: darkred ;
 }
 /* Mogg specific generic classes */
 header {

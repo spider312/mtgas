@@ -22,6 +22,7 @@ class BuildHandler extends LimitedHandler {
 		if ( $player == null )
 			$this->observer->say('Player '.$user->player_id.' not found in build') ;
 		else {
+			$player->connect($this->type) ;
 			$user->player = $player ;
 			$user->sendString(json_encode($player->get_deck())) ;
 		}

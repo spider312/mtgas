@@ -26,6 +26,8 @@ class TournamentIndexHandler extends TournamentHandler {
 		if ( $player == null )
 			$tournament->register_spectator($user) ;
 		else {
+			$player->connect($this->type) ;
+			$user->player = $player ;
 			// Redirect
 			if ( ( $tournament->status == 3 )
 				&& ( ! $this->observer->draft->is_connected($tournament, $user->player_id) ) )
