@@ -12,9 +12,11 @@ function start(pid) {
 	get_past_tournaments() ;
 	games_delay.addEventListener('change', function(ev) {
 		get_past_games() ;
+		ev.target.blur() ;
 	}, false) ;
 	tournaments_delay.addEventListener('change', function(ev) {
 		get_past_tournaments() ;
+		ev.target.blur() ;
 	}, false) ;
 }
 function get_past_games() {
