@@ -56,8 +56,8 @@ html_head(
  <body onload="start('<?=$player_id?>')">
 <?php html_menu() ; ?>
   <div class="section">
-   <h1>Data for <?php echo join(', ', $self_nicks) ; ?></h1>
-   <h2>Duels replay
+   <h1><?php echo join(', ', $self_nicks) ; ?>'s recent games</h1>
+   <h2>Duels
     <select id="past_games_delay" title="Delay">
      <option value="">All</option>
      <option value="YEAR">Year</option>
@@ -68,6 +68,7 @@ html_head(
     </select>
    </h2>
    <table id="past_games_list">
+    <caption>uninitialised</caption>
     <thead>
      <tr>
        <td>Game name</td>
@@ -88,7 +89,7 @@ html_head(
     </tbody>
    </table>
 
-   <h2>Tournaments replay
+   <h2>Tournaments
     <select id="past_tournaments_delay" title="Delay">
      <option value="">All</option>
      <option value="YEAR">Year</option>
@@ -99,6 +100,7 @@ html_head(
     </select>
    </h2>
    <table id="past_tournament_list">
+    <caption>Loading default</caption>
     <thead>
      <tr>
       <td>Type</td>

@@ -22,9 +22,12 @@ function start(pid) {
 function get_past_games() {
 	var past_games = document.getElementById('past_games') ;
 	var no_past_games = document.getElementById('no_past_games') ;
+	var caption = past_games.parentNode.caption.firstChild ;
+	caption.nodeValue = 'Loading ...' ;
 	$.getJSON('json/suscribed_games.php', {'player_id': player_id, 'games_delay': games_delay.value}, function(data) {
 		// Past games
 		node_empty(past_games) ; // Remove old lines
+		caption.nodeValue = data.suscribed_games.length+' duels' ;
 		if ( data.suscribed_games.length > 0 ) {
 			no_past_games.style.display = 'none' ; // Hide table line "no suscribed games"
 			nb_w = 0 ;
@@ -88,11 +91,14 @@ function get_past_games() {
 function get_past_tournaments() {
 	var past_tournaments = document.getElementById('past_tournaments') ;
 	var no_past_tournaments = document.getElementById('no_past_tournaments') ;
+	var caption = past_tournaments.parentNode.caption.firstChild ;
+	caption.nodeValue = 'Loading ...' ;
 	$.getJSON('json/suscribed_tournaments.php',
 		{'player_id': player_id, 'tournaments_delay': tournaments_delay.value},
 		function(data) {
 			// Displays a list of past && current tournaments
 			node_empty(past_tournaments) ;
+			caption.nodeValue = data.suscribed_tournaments.length+' tournaments' ;
 			if ( data.suscribed_tournaments.length > 0 ) {
 				no_past_tournaments.style.display = 'none' ; // Hide table line "no past tournaments"
 				var ranks = [] ;
