@@ -1187,6 +1187,7 @@ function Life(player) {
 			menu.addline('-1',	mylife.changelife, -1) ;
 			menu.addline('-2',	mylife.changelife, -2) ;
 			menu.addline('-3',	mylife.changelife, -3) ;
+			menu.addline('-4',	mylife.changelife, -4) ;
 			menu.addline('-5',	mylife.changelife, -5) ;
 			menu.addline('-10',	mylife.changelife, -10) ;
 			menu.addline() ;
@@ -1202,6 +1203,7 @@ function Life(player) {
 			menu.addline('+1',	mylife.changelife, 1) ;
 			menu.addline('+2',	mylife.changelife, 2) ;
 			menu.addline('+3',	mylife.changelife, 3) ;
+			menu.addline('+4',	mylife.changelife, 4) ;
 			menu.addline('+5',	mylife.changelife, 5) ;
 			menu.addline('+10',	mylife.changelife, 10) ;
 			menu.addline() ;
