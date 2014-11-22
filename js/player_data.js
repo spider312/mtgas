@@ -1,4 +1,5 @@
 function start(pid) {
+	ajax_error_management() ;
 	if ( iss(pid) )
 		player_id = pid ;
 	// Delays
@@ -87,7 +88,7 @@ function get_past_games() {
 function get_past_tournaments() {
 	var past_tournaments = document.getElementById('past_tournaments') ;
 	var no_past_tournaments = document.getElementById('no_past_tournaments') ;
-	$.getJSON('tournament/json/suscribed.php',
+	$.getJSON('json/suscribed_tournaments.php',
 		{'player_id': player_id, 'tournaments_delay': tournaments_delay.value},
 		function(data) {
 			// Displays a list of past && current tournaments
@@ -104,14 +105,14 @@ function get_past_tournaments() {
 					else
 						var rank = 0 ;
 					var players = create_span() ;
-					for ( var j in tdata.players ) { // Foreach player
-						var pid = tdata.players[j].player_id ;
+					for ( var j in tournament.players ) { // Foreach player
+						var pid = tournament.players[j].player_id ;
 						if ( pid != player_id ) { // Foreach opponent
 							var classname = 'noop' ;
-							var nick = tdata.players[j].nick ;
-							for ( var k in tdata.results ) { // Search this opponent in matches against current player
-								for ( var l in tdata.results[k] ) {
-									var result = tdata.results[k][l] ;
+							var nick = tournament.players[j].nick ;
+							for ( var k in tournament.results ) { // Search this opponent in matches against current player
+								for ( var l in tournament.results[k] ) {
+									var result = tournament.results[k][l] ;
 									if ( // Current player is creator
 										( result.creator_id == player_id )
 										&& ( result.joiner_id == pid )
