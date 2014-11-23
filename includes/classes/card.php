@@ -13,6 +13,7 @@ class Card {
 	private $extensions = array() ; // Full data for extensions
 	public function __construct($card) {
 		$this->occurence = ++Card::$occurences ;
+		$this->id = $card->id ;
 		$this->name = $card->name ;
 		$this->attrs = json_decode($card->attrs) ;
 		// Merge attrs and fixed_attrs
