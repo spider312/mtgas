@@ -12,6 +12,10 @@ foreach ( $json->cards as $card )
 		case 'split' :
 			$nbcards += 0.5 ;
 			break ;
+		case 'token' :
+			//print_r($card) ;
+			//$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+			break ;
 		default :
 			d('Unknown layout : '.$card->layout) ;
 	}
@@ -59,6 +63,8 @@ foreach ( $json->cards as $card ) {
 				continue 2 ;
 			}
 			break ;
+		case 'token' :
+			continue 2 ;
 		default :
 			d('Unknown layout : '.$card->layout) ;
 	}
