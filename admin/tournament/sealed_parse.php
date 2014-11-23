@@ -83,7 +83,7 @@ foreach ( $t as $d ) {
 		continue ;
 	}
 	// Results
-	$query = "SELECT `creator_id`, `creator_score`, `joiner_id`, `joiner_score`, `round`
+	$query = "SELECT `id`, `creator_id`, `creator_score`, `joiner_id`, `joiner_score`, `round`
 		FROM `round`
 		WHERE `tournament` = {$d->id} ORDER BY `round` ASC" ;
 	$matches = query_as_array($query) ;
