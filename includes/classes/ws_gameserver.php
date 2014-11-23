@@ -5,6 +5,7 @@ require_once 'includes/db.php' ;
 require_once 'includes/mojosto.php' ;
 require_once 'includes/card.php' ;
 require_once 'includes/ranking.php' ;
+require_once 'includes/ts3.php' ;
 // Websocket objects
 require_once 'includes/classes/ws_game.php' ;
 require_once 'includes/classes/ws_tournament.php' ;
