@@ -1,5 +1,6 @@
 <?php
 include_once 'lib.php' ;
+require_once '../../includes/classes/deck.php' ;
 ini_set ('max_execution_time', 0); 
 ini_set ('memory_limit', '256M'); 
 
@@ -69,6 +70,7 @@ echo '<pre>' ;
 $starter_won = $starter_lost = 0 ;
 foreach ( $t as $d ) {
 	echo $d->creation_date.' - '.'<a href="/tournament/?id='.$d->id.'">'.$d->name.'</a> : ' ;
+	// Base checks
 	$json_start = microtime(true) ;
 	$data = json_decode($d->data) ;
 	$json_parse += ( microtime(true) - $json_start ) ;
@@ -80,6 +82,19 @@ foreach ( $t as $d ) {
 		echo "Containing no wanted booster\n" ;
 		continue ;
 	}
+	// Results
+	$query = "SELECT `creator_id`, `creator_score`, `joiner_id`, `joiner_score`, `round`
+		FROM `round`
+		WHERE `tournament` = {$d->id} ORDER BY `round` ASC" ;
+	$matches = query_as_array($query) ;
+		// By round
+	$results = array() ;
+	foreach ( $matches as $match ) {
+		while ( count($results) < $match->round )
+			array_push($results, array()) ;
+		array_push($results[$match->round-1], $match) ;
+	}
+	$data->results = $results ;
 	// Get winner
 	foreach ( $data->results as $i => $round ) {
 		foreach ( $round as $game ) {
@@ -124,7 +139,7 @@ foreach ( $t as $d ) {
 		}
 		$tournaments[$d->id] = $d->name ;
 		$deck_start = microtime(true) ;
-		$deck = deck2arr($r->deck, true) ;
+		$deck = new Deck($r->deck) ;
 		$deck_parse += ( microtime(true) - $deck_start ) ;
 		$rounds_number = 1 ;
 		if ( $data->rounds_number > $rounds_number )
@@ -179,7 +194,7 @@ function update_score($card, $opened=1, $played=0, $score=0) {
 		$cards[$card->id]->opened += $opened ;
 		$cards[$card->id]->played += $played ;
 		$cards[$card->id]->scored += $score ;
-		if ( ! array_key_exists($rarity, $cards[$card->id]->rarity) )
+		if ( ! array_key_exists($card->rarity, $cards[$card->id]->rarity) )
 			$cards[$card->id]->rarity[$card->rarity] = 1 ;
 		else
 			$cards[$card->id]->rarity[$card->rarity]++ ;
