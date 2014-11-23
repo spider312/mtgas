@@ -24,20 +24,20 @@ html_head(
 $(function() { // On page load
 	game = {} ;
 	game.options = new Options(true) ;
-	function statsform(el) {
-		var spl = el.value.split('|') ;
-		if ( spl.length < 5 )
-			alert('Not 5 parts in '+el.value) ;
-		var form = document.getElementById('stats_create') ;
-		var i = 0 ;
-		form.name.value = spl[i++] ;
-		form.date.value = spl[i++] ;
-		form.format.value = spl[i++] ;
-		form.exts.value = spl[i++] ;
-		form.mask.value = spl[i++] ;
-		form.imask.value = spl[i++] ;
-	}
 }) ;
+function statsform(el) {
+	var spl = el.value.split('|') ;
+	if ( spl.length < 5 )
+		alert('Not 5 parts in '+el.value) ;
+	var form = document.getElementById('stats_create') ;
+	var i = 0 ;
+	form.name.value = spl[i++] ;
+	form.date.value = spl[i++] ;
+	form.format.value = spl[i++] ;
+	form.exts.value = spl[i++] ;
+	form.mask.value = spl[i++] ;
+	form.imask.value = spl[i++] ;
+}
   </script>
 <?php
 html_menu() ;
