@@ -73,16 +73,27 @@ function fill_tournament(node, datas) {
 	else
 		for ( var i = 0 ; i < datas.length ; i++ ) {
 			var data = datas[i] ;
-			var li = create_li('#'+data.id+' : '+data.name) ;
-			var input = create_input('due_time', data.due_time) ;
-			var form = create_form() ;
-			form.id = data.id
-			form.addEventListener('submit', function(ev) {
-				game.connection.send('{"type": "tournament_set", "id": '+ev.target.id+', "due_time": "'+ev.target.due_time.value+'"}') ;
-				return eventStop(ev) ;
-			}, false) ;
-			form.appendChild(input) ;
-			li.appendChild(form) ;
+			var name = data.id+' : '+data.name
+			if ( iso(data.data.boosters) )
+				name += ' ('+data.data.boosters.join('-')+')' ;
+			name += ' '+data.min_players+'p' ;
+			var li = create_li(name) ;
+			var ul = create_ul() ;
+			for ( var i = 0 ; i < data.players.length ; i++)
+				ul.appendChild(player_li(data.players[i], data.players[i].connected[0])) ;
+			li.appendChild(ul) ;
+			if ( data.type == 'running_tournament' ) {
+				var input = create_input('due_time', data.due_time) ;
+				var form = create_form() ;
+				form.id = data.id
+				form.addEventListener('submit', function(ev) {
+					game.connection.send('{"type": "tournament_set", "id": '+ev.target.id+
+						', "due_time": "'+ev.target.due_time.value+'"}') ;
+					return eventStop(ev) ;
+				}, false) ;
+				form.appendChild(input) ;
+				li.appendChild(form) ;
+			}
 			node.appendChild(li)
 		}
 }
