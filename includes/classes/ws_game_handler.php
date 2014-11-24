@@ -199,19 +199,18 @@ class GameHandler extends WebSocketUriHandler {
 		if ( ! $this->connected($user->player_id, $user->game) ) {
 			// Send disconnection to game
 			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
+			// Update player status on index
+			$field = $user->game->which($user->player_id) ;
+			if ( $field != '' ) {
+				$field .= '_status' ;
+				if ( $user->game->{$field} > 0 )
+					$user->game->{$field} = 0 ;
+			}
 			// Remove from index
 			if ( ! $this->displayed($user->game) ) 
 				$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}');
-			else {
-				// Update player status on index
-				$field = $user->game->which($user->player_id) ;
-				if ( $field != '' ) {
-					$field .= '_status' ;
-					if ( $user->game->{$field} > 0 )
-						$user->game->{$field} = 0 ;
-					$this->observer->index->broadcast(json_encode($user->game)) ;
-				}
-			}
+			else if ( $field != '' ) // Send status update
+				$this->observer->index->broadcast(json_encode($user->game)) ;
 			// Update tournament player status
 			if ( $user->game->tournament > 0 ) {
 				$tournament = Tournament::get($user->game->tournament) ;
