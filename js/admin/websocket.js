@@ -19,6 +19,7 @@ $(function() { // On page load
 				fill_tournament(running_tournaments, data.running_tournaments) ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
+				debug(data) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
@@ -44,18 +45,28 @@ function fill_duel(node, datas) {
 	var goldfish = 0 ;
 	for ( var i = 0 ; i < datas.length ; i++ ) {
 		var data = datas[i] ;
-		debug(data) ;
 		if ( data.creator_id == data.joiner_id ) { // Goldfish
 			goldfish++
 			continue ;
 		}
 		if ( data.tournament > 0 ) // Tournament
 			continue ;
-		var li = create_li(data.name+' : '+data.creator_nick+' / '+data.joiner_nick) ;
-		node.appendChild(li)
+		var li = create_li(data.id+' : '+data.name) ;
+		var ul = create_ul() ;
+		debug(data) ;
+		if ( data.creator_status > 0 )
+		ul.appendChild(player_li({'player_id': data.creator_id, 'nick': data.creator_nick}, 'game')) ;
+		else
+			ul.appendChild(create_li(data.creator_nick)) ;
+		if ( data.joiner_status > 0 )
+		ul.appendChild(player_li({'player_id': data.joiner_id, 'nick': data.joiner_nick}, 'game')) ;
+		else
+			ul.appendChild(create_li(data.joiner_nick)) ;
+		li.appendChild(ul) ;
+		node.appendChild(li) ;
 	}
 	if ( goldfish > 0 )
-		node.appendChild(create_li('+ '+goldfish+' goldfishes'))
+		node.appendChild(create_li('+ '+goldfish+' goldfish'))
 }
 function fill_tournament(node, datas) {
 	if ( datas.length < 1 )

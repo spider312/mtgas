@@ -56,9 +56,16 @@ class AdminHandler extends ParentHandler {
 				if ( property_exists($data, 'handler') && property_exists($data, 'id') ) {
 					if ( property_exists($this->observer, $data->handler) ) {
 						$handler = $this->observer->{$data->handler} ;
+						$kicked = array() ;
 						foreach ( $handler->getConnections() as $cnx )
-							if ( isset($cnx->player_id) && ( $cnx->player_id == $data->id ) )
+							if ( isset($cnx->player_id) && ( $cnx->player_id == $data->id ) ) {
 								$cnx->close('Kicked') ;
+								$kicked[] = $cnx->nick ;
+							}
+						if ( count($kicked) > 0 )
+							$this->say('No players with id '.$data->id.' to kick') ;
+						else
+							$this->say(implode($kicked).' kicked') ;
 					} else
 						$this->say('Trying to kick from unexisting handler '.$data->handler) ;
 				}
