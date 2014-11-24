@@ -19,14 +19,14 @@ $(function() { // On page load
 				fill_tournament(running_tournaments, data.running_tournaments) ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
-				debug(data) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
 				debug(data) ;
 		}
 	}, function(ev) { // OnClose/OnConnect
-		node_empty(mtg_data, pending_duels, joined_duels, pending_tournaments, running_tournaments) ;
+		node_empty(connected_users, pending_duels, joined_duels,
+			pending_tournaments, running_tournaments, mtg_data) ;
 	}) ;
 })
 function player_li(user, handler) {
@@ -53,7 +53,6 @@ function fill_duel(node, datas) {
 			continue ;
 		var li = create_li(data.id+' : '+data.name) ;
 		var ul = create_ul() ;
-		debug(data) ;
 		if ( data.creator_status > 0 )
 		ul.appendChild(player_li({'player_id': data.creator_id, 'nick': data.creator_nick}, 'game')) ;
 		else
