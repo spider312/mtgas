@@ -83,7 +83,13 @@ class GameServer {
 		$this->warn('Server created') ;
 	}
 	public function import() {
-		// Import MOGG Data from DB
+		// MTG Data
+		Extension::fill_cache() ;
+		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
+		$links = Card::fill_cache() ;
+		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
+
+		// MOGG Data
 		global $db ;
 			// Running games
 		$this->joined_duels = array() ;
@@ -106,12 +112,7 @@ class GameServer {
 			if ( $t )
 				$this->running_tournaments[] = $t ;
 		}
-			// Extensions
 		$this->warn("\t".count($this->running_tournaments).' running tournaments imported') ;
-		Extension::fill_cache() ;
-		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
-		$links = Card::fill_cache() ;
-		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
 		// Export
 		ranking_to_file('ranking/week.json', 'WEEK') ;
 		ranking_to_file('ranking/month.json', 'MONTH') ;
@@ -121,7 +122,6 @@ class GameServer {
 	}
 	public function start() {
 		// Bind the server
-		$this->warn('Opening port') ;
 		$this->server->bind();
 		// Start the event loop
 		$this->warn('Starting server') ;
