@@ -324,7 +324,7 @@ function ask_for_start(winner) { // If player did lose, ask him if he wants to s
 			game.opponent.hand.mulligan() ; // First draw
 	} else {
 		if ( game.player != winner ) { // Loser chooses
-			if ( confirm('Do you want to start ?') ) {
+			if ( confirm('You won the toss, do you want to start ?') ) {
 				message(winner.opponent.name+' choosed to play', 'win') ; // Having the same display when sending and recieving
 				var player = game.player ;
 			} else {
