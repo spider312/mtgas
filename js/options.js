@@ -15,6 +15,7 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 		else
 			localStorage[this.name] = value ;
 		// Logged-in : send new value
+		/*
 		if ( $.cookie && ( $.cookie('login') != null ) )  {
 			if ( this.label != null )
 				this.label.classList.add('updating') ;
@@ -37,6 +38,7 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 				}
 			}, 'json') ;
 		}
+		*/
 	}
 	this.get = function() {
 		if ( localStorage.hasOwnProperty(this.name) ) {
@@ -415,24 +417,12 @@ function Options(check_id) {
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', default_avatar) ;
 		// Options
 			// Appearence
-//function save_restore_options() { // Previous options management had a way for user to define card images URL (not choosing in a list) :
-//	save_restore('cardimages', function(field) {$.cookie('cardimages', field.value) ; }) ; // Write value in cookies in order PHP to get it
-//	var cardimages = document.getElementById('cardimages') ;
-//	var cardimages_choice = document.getElementById('cardimages_choice') ;
-//	cardimages_choice.addEventListener('change', function(ev) {
-//		cardimages.value = ev.target.value ;
-//		save(cardimages) ;
-//		$.cookie('cardimages', ev.target.value) ;
-//	}, false) ;
-//}
-	this.add('Appearence', 'lang',			'Language',			'Language used for every message printed on this site, does not include card images',			applang, applangs, function(option) {
-		$.cookie(option.name, option.get()) ;
-	}) ;
-	this.add('Appearence', 'cardimages',		'Card images',			'A theme of card images',										cardimages_default_lang, cardimages_choice) ;
-	this.add('Appearence', 'invert_bf',		'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing',		false) ;
-	this.add('Appearence', 'display_card_names',	'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
-	this.add('Appearence', 'transparency',		'Transparency',			'Activate transparency, nicer but slower',								true) ;
-	this.add('Appearence', 'helpers',		'Helpers',			'Display right click\'s drag\'n\'drop helper',								true) ;
+	this.add('Appearence', 'lang', 'Language', 'Language used for every message printed on this site, does not include card images', applang, applangs, function(option) {$.cookie(option.name, option.get()) ;}) ;
+	this.add('Appearence', 'cardimages', 'Card images', 'A theme of card images', cardimages_default_lang, cardimages_choice) ;
+	this.add('Appearence', 'invert_bf', 'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing', false) ;
+	this.add('Appearence', 'display_card_names', 'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
+	this.add('Appearence', 'transparency', 'Transparency', 'Activate transparency, nicer but slower', true) ;
+	this.add('Appearence', 'helpers', 'Helpers', 'Display right click\'s drag\'n\'drop helper', true) ;
 	this.add('Appearence', 'smallres', 'Small resolution', 'Display card images in small size (builder)', window.innerWidth < smallres_width) ;
 			// Behaviour
 	var positions = {'top':'Top', 'middle':'Middle', 'bottom':'Bottom'} // Positions for placing
@@ -443,7 +433,6 @@ function Options(check_id) {
 	this.add('Behaviour', 'place_creatures', 'Place creature', 'Where to place creature cards by default (when double clicked) on battlefield', 'middle', positions) ; 
 	this.add('Behaviour', 'place_noncreatures', 'Place non-creature', 'Where to place non-creature cards by default (when double clicked) on battlefield', 'top', positions) ; 
 	this.add('Behaviour', 'place_lands', 'Place land', 'Where to place land cards by default (when double clicked) on battlefield', 'bottom', positions) ;
-	//this.add('Behaviour', 'draft_auto_ready', 'Auto-mark as ready after picking', 'You will automatically be marked as ready after picking a card. If unchecked, you\'ll have to double click the card you want or check the "ready" box to mark as ready.', true) ;
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
@@ -478,9 +467,8 @@ function Options(check_id) {
 		var footer = document.getElementById('footer') ;
 		if ( footer != null ) {
 			footer.appendChild(create_div(create_text('session id : '+player_id))) ;
-			footer.appendChild(create_div(create_text('cookie login : '+$.cookie('login')))) ;
-			footer.appendChild(create_div(
-				create_text('cookie password : '+$.cookie('password')))) ;
+			//footer.appendChild(create_div(create_text('cookie login : '+$.cookie('login')))) ;
+			//footer.appendChild(create_div(create_text('cookie password : '+$.cookie('password')))) ;
 		}
 	}
 }
@@ -534,6 +522,7 @@ function store(key, value) {
 		localStorage.removeItem(key) ;
 	else
 		localStorage[key] = value ;
+	/*
 	if ( $.cookie && ( $.cookie('login') != null ) )  { // Logged-in : send new value
 		var e = document.getElementById(key) ;
 		if ( e != null )
@@ -550,6 +539,7 @@ function store(key, value) {
 				e.parentNode.classList.remove('updating') ;
 		}, 'json') ;
 	}
+	*/
 }
 function save(myfield) {
 	var field = myfield.id ;
@@ -614,11 +604,13 @@ function profile_clear() {
 	}
 }
 	// Server side
+/*
 function profile_upload() { // Server side profile registration || login with overwrite
 	$.post('json/account/profile_update.php', {'json': JSON.stringify(localStorage)}, function(d) {
 		game.options.select_tab('Profile') ;
 	}, 'json') ;
 }
+*/
 function profile_downloaded(profile) { // Server side login without overwrite
 	if ( !iso(profile) || ( profile == null ) )
 		return false ;
