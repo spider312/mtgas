@@ -870,7 +870,10 @@ function card_prototype() {
 								var txt = name ;
 							if ( tokens[i].nb > 1 )
 								txt += ' x '+tokens[i].nb
-							var l = cardmenu.addline(txt, create_token, ext, name, game.player.battlefield, attrs, tokens[i].nb) ;
+							var zone = game.player.battlefield ; // By default, create token on asking player's battlefield
+							if ( goldfish ) // Goldfish players want it on card's controler battlefield
+								zone = card.zone ;
+							var l = cardmenu.addline(txt, create_token, ext, name, zone, attrs, tokens[i].nb) ;
 							l.moimg = card_images('/TK/'+ext+'/'+img) ;
 						}
 						// Animate
