@@ -81,6 +81,14 @@ class GameServer {
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
 		$this->warn('Server created') ;
+		$this->check() ;
+	}
+	public function check() {
+		$observer = $this ;
+		$this->timer = $this->loop->addTimer(10, function() use($observer) {
+			$observer->index->check_users() ;
+			$observer->check() ;
+		}) ;
 	}
 	public function import() {
 		// MTG Data

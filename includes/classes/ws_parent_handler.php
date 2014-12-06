@@ -33,7 +33,19 @@ class ParentHandler extends WebSocketUriHandler {
 		}
 		return $result ;
 	}
-	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
+	public function check_users() {
+		foreach ( $this->getConnections() as $cnx )
+			if ( ! $cnx->ping )
+				$cnx->close() ;
+			else {
+				$cnx->ping = false ;
+				$cnx->sendString('{"type": "ping"}') ;
+			}
+	}
+	public function onConnect(WebSocketTransportInterface $user) {
+		$user->ping = true ;
+	}
+	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg) {
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
 			$this->say('Unparsable JSON : '.$msg->getData()) ;
@@ -47,7 +59,11 @@ class ParentHandler extends WebSocketUriHandler {
 			$this->say(' <- '.$data->type) ;
 		switch ( $data->type ) {
 			case 'ping' :
-				$user->sendString($msg->getData()) ;
+				$data->type = 'pong' ;
+				$user->sendString(json_encode($data)) ;
+				break ;
+			case 'pong' :
+				$user->ping = true ;
 				break ;
 			case 'register' :
 				if ( isset($data->player_id) && isset($data->nick) ) {

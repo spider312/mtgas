@@ -80,6 +80,10 @@ function Connexion(url, onmessage, onclose, registration_data) {
 			}
 			switch ( data.type  ) {
 				case 'ping' :
+					data.type = 'pong' ;
+					connexion.send(JSON.stringify(data)) ;
+					break ;
+				case 'pong' :
 					connexion.pingtime(new Date() - connexion.ping_sent) ;
 					setTimeout.call(connexion, connexion.ping, connexion.ping_delay) ;
 					break ;
