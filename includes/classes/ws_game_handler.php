@@ -174,11 +174,11 @@ class GameHandler extends WebSocketUriHandler {
 				}
 		}
 	}
-	public function displayed($game) { // Does the game needs to be displayed on index
+	public function displayed($game, $tournament_id=0) { // Does the game needs to be displayed on index
 		foreach ( $this->getConnections() as $user )
 			if (
 				isset($user->game)
-				&& ( $user->game->tournament == 0 ) // Not a tournament game
+				&& ( $user->game->tournament == $tournament_id ) // Not a tournament game
 				&& ( $user->game->id == $game->id ) // At least one user connected
 				&& ( $game->creator_id != $game->joiner_id ) // Not goldfish
 				&& (
@@ -233,6 +233,12 @@ class GameHandler extends WebSocketUriHandler {
 			if ( $user->game->tournament > 0 ) {
 				$tournament = Tournament::get($user->game->tournament) ;
 				$tournament->player_disconnect($user->player_id, 'game_'.$user->game->id) ;
+				if ( ! $this->displayed($user->game, $user->game->tournament) ) {
+					$creator = $tournament->get_player($user->game->creator_id) ;
+					$joiner = $tournament->get_player($user->game->joiner_id) ;
+					$creator->set_ready(true) ;
+					$joiner->set_ready(true) ;
+				}
 			}
 		}
 	}
