@@ -218,8 +218,8 @@ class Registration {
 		) VALUES(
 			'{$this->tournament->id}',
 			'{$this->player_id}',
-			'{$this->nick}',
-			'{$this->avatar}',
+			'".$db->escape($this->nick)."',
+			'".$db->escape($this->avatar)."',
 			'".$db->escape($this->deck)."',
 			'{$this->order}'
 		);") ;
