@@ -27,11 +27,29 @@ class GameHandler extends WebSocketUriHandler {
 		return $result ;
 	}
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg){
-		$data = json_decode($msg->getData()) ;
-		if ( $data == null ) {
-			$this->observer->say('Unparsable JSON : '.$msg->getData()) ;
-			return false ;
+		$strdata = $msg->getData() ;
+		$data = json_decode($strdata) ;
+		if ( $data != null ) 
+			return $this->manage_message($user, $data) ;
+		$this->observer->say('Unparsable JSON : '.$strdata) ;
+		if ( preg_match('/\}(.)\{/', $strdata, $matches) ) {
+			$parts = preg_split ('}.{', $strdata) ;
+			$this->observer->say('bug char : '.ord($matches[1]).', cut in '.count($parts)) ;
+			//$parts = explode('}'.chr($bugchar).'{', $strdata) ;
+			foreach ( $parts as $i => $part ) {
+				if ( $i == 0 )
+					$part .= '}' ;
+				elseif ( $i == count($parts) - 1 )
+					$part = '{'.$part ;
+				else
+					 $part = '{'.$part.'}' ;
+				$data = json_decode($part) ;
+				if ( $data != null )
+					$this->manage_message($user, $data) ;
+			}
 		}
+	}
+	private function manage_message($user, $data) {
 		if ( ! isset($data->type) ) {
 			$this->observer->say('No type given') ;
 			return false ;
@@ -44,7 +62,7 @@ class GameHandler extends WebSocketUriHandler {
 		}
 		switch ( $data->type ) {
 			case 'ping' :
-				$user->sendString($msg->getData()) ;
+				$user->sendString(json_encode($data)) ;
 				break ;
 			case 'register' :
 				// Search game
@@ -196,20 +214,20 @@ class GameHandler extends WebSocketUriHandler {
 			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
-		if ( ! $this->connected($user->player_id, $user->game) ) {
+		if ( ! $this->connected($user->player_id, $user->game) ) { // Last tab open on this page
 			// Send disconnection to game
 			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
-			// Update player status on index
+			// Update player status
 			$field = $user->game->which($user->player_id) ;
 			if ( $field != '' ) {
 				$field .= '_status' ;
 				if ( $user->game->{$field} > 0 )
 					$user->game->{$field} = 0 ;
 			}
-			// Remove from index
+			// Update / remove from index
 			if ( ! $this->displayed($user->game) ) 
 				$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}');
-			else if ( $field != '' ) // Send status update
+			else if ( $field != '' )
 				$this->observer->index->broadcast(json_encode($user->game)) ;
 			// Update tournament player status
 			if ( $user->game->tournament > 0 ) {
