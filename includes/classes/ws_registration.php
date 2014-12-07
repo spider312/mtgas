@@ -15,6 +15,7 @@ class Registration {
 	public $deck_cards = -1 ;
 	public $side_cards = -1 ;
 	public $connected = array() ;
+	public $connected_prev = array('index') ;
 	public function __construct($obj, $tournament) {
 		$this->type = 'player' ; // JSON over WS
 		$this->tournament = $tournament ;
@@ -204,6 +205,13 @@ class Registration {
 			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
 		$this->tournament->players_ready() ;
 		return true ;
+	}
+	public function drop($msg='No reason') {
+		$this->tournament->log($this->player_id, 'drop', $msg) ;
+		$this->set_status(7) ;
+		if ( count($this->tournament->get_players()) < 2 )	
+			$this->tournament->cancel('Not enough players left') ;
+		$this->tournament->send() ;
 	}
 	public function insert($i) {
 		$this->order = $i ;

@@ -420,12 +420,11 @@ class Tournament {
 			case 4 : // Building
 				foreach ( $this->players as $player ) {
 					$count = count($player->get_deck()->main) ;
-					if ( $count < 40 ) {
-						$this->log($player->player_id, 'drop', $count.' cards') ;
-						$player->set_status(7) ;
-					}
+					if ( $count < 40 ) 
+						$player->drop($count.' cards') ;
 				}
-				$this->start() ;
+				if ( $this->status == 4 ) // Game not canceled by drop
+					$this->start() ;
 				break ;
 			case 5 : // Playing
 				$this->nextround() ;
@@ -790,8 +789,8 @@ class Tournament {
 		$from = substr($this->type, 0, strpos($this->type, '_')) ;
 		$this->observer->move_tournament($this, $from, 'ended') ;
 		$this->set_status(0) ;
-		$this->log('', 'cancel', $reason) ;
 		$this->terminate() ;
+		$this->log('', 'cancel', $reason) ;
 		$this->send() ;
 	}
 	private function terminate() { // Common between end and cancel
