@@ -62,6 +62,7 @@ class GameHandler extends WebSocketUriHandler {
 		}
 		switch ( $data->type ) {
 			case 'ping' :
+				$data->type = 'pong' ;
 				$user->sendString(json_encode($data)) ;
 				break ;
 			case 'register' :
