@@ -42,6 +42,8 @@ foreach ( $langs as $code => $name ) // Add each languages
 $wait_duration = 3 * 60 ; // 3 minutes waiting for players beeing redirected
 $build_duration = 40 * 60 ; // 40 mins for build
 $round_duration = 60 * 60 ; // 60 mins for rounds as there are no additionnal turns
+$index_timeout = 10 ; // Server pings index clients every 10 secs
+$tournament_timeout = 180 ; // Server drops players after 3 minutes if already disconnected on last check
 
 // Shouldn't change
 $appname = 'MTGAS' ; // Must be different on servers hosted behind the same hostname

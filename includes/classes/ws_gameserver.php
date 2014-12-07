@@ -81,14 +81,6 @@ class GameServer {
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
 		$this->warn('Server created') ;
-		$this->check() ;
-	}
-	public function check() {
-		$observer = $this ;
-		$this->timer = $this->loop->addTimer(10, function() use($observer) {
-			$observer->index->check_users() ;
-			$observer->check() ;
-		}) ;
 	}
 	public function import() {
 		// MTG Data
@@ -129,11 +121,35 @@ class GameServer {
 		$this->warn("\t".'Ranking exported') ;
 	}
 	public function start() {
+		$this->check() ;
+		$this->check_tournaments() ;
 		// Bind the server
 		$this->server->bind();
 		// Start the event loop
 		$this->warn('Starting server') ;
 		$this->loop->run();
+	}
+	// Checks
+	public function check() { // Pings users on index
+		global $index_timeout ;
+		$observer = $this ;
+		$this->loop->addTimer($index_timeout, function() use($observer) {
+			$observer->index->check_users() ;
+			$observer->check() ;
+		}) ;
+	}
+	public function check_tournaments() { // Check user's connection status
+		global $tournament_timeout ;
+		$observer = $this ;
+		$this->loop->addTimer($tournament_timeout, function() use($observer) {
+			foreach ( $observer->running_tournaments as $tournament )
+				foreach ( $tournament->get_players() as $player )
+					if ( ( count($player->connected_prev) == 0 ) && ( count($player->connected) == 0 ) )
+						$player->drop('Not connected') ;
+					else
+						$player->connected_prev = $player->connected ;
+			$observer->check_tournaments() ;
+		}) ;
 	}
 	// Log management
 	public function emerg($msg) { $this->logger->log(Zend\Log\Logger::EMERG, $msg) ; }
