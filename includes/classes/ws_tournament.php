@@ -784,6 +784,8 @@ class Tournament {
 		$this->set_status(6) ;
 		$this->terminate() ;
 		$this->log($this->players[0]->player_id, 'end', '') ;
+		ranking_to_file('ranking/week.json', 'WEEK') ;
+		ranking_to_file('ranking/month.json', 'MONTH') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
 		$from = substr($this->type, 0, strpos($this->type, '_')) ;
