@@ -5,7 +5,7 @@ function query($query, $name='Query', $conn=null) {
 	if ( $conn == null  ) {
 		global $mysql_connection ;
 		if ( ! $mysql_connection ) {
-			global $mysql_login, $mysql_password ;
+			global $mysql_login, $mysql_password, $mysql_db ;
 			// MySQL
 			$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
 			if ( ! $mysql_connection )
