@@ -1,16 +1,17 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../config.php' ;
-// MySQL
-$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
-if ( ! $mysql_connection )
-	die('Connection failed : '.mysql_error()) ;
-if ( ! mysql_select_db($mysql_db, $mysql_connection) )
-	die('Selection failed : '.mysql_error()) ;
-
 
 function query($query, $name='Query', $conn=null) {
 	if ( $conn == null  ) {
 		global $mysql_connection ;
+		if ( ! $mysql_connection ) {
+			// MySQL
+			$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
+			if ( ! $mysql_connection )
+				die('Connection failed : '.mysql_error()) ;
+			if ( ! mysql_select_db($mysql_db, $mysql_connection) )
+				die('Selection failed : '.mysql_error()) ;
+		}
 		$conn = $mysql_connection ;
 	}
 	$result = mysql_query($query, $conn) ;
