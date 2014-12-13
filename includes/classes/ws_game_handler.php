@@ -88,6 +88,10 @@ class GameHandler extends WebSocketUriHandler {
 				$data->sender = $data->player_id ;
 				$this->broadcast(json_encode($data), $game, $user) ;
 				// Send game data to user
+					// Tokens
+				foreach ( $this->observer->tokens as $ext => $tokens)
+					$user->sendString('{"type":"tokens", "sender": "", "ext": "'.$ext.'", '.
+						'"param":'.json_encode($tokens).'}') ;
 					// Actions
 				$from = null ;
 				if ( isset($data->from) )

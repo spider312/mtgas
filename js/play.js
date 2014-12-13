@@ -191,6 +191,10 @@ function manage_action(action, active_player) {
 	}
 	// Action depending on param "type"
 	switch ( action.type ) {
+		// Init
+		case 'tokens' :
+			game.tokens_catalog[action.ext] = param ;
+			break ;
 		// Spectators
 		case 'spectactor' :
 			game.spectators.add(param.player_id, param.nick) ;

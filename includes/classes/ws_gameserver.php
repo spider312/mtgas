@@ -37,6 +37,8 @@ class GameServer {
 	public $build = null ;
 	public $tournament = null ;
 	public $game = null ;
+	// MTG data
+	public $tokens = array() ;
 	// MOGG data
 	public $pending_duels = array() ;
 	public $joined_duels = array() ;
@@ -88,7 +90,23 @@ class GameServer {
 		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
 		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
-
+		// Token images
+		$exts = array_reverse(Extension::$cache) ;
+		// Files (for tokens existence)
+		$base = '/home/hosted/mogg/img/MIDRES/TK/' ;
+		$tokendirs = scan($base) ;
+		// Processing (list all existing tokens ordered by database)
+		$orderedtokens = array() ;
+		foreach ( $exts as $obj )
+			if ( isset($tokendirs[$obj->se]) ) {
+				$orderedtokens[$obj->se] = $tokendirs[$obj->se] ;
+				unset($tokendirs[$obj->se]) ;
+			}
+		if ( isset($tokendirs['EXT']) ) { // Fallback tokens without specific extension
+			$orderedtokens['EXT'] = $tokendirs['EXT'] ;
+			unset($tokendirs['EXT']) ;
+		}
+		$this->tokens = $orderedtokens ;
 		// MOGG Data
 		global $db ;
 			// Running games

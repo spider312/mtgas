@@ -53,10 +53,7 @@ function Game(id, start_date, options, player_id, player_nick, player_avatar, pl
 	this.cards = new Array() ;
 	// Tokens
 	this.tokens = new Array() ;
-	this.tokens_catalog = null ; // Files found on server, for extension searching when creating a token
-	$.getJSON('json/tokens.php', null, function(data) {
-		game.tokens_catalog = data ;
-	}) ;
+	this.tokens_catalog = {} ; // Files found on server, for extension searching when creating a token
 	// Selection
 	this.selected = new Selection() ;
 	// Graphic elements

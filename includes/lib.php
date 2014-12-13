@@ -144,7 +144,17 @@ function sorted_scandir($dir, $field='mtime') {
 	asort($data) ;
 	return array_keys($data) ;
 }
-//File size
+function scan($dir) {
+	if ( is_dir($dir) ) {
+		$result = array() ;
+		foreach ( scandir($dir) as $file ) 
+			if ( ( $file != '..' ) && ( $file != '.' ) )
+				$result[$file] = scan($dir.'/'.$file) ;
+	} else
+		$result = '' ;
+	return $result ;
+}
+// File size
 function human_filesize($bytes, $decimals = 2) {
   $sz = 'BKMGTP';
   $factor = floor((strlen($bytes) - 1) / 3);
