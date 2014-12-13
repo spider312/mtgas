@@ -155,7 +155,7 @@ function txt_send(text) {
 }
 function message_filter_contextmenu(ev) {
 	var menu = new menu_init(this) ;
-	menu.addline('Messages') ;
+	menu.addline('Messages filters') ;
 	menu.addline() ;
 	menu.addline('All', function() {
 		all_message_filter = ! all_message_filter ;
@@ -287,9 +287,7 @@ function init_chat(options) {
 			logtext.shift() ;
 		document.getElementById('log_window').classList.remove('disp')
 	}, false) ;
-	document.getElementById('timeleft').addEventListener('contextmenu', message_filter_contextmenu, false) ;
-	document.getElementById('info').addEventListener('contextmenu', message_filter_contextmenu, false) ;
-	document.getElementById('chathisto').addEventListener('contextmenu', message_filter_contextmenu, false) ;
+	document.getElementById('chatbox').addEventListener('contextmenu', message_filter_contextmenu, false) ;
 }
 function chat_start() {
 	chatbox = document.getElementById('chatbox') ; // Caching those requests' result
