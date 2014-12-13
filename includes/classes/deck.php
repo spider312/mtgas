@@ -14,6 +14,7 @@ class Deck {
 			$reg_card_apr = '/(\d+)\s*(.+)$/' ;
 			$reg_side = '/^SB:(.*)$/' ;
 			$lines = explode("\n", $deck) ; // Cut file content in lines
+			$notfound = 0 ;
 			foreach ( $lines as $value ) { // Parse lines one by one
 				$card = null ;
 				if ( preg_match($reg_side, $value, $matches) ) { // Card goes to side
@@ -32,12 +33,20 @@ class Deck {
 					list($line, $nb, $name) = $matches ;
 					$card = Card::get(trim($name)) ;
 				}
-				if ( $card != null )
+				if ( $card == null ) {
+					if ( ++$notfound > 3 ) {
+						echo 'Too many cards not found, deck parsing canceled' ;
+						return false ;
+					}
+				} else {
+					if ( $notfound > 0 )
+						$notfound-- ;
 					for ( $i = 0 ; $i < $nb ; $i++ )
 						if ( $side )
 							$this->side[] = $card ;
 						else
 							$this->main[] = $card ;
+				}
 			}
 		}
 	}
