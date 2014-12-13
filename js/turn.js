@@ -633,8 +633,12 @@ function steps_init(turn) {
 				var trigger_list = create_ul() ;
 				var player = turn.current_player ;
 				var cards = player.battlefield.cards ;
+				cards = cards.concat(player.opponent.battlefield.cards) ;
 				for ( var i = 0 ; i < cards.length ; i++ ) {
 					var card = cards[i] ;
+					if ( card.owner != turn.current_player ) {
+						continue ;
+					}
 					var c = card.getcounter() ;
 					if ( card.attrs.vanishing && ( c > 0 ) ) {
 						var li = popup_li(card, trigger_list) ;
@@ -680,11 +684,14 @@ function steps_init(turn) {
 								card.changezone(card.owner.graveyard) ;
 						}
 					}
-					if ( card.attrs.trigger_upkeep ) {
-						var li = popup_li(card, trigger_list) ;
-						li.title = card.attrs.trigger_upkeep ;
-						li.func = function(card) {
-							alert(card.get_name()+' : '+card.attrs.trigger_upkeep) ;
+					if ( card.has_attr('trigger_upkeep') ) {
+						if ( iss(card.attrs.trigger_upkeep) )
+							trigger_li(trigger_list, card, card.attrs.trigger_upkeep) ;
+						var attached = card.get_attached() ;
+						for ( var j = 0 ; j < attached.length ; j++ ) {
+							var curr = attached[j] ;
+							if ( iss(curr.attrs.bonus.trigger_upkeep) )
+								trigger_li(trigger_list, curr, curr.attrs.bonus.trigger_upkeep) ;
 						}
 					}
 				}
@@ -906,7 +913,13 @@ function play_turn() {
 	game.turn.setturn(game.turn.num+1, game.turn.current_player) ;
 	game.turn.setstep(0) ;
 }
-
+function trigger_li(trigger_list, card, msg) {
+	var li = popup_li(card, trigger_list) ;
+	li.title = msg ;
+	li.func = function(card) {
+		alert(card.get_name()+' : '+msg) ;
+	}
+}
 function creatures_deal_dmg(player) { // Each player's attacking creatures fights each creature blocking it
 	for ( var i in player.battlefield.cards ) { // Each attacker will be solved individually (won't manage correctly creatures blocking multiple attackers)
 		var card = player.battlefield.cards[i] ;

@@ -548,8 +548,13 @@ function manage_text($name, $text, $target) {
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
 		$target->no_untap = true ;
 		// Upkeep trigger
-	if ( preg_match('/At the beginning of your upkeep, (.*)/', $text, $matches) )
-		$target->trigger_upkeep = stripslashes($matches[1]) ;
+	if ( preg_match('/At the beginning of your( next)? upkeep, (.*)/', $text, $matches) )
+		$target->trigger_upkeep = stripslashes($matches[2]) ;
+	if ( preg_match('/At the beginning of the upkeep of (\w*) (\w*)\'s controller, (.*)/', $text, $matches) ) {
+		if ( ! isset($target->bonus) )
+			$target->bonus = new stdClass() ;
+		$target->bonus->trigger_upkeep = stripslashes($matches[3]) ;
+	}
 	// Add mana
 	//if ( in_array('land', $target->types) )
 		//echo $name."\n" ;
