@@ -5,37 +5,37 @@ class Deck {
 	public $main = array() ;
 	public $side = array() ;
 	private $sort_fields = array('color_index', 'converted_cost', 'name') ;
-	public function __construct($deck=null, $ext='') {
+	public function __construct($deck=null) {
 		if ( is_string($deck) ) {
 			$reg_comment = '/^\s*\/\/(.*)/' ;
 			$reg_empty = "/^\s*\n$/" ;
-			//$reg_card_mwd = '/(\d+)\s*\[(.*)\]\s*\b(.+)\b/' ; // replaced by trim
+			$reg_side = '/^SB:(.*)$/' ;
 			$reg_card_mwd = '/(\d+)\s*\[(.*)\]\s*(.+)$/' ;
 			$reg_card_apr = '/(\d+)\s*(.+)$/' ;
-			$reg_side = '/^SB:(.*)$/' ;
 			$lines = explode("\n", $deck) ; // Cut file content in lines
 			$notfound = 0 ;
 			foreach ( $lines as $value ) { // Parse lines one by one
-				$card = null ;
-				if ( preg_match($reg_side, $value, $matches) ) { // Card goes to side
+				// Not a card line
+				if ( preg_match($reg_comment, $value, $matches) ) // Comment line
+					continue ;
+				if ( preg_match($reg_empty, $value, $matches) ) // Empty line
+					continue ;
+				// Sideboard
+				if ( $side = preg_match($reg_side, $value, $matches) )
 					$value = $matches[1] ;
-					$side = true ;
-				} else
-					$side = false ; // By default, card goes maindeck
-				if ( preg_match($reg_comment, $value, $matches) ) { // Comment line
-				} elseif ( preg_match($reg_empty, $value, $matches) ) { // Empty line
-				} elseif ( preg_match($reg_card_mwd, $value, $matches) ) { // MWS
-					list($line, $nb, $cardext, $name) = $matches ;
-					if ( $ext != '' )
-						$cardext = $ext ;
-					$card = Card::get(trim($name), $cardext) ;
-				} elseif ( preg_match($reg_card_apr, $value, $matches) ) { // Aprentice
+				// Search
+				$card = null ;
+				if ( preg_match($reg_card_mwd, $value, $matches) ) { // MWS
+					list($line, $nb, $ext, $name) = $matches ;
+					$card = Card::get(trim($name), $ext) ;
+				} else if ( preg_match($reg_card_apr, $value, $matches) ) { // Aprentice
 					list($line, $nb, $name) = $matches ;
 					$card = Card::get(trim($name)) ;
 				}
+				// (not) Found
 				if ( $card == null ) {
 					if ( ++$notfound > 3 ) {
-						echo 'Too many cards not found, deck parsing canceled' ;
+						echo "Too many cards not found, deck parsing canceled\n" ;
 						return false ;
 					}
 				} else {
