@@ -636,9 +636,11 @@ function steps_init(turn) {
 				cards = cards.concat(player.opponent.battlefield.cards) ;
 				for ( var i = 0 ; i < cards.length ; i++ ) {
 					var card = cards[i] ;
-					if ( card.owner != turn.current_player ) {
+					var atto = cards[i].get_attachedto() ; // Unless they're attached to a permanent controled by current player
+					if ( ( atto != null ) && ( atto.zone.player == turn.current_player ) && iso(card.attrs.bonus) && iss(card.attrs.bonus.trigger_upkeep) )
+						trigger_li(trigger_list, card, card.attrs.bonus.trigger_upkeep) ; // In that case, consider bonus
+					if ( card.zone.player != turn.current_player ) // Consider only card controled by current player
 						continue ;
-					}
 					var c = card.getcounter() ;
 					if ( card.attrs.vanishing && ( c > 0 ) ) {
 						var li = popup_li(card, trigger_list) ;
@@ -684,16 +686,8 @@ function steps_init(turn) {
 								card.changezone(card.owner.graveyard) ;
 						}
 					}
-					if ( card.has_attr('trigger_upkeep') ) {
-						if ( iss(card.attrs.trigger_upkeep) )
-							trigger_li(trigger_list, card, card.attrs.trigger_upkeep) ;
-						var attached = card.get_attached() ;
-						for ( var j = 0 ; j < attached.length ; j++ ) {
-							var curr = attached[j] ;
-							if ( iss(curr.attrs.bonus.trigger_upkeep) )
-								trigger_li(trigger_list, curr, curr.attrs.bonus.trigger_upkeep) ;
-						}
-					}
+					if ( iss(card.attrs.trigger_upkeep) )
+						trigger_li(trigger_list, card, card.attrs.trigger_upkeep) ;
 				}
 				var cards = player.hand.cards ;
 				for ( var i = 0 ; i < cards.length ; i++ ) {
