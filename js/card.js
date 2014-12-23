@@ -29,7 +29,6 @@ function card_prototype() {
 		this.orig_zone = this.zone ; // Zone on game begin, used for siding
 		this.init_zone = this.zone ; // Initial zone, as described in deckfile, used for reinit deck in side window
 		this.owner = zone.player ;
-		this.controler = zone.player ;
 		this.name = name ;
 		this.ext = extension ;
 		this.exts = exts ; 
@@ -685,7 +684,7 @@ function card_prototype() {
 		return eventStop(ev) ;
 	}
 	this.dblclick = function(ev) {
-		if ( ( ! this.controler.access() ) || ( ev.ctrlKey ) || ( ev.shiftKey ) ) // Ctrl is for damages, Shift for selection, we don't want to trigger dblclick
+		if ( ( ! this.zone.player.access() ) || ( ev.ctrlKey ) || ( ev.shiftKey ) ) // Ctrl is for damages, Shift for selection, we don't want to trigger dblclick
 			return eventStop(ev) ;
 		switch ( this.zone.type ) {
 			case 'battlefield' :
@@ -778,7 +777,7 @@ function card_prototype() {
 		var card = this ;
 		switch ( card.zone.type ) {
 			case 'battlefield' :
-				if ( card.controler.access() )
+				if ( card.zone.player.access() )
 					var selected = game.selected.get_cards() ;
 				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
 					var selected = [card] ; //new Selection([card])
@@ -789,7 +788,7 @@ function card_prototype() {
 				else { 
 					// Card specific submenu
 					var cardmenu = new menu_init(selected) ;
-					if ( card.controler.access() ) {
+					if ( card.zone.player.access() ) {
 						if ( iss(card.attrs.avatar) ) {
 							def = this.zone.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
 							switch ( card.attrs.avatar ) {
@@ -917,7 +916,7 @@ function card_prototype() {
 					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
 				menu.addline() ;
-				if ( ! card.controler.access()  )
+				if ( ! card.zone.player.access()  )
 					menu.addline('No action') ;
 				else {
 					// Remove targets
@@ -997,7 +996,7 @@ function card_prototype() {
 						fufunc = card.face_up ;
 					var line = menu.addline('Face down',		fufunc) ;
 					line.checked = ( card.attrs.visible == false ) ;
-					//if ( ( game.player == card.controler ) && ( line.checked ) )
+					//if ( ( game.player == card.zone.player ) && ( line.checked ) )
 						//line.moimg = card_images(card.imgurl_relative()) ;
 					if ( line.checked )
 						line.buttons.push({'text': 'Look', 'callback': function(ev, cards) {
@@ -1037,7 +1036,7 @@ function card_prototype() {
 				}
 				break ;
 			case 'hand' :
-				if ( card.controler.access() )
+				if ( card.zone.player.access() )
 					var selected = game.selected.get_cards() ;
 				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
 					var selected = [card] ; //new Selection([card])
@@ -1048,7 +1047,7 @@ function card_prototype() {
 				else { 
 					// Card specific submenu
 					var cardmenu = new menu_init(selected) ;
-					if ( card.controler.access() ) {
+					if ( card.zone.player.access() ) {
 						if ( iss(card.attrs.morph) )
 							cardmenu.addline('Morph', card.morph) ;
 						if ( isn(card.attrs.suspend) )
@@ -1066,7 +1065,7 @@ function card_prototype() {
 					menu_merge(menu, selected[0].get_name(), cardmenu) ;
 				}
 				menu.addline() ;
-				if ( card.controler.access() ) {
+				if ( card.zone.player.access() ) {
 					this.changezone_menu(menu) ;
 					menu.addline() ;
 					var line = menu.addline('Reveal', 	game.selected.toggle_reveal_from_hand, card)
@@ -1126,10 +1125,6 @@ function card_prototype() {
 			menu.addline('To graveyard',		sel.changezone, player.graveyard).override_target = sel ;
 		if ( this.zone.type != 'exile' )
 			menu.addline('To exile',		sel.changezone, player.exile).override_target = sel ;
-	}
-	this.controler_switch = function() {
-		this.controler = this.controler.opponent ;
-		this.changezone(this.controler.battlefield) ;
 	}
 	this.info = function() {
 		var res = this.is_visible() ;
@@ -1884,7 +1879,7 @@ function card_prototype() {
 			else
 				var boost = 1 ;
 			var from_str = this.attrs.powtoucond.from ;
-			var player = this.controler ;
+			var player = this.zone.player ;
 			if ( from_str[0] == '!' ) {
 				from_str = from_str.substr(1) ;
 				player = player.opponent ;
@@ -2006,7 +2001,7 @@ function card_prototype() {
 				result += boost[type] ;
 			}
 		}
-		var cards = this.controler.opponent[this.zone.type].cards ;
+		var cards = this.zone.player.opponent[this.zone.type].cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
 			var boost_bf = cards[i].boost_bf() ;
 			for ( var j = 0 ; j < boost_bf.length ; j++ ) {
@@ -2022,7 +2017,6 @@ function card_prototype() {
 				result += boost[type] ;
 			}
 		}
-
 		return result ;
 	}
 	this.refreshpowthou = function() { // Cache power and toughness in order not to recompute it on each frame draw
@@ -2492,8 +2486,8 @@ function card_prototype() {
 		var tobottom = new Selection() ;
 		var tobf = new Selection() ;
 		var i = 0 ;
-		while (this.controler.library.cards.length > i) {
-			var card = this.controler.library.cards[this.controler.library.cards.length-1-i++] ;
+		while (this.zone.player.library.cards.length > i) {
+			var card = this.zone.player.library.cards[this.zone.player.library.cards.length-1-i++] ;
 			if ( ( ! card.is_land() ) && ( card.attrs.converted_cost < this.attrs.converted_cost ) ) {
 				tobf.add(card) ;
 				break ;
@@ -2503,11 +2497,11 @@ function card_prototype() {
 		if ( tobf.cards.length != 1 )
 			message('Nothing to cascade under '+this.attrs.converted_cost) ;
 		else
-			tobf.changezone(this.controler.battlefield) ;
+			tobf.changezone(this.zone.player.battlefield) ;
 		if ( tobottom.cards.length > 0 ) {
 			shuffle(tobottom.cards) ;
-			tobottom.changezone(this.controler.exile) ;
-			tobottom.changezone(this.controler.library, null, 0) ;
+			tobottom.changezone(this.zone.player.exile) ;
+			tobottom.changezone(this.zone.player.library, null, 0) ;
 		}
 	}
 	this.living_weapon = function() {
