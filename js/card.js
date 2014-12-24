@@ -1563,7 +1563,7 @@ function card_prototype() {
 		this.sync_attrs = clone(this.attrs, true) ;
 	}
 	this.has_attr = function(attr) {
-		if ( this.attrs[attr] != false )
+		if ( this.attrs[attr] == true )
 			return true ;
 		if ( iso(this.animated_attrs) && isb(this.animated_attrs[attr]) && this.animated_attrs[attr] )
 			return true ;
@@ -1581,7 +1581,7 @@ function card_prototype() {
 					continue ;
 				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
 					continue ;
-				if ( boost[attr] != false ) {
+				if ( boost[attr] == true ) {
 					return true ;
 				}
 			}
