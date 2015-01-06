@@ -43,7 +43,8 @@ function start() {
 	ajax_error_management() ;
 	document.getElementById('update_card').addEventListener('submit', function(ev) {
 		ev.target.parentNode.classList.add('updating') ;
-		ev.target.fixed_attrs.value = JSON.stringify(JSON.parse(ev.target.fixed_attrs.value)) ;
+		if ( ev.target.fixed_attrs.value != '' )
+			ev.target.fixed_attrs.value = JSON.stringify(JSON.parse(ev.target.fixed_attrs.value)) ;
 		$.getJSON(ev.target.action, {
 			'card_id': ev.target.card_id.value,
 			'card_name': ev.target.card_name.value,

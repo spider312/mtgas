@@ -12,6 +12,7 @@ if ( array_key_exists('card_id', $_GET) ) {
 	$card['types'] = param_or_die($_GET, 'types') ;
 	$card['text'] = param_or_die($_GET, 'text') ;
 	$card['text'] = stripslashes($card['text']) ;
+	$card['text'] = card_text_sanitize($card['text']) ;
 	$attrs = new attrs($card) ;
 	$attrs = JSON_encode($attrs) ;
 	$query = query("UPDATE 
