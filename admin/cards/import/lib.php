@@ -20,6 +20,8 @@ function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_lif
 				$message .= 'not updatable ('.$cache_file.')' ;
 			else
 				$message .= 'updated ('.human_filesize($size).')' ;
+			if ( strpos($url, 'http://www.magic-ville.com') !== false )
+				time_nanosleep(0, 500000000) ; // Avoid anti-leech mechanism on MV (30 queries every 15 sec)
 		} else
 			$message .= 'not downloadable ('.$url.')' ;
 		$message .= ']' ;
@@ -458,7 +460,7 @@ class ImportCard {
 		$this->name = $name ;
 		$this->cost = $cost ;
 		$this->types = $types ;
-		$this->text = $text ;
+		$this->text = trim($text) ;
 		$this->nbimages = 1 ;
 		$this->addimage($url) ;
 		$this->multiverseid = intval($multiverseid) ;

@@ -1,6 +1,13 @@
 <?php
 // Init
 $importer->init('http://www.magic-ville.com/fr/set_cards.php?setcode='.$ext_source.'&lang=eng') ;
+$ext_regex_parts = array() ;
+$ext_regex_parts[] = '<title>(?<name>.*?) - magic-ville.com</title>' ;
+$ext_regex_parts[] = '<img src="graph/bigsetlogos/(?<code>.*?)\.(gif|png)">' ;
+$ext_regex_parts[] = '<div>(?<cards>\d*) cartes, sortie en (?<month>.*?) (?<year>\d*)</div>' ;
+//'#<title>(?<name>.*?) - magic-ville.com</title>.*<img src="graph/bigsetlogos/(?<code>.*?)\.(gif|png)">.*<div>(?<cards>\d*) cartes, sortie en (?<month>.*?) (?<year>\d*)</div>#s'
+$ext_regex = '#'.implode('.*', $ext_regex_parts).'#s' ;
+//die(htmlspecialchars($ext_regex)) ;
 $list_regex = '#<img src="graph/rarity/(?<rarity>.*?)\.gif"><a (class=und)? href=(?<url>carte\.php\?ref=.*?)>(?<name>.*?)</a>#' ;
 $reg_flip = '#<div class=S16>(?<name>[^<>]*?)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<type>[^<>]*?)</div><div style="display:block;" class=S12 align=justify>(?<text>.*?)</div>#s' ;
 $reg_moon = '#<div class=S16><img src=graph/moteur/moon.png> (?<name>.*)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<colors><img .*>) (?<type>.*)</div><div style="display:block;" class=S12 align=justify>(?<text>.*)</div><div align=right class=G14 style="padding-right:4px;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>#Us' ;
@@ -15,9 +22,9 @@ function card_image_url($url) {
 $html = cache_get($importer->url, 'cache/'.$source.'_'.$ext_source, $verbose) ;
 
 // Parse extension data
-$nb = preg_match_all('#<title>(?<name>.*?) - magic-ville.com</title>.*<img src="graph/bigsetlogos/(?<code>.*?)\.(gif|png)">.*<div>(?<cards>\d*) cartes, sortie en (?<month>.*?) (?<year>\d*)</div>#s', $html, $matches_ext, PREG_SET_ORDER) ;
+$nb = preg_match_all($ext_regex, $html, $matches_ext, PREG_SET_ORDER) ;
 if ( $nb != 1)
-        die('URL '.$importer->url.' does not seem to be a valid MCI card list : '.count($matches_ext)) ;
+        die('URL '.$importer->url.' does not seem to be a valid MCI extension page : '.count($matches_ext).'<br>'.$html) ;
 $extcode = $matches_ext[0]['code'] ;
 $importer->setext($extcode, $matches_ext[0]['name'], $matches_ext[0]['cards']) ;
 
@@ -38,8 +45,8 @@ foreach ( $matches_list as $match ) { //
 	$html = cache_get($url, $path, $verbose) ;
 	// Name, cost, type, text and image
 	$info_regex = '' ;
-	$info_regex .= '<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>' ; // Cost
-	$info_regex .= '.*?<div class=S16>(?<frname>.*?) </div>.*?' ; // French name
+	$info_regex .= '<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>.*?' ; // Cost
+	$info_regex .= '<div class=S16>(?<frname>.*?) </div>.*?' ; // French name
 	$info_regex .= '<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
 \s*<div class=G12 style="padding-top:4px;padding-bottom:\dpx;">(?<type>[^<>]*?)</div>
 \s*<div align=center>
@@ -49,6 +56,7 @@ foreach ( $matches_list as $match ) { //
 	$nb = preg_match_all("#$info_regex#s", $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
+		echo $html;
 		continue ;
 		return false ;
 	}
