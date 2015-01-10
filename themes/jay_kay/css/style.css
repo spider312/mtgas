@@ -23,7 +23,7 @@ body {
 table {
 	border-collapse: collapse ;/* Bugs in FF with colspan */
 }
-thead, th {
+thead, th, tfoot {
 	background-color: #8e7560 ;
 	text-align: center ;
 	font-weight: bold ;

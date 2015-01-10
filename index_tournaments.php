@@ -100,6 +100,7 @@
        </tr>
       </thead>
       <tbody id="running_tournaments"></tbody>
+	  <tfoot></tfoot>
      </table>
     </div><!-- id="tournament_view" -->
    </div><!-- id="tournaments" --><!-- - - - - - - - - - - / tournaments - - - - - - - - - - -->

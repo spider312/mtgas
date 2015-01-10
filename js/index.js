@@ -472,6 +472,27 @@ function running_tournament_add(t) {
 	for ( var j in t.players )
 		if ( t.players[j].player_id == player_id )
 			tr.classList.add('registered') ;
+	// Count tournament for each player number
+	if ( table == null ) return false ;
+	var players_number = {} ;
+	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ ) {
+		var nbp = running_tournaments.rows[i].tournament.min_players ;
+		if ( isn(players_number[nbp]) )
+			players_number[nbp]++ ;
+		else
+			players_number[nbp] = 1 ;
+	}
+	var str = '' ;
+	for ( var i in players_number ) {
+		if ( str != ''  )
+			str += ', ' ;
+		str += i+'p : '+players_number[i] ;
+	}
+	node_empty(table.parentNode.tFoot) ;
+	var tr = table.parentNode.tFoot.insertRow() ;
+	var td = tr.insertCell() ;
+	td.colSpan = 5 ;
+	td.appendChild(create_text(str)) ;
 }
 function update_tournament_players(tr) {
 	// Slots
