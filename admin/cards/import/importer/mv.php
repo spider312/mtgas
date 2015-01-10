@@ -45,8 +45,9 @@ foreach ( $matches_list as $match ) { //
 	$html = cache_get($url, $path, $verbose) ;
 	// Name, cost, type, text and image
 	$info_regex = '' ;
+	$info_regex .= 'value="(?<number>\d*?)".*?';
 	$info_regex .= '<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>.*?' ; // Cost
-	$info_regex .= '<div class=S16>(?<frname>.*?) </div>.*?' ; // French name
+	$info_regex .= '<div class=S16>(?<frname>.*?)</div>.*?' ; // French name
 	$info_regex .= '<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
 \s*<div class=G12 style="padding-top:4px;padding-bottom:\dpx;">(?<type>[^<>]*?)</div>
 \s*<div align=center>
@@ -56,9 +57,8 @@ foreach ( $matches_list as $match ) { //
 	$nb = preg_match_all("#$info_regex#s", $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
-		echo $html;
+		die($html);
 		continue ;
-		return false ;
 	}
 	// Text
 		// Type specific
@@ -67,8 +67,8 @@ foreach ( $matches_list as $match ) { //
 	if ( isset($matches[0]['pt']) )
 		$text = $matches[0]['pt']."\n" ;
 			// Planeswalker
-	elseif ( preg_match_all('#<div class=S11 align=right>Loyalty : (?<loyalty>\d*)</div>#', $html, $matches_loyalty, PREG_SET_ORDER) > 0 ) {
-		$text = $matches_loyalty[0]['loyalty']."\n" ;
+	if ( preg_match('#<div class=S11 align=right>Loyalty : (?<loyalty>\d)</div>#', $html, $matches_loyalty) ) {
+		$text = $matches_loyalty['loyalty']."\n" ;
 		$matches[0]['text'] = preg_replace('@\s*<tr .*?'.'>\s*<td valign=middle width=36><table width=30 bgcolor=#000000 cellpadding=2 cellspacing=0 align=center><tr><td class=W12 align=center>\s*(.*?)</td></tr></table></td>\s*<td class=S11 align=justify>(.*?)</td>\s*</tr>@', '$1: $2'."\n", $matches[0]['text']) ; // Planeswalkers steps
 	}
 	$text .= mv2txt($matches[0]['text']) ;
@@ -77,8 +77,7 @@ foreach ( $matches_list as $match ) { //
 	$card = null ;
 	$type = trim($matches[0]['type']) ;
 	$cost = mv2cost($matches[0]['cost']) ;
-	//if ( preg_match('#<div>\d{1,2}/\d{1,2}</div>#', $html) ) { // Tokens are numbered
-	if ( ( $cost == '' ) && ( strpos($type, 'Land') === false ) ) { // Token number missing in initial KTK import
+	if ( intval($matches[0]['number']) > $importer->nbcards ) {
 		$pow = '' ;
 		$tou = '' ;
 		if ( isset($matches[0]['pow']) )
@@ -117,7 +116,7 @@ foreach ( $matches_list as $match ) { //
 				$img_url = 'http://www.magic-ville.com/fr/scan?'.$match_img['scan'] ;
 		}*/
 		$card = $importer->addcard($url, $rarity, $name, $cost, $type, $text, $img_url) ;
-		$card->addlang('fr', html_entity_decode($matches[0]['frname'], ENT_COMPAT, 'UTF-8')) ;
+		$card->addlang('fr', html_entity_decode(trim($matches[0]['frname']), ENT_COMPAT, 'UTF-8')) ;
 	}
 
 	// Second part
