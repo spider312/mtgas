@@ -94,12 +94,11 @@ $(function() { // On page load
 			// Tournaments
 			case 'pending_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
-				if ( tr == null ) {
-					running_tournament_remove(data.id)
-					if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
-						notification_send('Mogg Tournament',
-							'New tournament : '+data.format+' '+data.name, 'tournament');
-				}
+				if ( tr == null )
+					running_tournament_remove(data.id) ;
+				if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
+					notification_send('Mogg Tournament',
+						'New tournament : '+data.format+' '+data.name, 'tournament');
 				break ;
 			case 'running_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
