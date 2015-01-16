@@ -472,6 +472,9 @@ function running_tournament_add(t) {
 	for ( var j in t.players )
 		if ( t.players[j].player_id == player_id )
 			tr.classList.add('registered') ;
+	tournament_footer_update(table) ;
+}
+function tournament_footer_update(table) {
 	// Count tournament for each player number
 	if ( table == null ) return false ;
 	var players_number = {} ;
@@ -539,7 +542,9 @@ function pending_tournament_remove(id) {
 	return tournament_remove(id, pending_tournaments, tournament_join) ;
 }
 function running_tournament_remove(id) {
-	return tournament_remove(id, running_tournaments, tournament_view) ;
+	var result = tournament_remove(id, running_tournaments, tournament_view) ;
+	tournament_footer_update(running_tournaments) ;
+	return result ;
 }
 // === [ FIXED LISTS ] =========================================================
 function get_extensions(rdata) {
