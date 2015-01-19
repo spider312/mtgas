@@ -17,11 +17,17 @@ function mojosto($avatar, $cc) {
 			$nb = 3 ;
 			break ;
 		case 'stonehewer' : 
+			if ( $cc == 0 )
+				return false ;
 			$where[] = "`types` LIKE '%Equipment%'" ;
 			$where2 = array() ;
-			for ( $i = 0 ; $i < $cc ; $i++ )
+			$i = 0 ;
+			do {
 				$where2[] = "`attrs` LIKE '%\"converted_cost\":$i,%'" ;
-			$where[] = '( '.implode(' OR ', $where2).') ' ;
+				$i++ ;
+			} while ( $i < $cc );
+			if ( count($where2) > 0 )
+				$where[] = '( '.implode(' OR ', $where2).') ' ;
 			break ;
 		case 'nokiou' : 
 			$where[] = "`types` NOT LIKE '%Instant%'" ;
