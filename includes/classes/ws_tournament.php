@@ -42,6 +42,7 @@ class Tournament {
 		global $db ;
 		$data->status = 1 ;
 		$data->data = $options ;
+		$data->min_players = intval($data->min_players) ;
 		$data->id = $db->insert("INSERT INTO
 			`tournament` ( `type`, `name`, `min_players`, `status`, `data` )
 			VALUES ( '{$data->format}', '".$db->escape($data->name)."',
