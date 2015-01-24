@@ -507,7 +507,7 @@ class Tournament {
 					$this->say($player->nick.' has nothing to pick') ;
 				else {
 					$player->pick($card, $dest) ;
-					$this->observer->draft->broadcast($this, '{"type": "pick", "card": '.json_encode($card).', "dest": "'.$dest.'"}') ;
+					$this->observer->draft->broadcast_player($this, $player, '{"type": "pick", "card": '.json_encode($card).', "dest": "'.$dest.'"}') ;
 				}
 				$cards = min($cards, count($booster->content)) ;
 				if ( count($booster->content) < 1 )
