@@ -45,7 +45,7 @@ html_head('Tournament #'.$id,
     <table>
      <thead>
       <tr>
-       <th><abbr  title="Player number : used to define player's relative position during draft and ranking after">#</abbr></th>
+       <th><abbr  title="Player number : used to define player's relative position during draft">#</abbr></th>
        <th>Nick</th>
        <th>Avatar</th>
        <th>Status</th>
