@@ -75,7 +75,8 @@ function get_past_games() {
 					}
 				}
 			}
-			var bilan = create_tr(past_games) ;
+			var foot = past_games.parentNode.createTFoot() ;
+			var bilan = create_tr(foot) ;
 			var td = create_td(bilan, 'Total') ;
 			td.colSpan = 3 ;
 			var score = nb_w+' - ' ;
@@ -194,7 +195,8 @@ function get_past_tournaments() {
 					li.appendChild(ulp) ;
 					ul.appendChild(li) ;
 				}
-				var td = create_td(create_tr(past_tournaments), resume, 6) ;
+				var foot = past_tournaments.parentNode.createTFoot() ;
+				var td = create_td(create_tr(foot), resume, 6) ;
 			} else
 				no_past_tournaments.style.display = '' ; // Show table line "no past tournaments"
 		}
