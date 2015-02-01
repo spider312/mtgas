@@ -122,8 +122,8 @@ ol {
 	margin: 0 ;
 }
 /* Other deck table styling */
-#past_tournaments tr:hover, #running_tournaments tr:hover, #pending_tournaments tr:hover,
-#games_list tr:hover, #running_games_list tr:hover,
+#pending_tournaments tr:hover, #running_tournaments tr:hover,
+#pending_games tr:hover, #running_games tr:hover,
 #decks_table tbody tr:hover {
 	background-color: #F4ECD2 ;
 }
