@@ -8,7 +8,7 @@ td a {
 	display: block ;
 	text-decoration: none ;
 }
-#decks_table tbody tr:hover, #past_tournaments tr:hover {
+#past_games tr:hover, #past_tournaments tr:hover {
 	background-color: #F4ECD2 ;
 }
 .win {
