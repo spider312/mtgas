@@ -120,11 +120,11 @@ class GameHandler extends ParentHandler {
 				}
 		}
 	}
-	public function displayed($game, $tournament_id=0) { // Does the game needs to be displayed on index
+	public function displayed($game) { // Does the game needs to be displayed on index
 		foreach ( $this->getConnections() as $user )
 			if (
 				isset($user->game)
-				&& ( $user->game->tournament == $tournament_id ) // Not a tournament game
+				&& ( $user->game->tournament == 0 ) // Not a tournament game
 				&& ( $user->game->id == $game->id ) // At least one user connected
 				&& ( $game->creator_id != $game->joiner_id ) // Not goldfish
 				&& (
