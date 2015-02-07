@@ -307,7 +307,7 @@ class Tournament {
 		if ( count($this->players) >= $this->min_players ) {
 			if ( $this->min_players == 1 )
 				$this->send() ; // send solo tournament as pending once before sending as running
-			$this->goon() ;
+			$this->goon('last register') ;
 		} else
 			$this->send() ;
 		return true ;
