@@ -1,5 +1,5 @@
 <?php
-// Parent class for all - not game - handlers (index, tournament index build draft, admin)
+// Parent class for all handlers
 use \Devristo\Phpws\Server\UriHandler\WebSocketUriHandler ;
 use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
@@ -34,13 +34,14 @@ class ParentHandler extends WebSocketUriHandler {
 		return $result ;
 	}
 	public function check_users() {
-		foreach ( $this->getConnections() as $cnx )
+		foreach ( $this->getConnections() as $cnx ) {
 			if ( ! $cnx->ping )
 				$cnx->close() ;
 			else {
 				$cnx->ping = false ;
 				$cnx->sendString('{"type": "ping"}') ;
 			}
+		}
 	}
 	public function onConnect(WebSocketTransportInterface $user) {
 		$user->ping = true ;
@@ -78,8 +79,10 @@ class ParentHandler extends WebSocketUriHandler {
 			default :
 				if ( isset($user->player_id) )
 					$this->recieve($user, $data) ;
-				else
+				else {
 					$this->say('Action '.$data->type.' from unregistered user') ;
+					$user->close() ;
+				}
 		}
 	}
 }
