@@ -30,6 +30,9 @@ class Registration {
 		$this->deck_cards = count($this->deck_obj->main) ;
 		$this->side_cards = count($this->deck_obj->side) ;
 	}
+	public function say($msg) {
+		$this->tournament->say($msg) ;
+	}
 	public function get_tournament_id() {
 		return $this->tournament->id ;
 	}
@@ -203,7 +206,8 @@ class Registration {
 		// Tournament consequences
 		if ( $this->tournament->status == 4 )
 			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
-		$this->tournament->players_ready() ;
+		if ( $ready )
+			$this->tournament->players_ready() ;
 		return true ;
 	}
 	public function drop($msg='No reason') {
