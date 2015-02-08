@@ -84,6 +84,8 @@ function Spectator(container, id, name) {
 		return span ;
 	}
 	this.allow = function(player) { // Recieve
+		if ( player == null )
+			return false ;
 		if ( this.allowed(player_id) )
 			this.container.msg_func('already allowed') ;
 		else {
