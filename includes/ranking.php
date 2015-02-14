@@ -23,6 +23,16 @@ function mingames_by_period($period='') {
 function ranking($period='WEEK', $plength=1) {
 	global $db ;
 	$players = array() ;
+	$aliases = array() ;
+	$a = $db->select("SELECT * FROM player_alias") ;
+	foreach ( $a as $alias ) {
+		$arr = json_decode($alias->player_ids) ;
+		if ( $arr == null ) {
+			echo 'Unparsable JSON : '.$alias->player_ids."\n" ;
+		} else {
+			$aliases[$alias->name] = $arr ;
+		}
+	}
 	$r = $db->select("SELECT
 		`creator_id`, `creator_nick`, `creator_avatar`, `creator_score`,
 		`joiner_id`,`joiner_nick`, `joiner_avatar`, `joiner_score`
@@ -33,8 +43,8 @@ function ranking($period='WEEK', $plength=1) {
 		AND `creation_date` > TIMESTAMPADD($period, -$plength, NOW())
 	;") ;
 	foreach ( $r as $round ) {
-		manage_round($players, $round, 'creator', 'joiner') ;
-		manage_round($players, $round, 'joiner', 'creator') ;
+		manage_round($players, $round, 'creator', 'joiner', $aliases) ;
+		manage_round($players, $round, 'joiner', 'creator', $aliases) ;
 	}
 	$min_games = mingames_by_period($period) ;
 	$players_e = array() ;
@@ -44,10 +54,15 @@ function ranking($period='WEEK', $plength=1) {
 	}
 	return $players_e ;
 }
-function manage_round(&$players, $round, $player, $other) {
+function manage_round(&$players, $round, $player, $other, $aliases) {
 	$pid = $round->{$player.'_id'} ;
 	if ( $pid == '' ) // BYE
 		return false ;
+	foreach ( $aliases as $alias => $player_ids ) {
+		if ( array_search($pid, $player_ids) !== false ) {
+			$pid = $alias ;
+		}
+	}
 	if ( ! array_key_exists($pid, $players) ) {
 		$p = new stdClass() ;
 		$p->matches = 0 ;
