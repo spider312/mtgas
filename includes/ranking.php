@@ -22,17 +22,17 @@ function mingames_by_period($period='') {
 }
 function ranking($period='WEEK', $plength=1) {
 	global $db ;
-	$players = array() ;
+	// Cache aliases
 	$aliases = array() ;
+	$reverse_aliases = array() ;
 	$a = $db->select("SELECT * FROM player_alias") ;
 	foreach ( $a as $alias ) {
-		$arr = json_decode($alias->player_ids) ;
-		if ( $arr == null ) {
-			echo 'Unparsable JSON : '.$alias->player_ids."\n" ;
-		} else {
-			$aliases[$alias->name] = $arr ;
-		}
+		$aliases[$alias->player_id] = $alias->alias ;
+		if ( ! array_key_exists($alias->alias, $reverse_aliases) )
+			$reverse_aliases[$alias->alias] = array();
+		array_push($reverse_aliases[$alias->alias], $alias->player_id);
 	}
+	// Get round data
 	$r = $db->select("SELECT
 		`creator_id`, `creator_nick`, `creator_avatar`, `creator_score`,
 		`joiner_id`,`joiner_nick`, `joiner_avatar`, `joiner_score`
@@ -42,27 +42,35 @@ function ranking($period='WEEK', $plength=1) {
 		AND `joiner_id` != ''
 		AND `creation_date` > TIMESTAMPADD($period, -$plength, NOW())
 	;") ;
+	// Manage rounds
+	$players = array() ;
 	foreach ( $r as $round ) {
-		manage_round($players, $round, 'creator', 'joiner', $aliases) ;
-		manage_round($players, $round, 'joiner', 'creator', $aliases) ;
+		manage_round($players, $aliases, $round, 'creator') ;
+		manage_round($players, $aliases, $round, 'joiner') ;
 	}
+	// Filter players not having enough games
 	$min_games = mingames_by_period($period) ;
 	$players_e = array() ;
 	foreach ( $players as $key => $player ) {
 		if ( $player->matches > $min_games )
 			$players_e[$key] = $player ;
 	}
+	// Add alias data
+	foreach ( $players_e as $key => $player ) {
+		if ( array_key_exists($key, $reverse_aliases) )
+			$player->alias = $reverse_aliases[$key] ;
+	}
 	return $players_e ;
 }
-function manage_round(&$players, $round, $player, $other, $aliases) {
+function manage_round(&$players, $aliases, $round, $player) {
 	$pid = $round->{$player.'_id'} ;
-	if ( $pid == '' ) // BYE
+	// Ignore BYE
+	if ( $pid == '' )
 		return false ;
-	foreach ( $aliases as $alias => $player_ids ) {
-		if ( array_search($pid, $player_ids) !== false ) {
-			$pid = $alias ;
-		}
-	}
+	// Alias
+	if ( array_key_exists($pid, $aliases) )
+		$pid = $aliases[$pid] ;
+	// Entry creation
 	if ( ! array_key_exists($pid, $players) ) {
 		$p = new stdClass() ;
 		$p->matches = 0 ;
@@ -73,28 +81,11 @@ function manage_round(&$players, $round, $player, $other, $aliases) {
 	$players[$pid]->nick = $round->{$player.'_nick'} ;
 	$players[$pid]->avatar = $round->{$player.'_avatar'} ;
 	$players[$pid]->matches++ ;
+	$other = ( $player == 'creator' ) ? 'joiner' : 'creator' ;
 	$score = $round->{$player.'_score'} - $round->{$other.'_score'} ;
 	if ( $score == 0 )
 		$players[$pid]->score++ ;
 	else if ( $score > 0 )
 		$players[$pid]->score += 3 ;
 	return true ;
-}
-function sort_matches($a, $b) {
-	$result = $b->matches - $a->matches ;
-	if ( $result != 0 )
-		$result = $result / abs($result) ;
-	return $result ;
-}
-function sort_score($a, $b) {
-	$result = $b->score - $a->score ;
-	if ( $result != 0 )
-		$result = $result / abs($result) ;
-	return $result ;
-}
-function sort_ratio($a, $b) {
-	$result = ( $b->score / $b->matches ) - ( $a->score / $a->matches );
-	if ( $result != 0 )
-		$result = $result / abs($result) ;
-	return $result ;
 }
