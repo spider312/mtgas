@@ -1,36 +1,33 @@
 <?php
 include 'lib.php' ;
 include 'includes/db.php' ;
-
-$get = '' ;
-$initial_player_id = $player_id ;
+include 'includes/player_alias.php' ;
 if ( array_key_exists('id', $_GET) ) {
 	$player_id = $_GET['id'] ;
-	$get = '&id='.$player_id ;
 }
+$player_ids = alias_pid($player_id) ;
+$where = pid2where($player_ids) ;
 $rounds = query_as_array("SELECT
 	`creator_nick`, `creator_id`, `creator_score`,
 	`joiner_nick`, `joiner_id`, `joiner_score`, 
 	`tournament`
-FROM `round` WHERE `creator_id` = '".$player_id."' OR `joiner_id` = '".$player_id."'") ;
+FROM `round` WHERE $where") ;
+if ( count($rounds) < 1 )
+	die('No game found for that player') ;
 $self_nicks = array() ;
 foreach ( $rounds as $round ) {
-	if ( $round->creator_id == $round->joiner_id ) {
+	if ( array_search($round->creator_id, $player_ids) !== false ) {
 		$self_nick = $round->creator_nick ;
 		$opponent_id = $round->joiner_id ;
-	} else {
-		if ( $round->creator_id == $player_id ) {
-			$self_nick = $round->creator_nick ;
-			$opponent_id = $round->joiner_id ;
-		} else if ( $round->joiner_id == $player_id ) {
-			$self_nick = $round->joiner_nick ;
-			$opponent_id = $round->creator_id ;
-		}
-		if ( $opponent_id == '' )
-			continue ;
-		if ( array_search($self_nick, $self_nicks) === false )
-			$self_nicks[] = $self_nick ;
-	}
+	} else if ( array_search($round->joiner_id, $player_ids) !== false ) {
+		$self_nick = $round->joiner_nick ;
+		$opponent_id = $round->creator_id ;
+	} else
+		echo $round->creator_id.' '.$round->creator_nick.' '.$round->joiner_nick.' '.$round->joiner_id.'<br>' ;
+	if ( $opponent_id == '' )
+		continue ;
+	if ( array_search($self_nick, $self_nicks) === false )
+		$self_nicks[] = $self_nick ;
 }
 
 html_head(
@@ -124,5 +121,9 @@ html_head(
    </table>
 
   </div>
+
+  <script type="text/javascript">
+	player_ids = <?=json_encode($player_ids)?> ;
+  </script>
 <?php
 html_foot() ;

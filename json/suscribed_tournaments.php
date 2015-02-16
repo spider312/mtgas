@@ -1,8 +1,12 @@
 <?php
 include '../lib.php' ;
 include '../includes/db.php' ;
+include '../includes/player_alias.php' ;
 
 $player_id = param_or_die($_GET, 'player_id') ;
+$player_ids = alias_pid($player_id) ;
+$where = pid2wheret($player_ids) ;
+
 $data = new stdClass() ;
 
 // List registered tournaments
@@ -19,7 +23,7 @@ SELECT
 FROM
 	`registration`, `tournament`
 WHERE
-	`registration`.`player_id` = '$player_id' AND
+	($where) AND
 	`registration`.`tournament_id` = `tournament`.`id`" ;
 if ( $delay != '' )
 	$query .= " AND `date` > TIMESTAMPADD($delay, -1, NOW())" ;

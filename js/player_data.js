@@ -28,6 +28,8 @@ function get_past_games() {
 		// Past games
 		node_empty(past_games) ; // Remove old lines
 		caption.nodeValue = data.suscribed_games.length+' duels' ;
+		var foot = past_games.parentNode.createTFoot() ;
+		node_empty(foot) ;
 		if ( data.suscribed_games.length > 0 ) {
 			no_past_games.style.display = 'none' ; // Hide table line "no suscribed games"
 			nb_w = 0 ;
@@ -36,7 +38,7 @@ function get_past_games() {
 			for ( var i = 0 ; i < data.suscribed_games.length ; i++ ) {
 				var game = data.suscribed_games[i] ;
 				var url = 'play.php?id='+game.id+'&replay=1' ;
-				if ( game.creator_id == player_id ) { // Creator
+				if ( player_ids.indexOf(game.creator_id) >= 0 ) { // Creator
 					var opponent_nick = game.joiner_nick ;
 					var opponent_avatar = game.joiner_avatar ;
 					var my_score = game.creator_score ;
@@ -75,7 +77,6 @@ function get_past_games() {
 					}
 				}
 			}
-			var foot = past_games.parentNode.createTFoot() ;
 			var bilan = create_tr(foot) ;
 			var td = create_td(bilan, 'Total') ;
 			td.colSpan = 3 ;
@@ -100,6 +101,8 @@ function get_past_tournaments() {
 			// Displays a list of past && current tournaments
 			node_empty(past_tournaments) ;
 			caption.nodeValue = data.suscribed_tournaments.length+' tournaments' ;
+			var foot = past_tournaments.parentNode.createTFoot() ;
+			node_empty(foot) ;
 			if ( data.suscribed_tournaments.length > 0 ) {
 				no_past_tournaments.style.display = 'none' ; // Hide table line "no past tournaments"
 				var ranks = [] ;
@@ -107,21 +110,25 @@ function get_past_tournaments() {
 					var tournament = data.suscribed_tournaments[i] ;
 					var url = 'tournament/?id='+tournament.id ;
 					var tdata = JSON.parse(tournament.data) ;
-					if ( iso(tdata.score) && iso(tdata.score[player_id]) )
-						var rank = tdata.score[player_id].rank ;
-					else
-						var rank = 0 ;
+					var rank = 0 ;
+					if ( iso(tdata.score) ) {
+						for ( var j in tdata.score ) {
+							if ( player_ids.indexOf(j) >= 0 ) {
+								rank = tdata.score[j].rank ;
+							}
+						}
+					}
 					var players = create_span() ;
 					for ( var j in tournament.players ) { // Foreach player
 						var pid = tournament.players[j].player_id ;
-						if ( pid != player_id ) { // Foreach opponent
+						if ( player_ids.indexOf(pid) == -1 ) { // Foreach opponent
 							var classname = 'noop' ;
 							var nick = tournament.players[j].nick ;
 							for ( var k in tournament.results ) { // Search this opponent in matches against current player
 								for ( var l in tournament.results[k] ) {
 									var result = tournament.results[k][l] ;
 									if ( // Current player is creator
-										( result.creator_id == player_id )
+										( player_ids.indexOf(result.creator_id) >= 0 )
 										&& ( result.joiner_id == pid )
 									) { 
 										if ( result.creator_score > result.joiner_score )
@@ -132,7 +139,7 @@ function get_past_tournaments() {
 											classname = 'lose' ;
 									}
 									if ( // Current player is joiner
-										( result.joiner_id == player_id )
+										( player_ids.indexOf(result.joiner_id) >= 0 )
 										&& ( result.creator_id == pid )
 									) { 
 										if ( result.creator_score < result.joiner_score )
@@ -195,7 +202,6 @@ function get_past_tournaments() {
 					li.appendChild(ulp) ;
 					ul.appendChild(li) ;
 				}
-				var foot = past_tournaments.parentNode.createTFoot() ;
 				var td = create_td(create_tr(foot), resume, 6) ;
 			} else
 				no_past_tournaments.style.display = '' ; // Show table line "no past tournaments"
