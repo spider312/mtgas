@@ -81,6 +81,9 @@ function refresh() {
 			cells[i].classList.remove('sorted') ;
 	// Fill players list
 	node_empty(table) ;
+	for ( var i = 0 ; i < data.length ; i++ )
+		player(table, data[i], i) ;
+	/*
 	for ( var i = 0 ; ( i < data.length ) && ( i < 10 )  ; i++ )
 		player(table, data[i], i) ;
 	if ( data.length > 10 ) {
@@ -96,6 +99,7 @@ function refresh() {
 		})) ;
 	} else
 		table.parentNode.deleteTFoot() ;
+	*/
 	// Caption : update date
 	var cap = table.parentNode.createCaption() ;
 	node_empty(cap) ;
@@ -113,5 +117,7 @@ function player(table, data, n) {
 	tr.insertCell().appendChild(create_text(data.score)) ;
 	tr.insertCell().appendChild(create_text(round(data.ratio, 2))) ;
 	if ( data.player_id == player_id )
+		tr.classList.add('self') ;
+	if ( iso(data.alias) && ( data.alias.indexOf(player_id) > -1 ) )
 		tr.classList.add('self') ;
 }
