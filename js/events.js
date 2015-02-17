@@ -15,6 +15,7 @@ keyActions = { // Key <=> action association
 	'*' : change_powthou(1, true),
 	'/' : change_powthou(-1, true),
 	// Without modifiers
+	'f3' : function(ev) { card_list_edit(game.player.library) ; },
 	'f9' : function(ev) { game.opponent.life.changelife(-1) ; draw() ; },
 	'f10' : function(ev) { game.opponent.life.changelife(1) ; draw() ; },
 	'f11' : function(ev) { game.player.life.changelife(-1) ; draw() ; },

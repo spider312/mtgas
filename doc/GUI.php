@@ -65,6 +65,10 @@ html_head(
     <td>Roll a dice</td>
    </tr>
    <tr>
+    <td>F3</td>
+    <td>Watch library</td>
+   </tr>
+   <tr>
     <td>F9</td>
     <td>Opponent loses 1 life</td>
    </tr>
