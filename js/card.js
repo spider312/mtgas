@@ -148,7 +148,7 @@ function card_prototype() {
 			return this.attrs.types ;
 	}
 	this.is_creature = function() {
-		return inarray('creature', this.get_types()) || iso(this.animated_attrs) ;
+		return inarray('creature', this.get_types()) || iso(this.animated_attrs) || isn(this.attrs.pow_eot);
 	}
 	this.is_land = function() {
 		return inarray('land', this.get_types()) ;
