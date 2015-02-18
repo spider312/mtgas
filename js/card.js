@@ -504,8 +504,15 @@ function card_prototype() {
 		} else
 			if ( small )
 				return card_images('../THUMB/back.jpg') ;
-			else
+			else {
+				if ( this.zone.type == 'battlefield' ) {
+					if ( this.attrs.manifested )
+						return card_images('TK/FRF/Manifest.2.2.jpg') ;
+					if ( iss(this.attrs.morph) )
+						return card_images('TK/KTK/Morph.2.2.jpg') ;
+				}
 				return card_images('back.jpg') ;
+			}
 	}
 	this.imgurl_relative = function() {
 		if ( ( this.attrs.transformed ) && this.transformed_attrs && iss(this.transformed_attrs.name) )
@@ -837,6 +844,10 @@ function card_prototype() {
 							} else {
 								cardmenu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
 							}
+						// Manifest
+						if ( this.attrs.manifester ) {
+							cardmenu.addline('Manifest', card.manifest) ;
+						}
 						// Flip
 						if ( this.flip_attrs != null )
 							cardmenu.addline('Flip', card.flip).checked = card.attrs.flipped ;
@@ -1085,15 +1096,15 @@ function card_prototype() {
 		menu.addline() ;
 		if ( card.is_visible() ) {
 			menu.addline('Informations (MCI)', card.info) ;
-			if ( game.options.get('debug') )
-				menu.addline('Debug internals', function(card) {
-					log2(this) ;
-					log2(this.attrs) ;
-					if ( iso(this.attrs.bonus) )
-						log2(this.attrs.bonus) ;
-				}) ;
 		} else
 			menu.addline('No information aviable from hidden card') ;
+		if ( game.options.get('debug') )
+			menu.addline('Debug internals', function(card) {
+				log2(this) ;
+				log2(this.attrs) ;
+				if ( iso(this.attrs.bonus) )
+					log2(this.attrs.bonus) ;
+			}) ;
 		menu.start(ev) ;
 		return menu ;
 	}
@@ -1181,7 +1192,7 @@ function card_prototype() {
 		this.zone.cards.splice(index, 0, this) ; // Insert this card into zone
 		if ( visible == false ) { // Card forced as face down
 			this.on_face_down() ;
-			this.sync() ; // Face up on cards played face down from hand doesn't works without
+			//this.sync() ; // Face up on cards played face down from hand doesn't works without
 		} else {
 			if ( ( oldzone.type != 'battlefield' ) || ( this.zone.type != 'battlefield' ) ) { // Don't reinit if going from a BF to a BF
 				var vi = this.attrs.visible ;
@@ -1552,6 +1563,10 @@ function card_prototype() {
 			this.attrs.boost_bf = attrs.boost_bf ;
 			game.player.battlefield.refresh_pt() ;
 			game.opponent.battlefield.refresh_pt() ;
+		}
+		if ( typeof attrs.manifested != 'undefined' ) {
+			this.attrs.manifested = attrs.manifested ;
+			this.load_image();
 		}
 		/* Legacy ones, currently managed by another way */
 		if ( typeof attrs.attachedto != 'undefined' ) {
@@ -2508,6 +2523,21 @@ function card_prototype() {
 		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
 			tk.attach(lw) ;
 		}, this) ;
+	}
+	this.manifest = function() {
+		var zone = game.player.library ;
+		var tobf = new Selection() ;
+		if ( zone.cards.length > 0 ) {
+			var card = zone.cards[zone.cards.length-1] ;
+			tobf.add(card) ;
+			card.attrs.types = ['creature'] ; // Just in order to place it as a creature
+			tobf.changezone(game.player.battlefield, false) ;
+			card.attrs.types = ['creature'] ; // Can "attack"
+			card.attrs.manifested = true ;
+			card.load_image();
+			card.disp_powthou(2, 2) ;
+			card.refreshpowthou() ;
+		}
 	}
 }
 function refresh_cards_in_zone(zone) {
