@@ -164,9 +164,15 @@ function card_prototype() {
 				name = this.transformed_attrs.name ;
 			else
 				name = this.name ;
-		} else
-			if ( this.zone.type == 'battlefield' )
+		} else {
+			if ( this.zone.type == 'battlefield' ) {
 				name = 'faced down card' ;
+				if ( this.attrs.manifested )
+					name = 'a manifest' ;
+				if ( this.attrs.morphed )
+					name = 'a morph' ;
+			}
+		}
 		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
 			name = this.attrs.copy.get_name()+' copied by '+name
 		return name ;
@@ -508,7 +514,7 @@ function card_prototype() {
 				if ( this.zone.type == 'battlefield' ) {
 					if ( this.attrs.manifested )
 						return card_images('TK/FRF/Manifest.2.2.jpg') ;
-					if ( iss(this.attrs.morph) )
+					if ( this.attrs.morphed )
 						return card_images('TK/KTK/Morph.2.2.jpg') ;
 				}
 				return card_images('back.jpg') ;
@@ -1564,6 +1570,10 @@ function card_prototype() {
 			game.player.battlefield.refresh_pt() ;
 			game.opponent.battlefield.refresh_pt() ;
 		}
+		if ( typeof attrs.morphed != 'undefined' ) {
+			this.attrs.morphed = attrs.morphed ;
+			this.load_image();
+		}
 		if ( typeof attrs.manifested != 'undefined' ) {
 			this.attrs.manifested = attrs.manifested ;
 			this.load_image();
@@ -2467,15 +2477,6 @@ function card_prototype() {
 		(new Selection(this)).settype('suspend').changezone(zone, null, null, xzone, yzone) ;
 		this.setcounter(this.attrs.suspend) ;
 	}
-	this.morph = function() {
-		if ( this.zone.type != 'battlefield' ) {
-			this.changezone(this.owner.battlefield, false) ;
-			this.attrs.types = ['creature'] ;
-		} else
-			this.face_down() ;
-		this.disp_powthou(2, 2) ;
-		this.refreshpowthou() ;
-	}
 	this.dredge = function(nb) {
 		if ( isn(this.attrs.dredge) )
 			nb = this.attrs.dredge ;
@@ -2524,10 +2525,21 @@ function card_prototype() {
 			tk.attach(lw) ;
 		}, this) ;
 	}
+	this.morph = function() {
+		if ( this.zone.type != 'battlefield' )
+			this.changezone(this.owner.battlefield, false) ;
+		else
+			this.face_down() ;
+		this.attrs.types = ['creature'] ;
+		this.attrs.morphed = true ;
+		this.load_image();
+		this.disp_powthou(2, 2) ;
+		this.refreshpowthou() ;
+	}
 	this.manifest = function() {
 		var zone = game.player.library ;
-		var tobf = new Selection() ;
 		if ( zone.cards.length > 0 ) {
+			var tobf = new Selection() ;
 			var card = zone.cards[zone.cards.length-1] ;
 			tobf.add(card) ;
 			card.attrs.types = ['creature'] ; // Just in order to place it as a creature
