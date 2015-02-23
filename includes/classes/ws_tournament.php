@@ -689,9 +689,11 @@ class Tournament {
 	public function match_won($game) {
 		if ( ( $game->creator_score > 1 ) || ( $game->joiner_score > 1 ) ) {
 			$creator = $this->get_player($game->creator_id) ;
+			if ( $creator != null )
+				$creator->set_ready(true) ;
 			$joiner = $this->get_player($game->joiner_id) ;
-			$creator->set_ready(true) ;
-			$joiner->set_ready(true) ;
+			if ( $joiner != null )
+				$joiner->set_ready(true) ;
 		}
 		$this->send() ;
 	}
