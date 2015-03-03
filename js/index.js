@@ -98,8 +98,8 @@ $(function() { // On page load
 				var tr = pending_tournament_remove(data.id) ;
 				if ( tr == null )
 					running_tournament_remove(data.id) ;
-				if ( game.send_notifications
-					&& pending_tournament_add(data)
+				if ( pending_tournament_add(data)
+					&& game.send_notifications
 					&& ( data.min_players > 1 )
 					&& ! document.hasFocus() )
 					notification_send('Mogg Tournament',
