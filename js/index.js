@@ -10,6 +10,7 @@ $(function() { // On page load
 		game.connection.close(1000, 'reconnecting for nick change') ;
 		game.connection.connect() ;
 	}) ;
+	game.send_notifications = false ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
@@ -60,6 +61,7 @@ $(function() { // On page load
 				break ;
 			case 'extensions' :
 				get_extensions(data.data) ;
+				game.send_notifications = true ;
 				break ;
 			// Shoutbox
 			case 'shout' :
@@ -68,12 +70,12 @@ $(function() { // On page load
 				li.appendChild(create_span(' '+timeWithDays(mysql2date(data.time)))) ;
 				shouts.appendChild(li) ;
 				shouts.scrollTop = shouts.scrollHeight ;
-				if ( ! document.hasFocus() )
+				if ( game.send_notifications && ! document.hasFocus() )
 					notification_send('Mogg Shout', data.player_nick+' : '+data.message, 'shout') ;
 				break ;
 			// Duels
 			case 'pendingduel' :
-				if ( ! document.hasFocus() )
+				if ( game.send_notifications && ! document.hasFocus() )
 					notification_send('Mogg Duel', 'New duel : '+data.name, 'duel') ;
 				pending_duel_add(data) ;
 				break ;
@@ -96,7 +98,10 @@ $(function() { // On page load
 				var tr = pending_tournament_remove(data.id) ;
 				if ( tr == null )
 					running_tournament_remove(data.id) ;
-				if ( pending_tournament_add(data) && ( data.min_players > 1 ) && ! document.hasFocus() )
+				if ( game.send_notifications
+					&& pending_tournament_add(data)
+					&& ( data.min_players > 1 )
+					&& ! document.hasFocus() )
 					notification_send('Mogg Tournament',
 						'New tournament : '+data.format+' '+data.name, 'tournament');
 				break ;
