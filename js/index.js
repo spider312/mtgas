@@ -10,7 +10,6 @@ $(function() { // On page load
 		game.connection.close(1000, 'reconnecting for nick change') ;
 		game.connection.connect() ;
 	}) ;
-	game.send_notifications = false ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
@@ -143,10 +142,9 @@ $(function() { // On page load
 		tournament_join.classList.add('hidden') ; // for disconection
 		node_empty(running_tournaments) ;
 		tournament_view.classList.add('hidden') ;
+		game.send_notifications = false ; // Don't send notifications during initial loading
 	}) ;
 	game.connection.events() ;
-	//window.addEventListener('blur', function(ev) {connection.send({'type': 'blur'}) ;}, false) ;
-	//window.addEventListener('focus', function(ev) {connection.send({'type': 'focus'}) ;}, false) ;
 // === [ EVENTS ] ==============================================================
 	// Shoutbox
 	shout.addEventListener('submit', function(ev) {
