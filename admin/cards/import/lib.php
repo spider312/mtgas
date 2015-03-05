@@ -162,9 +162,9 @@ class ImportExtension {
 		return false ;
 	}
 	// Card/token parsing
-	function addcard($card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid='') {
+	function addcard($card_url, $rarity, $oldname, $cost, $types, $text, $url, $multiverseid='') {
 		// Name checking
-		$name = card_name_sanitize($name) ;
+		$name = card_name_sanitize($oldname) ;
 		$text = card_text_sanitize($text) ;
 		$types = preg_replace('#\s+#', ' ', $types) ;
 		if ( $name == '' )
@@ -202,6 +202,15 @@ class ImportExtension {
 		$this->tokens[] = array('card_url' => $card_url, 'type' => $type, 'pow' => $pow, 'tou' => $tou, 'image_url' => $image_url) ;
 	}
 	// Importing
+	function nbimages() {
+		$nbcards = 0 ;
+		foreach ( $this->cards as $card )
+			if ( $card->name == 'Brothers Yamazaki' ) // 2 images but 1 "physical" card
+				$nbcards++ ;
+			else
+				$nbcards += $card->nbimages ;
+		return $nbcards ;
+	}
 	function validate() {
 		// Errors
 		if ( count($this->errors) > 0 ) {
@@ -219,12 +228,7 @@ class ImportExtension {
 			echo "No errors during parsing\n" ;
 
 		// Cards
-		$nbcards = 0 ;
-		foreach ( $this->cards as $card )
-			if ( $card->name == 'Brothers Yamazaki' ) // 2 images but 1 "physical" card
-				$nbcards++ ;
-			else
-				$nbcards += $card->nbimages ;
+		$nbcards = $this->nbimages() ;
 		if ( $nbcards == $this->nbcards )
 			echo 'Card number OK' ;
 		else {

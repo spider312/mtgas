@@ -78,10 +78,14 @@ include_once $chosen_importer ;
 if ( ! $importer->validate() ) {
 	$apply = false ;
 }
+$caption = count($importer->cards) . ' cards' ;
+$nbimages = $importer->nbimages() ;
+if ( count($importer->cards) != $nbimages )
+	$caption .= ', '.$nbimages.' images' ;
 ?></pre>
 
    <table>
-    <caption><?php echo count($importer->cards) ; ?> cards detected <button id="import_cards_button">Show / Hide</button></caption>
+    <caption><?php echo $caption ; ?> cards detected <button id="import_cards_button">Show / Hide</button></caption>
     <tbody id="import_cards">
      <tr>
       <th>#</th>

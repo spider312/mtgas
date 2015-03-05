@@ -53,7 +53,7 @@ foreach ( $matches_list as $match ) { //
 \s*<div align=center>
 \s*<div id=EngShort style="display:block;" class=S1\d align=justify>(?<text>.*?)</div>(
 .*?<div align=right class=G14 style="padding-right:\dpx;">(?<pt>(?<pow>[^\s]*)/(?<tou>[^\s]*))?</div>)?' ;
-	$info_regex .= '.*<img src=scan\?(?<imgurl>.*?)></td></tr>' ;
+	$info_regex .= '.*<tr><td width=325  align=center valign=middle><img src=(?<imgurl>.*?)></td></tr>' ;
 	$nb = preg_match_all("#$info_regex#s", $html, $matches, PREG_SET_ORDER) ;
 	if ( $nb < 1 ) {
 		echo '<a href="'.$url.'" target="_blank">regex failed</a> -> '.$path."\n" ;
@@ -107,7 +107,7 @@ foreach ( $matches_list as $match ) { //
 		}
 		// Image (scan-lowres / hires)
 		//$img_url = card_image_url($mv_ext_name.'/'.$mv_card_id) ; // Default Hires but not always managed in early imports
-		$img_url = 'http://www.magic-ville.com/fr/scan?'.$matches[0]['imgurl'] ;
+		$img_url = 'http://www.magic-ville.com/fr/'.$matches[0]['imgurl'] ;
 		/*
 		if ( preg_match('#<img src=..(?<img>/pics/big/.*?.jpg)>#', $html, $match_img) )
 			$img_url = 'http://www.magic-ville.com/'.$match_img['img'] ;
@@ -116,6 +116,8 @@ foreach ( $matches_list as $match ) { //
 				$img_url = 'http://www.magic-ville.com/fr/scan?'.$match_img['scan'] ;
 		}*/
 		$card = $importer->addcard($url, $rarity, $name, $cost, $type, $text, $img_url) ;
+		if ( ! $card )
+			continue ;
 		$card->addlang('fr', html_entity_decode(trim($matches[0]['frname']), ENT_COMPAT, 'UTF-8')) ;
 	}
 
