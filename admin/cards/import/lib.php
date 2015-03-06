@@ -174,7 +174,7 @@ class ImportExtension {
 			if ( $card->name == $name ) {
 				$log = '' ;
 				foreach ( array('rarity', 'name', 'cost', 'types', 'text'/*, 'multiverseid'*/) as $val )
-					if ( $$val != $card->{$val} ) {
+					if ( trim($$val) != $card->{$val} ) {
 						$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
 						//$card->{$val} = $$val ;
 					}
