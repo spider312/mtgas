@@ -121,6 +121,10 @@ img.avatar {
 	height: 30px ;
 	max-width: 50px ;
 }
+img.avatar.big {
+	height: 50px ;
+	max-width: 100px ;
+}
 /***************************
  * General purpose classes *
  ***************************/
