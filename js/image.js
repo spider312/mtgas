@@ -43,11 +43,13 @@ function card_images(url) {
 function theme_image(name) {
 	return [ url+'/themes/'+theme+'/'+name ] ;
 }
-function player_avatar(avatar, alt, title) {
+function player_avatar(avatar, alt, title, prefix) {
 	var img = create_img(avatar, alt, title) ;
 	img.classList.add('avatar') ;
 	img.addEventListener('error', function(ev) {
-		ev.target.src = default_avatar ;
+		if ( !iss(prefix) )
+			prefix = '' ;
+		ev.target.src = prefix+default_avatar ;
 	}, false) ;
 	return img
 }
