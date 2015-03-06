@@ -119,13 +119,3 @@ function player(table, data, n) {
 	if ( iso(data.alias) && ( data.alias.indexOf(player_id) > -1 ) )
 		tr.classList.add('self') ;
 }
-function player_avatar(avatar) {
-	var avatars = [avatar, 'img/avatar/run.png'] ;
-	var img = create_img() ;
-	game.image_cache.load(avatars, function(img, obj) {
-		obj.src = img.src ;
-	}, function(obj, url) {
-		alert("Can't load "+url) ;
-	}, img) ;
-	return img
-}

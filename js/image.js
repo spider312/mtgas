@@ -43,6 +43,16 @@ function card_images(url) {
 function theme_image(name) {
 	return [ url+'/themes/'+theme+'/'+name ] ;
 }
+function player_avatar(avatar) {
+	var avatars = [avatar, default_avatar] ;
+	var img = create_img() ;
+	game.image_cache.load(avatars, function(img, obj) {
+		obj.src = img.src ;
+	}, function(obj, url) {
+		alert("Can't load "+url) ;
+	}, img) ;
+	return img
+}
 function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
 	if ( ( url.indexOf('://') < 0 ) && ( url.indexOf('/') > 0 ) )
 		url = '/'+url ;
