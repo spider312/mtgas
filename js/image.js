@@ -49,9 +49,6 @@ function player_avatar(avatar) {
 	img.addEventListener('error', function(ev) {
 		ev.target.src = default_avatar ;
 	}, false) ;
-	img.addEventListener('click', function(ev) {
-		ev.target.classList.toggle('avatar') ;
-	}, false) ;
 	return img
 }
 function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
