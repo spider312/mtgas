@@ -44,12 +44,15 @@ function theme_image(name) {
 	return [ url+'/themes/'+theme+'/'+name ] ;
 }
 function player_avatar(avatar, alt, title, prefix) {
+	var fallback = default_avatar ;
+	if ( iss(prefix) )
+		fallback = prefix + fallback ;
+	if ( avatar == '' )
+		avatar = fallback ;
 	var img = create_img(avatar, alt, title) ;
 	img.classList.add('avatar') ;
 	img.addEventListener('error', function(ev) {
-		if ( !iss(prefix) )
-			prefix = '' ;
-		ev.target.src = prefix+default_avatar ;
+		ev.target.src = fallback ;
 	}, false) ;
 	return img
 }
