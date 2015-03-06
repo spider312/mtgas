@@ -15,6 +15,7 @@ player_id = $.cookie(session_id) ;
 function init() {
 	game = {} ;
 	game.options = new Options() ;
+	game.image_cache = new image_cache() ;
 	var tabs_div = document.getElementById('tabs') ;
 	for ( var i in tabs ) {
 		str = i[0].toUpperCase() ;
@@ -108,7 +109,7 @@ function refresh() {
 function player(table, data, n) {
 	var tr = table.insertRow() ;
 	tr.insertCell().appendChild(create_text(''+(n+1))) ;
-	tr.insertCell().appendChild(create_img(data.avatar)) ;
+	tr.insertCell().appendChild(player_avatar(data.avatar)) ;
 	tr.insertCell().appendChild(create_a(data.nick, 'player.php?id='+data.player_id)) ;
 	tr.insertCell().appendChild(create_text(data.matches)) ;
 	tr.insertCell().appendChild(create_text(data.score)) ;
@@ -117,4 +118,14 @@ function player(table, data, n) {
 		tr.classList.add('self') ;
 	if ( iso(data.alias) && ( data.alias.indexOf(player_id) > -1 ) )
 		tr.classList.add('self') ;
+}
+function player_avatar(avatar) {
+	var avatars = [avatar, 'img/avatar/run.png'] ;
+	var img = create_img() ;
+	game.image_cache.load(avatars, function(img, obj) {
+		obj.src = img.src ;
+	}, function(obj, url) {
+		alert("Can't load "+url) ;
+	}, img) ;
+	return img
 }
