@@ -20,7 +20,8 @@ function init() {
 	for ( var i in tabs ) {
 		str = i[0].toUpperCase() ;
 		str += i.substr(1) ;
-		var span = create_span(' '+str+' ') ;
+		var span = create_span(str) ;
+		span.title = tabs[i].players.length+' players' ;
 		span.id = i ;
 		if ( i == selected )
 			span.classList.add('selected') ;
