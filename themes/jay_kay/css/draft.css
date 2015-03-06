@@ -11,14 +11,17 @@
 #tournament_info td.player { /* Player TD with avatar */
 	text-align: center ;
 	height: 30px ;
-	padding-left: 30px ;
-	background-position: left top ;
-	background-size:30px 30px;
-	background-repeat:no-repeat;
 }
-#tournament_info .table {
+#tournament_info {
 	background: darkgreen url('../THS_BackgroundTexture_01.jpg') repeat left top ;
 	background-size: contain ;
+}
+#tournament_info td {
+	color: white ;
+}
+td.self {
+	background-color: transparent ; /* Overwrite other classes */
+	font-weight: bold;
 }
 /* Cards */
 .card {

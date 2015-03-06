@@ -139,12 +139,14 @@ function TournamentDraft() {
 }
 function PlayerDraft() {
 	this.td = function(tr) { // TD for draft table
-		var txt = this.nick ;
+		var img = player_avatar(this.avatar_url(), null, null, '../') ;
+		var td = create_td(tr, img) ;
+		var txt = create_text(this.nick) ;
 		if ( this.player_id == player_id )
-			txt = create_element('b', txt) ;
-		var td = create_td(tr, txt) ;
+			td.classList.add('self')
+			//txt = create_element('b', txt) ;
+		td.appendChild(txt) ;
 		td.title = '#'+this.order ;
-		td.style.backgroundImage = 'url(../'+this.avatar_url()+')' ;
 		td.classList.add('player') ;
 	}
 }
