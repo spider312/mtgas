@@ -43,8 +43,8 @@ function card_images(url) {
 function theme_image(name) {
 	return [ url+'/themes/'+theme+'/'+name ] ;
 }
-function player_avatar(avatar) {
-	var img = create_img(avatar) ;
+function player_avatar(avatar, alt, title) {
+	var img = create_img(avatar, alt, title) ;
 	img.classList.add('avatar') ;
 	img.addEventListener('error', function(ev) {
 		ev.target.src = default_avatar ;

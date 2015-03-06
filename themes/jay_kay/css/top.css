@@ -49,9 +49,6 @@
 	background: url(../sort/desc.png) top right no-repeat ;
 }
 /* Player lines */
-img.avatar {
-	height: 30px ;
-}
 .self, tbody tr:hover {
 	background-color: #F4ECD2 ;
 }

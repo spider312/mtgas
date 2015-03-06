@@ -116,6 +116,11 @@ header a:active {
 	border: 1px solid #d5c2b3 ;
 	box-shadow: 0 0 5px 3px #000000;
 }
+img.avatar {
+	vertical-align: middle ;
+	max-height: 30px ;
+	max-width: 30px ;
+}
 /***************************
  * General purpose classes *
  ***************************/

@@ -329,9 +329,7 @@ $(function() { // On page load
 // === [ Duels ] ==============================================================
 function player_cell(cell, nick, avatar) {
 	node_empty(cell) ;
-	var img = create_img(avatar, nick+'\'s avatar', nick+'\'s avatar')
-	img.style.maxWidth = '25px' ;
-	img.style.maxHeight = '25px' ;
+	var img =  player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
 	cell.appendChild(img) ;
 	cell.appendChild(create_text(nick)) ;
 }
