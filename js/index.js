@@ -520,7 +520,8 @@ function list_players(tournament, connected) {
 	var ul = document.createElement('ol') ;
 	for ( var j in tournament.players ) {
 		var player = new Player(tournament.players[j]) ;
-		var li = create_li(player.nick+' ') ;
+		var li = create_li(player_avatar(player.avatar)) ;
+		li.appendChild(create_text(player.nick+' ')) ;
 		if ( connected )
 			li.appendChild(player.connection()) ;
 		ul.appendChild(li) ;
