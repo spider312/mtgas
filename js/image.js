@@ -45,8 +45,12 @@ function theme_image(name) {
 }
 function player_avatar(avatar) {
 	var img = create_img(avatar) ;
+	img.classList.add('avatar') ;
 	img.addEventListener('error', function(ev) {
 		ev.target.src = default_avatar ;
+	}, false) ;
+	img.addEventListener('click', function(ev) {
+		ev.target.classList.toggle('avatar') ;
 	}, false) ;
 	return img
 }
