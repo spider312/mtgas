@@ -1,8 +1,11 @@
-table {
-	display: inline ;
-	border: 0px solid black ;
-	caption-side: bottom;
+/* Unselectability for tabs and table header */
+#tabs span, thead td {
+	-webkit-user-select: none; /* Chrome, Safari */
+	-moz-user-select: none;  /* Firefox */
+	/*-ms-user-select: none;   /* IE 10+ */
+	/*user-select: none;      /* Unused ? */
 }
+/* Global content */
 #top {
 	width: 96% ;
 	margin-left: 2% ;
@@ -11,27 +14,25 @@ table {
 	text-align: center ;
 }
 /* Tabs */
-#tabs_div {
+#tabs {
 	margin-top: 15px ;
 	margin-bottom: 15px ;
 }
-#tabs_div span {
+#tabs span {
 	font-size: 18px ;
 	background-color: #907c6c ;
 	cursor: pointer ;
 	padding: 5px ;
 	margin: 5px ;
 }
-#tabs_div span.selected {
-	border: 1px solid black ;
+#tabs span.selected {
 	background-color: #F4ECD2 ;
 }
 /* Players list */
-#table img, #table td {
-	height: 30px ;
-}
-.self {
-	background-color: #F4ECD2 ;
+#top table {
+	border: 0px solid black ;
+	caption-side: bottom;
+	display: inline-block ; /* Required for centering under chrome */
 }
 /* Player list header */
 .sortable {
@@ -47,10 +48,12 @@ table {
 .desc .sorted {
 	background: url(../sort/desc.png) top right no-repeat ;
 }
-/* Unselectability for tabs and table header */
-#tabs_div span, thead td {
-	-webkit-user-select: none;  /* Chrome all / Safari all */
-	-moz-user-select: none;     /* Firefox all */
-	-ms-user-select: none;      /* IE 10+ */
-	user-select: none;  
+/* Player lines */
+#top tbody img, #top tbody td {
+	height: 30px ;
 }
+.self, tbody tr:hover {
+	background-color: #F4ECD2 ;
+}
+
+

@@ -16,7 +16,6 @@ function init() {
 	game = {} ;
 	game.options = new Options() ;
 	var tabs_div = document.getElementById('tabs') ;
-	tabs_div.id = 'tabs_div' ;
 	for ( var i in tabs ) {
 		str = i[0].toUpperCase() ;
 		str += i.substr(1) ;
@@ -64,13 +63,11 @@ function refresh() {
 	// Sort data
 	var data = tabs[selected].players ;
 	data.sort(function(a, b) {
-		if ( a[sort] == b[sort] )
-			return 0 ;
-		else 
-			return ( a[sort] < b[sort] ) ;
-	})
-	if ( reverse )
-		data.reverse() ;
+		if ( reverse )
+			return a[sort] -  b[sort] ;
+		else
+			return b[sort] -  a[sort] ;
+	}) ;
 	var table = document.getElementById('table') ;
 	// Apply classes on table columns head
 	var cells = table.parentNode.tHead.rows[0].cells ;
