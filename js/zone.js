@@ -1069,7 +1069,7 @@ function Life(player) {
 	this.context = this.cache.getContext('2d') ;
 	// Image
 	this.img = null ;
-	game.image_cache.load([player.avatar], function(img, widget) {
+	game.image_cache.load([player.avatar, fallback_avatar], function(img, widget) {
 		widget.img = img ;
 		widget.refresh() ; // Initial drawing
 	}, function(widget) {
