@@ -402,7 +402,7 @@ function Options(check_id) {
 		}
 		is.appendChild(img) ;
 		*/
-		var img = create_img(localize_image(this.get('profile_avatar'))) ;
+		var img = player_avatar(localize_image(this.get('profile_avatar'))) ;
 		img.id = 'avatar' ;
 		is.appendChild(img) ;
 		is.appendChild(create_text(this.get('profile_nick'))) ;
