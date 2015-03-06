@@ -181,7 +181,7 @@ function PlayerIndex() {
 		create_td(this.node, this.order) ;
 		var td = create_td(this.node,
 			create_a(this.nick, '../player.php?id='+this.player_id)) ;
-		var img = player_avatar(this.avatar_url()) ;
+		var img = player_avatar(this.avatar_url(), null, null, '../') ;
 		img.height = 50 ;
 		create_td(this.node, img) ;
 		var st = create_td(this.node, this.verbose_status()) ;
