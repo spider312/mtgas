@@ -283,7 +283,7 @@ function Options(check_id) {
 		}, false) ;
 		fieldset.appendChild(avatar) ;
 			// Demo
-		var last_working_avatar = '' ;
+		var last_working_avatar = fallback_avatar ;
 		var txt = 'Current avatar, click to choose one from a gallery' ;
 		var avatar_demo = create_img(localize_image(this.get('profile_avatar')), txt, txt) ;
 		avatar_demo.id = 'avatar_demo' ;

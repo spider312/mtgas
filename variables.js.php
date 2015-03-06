@@ -10,6 +10,7 @@ theme = '<?php echo $theme ; ?>' ;
 cardimages = localStorage['cardimages'] ;
 cardimages_default = '<?php echo $cardimages_default ; ?>' ;
 default_avatar = '<?php echo $default_avatar ; ?>' ;
+fallback_avatar = '<?php echo $fallback_avatar ; ?>' ;
 wsport = <?=$wsport;?> ;
 
 // Options

@@ -14,6 +14,7 @@ $card_password = '' ;
 
 // Should change
 $default_avatar = 'img/avatar/kuser.png' ;
+$fallback_avatar = 'img/avatar/run.png' ;
 	// Custom menu entries
 //menu_add('Mogg', 'http://mogg.fr', 'Original website') ;
 	// Suggestion for limited on index

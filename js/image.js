@@ -44,7 +44,7 @@ function theme_image(name) {
 	return [ url+'/themes/'+theme+'/'+name ] ;
 }
 function player_avatar(avatar, alt, title, prefix) {
-	var fallback = default_avatar ;
+	var fallback = fallback_avatar ;
 	if ( iss(prefix) )
 		fallback = prefix + fallback ;
 	if ( avatar == '' )
