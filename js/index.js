@@ -458,16 +458,16 @@ function running_tournament_add(t) {
 	if ( ! tournament_constructed(t.format) && iso(t.data.boosters) )
 		name += ' ('+t.data.boosters.join('-')+')' ;
 	var tr = create_tr(table, 
-		create_a(t.format, url, null, title), 
-		create_a(name, url, null, title), 
-		create_a(tournament_status(t.status), url, null, title), 
-		create_a('', url, null, title), 
+		create_a(create_span(t.format), url, null, title), 
+		create_a(create_span(name), url, null, title), 
+		create_a(create_span(tournament_status(t.status)), url, null, title), 
+		create_a(create_span(''), url, null, title), 
 		create_a(list_players(t, true), url, null, title)
 	) ;
 	if ( table == null )
 		running_tournaments.replaceChild(tr, current_line) ;
 	tr.tournament = t ;
-	tr.timer = start_timer(tr.cells[3].firstElementChild, t.due_time, true) ;
+	tr.timer = start_timer(tr.cells[3].firstElementChild.firstElementChild, t.due_time, true) ;
 	tr.cells[3].classList.add('nowrap') ;
 	tr.cells[4].classList.add('nowrap') ;
 	for ( var j in t.players )

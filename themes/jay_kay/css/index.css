@@ -127,6 +127,18 @@ ol {
 #decks_table tbody tr:hover {
 	background-color: #F4ECD2 ;
 }
+#running_tournaments td {
+	height: 100%
+}
+#running_tournaments a {
+	display: table ;
+	height:100% ;
+	width: 100% ;
+}
+#running_tournaments a span {
+	display: table-cell ;
+	vertical-align: middle ;
+}
 #decks_table input[type=text] {
 	width: 100% ;
 	box-sizing: border-box;
