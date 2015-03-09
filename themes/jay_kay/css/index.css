@@ -127,18 +127,18 @@ ol {
 #decks_table tbody tr:hover {
 	background-color: #F4ECD2 ;
 }
+/* Full height link in cells https://stackoverflow.com/questions/3966027/make-link-in-table-cell-fill-the-entire-row-height */
 #running_tournaments td {
-	height: 100%
+	height: 100%;
+	padding: 0px;
+	overflow: hidden ;
 }
 #running_tournaments a {
-	display: table ;
-	height:100% ;
-	width: 100% ;
+	margin: -50em;
+	padding: 50em;
+	display: block ;
 }
-#running_tournaments a span {
-	display: table-cell ;
-	vertical-align: middle ;
-}
+
 #decks_table input[type=text] {
 	width: 100% ;
 	box-sizing: border-box;
