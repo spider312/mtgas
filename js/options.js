@@ -303,9 +303,11 @@ function Options(check_id) {
 				ev.target.src = last_working_avatar ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
-		fieldset.appendChild(create_a('Unexpectedly reset and using CCleaner ?',
+		var a = create_a('Unexpectedly reset and using CCleaner ?',
 			'http://img.mogg.fr/scrot/ccleaner.png', null, 
-			'Screenshot showing how to configure CCleaner to never erase mogg data')) ;
+			'Screenshot showing how to configure CCleaner to never erase mogg data')
+		a.target = '_blank' ;
+		fieldset.appendChild(a) ;
 	}
 		// Options
 	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset

@@ -52,7 +52,7 @@
       <!-- Download -->
       <tr title="<?=__('index.decks.download.title');?>">
        <th class="nowrap">
-        <a href="http://img.mogg.fr/scrot/deck_download.png"><?=__('index.decks.download');?></a>
+        <a href="http://img.mogg.fr/scrot/deck_download.png" target="_blank"><?=__('index.decks.download');?></a>
        </th>
        <td>
         <input id="deck_url" type="text" name="deck_url" form="download"
