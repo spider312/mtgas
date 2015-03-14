@@ -479,8 +479,10 @@ function tournament_footer_update(table) {
 	// Count tournament for each player number
 	if ( table == null ) return false ;
 	var players_number = {} ;
+	var tnbp = 0 ;
 	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ ) {
 		var nbp = running_tournaments.rows[i].tournament.min_players ;
+		tnbp += nbp ;
 		if ( isn(players_number[nbp]) )
 			players_number[nbp]++ ;
 		else
@@ -492,11 +494,13 @@ function tournament_footer_update(table) {
 			str += ', ' ;
 		str += i+'p : '+players_number[i] ;
 	}
+	str = tnbp+' players ('+str+')' ;
 	node_empty(table.parentNode.tFoot) ;
 	var tr = table.parentNode.tFoot.insertRow() ;
 	var td = tr.insertCell() ;
 	td.colSpan = 5 ;
 	td.appendChild(create_text(str)) ;
+	return tnbp ;
 }
 function update_tournament_players(tr) {
 	// Slots
