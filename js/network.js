@@ -147,7 +147,7 @@ function txt_send(text) {
 	action_send('text', {'text': text}) ;
 	if ( spectactor ) {
 		var p = active_player ;
-		active_player = game.spectators.get($.cookie(session_id)) ;
+		active_player = game.spectators.get(player_id) ;
 	}
 	txt_recieve(text) ;
 	if ( spectactor )
@@ -186,7 +186,7 @@ function message_send(text, meaning) {
 	message(game.player.name+' '+text, meaning) ;
 }
 function message(text, meaning, dom) {
-	chatbox = $('#chatbox')[0] ;
+	chatbox = document.getElementById('chatbox') ;
 	var scrbot = chatbox.scrollHeight - ( chatbox.scrollTop + chatbox.clientHeight ) ; // Scroll from bottom, if 0, will scroll to see added line
 	var table = document.getElementById('chathisto') ;
 	var row = table.insertRow(-1) ; // At the end
@@ -310,7 +310,7 @@ function chat_start() {
 function autotext_buttons() {
 	var autotexts = game.options.get('autotext').split('\n') ;
 	autotexts = autotexts.filter(function(param) { return ( param != '' ) ; })
-	var autotext_div = $('#autotext')[0] ;
+	var autotext_div = document.getElementById('autotext') ;
 	node_empty(autotext_div) ;
 	for ( i in autotexts )
 		autotext_div.appendChild(create_button(autotexts[i], function(ev){ txt_send(this.firstChild.nodeValue) ; })) ;

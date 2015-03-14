@@ -16,7 +16,6 @@ if ( ( $player_id == $row->joiner_id ) && ( $player_id != $row->creator_id ) ) {
 	$client_status = 'Joiner' ;
 	// Me : joiner
 	$player_nick = $row->joiner_nick ;
-	$player_id = $row->joiner_id ;
 	$player_avatar = $row->joiner_avatar ;
 	$player_score = $row->joiner_score ;
 	// My opponent : creator
@@ -36,10 +35,10 @@ if ( ( $player_id == $row->joiner_id ) && ( $player_id != $row->creator_id ) ) {
 		$client_status = 'Spectactor' ;
 		$spectactor = 'true' ;
 		$spectactor_id = $player_id ;
+		$player_id = $row->creator_id ; // Fake spectator as creator
 	}
 	// Me : creator
 	$player_nick = $row->creator_nick ;
-	$player_id = $row->creator_id ;
 	$player_avatar = $row->creator_avatar ;
 	$player_score = $row->creator_score ;
 	// My opponent : joiner
@@ -48,29 +47,14 @@ if ( ( $player_id == $row->joiner_id ) && ( $player_id != $row->creator_id ) ) {
 	$opponent_avatar = $row->joiner_avatar ;
 	$opponent_score = $row->joiner_score ;
 }
-// Status evolution
-$status = $row->status ;
-switch ( $status ) {
+// Status management
+switch ( $row->status ) {
 	case 0 : 
 		die('This game has timeout') ;
-		break ;
-	case 1 : // Joined a game created by another
-		$status++ ;
-		break;
-	case 2 : // Joined game created by self
-		$status++ ;
-		break;
-	case 4 : // Created by a tournament, no join
-	case 5 : // Created by a tournament, one join
-		$status++ ;
-	case 6 : // Created by a tournament, both join
-	case 3 : // Tried to join a game that already has 2 players
 		break ;
 	case 7 : // Replay for ended tournament's games
 		$replay = 1 ;
 		break ;
-	default : // Tried to join a game in an unknown status
-		die('Unknown status : '+$status) ;
 }
 if ( $replay == 1 ) {
 	$client_status = 'Replay' ;
@@ -79,12 +63,6 @@ if ( $replay == 1 ) {
 	$player_score = 0 ; // In order to trigger score changes
 	$opponent_score = 0 ;
 }
-/*
-if ( $status != $row->status )
-	$query = $db->update("UPDATE `$mysql_db`.`round` SET  `status` =  '$status' WHERE `id` = '$id'") ;
-if ( $row->tournament != 0 ) 
-	query("UPDATE `registration` SET `status` = '4' WHERE `tournament_id` = '".$row->tournament."' AND `player_id` = '$player_id' ; ") ;
-*/
 if ( $row->tournament > 0 ) {
 	$tournament = $db->select("SELECT * FROM `tournament` WHERE `id` = '{$row->tournament}'") ;
 	$tournament_data = json_encode($tournament[0]) ;
@@ -105,39 +83,38 @@ add_css(array(
 	'side.css',
 	'menu.css', 
 	'options.css'
-	)
-) ;
+)) ;
+add_js(array(
+	'debug.js',
+	'play.js',
+	'dnd.js',
+	'player.js',
+	'canvas.js',
+	'events.js',
+	'network.js',
+	'websockets.js',
+	'canvasutilities.js',
+	'image.js',
+	'card.js',
+	'token.js',
+	'math.js',
+	'menu.js',
+	'listeditor.js',
+	'target.js',
+	'workarounds.js',
+	'zone.js',
+	'manapool.js',
+	'turn.js',
+	'side.js', 
+	'html.js',
+	'selection.js',
+	'options.js',
+	'spectactor.js',
+	'../variables.js.php'
+)) ;
 ?>
-  <script type="text/javascript" src="js/lib/jquery.js"></script>
-  <script type="text/javascript" src="js/lib/jquery.cookie.js"></script>
-  <script type="text/javascript" src="js/debug.js"></script>
-  <script type="text/javascript" src="js/play.js"></script>
-  <script type="text/javascript" src="js/dnd.js"></script>
-  <script type="text/javascript" src="js/player.js"></script>
-  <script type="text/javascript" src="js/canvas.js"></script>
-  <script type="text/javascript" src="js/events.js"></script>
-  <script type="text/javascript" src="js/network.js"></script>
-  <script type="text/javascript" src="js/websockets.js"></script>
-  <script type="text/javascript" src="js/canvasutilities.js"></script>
-  <script type="text/javascript" src="js/image.js"></script>
-  <script type="text/javascript" src="js/card.js"></script>
-  <script type="text/javascript" src="js/token.js"></script>
-  <script type="text/javascript" src="js/math.js"></script>
-  <script type="text/javascript" src="js/menu.js"></script>
-  <script type="text/javascript" src="js/listeditor.js"></script>
-  <script type="text/javascript" src="js/target.js"></script>
-  <script type="text/javascript" src="js/workarounds.js"></script>
-  <script type="text/javascript" src="js/zone.js"></script>
-  <script type="text/javascript" src="js/manapool.js"></script>
-  <script type="text/javascript" src="js/turn.js"></script>
-  <script type="text/javascript" src="js/side.js"></script>
-  <script type="text/javascript" src="js/html.js"></script>
-  <script type="text/javascript" src="js/selection.js"></script>
-  <script type="text/javascript" src="js/options.js"></script>
-  <script type="text/javascript" src="js/spectactor.js"></script>
-  <script type="text/javascript" src="variables.js.php"></script>
   <script type="text/javascript">
-$(function() { // When page is loaded : initialize everything
+function start() { // When page is loaded : initialize everything
 	init_title = document.title ;
 	unseen_actions = 0 ;
 	sent_time = null ;
@@ -169,24 +146,17 @@ $(function() { // When page is loaded : initialize everything
 			, '<?php echo addslashes($opponent_avatar) ; ?>'
 			, <?php echo $opponent_score."\n" ; ?>
 	) ;
-<?php
-if ( array_key_exists('messages', $_SESSION) ) { // If messages were sent during game creation/join, display them on page load
-	foreach ($_SESSION['messages'] as $value) 
-		echo "		log('$value') ;\n" ;
-	unset($_SESSION['messages']) ;
-}
-?>
 	// Start all that must be started after "game" (+canvas) initialisation (initialisations, events, network)
-	start() ;
-}) ;
+	game_start() ;
+}
   </script>
  </head>
 
- <body>
+ <body onload="start();">
   <canvas id="paper"></canvas>
   <div id="rightframe">
    <img id="zoom" draggable="false" src="<?php echo $cardimages_default ; ?>/back.jpg" oncontextmenu="event.preventDefault() ; ">
-   <div id="timeleft"><img id="wsci" title="Connexion indicator" src="/themes/<?=$theme;?>/redled.png"><span>Timeleft</span></div>
+   <div id="timeleft"><?=ws_indicator();?><span>Timeleft</span></div>
    <div id="info">Game infos</div>
    <div id="chatbox">
     <table id="chattable">

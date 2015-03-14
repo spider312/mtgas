@@ -9,7 +9,6 @@ html_head(
 	),
 	array(
 		'lib/jquery.js'
-		, 'lib/jquery.cookie.js'
 		, '../variables.js.php'
 		, 'deck.js'
 		, 'html.js'
@@ -30,7 +29,7 @@ html_head(
 ) ;
 ?>
 
- <body>
+ <body onload="start()">
 <?php
 html_menu() ;
 include 'includes/Browser.php' ;

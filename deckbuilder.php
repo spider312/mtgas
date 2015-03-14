@@ -10,7 +10,6 @@ html_head(
 	),
 	array(
 		'lib/jquery.js',
-		'lib/jquery.cookie.js', 
 		'image.js',
 		'math.js',
 		'menu.js',

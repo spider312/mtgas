@@ -35,8 +35,12 @@ if ( array_key_exists($session_id, $_COOKIE) )
 
 // Reconnection
 if ( 
-	( ! array_key_exists('login', $_SESSION) || ! array_key_exists('password', $_SESSION) ) // Missing login or pass in session
-	&& array_key_exists('login', $_COOKIE) && array_key_exists('password', $_COOKIE) // And existing in cookies
+	(
+		! array_key_exists('login', $_SESSION)
+		|| ! array_key_exists('password', $_SESSION)
+	) // Missing login or pass in session
+	&& array_key_exists('login', $_COOKIE)
+	&& array_key_exists('password', $_COOKIE) // And existing in cookies
 ) {
 	$_SESSION['login'] = $_COOKIE['login'] ;
 	$_SESSION['password'] = $_COOKIE['password'] ;

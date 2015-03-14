@@ -13,7 +13,7 @@
 	// Under FF+ch : manages printable chars as keypress, not charpress
 	// Under FF+ch : ctrl keys triggers an event instead of being a modifier (modifiers can't be used :/ )
 // === [ INIT ] ================================================================
-function start() { // When page is loaded : initialize everything
+function game_start() { // When page is loaded : initialize everything
 	//refresh_card_count = 0 ;
 	workarounds() ; // Workarounds
 		// Cards
@@ -134,7 +134,7 @@ function start() { // When page is loaded : initialize everything
 		network_loop() ; // Recieve previous actions before sending spectactor / join
 		chat_start() ;
 		if ( spectactor ) { // Declare itself as a spectactor
-			game.me = game.spectators.add($.cookie(session_id), game.options.get('profile_nick')) ;
+			game.me = game.spectators.add(player_id, game.options.get('profile_nick')) ;
 		} else {
 			game.me = game.player ;
 			autotext_init() ;

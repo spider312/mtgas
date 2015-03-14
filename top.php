@@ -7,9 +7,7 @@ html_head('Top players ',
 		'top.css'
 	), 
 	array(
-		'lib/jquery.js'
-		, 'lib/jquery.cookie.js'
-		, '../variables.js.php'
+		'../variables.js.php'
 		, 'options.js'
 		, 'html.js' 
 		, 'math.js'

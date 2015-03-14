@@ -39,7 +39,6 @@ html_head(
 	),
 	array(
 		'lib/jquery.js',
-		'lib/jquery.cookie.js',
 		'../variables.js.php',
 		'html.js',
 		'math.js',

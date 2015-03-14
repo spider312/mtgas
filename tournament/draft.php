@@ -9,9 +9,7 @@ html_head('Drafting #'.$id,
 		'options.css'
 	),
 	array(
-		'lib/jquery.js'
-		, 'lib/jquery.cookie.js'
-		, 'lib/Flotr2/flotr2.min.js'
+		'lib/Flotr2/flotr2.min.js'
 		, 'html.js'
 		, 'math.js'
 		, 'image.js'

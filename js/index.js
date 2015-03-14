@@ -1,5 +1,5 @@
 // index.js : Management of MTGAS index (games list, preloaded decks ...)
-$(function() { // On page load
+function start() { // On page load
 	workarounds() ;
 	document.getElementById('shout')[0].focus() ;
 	ajax_error_management() ;
@@ -325,7 +325,7 @@ $(function() { // On page load
 	}, false) ;
 	// Display decks list
 	decks_list() ;
-}) ;
+}
 // === [ Duels ] ==============================================================
 function player_cell(cell, nick, avatar) {
 	node_empty(cell) ;

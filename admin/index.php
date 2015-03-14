@@ -8,9 +8,7 @@ html_head(
 		, 'admin.css'
 	),
 	array(
-		'lib/jquery.js'
-		, 'lib/jquery.cookie.js'
-		, '../variables.js.php'
+		'../variables.js.php'
 		, 'math.js'
 		, 'html.js'
 		, 'image.js'

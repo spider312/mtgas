@@ -11,7 +11,6 @@ tabs = {} ;
 selected = 'week' ;
 sort = 'ratio' ;
 reverse = false ;
-player_id = $.cookie(session_id) ;
 function init() {
 	game = {} ;
 	game.options = new Options() ;

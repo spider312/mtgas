@@ -27,9 +27,6 @@ function param($arr, $param, $defaultvalue='') {
 	else
 		return $defaultvalue ;
 }
-function message($txt='no text to send') {
-	$_SESSION['messages'][] = $txt ;
-}
 // Debug
 function l($obj) {
 	return '<pre>'.print_r($obj, true).'</pre>'."\n" ;

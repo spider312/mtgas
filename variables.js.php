@@ -1,8 +1,12 @@
 // This file is used to get data from PHP in Javascript
-<?php include 'lib.php' ; ?>
-
+// Second part is for variables to be tweaked
+<?php
+include 'lib.php';
+header('Content-Type: application/javascript');
+?>
 // Internal
-session_id = '<?php echo $session_id ; ?>' ;
+session_id = '<?=$session_id ;?>' ;
+player_id = '<?=$player_id;?>';
 
 // From conf / user data
 url = '<?php echo $url ; ?>' ;
@@ -16,28 +20,19 @@ wsport = <?=$wsport;?> ;
 // Options
 	// Lang
 <?php
-function get_client_language(/*$availableLanguages, */$default='en'){
+function get_client_language($default='en'){
 	if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
 		// C : fr,fr-FR;q=0.8,en-US;q=0.6,en;q=0.4
 		// F : fr-fr,fr;q=0.8,en;q=0.5,en-us;q=0.3
 		$langs = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']) ;
 		foreach ( $langs as $value ) {
 			$choice = substr($value, 0, 2) ;
-			//if( in_array($choice, $availableLanguages) )
-				return $choice ;
+			return $choice ;
 		}
 	}
 	return $default ;
 }
-//$_COOKIE[$session_id]
 echo "lang = '".get_client_language()."'\n" ;
-
-/* Client side way
-var a_lang = window.navigator.language.split('-') ;
-lang = a_lang[0].toLowerCase() ;
-var variant = lang
-if ( a_lang.length == 2 ) // fr-FR
-	var variant = a_lang[1].toLowerCase() ;*/
 ?>
 
 // Images languages
@@ -66,9 +61,9 @@ foreach ( scandir($localedir) as $dir )
 	if ( ( $dir != '.' ) && ( $dir != '..' ) )
 		echo "applangs['$dir'] = langs['$dir'] ; \n" ;
 ?>
-if ( applangs[lang] )
+/*if ( applangs[lang] )
 	applang = lang ;
-else
+else*/
 	applang = 'en' ;
 
 // Index

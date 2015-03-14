@@ -175,7 +175,7 @@ function Connexion(url, onmessage, onclose, registration_data) {
 	else
 		this.registration_data = {} ;
 	this.registration_data.type = 'register' ;
-	this.registration_data.player_id = $.cookie(session_id) ;
+	this.registration_data.player_id = player_id ;
 		// actions
 	if ( ! window["WebSocket"] )
 		alert('No support for websockets in browser') ;

@@ -9,7 +9,7 @@ function Spectators(msg_func, allow_func, allowed_func) {
 			s = new Spectator(this, id, name) ;
 			this.spectators.push(s) ;
 			var msg = 'New spectator : '+name ;
-			var imspectator = ( this.get($.cookie(session_id)) != null ) ;
+			var imspectator = ( this.get(player_id) != null ) ;
 			if  ( ! imspectator && spectactor_is_allowed_forever(id) ) {
 				this.msg_func(msg+' (alowed forever)') ;
 				this.allow(id) ;
@@ -64,7 +64,7 @@ function Spectator(container, id, name) {
 	this.id = id ;
 	this.name = name ;
 	this.allowed_players = [] ;
-	this.connected = ( this.id == $.cookie(session_id) ) ;
+	this.connected = ( this.id == player_id ) ;
 	this.focused = true ;
 	// Methods
 	this.toString = function() { return 'Spectactor('+this.id+', '+this.name+')' ; }
@@ -86,19 +86,19 @@ function Spectator(container, id, name) {
 	this.allow = function(player) { // Recieve
 		if ( player == null )
 			return false ;
-		if ( this.allowed(player_id) )
+		if ( this.allowed(player.id) )
 			this.container.msg_func('already allowed') ;
 		else {
 			this.allowed_players.push(player.id) ;
 			var msg = player.get_name()+' allowed ' ;
-			if ( $.cookie(session_id) == this.id ) { // I am allowed spectator
+			if ( player_id == this.id ) { // I am allowed spectator
 				this.container.allowed_func(player) ;
 				var msg = msg+'you' ;
 			} else
 				var msg = msg+this.name ;
 			this.container.msg_func(msg) ;
 		}
-		if ( $.cookie(session_id) == player.id ) { // I am allowing player
+		if ( player_id == player.id ) { // I am allowing player
 			var spans = document.getElementsByClassName('allow_'+this.id) ;
 			for ( var i = 0 ; i < spans.length ; i++ ) {
 				var span = spans[i] ;

@@ -419,7 +419,11 @@ function Options(check_id) {
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', default_avatar) ;
 		// Options
 			// Appearence
-	this.add('Appearence', 'lang', 'Language', 'Language used for every message printed on this site, does not include card images', applang, applangs, function(option) {$.cookie(option.name, option.get()) ;}) ;
+	this.add('Appearence', 'lang', 'Language', 'Language used for every message printed on this site, does not include card images', applang, applangs, function(option) {
+		cookie_set(option.name, option.get()) ;
+		alert('Lang changed, reloading') ;
+		document.location = document.location ;
+	}) ;
 	this.add('Appearence', 'cardimages', 'Card images', 'A theme of card images', cardimages_default_lang, cardimages_choice) ;
 	this.add('Appearence', 'invert_bf', 'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing', false) ;
 	this.add('Appearence', 'display_card_names', 'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
@@ -455,14 +459,14 @@ function Options(check_id) {
 		this.identity_apply() ;
 	}
 	// Synchronize PHPSESSID cookie with stored player ID
-	player_id = $.cookie(session_id) ;
 	if ( ( localStorage['player_id'] == null ) || ( localStorage['player_id'] == '' ) )// No player ID
-		store('player_id', player_id) ; // Store actual PHPSESSID
+		store('player_id', player_id) ; // Store current PHPSESSID
 	else if ( player_id != localStorage['player_id'] ) { // Player ID different from PHPSESSID
 		if ( confirm('Restore previous player_id ? (yes if you don\'t know)') ) {
-			$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID
+			cookie_set(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID
 			window.location = window.location ; // Curent web page isn't informed ID changed
-		}
+		} else
+			store('player_id', player_id) ; // Or sync will be asked on each page load
 	}
 	// Debug info
 	if ( this.get('debug') ) {
@@ -558,6 +562,19 @@ function save(myfield) {
 	return false ;
 }
 // Profile management
+	// Lib
+function profile_setcookies() { // After modifying massively localstorage (import, clear ...) set cookies from it
+	if ( localStorage['player_id'] )
+		cookie_set(session_id, localStorage['player_id']) ;
+	else
+		cookie_set(session_id, null, -1) ;
+	var tocook = ['lang'] ;
+	for ( var i = 0 ; i < tocook.length ; i++ )
+		if ( localStorage[tocook[i]] )
+			cookie_set(tocook[i], localStorage[tocook[i]]) ;
+		else
+			cookie_set(tocook[i], null, -1) ;
+}
 	// Local
 function profile_backup() {
 	var clone = {} ;
@@ -586,21 +603,22 @@ function profile_restore(profile) {
 		alert('Profile restoration aborted') ;
 		return false ;
 	}
+	// Clear
 	localStorage.clear() ;
+	// Restore
 	for ( var i in profile )
 		//store(i, profile[i]) ;
 		localStorage[i] = profile[i] ;
-	$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
+	// Apply
+	profile_setcookies() ;
 	game.options.identity_apply() ;
 	decks_list() ;
 	game.options.select_tab('Identity') ;
-	//alert('All data were overwritten, reloading page') ;
-	//document.location = document.location ;
 }
 function profile_clear() {
 	if ( confirm('Are you sure you want to clear all your personnal data on this website ? (nick, avatar, decks, games, tournaments)') ) {
 		localStorage.clear() ;
-		$.cookie(session_id, null) ;
+		profile_setcookies() ;
 		alert('All data were cleared, reloading page') ;
 		document.location = document.location ;
 	}
@@ -612,14 +630,13 @@ function profile_upload() { // Server side profile registration || login with ov
 		game.options.select_tab('Profile') ;
 	}, 'json') ;
 }
-*/
 function profile_downloaded(profile) { // Server side login without overwrite
 	if ( !iso(profile) || ( profile == null ) )
 		return false ;
 	localStorage.clear() ;
 	for ( var i in profile )
 		localStorage[i] = profile[i] ; // As we're DLing data, don't store() them, it would upload back
-	$.cookie(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
+	cookie_set(session_id, localStorage['player_id']) ; // Overwrite PHPSESSID with Player ID
 	// Apply data downloaded
 	decks_list() ;
 	game.options.identity_apply() ;
@@ -669,6 +686,7 @@ function profile_form(name, target, callback) {
 	var fieldset = create_fieldset(name, form) ;
 	return fieldset ;
 }
+*/
 // Spectactor forever allow
 function spectactor_allowed_forever() { // Returns a list of allowed players in form of {id: 'Nick', id2: 'Nick2' ... }
 	var allowed_str = game.options.get('allowed') ;

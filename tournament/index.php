@@ -10,9 +10,7 @@ html_head('Tournament #'.$id,
 		'menu.css'
 	), 
 	array(
-		'lib/jquery.js'
-		, 'lib/jquery.cookie.js'
-		, 'math.js'
+		'math.js'
 		, 'html.js'
 		, 'deck.js'
 		, 'image.js'

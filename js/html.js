@@ -1,3 +1,17 @@
+// Cookies
+function cookie_set(name, value, days) {
+	if (!isn(days)) 
+		var days = 365 ; // Default expire 1 year
+	var date = new Date();
+	if ( !iss(value) ) {
+		days = -1 ;
+		value = '' ;
+	}
+	date.setTime(date.getTime()+(days*24*60*60*1000));
+	var expire = date.toGMTString();
+	var cookie = name+"="+value+"; Expires="+expire+"; Path=/";
+	document.cookie = cookie ;
+}
 // Notification granted, denied, default
 // 		https://developer.mozilla.org/en-US/docs/WebAPI/Using_Web_Notifications
 // 		https://developer.mozilla.org/en-US/docs/Web/API/Notification
