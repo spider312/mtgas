@@ -552,7 +552,7 @@ function tournament_footer_update() {
 	// Count tournament for each player number
 	var players_number = {} ;
 	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ ) {
-		var nbp = running_tournaments.rows[i].tournament.min_players ;
+		var nbp = parseInt(running_tournaments.rows[i].tournament.min_players) ;
 		tnbp += nbp ;
 		if ( isn(players_number[nbp]) )
 			players_number[nbp]++ ;
