@@ -159,7 +159,7 @@ class Tournament {
 			return false ;
 		$spectator = $this->spectators->add($user->player_id, $user->nick) ;
 		$this->log($spectator->player_id, 'spectactor', $spectator->nick) ;
-		$this->send() ;
+		$this->send('tournament', 'build', 'draft') ;
 	}
 	// Initialisation
 	public function import($type) { // Called on daemon start on each pending/running tournament
@@ -800,10 +800,16 @@ class Tournament {
 	}
 	// Websocket communication
 	public function send() {
-		$this->observer->index->broadcast(json_encode($this)) ;
-		$this->observer->tournament->broadcast($this, json_encode($this));
-		$this->observer->draft->broadcast($this, json_encode($this));
-		$this->observer->build->broadcast($this, json_encode($this));
+		$args = func_get_args() ;
+		$noargs = ( count($args) == 0 ) ;
+		if ( $noargs || in_array('index', $args) )
+			$this->observer->index->broadcast(json_encode($this)) ;
+		if ( $noargs || in_array('tournament', $args) )
+			$this->observer->tournament->broadcast($this, json_encode($this));
+		if ( $noargs || in_array('draft', $args) )
+			$this->observer->draft->broadcast($this, json_encode($this));
+		if ( $noargs || in_array('build', $args) )
+			$this->observer->build->broadcast($this, json_encode($this));
 	}
 	// Players connexion management
 	public function player_connect($id, $type) {

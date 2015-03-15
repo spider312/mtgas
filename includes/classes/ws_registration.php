@@ -215,7 +215,8 @@ class Registration {
 		$this->set_status(7) ;
 		if ( count($this->tournament->get_players()) < 2 )	
 			$this->tournament->cancel('Not enough players left') ;
-		$this->tournament->send() ;
+		else
+			$this->tournament->send() ;
 	}
 	public function insert($i) {
 		$this->order = $i ;

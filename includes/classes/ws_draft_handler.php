@@ -38,7 +38,7 @@ class DraftHandler extends LimitedHandler {
 					$booster->set_pick($data->pick, $data->main) ;
 				if ( property_exists($data, 'ready') ) {
 					$user->player->set_ready($data->ready) ;
-					$user->tournament->send() ;
+					$user->tournament->send('tournament', 'build', 'draft') ;
 					$this->observer->build->broadcast_following($user->player) ;
 				}
 				break ;

@@ -44,17 +44,17 @@ class BuildHandler extends LimitedHandler {
 		switch ( $data->type ) {
 			case 'add' :
 				$user->player->add($data->cardname, $data->nb) ;
-				$user->tournament->send() ;
+				$user->tournament->send('tournament', 'build') ;
 				$this->broadcast_following($user->player) ;
 				break ;
 			case 'remove' :
 				$user->player->remove($data->cardname) ;
-				$user->tournament->send() ;
+				$user->tournament->send('tournament', 'build') ;
 				$this->broadcast_following($user->player) ;
 				break ;
 			case 'toggle' :
 				if ( $user->player->toggle($data->cardname, $data->from) ) {
-					$user->tournament->send() ;
+					$user->tournament->send('tournament', 'build') ;
 					$this->broadcast_following($user->player) ;
 				} else
 					$user->sendString('{"msg": "'.$data->cardname.' not found in '.$data->from.'"}') ;
@@ -66,7 +66,7 @@ class BuildHandler extends LimitedHandler {
 						 	.' cards in your deck"}') ;
 					else  {
 						$user->player->set_ready($data->ready) ;
-						$user->tournament->send() ;
+						$user->tournament->send('tournament', 'build') ;
 					}
 				}
 				break ;
