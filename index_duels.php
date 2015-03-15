@@ -40,6 +40,7 @@
        </tr>
       </thead>
       <tbody id="running_games"></tbody>
+	  <tfoot><tr><th colspan="6"></th></tr></tfoot>
      </table>
     </div> <!-- id="duel_view" -->
    </div><!-- id="duels" --><!-- - - - - - - - - - - / Duels - - - - - - - - - - -->

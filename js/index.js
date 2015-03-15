@@ -31,6 +31,7 @@ function start() { // On page load
 	duel_join = document.getElementById('duel_join') ;
 	pending_tournaments = document.getElementById('pending_tournaments') ;
 	running_tournaments = document.getElementById('running_tournaments') ;
+	running_tournaments.nbp = 0 ;
 	tournament_join = document.getElementById('tournament_join') ;
 	tournament_view = document.getElementById('tournament_view') ;
 	// Websockets
@@ -41,22 +42,17 @@ function start() { // On page load
 				alert(data.msg) ;
 				break ;
 			case 'userlist' :
-				while( shouters.options.length > 0 )
-					shouters.remove(0) ;
+				node_empty(shouters) ;
 				for ( var i = 0 ; i < data.users.length ; i++ ) {
 					var user = data.users[i] ;
-					var option = create_option(user.nick, user.player_id) ;
-					option.addEventListener('dblclick', function(ev) {
-						var input = shout[0]
-						input.value += ev.target.label+', ' ;
-						input.focus() ;
-					}, false) ;
+					var shouter = create_li(user.nick) ;
 					if ( user.inactive )
-						option.classList.add('inactive') ;
+						shouter.classList.add('inactive') ;
 					if ( user.typing )
-						option.classList.add('typing') ;
-					shouters.appendChild(option) ;
+						shouter.classList.add('typing') ;
+					shouters.appendChild(shouter) ;
 				}
+				update_connected() ;
 				break ;
 			case 'extensions' :
 				get_extensions(data.data) ;
@@ -147,6 +143,13 @@ function start() { // On page load
 	game.connection.events() ;
 // === [ EVENTS ] ==============================================================
 	// Shoutbox
+	shouters.addEventListener('click', function(ev) {
+		if ( ev.target.nodeName != 'LI' )
+			return false ;
+		var input = shout[0]
+		input.value += ev.target.innerHTML+', ' ;
+		input.focus() ;
+	}, false) ;
 	shout.addEventListener('submit', function(ev) {
 		var field = this[0] ;
 		if ( field.value != '' ) {
@@ -318,7 +321,8 @@ function start() { // On page load
 		deck_file_load(ev.target.files) ;
 		ev.target.value = '' ;
 	}, false) ;
-	document.getElementById('upload').addEventListener('submit', function(ev) { // Workaround for browsers not triggering 'change' event on file input
+	document.getElementById('upload').addEventListener('submit', function(ev) {
+		// Workaround for browsers not triggering 'change' event on file input
 		ev.preventDefault() ; // Don't submit
 		deck_file_load(ev.target.deckfile.files) ;
 		ev.target.deckfile.value = '' ;
@@ -326,13 +330,15 @@ function start() { // On page load
 	// Display decks list
 	decks_list() ;
 }
-// === [ Duels ] ==============================================================
-function player_cell(cell, nick, avatar) {
-	node_empty(cell) ;
-	var img =  player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
-	cell.appendChild(img) ;
-	cell.appendChild(create_text(nick)) ;
+function update_connected() {
+	var str = shouters.childNodes.length + ' / ' ; // Number of shouters
+	str += running_tournaments.nbp + ' / ' ; // Stored number of tournament players
+	str += running_games.rows.length * 2 // Number of duels * 2
+	var shout_info = document.getElementById('shout_info') ;
+	node_empty(shout_info) ;
+	shout_info.appendChild(create_text(str)) ;
 }
+// === [ Duels ] ==============================================================
 function pending_duel_add(round) {
 	duel_join.classList.remove('hidden') ;
 	var tr = create_tr(pending_games, 
@@ -380,16 +386,15 @@ function running_duel_add(round) {
 	tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
 	if ( ( round.creator_id == player_id ) || ( round.joiner_id == player_id ) )
 		tr.classList.add('registered') ;
+	duel_footer_update() ;
 }
-function connected(status) {
-	if ( status > 0 ) {
-		var img = create_img(theme_image('greenled.png')[0]) ;
-		img.title = 'Connected' ;
-	} else {
-		var img = create_img(theme_image('redled.png')[0]) ;
-		img.title = 'Disconnected' ;
-	}
-	return img ;
+function pending_duel_remove(id) {
+	return duel_remove(pending_games, duel_join, id) ;
+}
+function running_duel_remove(id) {
+	var result = duel_remove(running_games, duel_view, id) ;
+	duel_footer_update() ;
+	return result ;
 }
 function duel_remove(tbody, div, id) {
 	for ( var i = 0 ; i < tbody.rows.length ; i++ )
@@ -402,12 +407,29 @@ function duel_remove(tbody, div, id) {
 		}
 	return false ;
 }
-function pending_duel_remove(id) {
-	return duel_remove(pending_games, duel_join, id) ;
+function player_cell(cell, nick, avatar) {
+	node_empty(cell) ;
+	var img =  player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
+	cell.appendChild(img) ;
+	cell.appendChild(create_text(nick)) ;
 }
-function running_duel_remove(id) {
-	return duel_remove(running_games, duel_view, id) ;
+function connected(status) {
+	if ( status > 0 ) {
+		var img = create_img(theme_image('greenled.png')[0]) ;
+		img.title = 'Connected' ;
+	} else {
+		var img = create_img(theme_image('redled.png')[0]) ;
+		img.title = 'Disconnected' ;
+	}
+	return img ;
 }
+function duel_footer_update(table) {
+	var td = running_games.parentNode.tFoot.rows[0].cells[0] ;
+	node_empty(td) ;
+	td.appendChild(create_text((running_games.rows.length*2)+' players')) ;
+	update_connected() ;
+}
+
 // === [ Tournaments ] ==============================================================
 function pending_tournament_add(tournament) {
 	tournament_join.classList.remove('hidden') ;
@@ -473,34 +495,27 @@ function running_tournament_add(t) {
 	for ( var j in t.players )
 		if ( t.players[j].player_id == player_id )
 			tr.classList.add('registered') ;
-	tournament_footer_update(table) ;
+	tournament_footer_update() ;
 }
-function tournament_footer_update(table) {
-	// Count tournament for each player number
-	if ( table == null ) return false ;
-	var players_number = {} ;
-	var tnbp = 0 ;
-	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ ) {
-		var nbp = running_tournaments.rows[i].tournament.min_players ;
-		tnbp += nbp ;
-		if ( isn(players_number[nbp]) )
-			players_number[nbp]++ ;
-		else
-			players_number[nbp] = 1 ;
+function pending_tournament_remove(id) {
+	return tournament_remove(id, pending_tournaments, tournament_join) ;
+}
+function running_tournament_remove(id) {
+	var result = tournament_remove(id, running_tournaments, tournament_view) ;
+	tournament_footer_update() ;
+	return result ;
+}
+function tournament_remove(id, table, container) {
+	for ( var i = 0 ; i < table.rows.length ; i++ ) {
+		var tr = table.rows[i] ;
+		if ( tr.tournament.id == id ) {
+			tr.parentNode.removeChild(tr) ;
+			if ( table.rows.length == 0 )
+				container.classList.add('hidden') ;
+			return tr ;
+		}
 	}
-	var str = '' ;
-	for ( var i in players_number ) {
-		if ( str != ''  )
-			str += ', ' ;
-		str += i+'p : '+players_number[i] ;
-	}
-	str = tnbp+' players ('+str+')' ;
-	node_empty(table.parentNode.tFoot) ;
-	var tr = table.parentNode.tFoot.insertRow() ;
-	var td = tr.insertCell() ;
-	td.colSpan = 5 ;
-	td.appendChild(create_text(str)) ;
-	return tnbp ;
+	return null ;
 }
 function update_tournament_players(tr) {
 	// Slots
@@ -532,25 +547,29 @@ function list_players(tournament, connected) {
 	}
 	return ul ;
 }
-function tournament_remove(id, table, container) {
-	for ( var i = 0 ; i < table.rows.length ; i++ ) {
-		var tr = table.rows[i] ;
-		if ( tr.tournament.id == id ) {
-			tr.parentNode.removeChild(tr) ;
-			if ( table.rows.length == 0 )
-				container.classList.add('hidden') ;
-			return tr ;
-		}
+function tournament_footer_update() {
+	var tnbp = 0 ; // Total tournament - display + store
+	// Count tournament for each player number
+	var players_number = {} ;
+	for ( var i = 0 ; i < running_tournaments.rows.length ; i++ ) {
+		var nbp = running_tournaments.rows[i].tournament.min_players ;
+		tnbp += nbp ;
+		if ( isn(players_number[nbp]) )
+			players_number[nbp]++ ;
+		else
+			players_number[nbp] = 1 ;
 	}
-	return null ;
-}
-function pending_tournament_remove(id) {
-	return tournament_remove(id, pending_tournaments, tournament_join) ;
-}
-function running_tournament_remove(id) {
-	var result = tournament_remove(id, running_tournaments, tournament_view) ;
-	tournament_footer_update(running_tournaments) ;
-	return result ;
+	// Build title listing tournaments nb for each player nb
+	var str = '' ;
+	for ( var i in players_number )
+		str += players_number[i] + ' tournaments with ' + i + ' players\n' ;
+	// HTML
+	var td = running_tournaments.parentNode.tFoot.rows[0].cells[0] ;
+	node_empty(td) ;
+	td.appendChild(create_text(tnbp+' players')) ;
+	td.title = str ;
+	running_tournaments.nbp = tnbp ;
+	update_connected() ;
 }
 // === [ FIXED LISTS ] =========================================================
 function get_extensions(rdata) {

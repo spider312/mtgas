@@ -50,8 +50,8 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
    <h1>Shoutbox <?=ws_indicator();?></h1>
    <div id="shout_body">
     <ul id="shouts"></ul>
-    <select id="shouters" multiple title="Double click to insert nickname into your next shout">
-	</select>
+	<ul id="shouters" title="Connected users list : Click one to insert nickname into your next shout"></ul>
+	<span id="shout_info" title="Number of players connected to shout / tournaments / duels">0 / 0 / 0</span>
    </div>
    <form id="shout" action="json/shout.php" autocomplete="off">
     <input type="text" name="text" placeholder="Shout something"><input type="submit" value="Send">
