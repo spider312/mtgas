@@ -33,6 +33,7 @@ html_menu() ;
   <!-- Search form -->
   <div id="search" class="section">
    <h1 class="hideable">Cards</h1>
+   <select id="deck_language" name="lang"></select>
    <form id="search_cards" method="get">
     <input type="hidden" name="page" value="1">
     <input id="cardname" type="text" name="name" placeholder="name" autocomplete="off" title="Search inside card name, use % as a joker">
@@ -99,15 +100,12 @@ html_menu() ;
   <!-- List of cards in current deck -->
   <div id="decksection" class="section">
    <h1 class="hideable">Deck</h1>
-   <div title="Language for card names in deck list">Card names in <select id="deck_language" name="lang"></select></div>
-   <div>
-    <button id="sort" title="Sort deck by type, then converted cost">Sort</button>
-    <label title="Add comments to separate each group of type">
-     <input id="sort_comments" type="checkbox" checked="checked">Add type comments
-    </label>
-   </div>
    <label title="If unchecked, extensions won't be saved, and a default one will be defined on next deck loading">
     <input id="savextensions" type="checkbox">Save selected extension
+   </label>
+   <button id="sort" title="Sort deck by type, then converted cost">Sort</button>
+   <label title="Add comments to separate each group of type, when sorting">
+    <input id="sort_comments" type="checkbox" checked="checked">Add type comments
    </label>
    <table id="deck">
     <thead>

@@ -127,4 +127,6 @@ td.buttonlist, td.nopadding {
 .hidden {
 	display: none ;
 }
-
+#sort {
+	float: left ;
+}

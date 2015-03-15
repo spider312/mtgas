@@ -33,7 +33,7 @@ function load(body, deckname) {
 			initial_deck_content = '// NAME : '+deckname ;
 		var lines = deck_parse(initial_deck_content) ;
 		var to = 'maindeck' ;
-		var savext = false ;
+		var savext = ( lines.length == 0 ) ; // We're in creation, set to true is more consistent with interface
 		for ( var i = 0 ; i < lines.length ; i++ ) {
 			var line = lines[i] ;
 			switch ( typeof line ) {
