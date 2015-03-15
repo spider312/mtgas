@@ -39,7 +39,7 @@ class IndexHandler extends ParentHandler {
 			$user->sendString(json_encode($tournament)) ;
 		foreach ( $this->observer->running_tournaments as $tournament )
 			$user->sendString(json_encode($tournament)) ;
-		// Send extensions
+		// Send extensions - keep last step
 		$exts = new stdClass ;
 		$exts->type = 'extensions' ;
 		$exts->data = Extension::$cache ;

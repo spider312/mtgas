@@ -97,10 +97,10 @@ class Tournament {
 			$number = $this->round ;
 		foreach ( $this->boosters as $boost ) {
 			if ( ! is_object($boost) ) {
-				$this->say('Boost : '.$boost) ;
+				$this->say('Boost bug : '.$boost.' ('.gettype($boost).')') ;
 				continue ;
 			}
-			if ( $boost->is($player, $number) )
+			if ( ( $boost->player == $player ) && ( $boost->number == $number ) )
 				return $boost ;
 		}
 		return null ;
@@ -210,13 +210,14 @@ class Tournament {
 		foreach ( $db->select("SELECT content, player, number, pick, destination
 		                        FROM `booster`
 					WHERE `tournament` = {$this->id}") as $boost ) {
+			/*
 			$player = $this->get_player($boost->player, 'order') ;
 			if ( $player == null ) {
 				$this->say('Player '.$boost->player.' not found in boost import') ;
 				continue ;
-			}
-			$booster = new Booster($this, $player, $boost->number, $boost->pick, $boost->destination) ;
-			$booster->import($boost->content) ;
+			}*/
+			$booster = new Booster($this, $boost->player, $boost->number, $boost->pick, $boost->destination) ;
+			$booster->get_content(json_decode($boost->content)) ;
 			$this->boosters[] = $booster ;
 		}
 	}
@@ -225,9 +226,10 @@ class Tournament {
 		// Boosters for limited
 		switch ( $data->format ) {
 			case 'sealed' :
-				$options->clone_sealed = $data->clone_sealed == 'true' ;
 			case 'draft' :
-				//$card_connection = card_connect() ;
+				// Limited options
+				$options->clone_sealed = $data->clone_sealed == 'true' ;
+				// Boosters
 				$options->boosters = array() ;
 				foreach ( explode('-', $data->boosters) as $boosts ) {
 					$boost = $boosts ;
@@ -252,7 +254,6 @@ class Tournament {
 				}
 				if ( count($options->boosters) < 1 )
 					return 'No parsable boosters' ;
-				//$this->name .= ' ('.implode($options->boosters, '-').')' ;
 				break ;
 		}
 		// Other options
@@ -414,7 +415,7 @@ class Tournament {
 				$this->timer_goon(Tournament::draft_time($cardsleft, $lastbooster)) ;
 				// Send new booster to player
 				foreach ( $this->players as $player ) {
-					$booster = $this->get_booster($player) ;
+					$booster = $this->get_booster($player->order) ;
 					$this->observer->draft->broadcast_player($this, $player, json_encode($booster));
 				}
 				break ;
@@ -459,12 +460,19 @@ class Tournament {
 		switch ( $this->format ) {
 			case 'draft' :
 				$number = 0 ;
-				foreach ( $this->data->boosters as $booster ) {
+				foreach ( $this->data->boosters as $ext ) {
 					$number++ ; // Number of current booster in draft for player
+					//$booster = null ;
 					foreach ( $this->players as $player ) {
-						$boost = new Booster($this, $player, $number) ;
-						$boost->generate($booster, $upool) ;
-						$this->boosters[] = $boost ;
+						//if ( ( $booster == null ) || ! $this->data->clone_sealed ) {
+							$booster = new Booster($this, $player->order, $number) ;
+							$booster->generate($ext, $upool) ;
+						/*} else {
+							$boost = new Booster($this, $player->order, $number) ;
+							$boost->get_content($booster->content) ;
+							$boost->insert() ;
+						}*/
+						$this->boosters[] = $booster ;
 					}
 				}
 				$this->set_status(3) ;
@@ -472,17 +480,18 @@ class Tournament {
 				$this->log('', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				foreach ( $this->data->boosters as $booster ) {
-					$ext_obj = Extension::get($booster) ;
+				foreach ( $this->data->boosters as $ext ) {
+					$ext_obj = Extension::get($ext) ;
 					if ( $ext_obj == null ) {
 						$this->say("Extension $ext not found in sealed generation") ;
 						continue ;
 					}
+					$booster = null ;
 					foreach ( $this->players as $player ) {
-						$booster = $ext_obj->booster($upool) ;
+						if ( ( $booster == null ) || ! $this->data->clone_sealed )
+							$booster = $ext_obj->booster($upool) ; // Only need object in memory for sealed
 						foreach ( $booster as $card )
 							$player->pick($card) ;
-							//$player->deck_obj->side[] = $card ;
 					}
 				}
 				foreach ( $this->players as $player )
@@ -497,7 +506,7 @@ class Tournament {
 	private function draft() {
 		$cards = 99 ;
 		foreach ( $this->players as $player ) {
-			$booster = $this->get_booster($player) ;
+			$booster = $this->get_booster($player->order) ;
 			if ( $booster == null )
 				$this->say("Can't find booster for {$player->nick}") ;
 			else {
@@ -529,28 +538,13 @@ class Tournament {
 				$this->switch_booster(-1, $nb_players-1) ;
 			}
 		}
-		$this->import_boosters() ;
 	}
 	private function switch_booster($source, $dest) {
-		global $db ;
-		$dests = $db->select("SELECT `player` FROM `booster`
-		WHERE
-			`tournament` = '{$this->id}'
-			AND `player` = '$dest'
-			AND `number` = '{$this->round}'
-		; ") ;
-		if ( count($dests) > 0 )
-			$this->say("$dest already exists") ;
-		else {
-			$upd = $db->update("UPDATE `booster` SET `player` = '{$dest}'
-			WHERE
-				`tournament` = '{$this->id}'
-				AND `player` = '$source'
-				AND `number` = '{$this->round}'
-			; ") ;
-			if ( $upd != 1 )
-				$this->tournament->say('Error : '.$upd.' boosters switched') ;
-		}
+		$booster = $this->get_booster($source) ;
+		if ( $booster == null )
+			$this->say('Booster is null') ;
+		else
+			$booster->set_player($dest) ;
 	}
 	// Build
 	private function build() {
@@ -570,7 +564,7 @@ class Tournament {
 		return 0 ;
 	}
 	public function start() { // Start tournament's first round
-		$players = $this->get_players() ; // Copy array
+		$players = $this->get_players() ; // Copy array so we can shift it to create games
 		$nbplayers = count($players) ;
 		if ( $nbplayers < 2 )
 			return $this->end() ;

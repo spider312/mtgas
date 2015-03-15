@@ -19,7 +19,7 @@ class DraftHandler extends LimitedHandler {
 			$player->connect($this->type) ;
 			$user->player = $player ;
 			if ( $tournament->status == 3 ) {
-				$booster = $tournament->get_booster($player) ;
+				$booster = $tournament->get_booster($player->order) ;
 				if ( $booster == null )
 					$this->observer->say("Booster not found t {$this->tournament->id}"
 					." p {$this->player->order} n {$this->tournament->round}") ;
@@ -33,7 +33,7 @@ class DraftHandler extends LimitedHandler {
 	public function recieved(WebSocketTransportInterface $user, $data) {
 		switch ( $data->type ) {
 			case 'pick' :
-				$booster = $user->tournament->get_booster($user->player) ;
+				$booster = $user->tournament->get_booster($user->player->order) ;
 				if ( ( $booster != null ) && property_exists($data, 'pick') )
 					$booster->set_pick($data->pick, $data->main) ;
 				if ( property_exists($data, 'ready') ) {
