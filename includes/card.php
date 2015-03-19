@@ -116,6 +116,7 @@ function card_name_sanitize($name) {
 	return $name ;
 }
 function card_text_sanitize($text) {
+	$text = trim($text) ;
 	$text = preg_replace('/ ?\([^)]*\([^()]*?\)[^(]*\)/', '', $text) ; // UGLY workaround for parenthesis contained in parenthesis on MV
 	$text = preg_replace('/ ?\(.*?\)/', '', $text) ; // Remove helper texts
 	$text = preg_replace('/ *— */', ' - ', $text) ;
@@ -511,6 +512,10 @@ function manage_text($name, $text, $target) {
 		$target->cycling = manacost($matches[1]) ;
 	if ( preg_match('/Morph ('.$manacost.')/', $text, $matches) )
 		$target->morph = manacost($matches[1]) ;
+	if ( preg_match('/Megamorph ('.$manacost.')/', $text, $matches) ) {
+		$target->morph = manacost($matches[1]) ;
+		$target->megamorph = true ;
+	}
 	if ( preg_match('/Suspend (\d+)\s*-\s*('.$manacost.')/', $text, $matches) ) {
 		$target->suspend = intval($matches[1]) ;
 		$target->suspend_cost = manacost($matches[2]) ;
@@ -527,10 +532,14 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Scavenge ('.$manacost.')/', $text, $matches) )
 		$target->scavenge = manacost($matches[1]) ;
 	// Permanents attributes
-	if ( preg_match('/Vanishing (\d+)/', $text, $matches) )
-		$target->vanishing = intval($matches[1]) ;
-	if ( preg_match('/Fading (\d+)/', $text, $matches) )
-		$target->fading = intval($matches[1]) ;
+	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
+		$target->vanishing = true ;
+		$target->counter = intval($matches[1]) ;
+	}
+	if ( preg_match('/Fading (\d+)/', $text, $matches) ) {
+		$target->fading = true ;
+		$target->counter = intval($matches[1]) ;
+	}
 	if ( preg_match('/Echo ('.$manacost.')/', $text, $matches) )
 		$target->echo = manacost($matches[1]) ;
 	if ( preg_match('/Modular (\d+)/', $text, $matches) ) {
@@ -544,10 +553,107 @@ function manage_text($name, $text, $target) {
 		// Hideaway
 	if ( stripos($text, 'Hideaway') !== false )
 		$target->tapped = true ;
+	// Spell effect
+	if ( stripos($text, 'Manifest') !== false )
+		$target->manifester = true ;
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
 		$target->no_untap = true ;
 		// Upkeep trigger
+	if ( preg_match('/^(?<keyword>.*? - )?At the beginning of (?<step>.*?)( or (?<alt>.*?))?, (?<action>.*)/', $text, $matches) ) {
+		//if ( $matches['alt'] != '' )
+		//	echo 'Alternative : '.$matches['alt']."\n" ;
+		$words = explode(' ', $matches['step']) ;
+		// Filter words useless for parsing
+		$words = array_filter($words, function($k) {
+			$filter = array('step', 'phase', 'precombat', 'next') ;
+			return ! in_array($k, $filter) ;
+		}) ;
+		$player = null ; // Self, opponent, both
+		$step = '' ;
+		switch ( $words[0] ) { // Read first word and try to guess player
+			case 'each' :
+				array_shift($words) ;
+				switch ( $words[0] ) {
+					case "opponent's" :
+						$player = -1 ;
+						array_shift($words) ;
+						break ;
+					case "player's" :
+						$player = 0 ;
+						array_shift($words) ;
+						break ;
+					case "other" :
+						$player = -1 ;
+						array_shift($words) ;
+						if ( $words[0] == "player's" )
+							array_shift($words) ;
+						break ;
+					case "of" :
+						array_shift($words) ;
+						$sent = implode(' ', $words) ;
+						if ( $sent == 'that player\'s upkeeps' ) {
+							$player = -1 ;
+							$step = 'upkeep' ;
+						} else if ( $sent == 'your main phases' ) {
+							$player = 1 ;
+							$step = 'main' ;
+						}
+					default : 
+						$player = 0 ;
+						//echo 'Unknown step : '.$name.' : '.implode(' ', $words)."\n" ;
+				}
+				if ( $step == '' ) {
+					if ( count($words) == 1 )
+						$step = $words[0] ;
+					else
+						echo 'Multiple words left : '.$name.' : '.
+							implode(' ', $words).' / '.$matches['step']."\n" ;
+				}
+				break ;
+			case 'your' :
+				$player = 1 ;
+				array_shift($words) ;
+				if ( count($words) == 1 )
+					$step = $words[0] ;
+				else
+					echo 'Multiple words left : '.$name.' : '.
+						implode(' ', $words).' / '.$matches['step']."\n" ;
+				break ;
+			case 'the' :
+				array_shift($words) ;
+				if ( $words[0] == 'first' )
+					continue ;
+				else if ( $matches['step'] == 'the chosen player\'s upkeep' ) {
+					$player = -1 ;
+					$step = 'upkeep' ;
+				} else if ( count($words) == 1 ) {
+					$step = $words[0] ;
+					$player = 1 ;
+				} else if ( $words[1] == 'of' ) {
+					$step = $words[0] ;
+					$player = 2 ;
+				} else 
+					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				break ;
+			case 'combat' :
+				$step = 'combat' ;
+				if ( $matches['step'] == 'combat on your turn' )
+					$player = 1 ;
+				else
+					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				break ;
+			case 'enchanted' :
+				$player = -1 ;
+				$step = 'upkeep' ;
+				break ;
+			default : 
+				echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+		}
+		if ( ! in_array($step, array('upkeep', 'draw', 'main', 'combat', 'end', '')) )
+			echo "Unknown step : $name - $step $player\n" ;
+	} /*else if ( preg_match('/At the beginning of (?<step>.*?), (?<action>.*)/', $text, $matches) )
+		echo "[$text]\n" ;*/
 	if ( preg_match('/At the beginning of your( next)? upkeep, (.*)/', $text, $matches) )
 		$target->trigger_upkeep = stripslashes($matches[2]) ;
 	if ( preg_match('/At the beginning of the upkeep of (\w*) (\w*)\'s controller, (.*)/', $text, $matches) ) {
@@ -556,16 +662,16 @@ function manage_text($name, $text, $target) {
 		$target->bonus->trigger_upkeep = stripslashes($matches[3]) ;
 	}
 	// Add mana
-	//if ( in_array('land', $target->types) )
-		//echo $name."\n" ;
 	global $basic_lands ;
-	if ( ! property_exists($target, 'subtypes') )
-		echo $name."<br>\n" ;
-	else // Basic land types in subtypes
+	if ( property_exists($target, 'subtypes') ) // Basic land types in subtypes
 		foreach ( $basic_lands as $color => $basic_land )
 			if ( in_array($basic_land, $target->subtypes) )
 				$target->addmana($color) ;
-	if ( preg_match('/\{T\}: Add (?<manas>.*) to your mana pool/', $text, $matches) ) {
+	if ( preg_match('/^(?<beforecost>.*")?(?<cost>.*?): Add (?<manas>.*?) to your mana pool/', $text, $matches) ) {
+		$cost = explode(', ', $matches['cost']) ;
+		$idx = array_search('{T}', $cost) ;
+		if ( $idx > -1 ) // {
+			array_splice($cost, $idx, 1) ;
 		if ( $matches['manas'] == 'one mana of any color' ) {
 			$target->addmana('W') ;
 			$target->addmana('U') ;
@@ -574,7 +680,6 @@ function manage_text($name, $text, $target) {
 			$target->addmana('G') ;
 		} else {
 			$manas = preg_split('/( or )|(, )/', $matches['manas']) ;
-			//echo $name.' : '.join(', ', $manas)."<br>\n" ;
 			foreach ( $manas as $mana )
 				if ( preg_match_all('/\{(.*?)\}/', $mana, $matches) )
 					for ( $i = 1 ; $i < count($matches) ; $i++ )
@@ -582,6 +687,7 @@ function manage_text($name, $text, $target) {
 							if ( method_exists($target, 'addmana') )
 								$target->addmana($color) ;
 		}
+		//}
 	}
 	// CIP
 	if ( preg_match('/'.addcslashes($name, '\'"\\/' ).' enters the battlefield (or (?<alt>[^,]*),)?(?<act>.*)/', $text, $matches) ) {
@@ -600,10 +706,10 @@ function manage_text($name, $text, $target) {
 						case 'unless' : 
 							unset($target->tapped) ; // A condition will replace hard tapped
 							if ( $matches[1] == 'unless you control two or fewer other lands' )
-								$target->ciptc = 'this.controler.controls({"types": "land"})>3' ;
+								$target->ciptc = 'this.zone.player.controls({"types": "land"})>3' ;
 							elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
-								$target->ciptc = '(this.controler.controls({"subtypes": "'.strtolower($matches[1]).'"})==0)' ;
-								$target->ciptc .= '&&(this.controler.controls({"subtypes": "'.strtolower($matches[2]).'"})==0)' ;
+								$target->ciptc = '(this.zone.player.controls({"subtypes": "'.strtolower($matches[1]).'"})==0)' ;
+								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($matches[2]).'"})==0)' ;
 							} else // Unmanaged
 								echo $name.' : '.$words[0].' : '.$matches[1]."\n" ;
 							break ;
@@ -791,7 +897,7 @@ function manage_text($name, $text, $target) {
 			// Secondary params :boost self, boost only creatures controled by its controler
 			$boost_bf->self = ( $match['self'] != '' ) || ( $match['other'] != 'other ' );
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
-			if ( $match['control'] == 'you control ' ) // "New" boost way : only creatures you control
+			if ( $match['control'] == 'you control ' ) // Only creatures you control
 				$boost_bf->control = 1 ;
 			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
 				$boost_bf->control = -1 ;
