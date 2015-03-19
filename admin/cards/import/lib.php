@@ -294,8 +294,10 @@ class ImportExtension {
 				$card_obj->nbpics = $card_obj->nbimages ; // Workaround in order import card obj has the same name as in DB
 				foreach ( array('rarity', 'nbpics', 'multiverseid') as $field ) {
 					if ( $res->$field != $card_obj->$field ) {
-						$upd[$field] = $res->$field ; // Mark filed as updated, saving old value for returning
-						$updates[] = "`$field` = '".mysql_real_escape_string($card_obj->$field)."'" ;
+						if ( ( $field != 'multiverseid' ) || ( $card_obj->$field != '0' ) ) { // Don't set multiverseID 0
+							$upd[$field] = $res->$field ; // Mark filed as updated, saving old value for returning
+							$updates[] = "`$field` = '".mysql_real_escape_string($card_obj->$field)."'" ;
+						}
 					}
 				}
 				if ( count($updates) == 0 ) {
@@ -363,7 +365,7 @@ class ImportExtension {
 	function download() {
 		// Dirs
 		$begin = microtime(true) ;
-		global /*$homedir, */$base_image_dir ;
+		global $base_image_dir ;
 		$dir = $base_image_dir.'HIRES/'.$this->dbcode.'/' ;
 		if ( ! rmkdir($dir) )
 			return false ;
@@ -430,12 +432,10 @@ class ImportExtension {
 				echo "No update needed" ;
 			echo "\n" ;
 		}
-		// Thumbnailing
 		/*
-		$oldumask = umask(0022) ;
+		// Thumbnailing
 		shell_exec($homedir.'/bin/thumb '.$this->dbcode) ;
 		shell_exec($homedir.'/bin/thumb TK/'.$this->dbcode) ;
-		umask($oldumask) ;
 		*/
 		umask($oldumask) ;
 		echo "\n".'Finished in '.(microtime(true)-$begin).' (think about thumbnailing)' ;
