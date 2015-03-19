@@ -174,11 +174,12 @@ $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
 $actions = array() ;
-//      <td>'.$log['found'].'</td>
 foreach ( $import_log as $i => $log ) {
 	$card = $log['card'] ;
 	if ( count($log['updates']) > 0 ) {
 		$updates++ ;
+		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
+			continue ;
 		echo '     <tr>
       <td>'.$i.' : '.$card->name.'</td>
       <td><img src="'.$card->images[0].'"></td>
