@@ -529,7 +529,7 @@ function Card(card) {
 			if ( iso(card.attrs.split) )
 				div.classList.add('split') ;
 			// Image loading
-			var urls = card_images(card_image_url(this.card.ext_img, this.card.name, this.card.attrs)) ;
+			var urls = card_images(card_image_url(this.card.ext_img, this.card.name, this.card.attrs.nb)) ;
 			game.image_cache.load(urls, function(img, div) {
 				node_empty(div) ; // Erase name wrotten while loading
 				var img = create_img(img.src) ;
@@ -542,7 +542,7 @@ function Card(card) {
 			}, div) ;
 			// Transformed image loading
 			if ( iso(card.attrs.transformed_attrs) ) {
-				game.image_cache.load(card_images(card_image_url(card.ext_img, card.attrs.transformed_attrs.name, card.attrs)), function(img, tag) {
+				game.image_cache.load(card_images(card_image_url(card.ext_img, card.attrs.transformed_attrs.name, card.attrs.nb)), function(img, tag) {
 					tag.transformed_url = img.src ;
 				}, function(tag, url) {
 					tag.appendChild(document.createTextNode(tag.card.attrs.transformed_attrs.name)) ;
@@ -666,7 +666,7 @@ function generate_base_land() {
 			td.appendChild(land_div)
 			land_div.classList.add('card') ;
 			land_div.classList.add('L') ;
-			var urls = card_images(card_image_url(land.ext_img, land.name, land.attrs)) ;
+			var urls = card_images(card_image_url(land.ext_img, land.name, land.attrs.nb)) ;
 			game.image_cache.load(urls, function(img, div) {
 				node_empty(div) ; // Erase name wrotten while loading
 				img.draggable = false ;

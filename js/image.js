@@ -1,6 +1,6 @@
 // image.js : Images and cache management
 // Lib
-function card_image_url(ext, name, attrs) {
+function card_image_url(ext, name, nb) {
 	name = name.replace(/"/g, '') ;
 /*
 	$name = str_replace(' / ', '', $name) ; // Fire / Ice -> FireIce
@@ -9,9 +9,8 @@ function card_image_url(ext, name, attrs) {
 	$name = str_replace('"', '', $name) ; // Kongming, "Sleeping Dragon"
 */
 	var url = '/'+ext+'/'+card_image_name(name) ;
-	if ( attrs )
-		if ( isn(attrs.nb) && ( attrs.nb > 0 ) )
-			url += attrs.nb ;
+	if ( isn(nb) && ( nb > 0 ) )
+		url += nb ;
 	url += '.full.jpg' ;
 	return url ;
 }

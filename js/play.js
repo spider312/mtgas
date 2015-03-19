@@ -21,6 +21,7 @@ function game_start() { // When page is loaded : initialize everything
 	var pt = new card_prototype() ;
 	Card.prototype = pt ;
 	Token.prototype = pt ;
+	//Attrs.prototype = new Attrs_prototype() ;
 	// caching getElementById
 	zoom = document.getElementById('zoom') ; // Redraw right column when zoom size changes
 	zoom.addEventListener('load', resize_right_column, false) ;
@@ -300,7 +301,7 @@ function manage_action(action, active_player) {
 			break ;
 		case 'mojosto' :
 			message(active_player.name+'\'s avatar '+param.avatar+' casts '+param.name) ;
-			var url = card_image_url(param.ext, param.name, param.attrs) ;
+			var url = card_image_url(param.ext, param.name, param.attrs.nb) ;
 			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs, url) ;
 			if ( ( action.recieved == '0' ) && ( action.sender == player_id ) ) { // Unmanaged
 				game.connection.send({'type': 'recieve', 'id': action.id}) ;

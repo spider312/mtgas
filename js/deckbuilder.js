@@ -357,7 +357,7 @@ function deck_content() {
 	return content ;
 }
 function zoom(ext, card, attrs) {
-	var url = card_image_url(ext, card, attrs) ;
+	var url = card_image_url(ext, card, attrs.nb) ;
 	var zoom = document.getElementById('zoom') ;
 	zoom.card = card ; // Only display card if last asked
 	return game.image_cache.load(card_images(url), function(img, card) {

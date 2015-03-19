@@ -165,7 +165,7 @@ function Img(container, ext, name, nb) {
 	}, false) ;
 	container.appendChild(img) ;
 	// Loading its URL independently
-	img.url = card_image_url(ext, name, {"nb": nb}) ;
+	img.url = card_image_url(ext, name, nb) ;
 	game.image_cache.load(card_images(img.url), function(img, tag) {
 		tag.src = img.src ;
 		tag.url = img.src ;
