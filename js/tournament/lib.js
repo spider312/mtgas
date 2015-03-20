@@ -242,8 +242,7 @@ function Log(data) {
 				break ;
 			case 'ready' :
 				if ( this.value == '1' )
-					msg = nick+' is ready' ;
-					// ('+time_disp(Math.round((mysql2date(this.timestamp)-startdate)/1000))+')' ;
+					msg = nick+' is ready ('+time_disp(Math.round((mysql2date(this.timestamp)-startdate)/1000))+')' ;
 				else
 					msg = nick+' isn\'t ready anymore' ;
 				break ;
