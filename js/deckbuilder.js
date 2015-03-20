@@ -76,6 +76,7 @@ function load(body, deckname) {
 			return ev.returnValue ;
 		}
 	}, false) ;
+	// Search form
 	document.getElementById('cardname').addEventListener('keyup', function(ev) {
 		if ( ev.target.previous_value != ev.target.value ) {
 			ev.target.previous_value = ev.target.value ;
@@ -98,6 +99,8 @@ function load(body, deckname) {
 		else
 			h.classList.add('hidden') ;
 	}, false) ;
+	// Buttons columns
+		// Add buttons
 	document.getElementById('add_md').addEventListener('click', function(ev) { // Buttons
 		var node = null ;
 		var sel = selected_deck ; // Curently selected
@@ -125,6 +128,7 @@ function load(body, deckname) {
 			node.parentNode.insertBefore(node, sel) ;
 	}, false) ;
 	document.getElementById('del').addEventListener('click', function(ev) { remove_card(selected_deck, 1) ; }, false) ;
+		// Movement
 	document.getElementById('up').addEventListener('click', function(ev) {
 		if ( selected_deck != null )
 			selected_deck.parentNode.insertBefore(selected_deck, selected_deck.previousSibling) ;
@@ -140,6 +144,7 @@ function load(body, deckname) {
 		} else
 			alert('Please select a card') ;
 	}, false) ;
+		// Comment
 	document.getElementById('comment').addEventListener('click', function(ev) {
 		var txt = prompt('Comment') ;
 		if ( ( txt != null ) && ( txt != '' ) ) {
@@ -152,6 +157,7 @@ function load(body, deckname) {
 				tr.parentNode.insertBefore(tr, selected_deck) ;
 		}
 	}, false) ;
+		// Save
 	document.getElementById('save').addEventListener('click', function(ev) {
 		if ( deckname == '' )
 			alert('Please save this deck under a name before') ;
@@ -175,6 +181,16 @@ function load(body, deckname) {
 		} else
 			alert('Deck not saved because of its name') ;
 	}, false) ;
+	document.getElementById('export').addEventListener('click', function(ev) {
+		var form = create_form('download_file.php', 'post',
+			create_hidden('name', deckname+'.mwDeck'),
+			create_hidden('content', deck_content())
+		)
+		document.body.appendChild(form) ;
+		form.submit() ;
+		document.body.removeChild(form) ;
+	}, false) ;
+	// Deck column
 	document.getElementById('sort').addEventListener('click', function(ev) {
 		sort_deck(document.getElementById('maindeck')) ;
 		sort_deck(document.getElementById('sideboard')) ;

@@ -94,6 +94,9 @@ html_menu() ;
     <li><button id="saveas" accesskey="v" title="Save deck giving it another name">
      <img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesaveas.png" alt="save">
     </button></li>
+    <li><button id="export" accesskey="e" title="Save deck as a file on your computer">
+     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/export.png" alt="save">
+    </button></li>
    </ul>
   </div>
 
