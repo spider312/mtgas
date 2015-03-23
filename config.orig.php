@@ -23,7 +23,7 @@ $suggest_draft = array(
 	'Original MTGO Cube' => 'OMC*3'
 ) ;
 $suggest_sealed = array(
-	'MTGO Cube' = 'CUB*6',
+	'MTGO Cube' => 'CUB*6',
 	'Original MTGO Cube' => 'OMC*6'
 ) ;
 	// Card images
