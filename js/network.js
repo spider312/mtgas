@@ -81,7 +81,8 @@ function network_loop() { // Things to do regulary
 					try {
 						manage_action(data, active_player) ;
 					} catch (e) {
-						log(e) ;
+						log('Exception in manage_action') ;
+						console.log(e) ;
 					}
 					draw() ;
 			}
