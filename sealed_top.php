@@ -23,7 +23,7 @@ html_menu() ;
     Report :
     <select name="report">
 <?php
-$reports = scandir('stats') ;
+$reports = array_reverse(sorted_scandir('stats')) ;
 foreach ( $reports as $r )
 	if ( ( $r != '.' ) && ( $r != '..' ) ) {
 		echo '     <option ' ;
