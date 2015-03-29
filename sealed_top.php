@@ -9,10 +9,17 @@ $color = param($_GET, 'color', '') ;
 $rarity = param($_GET, 'rarity', '') ;
 html_head(
 	'Inclusion and performance statistics',
-	array('style.css', 'mtg.css', 'sealed_top.css')
+	array('style.css', 'options.css', 'mtg.css', 'sealed_top.css'),
+	array('../variables.js.php', 'html.js', 'math.js', 'image.js', 'options.js')
 ) ;
 ?>
- <body>
+ <body onload="start()">
+  <script language="javascript">
+function start() { // On page load
+	game = {} ;
+	game.options = new Options(true) ;
+}
+  </script>
 <?php
 html_menu() ;
 ?>
