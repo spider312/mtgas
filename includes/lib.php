@@ -115,6 +115,8 @@ function obj_diff($new, $old) { // Returns only properties that changed between 
 		} else // Key not present in old
 			$result->$key = $new->$key ; // Set as new value
 	}
+	if ( count(get_object_vars($result)) == 0 )
+		$result = null ;
 	return $result ;
 }
 // Numbers
