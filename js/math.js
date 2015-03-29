@@ -237,7 +237,9 @@ function isf(val) {
 }
 function iso(val, notnull) {
 	var res = ( typeof val == 'object' ) ;
-	if ( isb(notnull) && notnull )
+	if ( ! isb(notnull) )
+		notnull = true ;
+	if ( notnull )
 		return ( res && ( val != null ) )
 	return res ;
 }
