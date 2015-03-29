@@ -17,24 +17,27 @@ html_head(
 ) ;
 ?>
 
- <body>
+ <body onload="start()">
   <script language="javascript">
-$(function() { // On page load
+function start() { // On page load
 	game = {} ;
 	game.options = new Options(true) ;
-}) ;
-function statsform(el) {
-	var spl = el.value.split('|') ;
-	if ( spl.length < 5 )
-		alert('Not 5 parts in '+el.value) ;
-	var form = document.getElementById('stats_create') ;
-	var i = 0 ;
-	form.name.value = spl[i++] ;
-	form.date.value = spl[i++] ;
-	form.format.value = spl[i++] ;
-	form.exts.value = spl[i++] ;
-	form.mask.value = spl[i++] ;
-	form.imask.value = spl[i++] ;
+	var report_list = document.getElementById('report_list') ;
+	report_list.addEventListener('change', function(ev) {
+		var select = ev.srcElement ;
+		var option = select.options[select.selectedIndex] ;
+		var spl = option.value.split('|') ;
+		if ( spl.length < 5 )
+			alert('Not 5 parts in '+el.value) ;
+		var form = document.getElementById('stats_create') ;
+		var i = 0 ;
+		form.name.value = spl[i++] ;
+		form.date.value = spl[i++] ;
+		form.format.value = spl[i++] ;
+		form.exts.value = spl[i++] ;
+		form.mask.value = spl[i++] ;
+		form.imask.value = spl[i++] ;
+	}, false) ;
 }
   </script>
 <?php
@@ -91,7 +94,8 @@ $reports = array_reverse(sorted_scandir($dir)) ;
 if ( count($reports) > 0 ) {
 ?>
      <form>
-     Load : <select name="name">
+     Load : <select id="report_list" name="name">
+     <option selected disabled>Select a report</option>
 <?php
 	foreach ( $reports as $r ) {
 		$content = file_get_contents($dir.$r) ;
@@ -102,9 +106,7 @@ if ( count($reports) > 0 ) {
 		$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
 		$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
 		$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
-		echo '     <option value="'.$value.'" onclick="statsform(this)">
-			'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')
-		</option>'."\n" ;
+		echo '     <option value="'.$value.'">'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
 	}
 ?>
      </select>
