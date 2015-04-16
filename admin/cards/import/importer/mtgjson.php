@@ -39,10 +39,13 @@ foreach ( $json->cards as $card ) {
 	// Types
 	$type = str_replace('—', '-', $card->type) ;
 	// Text
-	$text = str_replace(
-		array("\n\n", '—', '−'),
-		array("\n", '-', '-'),
-		$card->text) ;
+	if ( ! property_exists($card, 'text') )
+		$text = '' ;
+	else
+		$text = str_replace(
+			array("\n\n", '—', '−'),
+			array("\n", '-', '-'),
+			$card->text) ;
 	// Creatures
 	if ( property_exists($card, 'power') && property_exists($card, 'toughness') )
 		$text = $card->power.'/'.$card->toughness."\n".$text ;
