@@ -13,16 +13,6 @@ $dir = param($_GET, 'dir', 'HIRES') ;
 $url = $baseimagedir.$dir.'/' ;
 $repair = param($_GET, 'repair', '') ;
 $base = intval(param($_GET, 'base', '0')) ;
-function scan($dir) {
-	if ( is_dir($dir) ) {
-		$result = array() ;
-		foreach ( scandir($dir) as $file ) 
-			if ( ( $file != '..' ) && ( $file != '.' ) )
-				$result[$file] = scan($dir.'/'.$file) ;
-	} else
-		$result = '' ;
-	return $result ;
-}
 $exts = scan($url) ;
 if ( isset($exts['TK']) )
 	unset($exts['TK']) ; // Don't compre Tokens
@@ -92,7 +82,6 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$foldersize = 0 ;
 	$filesizes = array() ;
 	if ( array_key_exists($arr['se'], $exts) ) {
-		//$images = get_object_vars($exts->$arr['se']) ;
 		$images = $exts[$arr['se']] ;
 		$nbimages = count($images, true) ;
 		while ( count($cards) > 0 ) {
@@ -106,7 +95,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 					$foldersize += $fs ;
 				} else {
 					// Dual cards have an image for each face, do the same on both
-					if ( ereg ('(.*) \((.*)\)', $card['name'], $regs) ) {
+					if ( preg_match('/(.*) \((.*)\)/', $card['name'], $regs) ) {
 						$card1 = card_img_by_name($regs[1]) ;
 						$card2 = card_img_by_name($regs[2]) ;
 						if ( array_key_exists($card1, $images) && array_key_exists($card2, $images) ) {
