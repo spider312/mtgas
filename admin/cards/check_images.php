@@ -11,8 +11,7 @@ html_head(
 $baseimagedir = '/home/hosted/mogg/img/' ;
 $dir = param($_GET, 'dir', 'HIRES') ;
 $url = $baseimagedir.$dir.'/' ;
-$repair = param($_GET, 'repair', '') ;
-$base = intval(param($_GET, 'base', '0')) ;
+$base = intval(param($_GET, 'base', '0')) ; // Only display base editions and extentions, usefull for language img, as other extentions aren't translated
 $exts = scan($url) ;
 if ( isset($exts['TK']) )
 	unset($exts['TK']) ; // Don't compre Tokens
@@ -27,7 +26,7 @@ html_menu() ;
    <h1>Comparison between cards images and database's ones</h1>
    <a href="../">Return to admin</a>
    <form>
-    <select name="dir" onchange="this.form.submit()">
+    <select name="dir">
 <?php
 foreach ( scandir($baseimagedir) as $rep )
 	if ( ( substr($rep, 0, 1) != '.' ) && ( array_search($rep, array('scrot', 'VOA')) === false ) ) {
@@ -43,6 +42,7 @@ foreach ( scandir($baseimagedir) as $rep )
      <input type="checkbox" name="base" value="1" <?php if ( $base ) echo ' checked' ; ?>>
      Keep only base editions and extensions
     </label>
+    <input type="submit" value="Refresh">
    </form>
    <h2>Comparing DB and cards in <?php echo $url ; ?></h2>
    <table>
@@ -121,35 +121,23 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		$mcicode = $arr['se'] ;
 	$mcicode = strtolower($mcicode) ;
-	echo '      <td><a href="http://magiccards.info/'.$mcicode.'/en.html">'.$arr['se'].'</a></td>'."\n" ;
-	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'">'.$nbcards.'</a></td>'."\n" ;
-	echo '      <td><a href="http://img.mogg.fr/'.$dir.'/'.$arr['se'].'">'.$nbimages.'</a></td>'."\n" ;
+	echo '      <td><a href="http://magiccards.info/'.$mcicode.'/en.html" title="View card list on MCI">'.$arr['se'].'</a></td>'."\n" ;
+	echo '      <td><a href="http://dev.mogg.fr/admin/cards/extension.php?ext='.$arr['se'].'" title="View card list in admin">'.$nbcards.'</a></td>'."\n" ;
+	echo '      <td><a href="http://img.mogg.fr/'.$dir.'/'.$arr['se'].'" title="View images folder">'.$nbimages.'</a></td>'."\n" ;
 	echo '      <td>'."\n" ;
 	if ( count($unimagedcards) > 0 ) {
-		echo '       <ul><a title="See folder" href="'.$url.'/'.$arr['se'].'">'."\n" ;
+		echo '       <ul>'."\n" ;
 		foreach ( $unimagedcards as $card )
 			echo '        <li>'.$card.'</li>'."\n" ;
-		echo '       </a></ul>'."\n" ;
+		echo '       </ul>'."\n" ;
 	} else
 		echo '       <i>None</i>'."\n" ;
 	echo '      </td>'."\n" ;
 	echo '      <td>'."\n" ;
 	if ( count($images) > 0 ) {
-		echo '     <a title="repair" href="?repair='.$arr['se'].'"><ul>'."\n" ;
-		foreach ( $images as $card => $void ) {
-			$card = card_name_by_img($card) ;
-			echo '       <li>'.$card ;
-			if ( $repair == $arr['se'] ) {
-				$id = card_id($card) ;
-				if ( $id > 0 ) {
-					if ( query("INSERT INTO `card_ext` (`card`, `ext`, `rarity`, `nbpics`) VALUES ( '$id', '".$arr['id']."', 'C', '1') ; ") )
-						echo ' (repaired)' ;
-					else
-						echo ' (NOT repaired)' ;
-				}
-			echo '       </li>'."\n" ;
-			}
-		}
+		echo '     <ul>'."\n" ;
+		foreach ( $images as $card => $void )
+			echo '       <li>'.card_name_by_img($card).' </li>'."\n" ;
 		echo '      </ul>'."\n" ;
 	} else
 		if ( ( $nbcards != 0 ) && ( $nbimages == 0 ) )
