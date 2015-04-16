@@ -501,14 +501,16 @@ class ImportCard {
 		$this->images[] = $url ;
 		return true ;
 	}
-	function setlang($code, $name, $url) { // Add language data for current card, overwriting all data for that card/lang
+	function setlang($code, $name, $url=null) { // Add language data for current card, overwriting all data for that card/lang
+		$name = ucfirst($name) ;
 		if ( isset($this->langs[$code]) ) {
 			$this->langs[$code]['name'] = $name ;
 			$this->addlangimg($code, $url) ;
 		} else
 			$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
 	}
-	function addlang($code, $name, $url=null) {
+	function addlang($code, $name, $url=null) { // Add data to current language data (name append for dual cards, URL image for cards with multiple images)
+		$name = ucfirst($name) ;
 		if ( isset($this->langs[$code]) ) {
 			if ( $name != $this->langs[$code]['name'] )
 				$this->langs[$code]['name'] .= ' / '.$name ;
