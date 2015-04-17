@@ -1,7 +1,7 @@
 <?php
 include '../lib.php' ;
 include '../includes/db.php' ;
-$query = "SELECT * FROM `shout` ORDER BY `id` ASC" ;
+$query = "SELECT * FROM `shout` ORDER BY `id` DESC LIMIT 0, 20" ;
 $shouts = query_as_array($query) ;
 header('Content-Type: text/xml; charset=UTF-8');
 echo '<?xml version="1.0" encoding="UTF-8" ?>' ;

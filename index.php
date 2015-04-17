@@ -21,6 +21,7 @@ html_head(
 		, 'websockets.js' 
 	), 
 	array(
+		'Shouts' => 'rss/shout.php', 
 		'Canceled tournaments' => 'rss/tournaments.php?status=0', 
 		'Pending tournaments' => 'rss/tournaments.php?status=1', 
 		'Started tournaments' => 'rss/tournaments.php?status=5', 
