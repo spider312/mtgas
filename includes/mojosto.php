@@ -17,7 +17,7 @@ function mojosto($avatar, $cc) {
 			$nb = 3 ;
 			break ;
 		case 'stonehewer' : 
-			if ( $cc == 0 )
+			if ( $cc < 0 )
 				return false ;
 			$where[] = "`types` LIKE '%Equipment%'" ;
 			$where2 = array() ;
@@ -25,7 +25,7 @@ function mojosto($avatar, $cc) {
 			do {
 				$where2[] = "`attrs` LIKE '%\"converted_cost\":$i,%'" ;
 				$i++ ;
-			} while ( $i < $cc );
+			} while ( $i <= $cc );
 			if ( count($where2) > 0 )
 				$where[] = '( '.implode(' OR ', $where2).') ' ;
 			break ;
