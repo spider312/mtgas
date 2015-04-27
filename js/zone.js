@@ -34,30 +34,31 @@ function Zone(player, type) {
 			from = 0 ;
 		(new Selection(this.cards.slice(from-nb, from).reverse())).changezone(dest_zone, null, to) ;
 	}
+	this.rand_selection = function(cards, nb) { // Returns a selection containing nb cards crom cards
+		if ( ! isn(nb) || ( nb < 1 ) )
+			return false ;
+		// Work on a copy of array as we will splice cards in order not to discard 2 times the same card
+		var cards = cards.concat() ;
+		var sel = new Selection() ;
+		sel.settype('rand') ;
+		for ( var i = 0 ; i < nb ; i++ ) // The number of times user choosed
+			// Remove a random card from clone and add it to selection
+			sel.add(cards.splice(rand(cards.length), 1)[0]) ;
+		return sel ;
+	}
 	this.rand_changezone = function(dest_zone) { // Same as changezone, with "from" randomly defined
 		var nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type+' ?', 1) ;
-		if ( isn(nb) && ( nb > 0 ) ) {
-			var cards = clone(this.cards) ; // Work on a copy of array as we will splice cards in order not to discard 2 times the same card
-			var sel = new Selection() ;
-			sel.settype('rand') ;
-			for ( var i = 0 ; i < nb ; i++ ) // The number of times user choosed
-				sel.add(cards.splice(rand(cards.length), 1)[0]) ; // Remove a random card from clone and add it to selection
+		var sel = this.rand_selection(this.cards, nb) ;
+		if ( sel )
 			sel.changezone(dest_zone) ;
-		}
 	}
 	this.rand_reveal = function() {
-		var nb = prompt_int('How many cards to reveal from your '+this.type+' ?', 1) ; // this.cards.length
-		if ( isn(nb) && ( nb > 0 ) ) {
-			var cards = clone(this.cards) ; // Work on a copy of array as we will splice cards in order not to discard 2 times the same card
-			var sel = new Selection() ;
-			sel.settype('rand') ;
-			for ( var i = 0 ; i < nb ; i++ ) // The number of times user choosed
-				sel.add(cards.splice(rand(cards.length), 1)[0]) ; // Remove a random card from clone and add it to selection
-			sel.reveal_from_hand(true, true) ;
-		}
+		var nb = prompt_int('How many cards to reveal from your '+this.type+' ?', 1) ;
+		var sel = this.rand_selection(this.cards, nb) ;
+		if ( sel )
+			sel.reveal(true, true) ;
 	}
-
-	this.get_card = function(id) { // duplicated here for cardlisteditor that can't use globals, as it's based on another window object
+	this.get_card = function(id) { // duplicated here for cardlisteditor that can't use globals (based on another window object)
 		for ( var j = 0 ; j < this.cards.length ; j++ )
 			if ( this.cards[j].id == id )
 				return this.cards[j] ;
@@ -90,7 +91,8 @@ function Zone(player, type) {
 	}
 	this.sync_recieve = function(sel, shuffle) {
 		if ( this.cards.length != sel.cards.length )
-			log('Recieved a zone reordering that will change card nb for '+this.get_name()+' ('+this.cards.length+' -> '+sel.cards.length+')') ;
+			log('Recieved a zone reordering that will change card nb for '+this.get_name()+
+				' ('+this.cards.length+' -> '+sel.cards.length+')') ;
 		this.cards = sel.cards ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
 			this.cards[i].visible = null ;
@@ -105,7 +107,6 @@ function Zone(player, type) {
 	this.player = player ;
 	this.cards = new Array() ;
 	this.editor_window = null ;
-	//this.visible = false ;
 }
 // Zone with a visual representation (widget)
 function VisibleZone(player, type) {
@@ -129,10 +130,8 @@ function VisibleZone(player, type) {
 			if ( ( game.card_under_mouse == null ) && isf(this.mouseover) )
 				this.mouseover(ev) ;
 			// Display hovered card on top of other
-			if ( ! this.selzone ) {
+			if ( ! this.selzone )
 				this.refresh() ;
-				draw() ;
-			}
 		}
 		return card ;
 	}
@@ -189,7 +188,7 @@ function unselzone(result) { // Common
 	result.mouseup = function(ev) {
 		result.parent_mouseup(ev) ; // Target
 		// Drop
-		if ( game.drag != null )
+		if ( ( game.drag != null ) && ( game.drag.zone != this ) )
 			game.selected.changezone(this) ;
 	}
 	result.click = function(ev) {
@@ -201,8 +200,7 @@ function unselzone(result) { // Common
 					var card = this.card_under_mouse(ev) ; // On card under mouse
 					if ( card == null ) // If not (drag from zone background)
 						card = this.cards[this.cards.length-1] ; // On card on top of zone
-					if ( card.is_visible() )
-						card.info() ;
+					card.info() ;
 				}
 				break ;
 			case 2 : // Right click
@@ -218,15 +216,17 @@ function unselzone(result) { // Common
 	result.draw = function(context) {
 		context.drawImage(this.cache, this.x, this.y) ;
 	}
-	result.refresh = function() { // Compute coordinates for all zone's cards, called on each adding/removing of cards, or visibility change
+	result.refresh = function() {
 		if ( this.editor_window != null )
-			refresh_list(this, this.editor_window.n) ; // Will set some cards as "watching", must be done before canvas refreshing
+			refresh_list(this) ; // Will set some cards as "watching", must be done before canvas refreshing
+		// Compute coordinates for all zone's cards
 		if ( this.cards.length > 0 ) {
-			// Reinit all cards' position
-			for ( var i = 0 ; i < this.cards.length ; i++ ) {
-				var card = this.cards[i] ;
-				card.coords_set(this.x + ( this.w - cardwidth ) / 2, this.y + ( this.h - cardheight ) / 2) ; // Centered in zone
-			}
+			// Reinit all cards' position : Centered in zone
+			for ( var i = 0 ; i < this.cards.length ; i++ )
+				this.cards[i].coords_set(
+					this.x + ( this.w - cardwidth ) / 2,
+					this.y + ( this.h - cardheight ) / 2
+				) ;
 			// Count how many top cards are visible
 			var topidx = this.cards.length - 1 ;
 			this.vcards = 0 ;
@@ -308,7 +308,7 @@ function unselzone(result) { // Common
 	result.selzone = false ;
 	// Image
 	result.img = null ;
-	game.image_cache.load(theme_image('/ZoneIcons/'+result.type+'.png'), function(img, widget) {
+	game.image_cache.load(theme_image('ZoneIcons/'+result.type+'.png'), function(img, widget) {
 		widget.img = img ;
 		widget.refresh() ;
 	}, function(widget) {
@@ -318,7 +318,7 @@ function unselzone(result) { // Common
 	result.vcards = 0 ; // Number of visible cards from top
 	return result ;
 }
-function virtual_unselzones(result) { // Unselzones + life
+function virtual_unselzones(result) { // Unselzones + life (targeting)
 	result.mousedown = function(ev) {
 		switch ( ev.button ) {
 			case 0 : // Left click
@@ -333,30 +333,20 @@ function virtual_unselzones(result) { // Unselzones + life
 		}
 	}
 	result.mouseover = function(ev) {
-		game.settittle(this.get_name()) ;
 		if ( game.target.tmp != null ) { // Targeting in progress
 			if ( game.current_targeting == this ) 
 				game.target.tmp.stop(null) ;
 			else
 				game.target.tmp.over(this) ;
-			if ( isf(this.refresh) )
-				this.refresh() ;
-			else
-				log(this+' has no refresh') ;
 		}
 	}
 	result.mouseout = function(ev) {
 		if ( ( game.card_under_mouse != null ) && ( isf(this.mousemove) ) )
 			this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
-		game.settittle('') ;
 		if ( game.target.tmp != null )
 			game.target.tmp.out(this) ;
 		else if ( game.current_targeting == this ) 
 			game.target.start(this, ev) ;
-		if ( isf(this.refresh) )
-			this.refresh() ;
-		else
-			log(this+' has no refresh') ;
 	}
 	result.mouseup = function(ev) {
 		if ( game.target.tmp != null )
@@ -392,13 +382,12 @@ function library(player) {
 				menu.addline('Look top cards ...', 		card_list_edit_n, 	mylib) ;
 				menu.addline('Look bottom cards ...', 		card_list_edit_n_bottom, 	mylib) ;
 				menu.addline('Shuffle', 			mylib.shuffle) ;
-				menu.addline('Play with top card revealed',	mylib.toggle_reveal).checked = mylib.player.attrs.library_revealed ;
+				var line = menu.addline('Play with top card revealed',	mylib.toggle_reveal) ;
+				line.checked = mylib.player.attrs.library_revealed ;
 				if ( ! mylib.player.attrs.library_revealed ) {
 					var topcard = mylib.cards[mylib.cards.length-1] ;
-					var checked = topcard.attrs.visible ; // Default to card visibility
-					if ( checked == null ) // Replace 'null' value by false to display unchecked checkbox
-						checked = false ;
-					menu.addline('Reveal top card',		topcard.toggle_reveal_from_unselzone,	topcard).checked = checked ;
+					var checked = topcard.attrs.get('visible', false) ; // Default to card visibility
+					menu.addline('Reveal top card',		topcard.toggle_reveal,	topcard).checked = checked ;
 				}
 				menu.addline() ;
 				menu.addline('To hand ...',		mylib.changezone,	mylib.player.hand) ;
@@ -560,14 +549,6 @@ function exile(player) {
 // Hand, battlefield
 function selzone(result) { // Common
 	// Event
-	/*
-	result.mouseover = function(ev) {
-		game.settittle(this.get_name()) ;
-	}
-	result.mouseout = function(ev) {
-		game.settittle('') ;
-	}
-	*/
 	result.mousedown = function(ev) {
 		var card = this.card_under_mouse(ev) ;
 		if ( card != null )
@@ -635,7 +616,7 @@ function hand(player) {
 	selzone(myhand) ;
 	// Image
 	this.img = null ;
-	game.image_cache.load(theme_image('/ZoneIcons/'+myhand.type+'.png'), function(img, widget) {
+	game.image_cache.load(theme_image('ZoneIcons/'+myhand.type+'.png'), function(img, widget) {
 		widget.img = img ;
 	}, function(widget) {
 		log('Unable to load image for '+widget) ;
@@ -730,7 +711,7 @@ function hand(player) {
 	}
 	myhand.refresh = function() { // For each card in zone, calculate + store its coords
 		if ( this.editor_window != null )
-			refresh_list(this, this.editor_window.n) ; // Will set some cards as "watching", must be done before canvas refreshing
+			refresh_list(this) ; // Will set some cards as "watching", must be done before canvas refreshing
 		if ( this.cards.length > 0 ) {
 			// Determining optimal space between cards
 			var spaceoffset = 0 ; // Will be --ed at least 1 time
@@ -795,7 +776,7 @@ function hand(player) {
 	}
 	myhand.reveal = function(b) {
 		var sel = new Selection(this.cards) ;
-		sel.reveal_from_hand(b) ;
+		sel.reveal(b) ;
 	}
 	return myhand ;
 }
@@ -807,7 +788,7 @@ function battlefield(player) {
 		var result = 0 ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.is_land() && ! card.tapped )
+			if ( card.is_land() && ! card.attrs.get('tapped') )
 				result++ ;
 		}
 		return result ;
@@ -823,18 +804,15 @@ function battlefield(player) {
 			// Drop
 			if ( game.drag != null ) {
 				var p = this.grid_at(ev.clientX - game.dragxoffset, ev.clientY - game.dragyoffset) ;
-				if ( game.selected.zone != this ) // From another zone
-					game.selected.changezone(this, !ev.ctrlKey, null, p.x, p.y) ;
-				else
+				if ( game.selected.zone != this ) {// From another zone
+					var base = null ;
+					if ( ev.ctrlKey )
+						base = 'back' ;
+					game.selected.changezone(this, base, null, p.x, p.y) ;
+				} else
 					game.selected.place(p.x, p.y) ;
 			}
 		}
-	}
-	mybf.parent_mousemove = mybf.mousemove ;
-	mybf.mousemove = function(ev) {
-		this.parent_mousemove(ev) ;
-		if ( game.drag != null )
-			draw() ; // Refresh permanent counter
 	}
 	mybf.menu = function(ev) {
 		var mybf = this ;
@@ -913,7 +891,7 @@ function battlefield(player) {
 	}
 	mybf.refresh = function() { // For each card in zone, calculate + store its coords
 		if ( this.editor_window != null )
-			refresh_list(this, this.editor_window.n) ; // Will set some cards as "watching", must be done before canvas refreshing
+			refresh_list(this) ; // Will set some cards as "watching", must be done before canvas refreshing
 		for ( var i = 0 ; i < this.cards.length ; i++ )
 			this.refresh_card(this.cards[i]) ;
 	}
@@ -1021,27 +999,25 @@ function battlefield(player) {
 	}
 	mybf.untapall = function() {
 		var sel = new Selection() ;
-		var redraw = false ;
 		for ( var i in this.cards ) {
 			var card = this.cards[i] ;
+			// Step settings
 			if ( ! game.player.attrs.untap_all )
 				continue ;
 			if ( ( ! game.player.attrs.untap_lands ) && ( card.is_land() ) )
 				continue ;
 			if ( ( ! game.player.attrs.untap_creatures ) && ( card.is_creature() ) )
 				continue ;
+			// Attrs
 			if ( ! card.has_attr('no_untap') ) {
-				if ( card.attrs.no_untap_once ) {
-					card.attrs.no_untap_once = false ;
+				if ( card.attrs.get('no_untap_once') ) {
+					card.attrs.set('no_untap_once', false) ;
 					card.refresh() ;
 					card.sync() ;
-					redraw = true ;
 				} else
 					sel.add(card) ;
 			}
 		}
-		if ( redraw )
-			draw() ;
 		sel.tap(false) ;
 	}
 	// Initialisation
@@ -1052,9 +1028,9 @@ function battlefield(player) {
 function sideboard(player) {
 	var myside = new Zone(player, 'sideboard') ;
 	myside.selzone = false ;
-	myside.refresh = function() { // For each card in zone, calculate + store its coords
+	myside.refresh = function() { // Only used for list editor
 		if ( this.editor_window != null )
-			refresh_list(this, this.editor_window.n) ; // Will set some cards as "watching", must be done before canvas refreshing
+			refresh_list(this) ;
 	}
 	return myside ;
 }
