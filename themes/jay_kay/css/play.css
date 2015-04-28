@@ -63,6 +63,7 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 	margin-bottom: 1px ;
 	border: 1px solid black ;
 	height: 22px ;
+	overflow: hidden ;
 }
 #timeleft.timer_notice {
 	color: red ;
