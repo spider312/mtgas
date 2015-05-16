@@ -37,7 +37,7 @@ function network_loop() { // Things to do regulary
 					active_player.connect(true) ;
 					if ( active_player == game.me ) { // My own registration, recieved after prev actions
 						display_start() ;
-						if ( active_player.attrs.siding && ( game.lastwinner != null ) ) // End of "initial actions", if side should be opened, open it
+						if ( isset(active_player.attrs) && active_player.attrs.siding && ( game.lastwinner != null ) ) // End of "initial actions", if side should be opened, open it
 							side_start_recieve(active_player, game.lastwinner) ;
 					}
 					break ;
