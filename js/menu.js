@@ -113,25 +113,6 @@ function menu_init(target) {
 							cell.args = item.args ;
 							cell.addEventListener('mousedown', menu.activate, false) ;
 							check.addEventListener('mousedown', menu.activate, false) ;
-							// Mouseover image zoom
-							if ( item.moimg ) {
-								cell.mouimg = document.getElementById('zoom').src ; // Preparing mouseOut
-								cell.moimg = item.moimg ;
-								cell.addEventListener('mouseover', function(ev) {
-									var t = ev.target ;
-									while ( ! iso(t.moimg) && ( t.parentNode != null ) )
-										t = t.parentNode ;
-									game.image_cache.load(clone(t.moimg), function(img, card) {
-										var zoom = document.getElementById('zoom') ;
-										ev.target.mouimg = zoom.src
-										zoom.src = img.src ;
-									}, function(card, url) {
-									}, this) ;
-								}, false) ;
-								cell.addEventListener('mouseout', function(ev) {
-									document.getElementById('zoom').src = ev.target.mouimg ;
-								}, false) ;
-							}
 							break ;
 						case 'object' : // Submenu
 							if ( ( item.action != null ) && ( item.action.items.length > 0 ) ) { // http://brucejohnson.ca/SpecialCharacters.html
@@ -148,6 +129,25 @@ function menu_init(target) {
 						default : 
 							cell.classList.add('inactive') ;
 							// Continue ?
+					}
+					// Mouseover image zoom
+					if ( item.moimg ) {
+						cell.mouimg = document.getElementById('zoom').src ; // Preparing mouseOut
+						cell.moimg = item.moimg ;
+						cell.addEventListener('mouseover', function(ev) {
+							var t = ev.target ;
+							while ( ! iso(t.moimg) && ( t.parentNode != null ) )
+								t = t.parentNode ;
+							game.image_cache.load(clone(t.moimg), function(img, card) {
+								var zoom = document.getElementById('zoom') ;
+								ev.target.mouimg = zoom.src
+								zoom.src = img.src ;
+							}, function(card, url) {
+							}, this) ;
+						}, false) ;
+						cell.addEventListener('mouseout', function(ev) {
+							document.getElementById('zoom').src = ev.target.mouimg ;
+						}, false) ;
 					}
 				}
 			}
@@ -239,5 +239,6 @@ function menu_merge(menu, name, submenu) { // Adds to 'menu' a 'submenu' if it h
 		if ( iso(mi.buttons) )
 			l.buttons = mi.buttons ;
 	} else
-		menu.addline(name, submenu) ;
+		var l = menu.addline(name, submenu) ;
+	return l ;
 }
