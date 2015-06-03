@@ -43,14 +43,15 @@
 #div_side  {
 	top: 2% ;
 	height: 86% ;
-	overflow-y: scroll ;
+	overflow-y: auto ;
 }
 #div_main {
 	top: 90% ;
 	min-height: 33% ;
-	max-height: 95% ;
+	max-height: 75% ;
 	z-index: 11 ;
 	padding-bottom: 30px ;
+	overflow-y: auto ;
 }
 #div_main.highlight {
 	top: auto ;
@@ -65,8 +66,8 @@
 	text-align: center ;
 }
 #cards_number {
-	font-family:verdana;
-	font-size:small;
+	font-family:verdana ;
+	font-size:small ;
 	font-variant: normal ;
 }
 /* Table inside */
