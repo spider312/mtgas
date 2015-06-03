@@ -13,13 +13,14 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>' ;
 		<description>Shouts on mogg.fr</description>
 <?php
 foreach ( $shouts as $shout ) {
+	$display = htmlspecialchars($shout->sender_nick).' : '.htmlspecialchars($shout->message) ;
 ?>
 		<item>
 			<guid><?=$shout->id;?></guid>
 			<pubDate><?php echo date("D, d M Y H:i:s", strtotime($shout->time)); ?></pubDate>
-			<title><?php echo $shout->sender_nick.' : '.$shout->message ; ?></title>
+			<title><?=$display;?></title>
 			<link></link>
-			<description><?php echo $shout->sender_nick.' : '.$shout->message ; ?></description>
+			<description><?=$display;?></description>
 		</item>
 <?php
 }
