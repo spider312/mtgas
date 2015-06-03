@@ -151,7 +151,7 @@ function side_create_li(cards) {
 	}, myli) ;
 	myli.addEventListener('click', side_click_card, false) ;
 	myli.addEventListener('mouseover', function(ev) {
-		ev.target.card.zoom(ev.target.defaultView) ;
+		ev.target.card.zoom() ;
 	}, false) ;
 	return myli
 }
