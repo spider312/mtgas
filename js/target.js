@@ -136,15 +136,15 @@ function Targets() {
 	this.update_helper = function(ev) {
 		var result = ( this.tmp != null ) ;
 		if ( result && game.options.get('helpers') ) {
-			var margin = 5 ;
-			var x = ev.clientX + margin ; // margin px on cursor's right
-			if ( x + this.helper.clientWidth > window.innerWidth ) // Outside inner screen
-				x = ev.clientX - this.helper.clientWidth - margin ; // 5px on cursor's left
-			this.helper.style.left = max(x, 0)+'px' ;
-			var y = ev.clientY + margin ;// margin px on cursor's bottom
-			if ( y + this.helper.clientHeight > window.innerHeight ) // Outside inner screen
-				y = ev.clientY - this.helper.clientHeight - margin ; // 5px on cursor's top
-			this.helper.style.top = max(y, 0)+'px' ;
+			var margin = 5 ; // helper's left corner placed margin px on cursor's bottom right
+			// Helper's left
+			var x = ev.clientX + margin ; 
+			var xmax = window.innerWidth - this.helper.clientWidth ;
+			this.helper.style.left = min(max(x, 0), xmax)+'px' ; // inside 0, xmax
+			// Helper's right
+			var y = ev.clientY + margin ;
+			var ymax = window.innerHeight - this.helper.clientHeight ;
+			this.helper.style.top = min(max(y, 0), ymax)+'px' ; // inside 0, ymax
 		}
 		return result ;
 	}
