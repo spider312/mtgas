@@ -84,7 +84,6 @@ function network_loop() { // Things to do regulary
 						log('Exception in manage_action') ;
 						console.log(e) ;
 					}
-					draw() ;
 			}
 			active_player = game.player ; // End of "recieve", all actions in context are from player
 		}, function(ev) { // OnClose/OnConnect
