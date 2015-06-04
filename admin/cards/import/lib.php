@@ -100,17 +100,28 @@ function mv2txt($tmp) {
 function mv2cost($tmp) {
 	$cost = '' ;
 	if ( isset($tmp) && preg_match_all('#<img  height=25 src=graph/manas/big/(?<mana>.{1,2})\.gif>#', $tmp, $matches_cost, PREG_SET_ORDER) > 0 ) {
-		foreach ( $matches_cost as $match_cost )
-			if ( strlen($match_cost['mana']) == 1 )
-				$cost .= $match_cost['mana'] ;
-			else
-				$cost .= '{'.implode('/', str_split($match_cost['mana'])).'}' ;
+		foreach ( $matches_cost as $match_cost ) {
+			$mana = $match_cost['mana'] ;
+			if ( ( strlen($mana) > 1 ) && !is_numeric($mana) ) { // Manage '2W' (hybrid mana), 'PW' (phyrexian manna) but not '15' (hight cost eldrazi)
+				$splmana = str_split($mana) ;
+				// ATM, in db and theme images, PM is stored as MP, and it doesn't have a /
+				if ( $splmana[0] == 'P' ) {
+					$glue = '' ;
+					$splmana = array_reverse($splmana) ;
+				} else
+					$glue = '/' ;
+
+				$cost .= '{'.implode($glue, $splmana).'}' ;
+			} else
+				$cost .= $mana ;
+		}
 	}
 	return $cost ;
 }
 // Debug
 function strdebug($str, $index=false) {
-	$arr = preg_split('/(?<!^)(?!$)/u', $str ); 
+	//$arr = preg_split('/(?<!^)(?!$)/u', $str ); 
+	$arr = str_split($str) ;
 	$result = '<table>' ;
 	$indexes = '' ;
 	$letters = '' ;
