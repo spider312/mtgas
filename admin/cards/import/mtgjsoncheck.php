@@ -17,13 +17,14 @@ if ( $content === false )
 $remote_version = JSON_decode($content) ;
 // Version changed
 if ( $remote_version != $local_version ) {
+	echo "Version change : $local_version -> $remote_version : \n" ;
 	file_put_contents($version_file, $content) ;
 	$content = @file_get_contents($changelog_url) ;
 	if ( $content === false )
 		die('Unable to download changelog') ;
 	$changelog = JSON_decode($content) ;
-	foreach ( array_reverse($changelog) as $log ) {
-		if ( $log->version > $local_version ) {
+	foreach ( $changelog as $log ) {
+		if ( version_compare($log->version, $local_version, '>') ) {
 			echo "$local_version -> {$log->version} ({$log->when}) : \n" ;
 			foreach ( $log->changes as $change )
 				echo " - $change\n" ;
@@ -32,9 +33,8 @@ if ( $remote_version != $local_version ) {
 			if ( property_exists($log, 'updatedSetFiles') )
 				echo "Updated sets : ".join(', ', $log->updatedSetFiles)."\n" ;
 			$local_version = $log->version ;
-			//unset($log->version, $log->when, $log->changes, $log->updatedSetFiles, $log->newSetFiles) ;
-			//print_r($log) ;
 			echo "\n" ;
 		}
 	}
+	echo "end\n" ;
 }
