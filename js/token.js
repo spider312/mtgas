@@ -1,7 +1,6 @@
 // token.js
 // Classes for tokens and card duplicates, extends classes 'card' defined in card.js
-function Token(id, extension, name, zone, attrs, img_url, register) {
-	Widget(this) ;
+function Token(id, extension, name, zone, attrs, register) {
 	this.type = 'token' ; // Used in right DND
 	if ( ! iso(attrs.types) ) {
 		log('No types found for token '+name) ;
@@ -10,35 +9,48 @@ function Token(id, extension, name, zone, attrs, img_url, register) {
 	if ( ! iso(attrs.subtypes) )
 		attrs.subtypes = name.toLowerCase().split(' ') ;
 	this.init('t_' + id, extension, name, zone.player.life, attrs, [extension]) ;
-	this.image_url = img_url ;
+	//this.image_url = img_url ;
 	this.bordercolor = 'SlateGray' ;
-	this.setzone(zone) ;
+	this.setzone(zone) ; // Don't know where to place, but it's in battlefield !
 	this.zone.refresh_pt(iso(this.attrs.boost_bf)) ; // Boost_bf is applied on changezone, apply it there
 	if ( ! isb(register) )
 		register = true ;
-	if ( register )
+	if ( register ) // ATM : only MoJoSto avatars
 		game.tokens.push(this) ; // Register it in order to delete on game end
 	this.get_name = function() {
 		return this.name+' (token)' ; // Defaults to token, overridden by duplicate
 	}
 }
-function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // Modularisation between custom token creation and previous tokens recalling menu
+function token_multi(ext, name, attrs) { // Add random number to tokens having multiple images
+	if (
+		( name == 'Eldrazi Spawn' ) ||
+		( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
+	)
+		attrs.nb = ( rand(3) + 1 ) ;
+}
+function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // Creation from menu + living weapon
 	if ( ! isn(nb) )
 		nb = 1 ;
 	for ( var i = 0 ; i < nb ; i++ ) {
-		action_send('token', {'zone': zone.toString(), 'ext': ext, 'name': token_name(name, ext), 'attrs': attrs}, function(data) {
-			var tk = create_token_recieve(data.id, data.param.ext, data.param.name, eval(data.param.zone), JSON_parse(data.param.attrs)) ;
-			if ( typeof oncreate == 'function' )
-				oncreate(tk, oncreateparam) ; // ATM : Living weapon
-		}) ;
+		token_multi(ext, name, attrs) ;
+		action_send('token',
+			{'zone': zone.toString(), 'ext': ext, 'name': name, 'attrs': attrs},
+			function(data) {
+				var tk = create_token_recieve(data.id, data.param.ext, data.param.name,
+					eval(data.param.zone), JSON_parse(data.param.attrs)) ;
+				if ( typeof oncreate == 'function' )
+					oncreate(tk, oncreateparam) ; // ATM : Living weapon
+			}
+		) ;
 	}
 }
 function create_token_recieve(id, ext, name, zone, attrs) {
-	tk = new Token(id, ext, name, zone, attrs, token_image_url(ext, name, attrs)) ;
+	attrs.token = true ; // For image URL modularisation
+	tk = new Token(id, ext, name, zone, attrs) ;
 	message(active_player.name+' creates '+tk.get_name(), 'zone') ;
 	return tk ;
 }
-function token_extention(img, ext, exts) { // Search token in extensions
+function token_extention(img, ext, exts) { // Search token in extensions (card menu)
 	if ( ! iso(game.tokens_catalog) ) // No catalog ?
 		return ext ;
 	// Search card selected extension in catalog
@@ -74,23 +86,4 @@ function token_extention(img, ext, exts) { // Search token in extensions
 			return exts[i] ;
 	log(img+' found in no extension') ;
 	return '' ;
-}
-function token_name(name, ext) { // Modify name depending on extension if needed (adds random numbers to tokens having multiple images)
-	if (
-		( name == 'Eldrazi Spawn' )
-		||
-		( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
-	)
-		name += ( rand(3) + 1 ) ;
-	return name ;
-}
-function token_image_name(name, ext, attrs) { // Returns an image name from a token
-	name = token_name(name, ext) ;
-	if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
-		name += '.'+attrs.pow+'.'+attrs.thou ;
-	name += '.jpg' ;
-	return name ;
-}
-function token_image_url(ext, name, attrs) { // Returns an image's full URL
-	return '/TK/'+ext+'/'+token_image_name(name, ext, attrs) ;
 }

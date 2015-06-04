@@ -19,6 +19,10 @@ function Widget(obj) {
 		if ( obj.cache.height != h )
 			obj.cache.height = h ;
 	}
+	if ( !isf(obj.rect) )
+		obj.rect = function() { // Coordinates of rectangle representation of widget (for "under mouse")
+			return new rectwh(this.x, this.y, this.w, this.h) ;
+		}
 	obj.get_coords_center = function() {
 		var result = {'x': this.x + Math.round(this.w/2), 'y': this.y} ;
 		if ( isf(this.get_attachedto) && ( this.get_attachedto() != null ) ) {
@@ -102,16 +106,11 @@ function InfoBulle() {
 	this.set = function(txt) {
 		this.txt = txt ;
 		this.date = new Date() ;
-		draw() ;
-		window.setTimeout(function() { // After fadeout delay
-			game.infobulle.timer = window.setInterval(function() { // Trigger repetedly
-				//game.infobulle.draw(game.context) ; // Draw
-				draw() ;
-			}, 40) ; // At the eye-rate
-		}, this.fadeout) ;
-		window.setTimeout(function() { // After timeout delay
-			window.clearInterval(game.infobulle.timer) ; // Stop fadeout refreshing
-			game.infobulle.timer = null ;
+		// Refresh timeout
+		if ( game.infobulle.timer != null ) // Remove previous
+			window.clearInterval(game.infobulle.timer) ;
+		game.infobulle.timer = window.setTimeout(function() { // Set new
+			game.infobulle.date = null ;
 		}, this.timeout) ;
 	}
 }
@@ -160,7 +159,7 @@ function resize_window(ev) {
 	bfwidth = 2 * gridsmarginh + bfcols * gridswidth ;
 	bfheight = 2 * gridsmarginv + bfrows * gridsheight
 	handwidth = bfwidth + manapoolswidth ;
-	paperwidth = elementwidth + handwidth ;
+	paperwidth -= 2 ; // Fake margin around right column
 	//paperheight = 2 * bfheight + 2 * handheight + turnsheight ;
 	turnsheight = paperheight - 2 * ( bfheight + handheight ) ;
 	elementheight = Math.floor( ( paperheight - turnsheight ) / 8 ) ;
@@ -175,7 +174,6 @@ function resize_window(ev) {
 	resize_player_zone(game.opponent) ;
 	game.turn.set_coords(0, handheight + bfheight, paperwidth, turnsheight) ;
 	game.turn.coords_compute() ;
-	draw() ;
 // --- [ Right column ] --------------------------------------------------------
 	resize_right_column() ;
 // --- [ Side ] ----------------------------------------------------------------
@@ -191,11 +189,12 @@ function resize_right_column() {
 		autotext_buttons() ;
 	// Resize right frame depending on paper width
 	var rightframe = document.getElementById('rightframe') ;
-	var width = window.innerWidth - paperwidth - 1 - 1 ; /* -1 for 'right' CSS attribute */
+	/*var width = window.innerWidth - paperwidth - 1 - 1 ; // -1 for 'right' CSS attribute
 	if ( width < 0 ) {
 		alert('Window not large enough : '+width)
 		width = 0 ;
-	}
+	}*/
+	var width = cardimagewidth ;
 	rightframe.style.width = width + 'px' ;
 	var zoom = document.getElementById('zoom') ;
 	zoom.style.width = cardimagewidth + 'px' ;
@@ -305,7 +304,8 @@ function draw_timer() {
 		} else
 			log(game.widgets[i]+' has no draw method') ;
 	// Selection rectangle
-	if ( ( game.selection_rectangle != null ) && ( game.mouseX != game.selection_rectangle.x ) ) { // Only show if mouse moved on X axis, for hand selection not being drawn on click
+		// Only show if mouse moved on X axis, for hand selection not being drawn on click
+	if ( ( game.selection_rectangle != null ) && ( game.mouseX != game.selection_rectangle.x ) ) {
 		// xb, yb is upper left corner, xe, ye is bottom right (necessary for limitation)
 		var xb = min(game.mouseX, game.selection_rectangle.x) ;
 		var yb = min(game.mouseY, game.selection_rectangle.y) ;
@@ -331,41 +331,52 @@ function draw_timer() {
 			canvas_reset_alpha() ;
 		}
 	}
-	// Targets
-	game.target.draw(game.context) ;
 	// DND
 	if ( game.drag != null ) {
 		var zone = game.widget_under_mouse ;
-		if ( zone != null ) { // Dragging over canvas, not over en HTML element in front
+		if ( zone != null ) { // Dragging over canvas, not over an HTML element in front
 			game.context.save() ;
 			game.context.strokeStyle = 'white' ;
 			game.context.fillStyle = 'white' ;
 			canvas_set_alpha(bgopacity) ; // .5
 			var cards = game.selected.cards ;
+			var dragover = game.dragover ;
 			for ( var i = 0 ; i < cards.length ; i++ ) {
 				var card = cards[i] ;
 				// Card's top left (reference for positionning)
 				var tl_x = game.mouseX - game.dragxoffset ; // Mouse position - mouse click position
 				var tl_y = game.mouseY - game.dragyoffset ;
 				if ( zone.type == 'battlefield' ) {
-					if ( game.dragover != null ) { // Dragover a card on BF : show attach
-						var offset = 10 * ( i + 1 ) ;
-						card.draw(game.context, game.dragover.x+offset, game.dragover.y-offset) ;
+					if ( dragover != null ) { // Dragover a card on BF : show attach
+						var ato = dragover.get_attachedto() ; // Drop to root attached card
+						if ( ato != null )
+							dragover = ato ;
+						var alreadyattached = dragover.get_attached() ;
+						var offset = 10 * ( (cards.length-i) + alreadyattached.length) ;
+						if ( zone.player.is_top && game.options.get('invert_bf') )
+							card.draw(game.context, dragover.x-offset, dragover.y+offset, zone) ;
+						else
+							card.draw(game.context, dragover.x+offset, dragover.y-offset, zone) ;
 					} else { // Draw destination on BF
 						tl_x += card.xoffset * gridswidth ; // If moving multiple cards, add relative position of that one
 						tl_y += card.yoffset * gridsheight ;
 						var c = zone.grid_at(tl_x, tl_y) ;
 						var p = zone.grid_coords(c.x, c.y) ;
-						card.draw(game.context, p.x, p.y) ;
+						card.draw(game.context, p.x, p.y, zone) ;
 					}
 				} else { // Draw cards
-					tl_x += ( i - game.selected.cards.indexOf(game.drag) ) * cardwidth ; // Draw cards side on side, center on clicked one
-					card.draw(game.context, tl_x, tl_y) ;
+					// Draw cards side on side, center on clicked one
+					tl_x += ( i - game.selected.cards.indexOf(game.drag) ) * cardwidth ;
+					card.draw(game.context, tl_x, tl_y, zone) ;
 				}
 			}
 			game.context.restore() ;
+			if ( dragover != null ) // Redraw card and attached over DNDed
+				dragover.draw(game.context) ;
 		}
 	}
+	// Targets
+	game.target.draw(game.context) ;
 	/* Detected mouse position * /
 	game.context.strokeStyle = 'red' ;
 	game.context.strokeRect(game.mouseX-.5, game.mouseY-.5, 3, 3) ;
@@ -416,8 +427,8 @@ function draw_timer() {
 				if ( card != null ) {
 					nb++ ;
 					pow += card.get_pow_total() ;
-					//if ( card.is_land() && ! card.tapped )
-					if ( iso(card.attrs.provide) && ! card.tapped )
+					//if ( card.is_land() && ! card.attrs.get('tapped') )
+					if ( iso(card.attrs.provide) && ! card.attrs.get('tapped') )
 						untap++ ;
 				}
 			}
@@ -460,7 +471,6 @@ function canvasMouseDown(ev) {
 	// Trigger event on widget
 	if ( ( widget != null ) && isf(widget.mousedown) )
 		widget.mousedown(ev) ;
-	draw() ; // Canvas mouseDown
 }
 function canvasMouseMove(ev) {
 	game.movedate = new Date() ; // For "title" mechanism
@@ -469,23 +479,15 @@ function canvasMouseMove(ev) {
 	game.mouseY = ev.clientY ;
 	// Finding widget under mouse
 	var widget = widget_cache_update(ev) ;
-	var needdraw = false ;
 	// During selection : trigger select in rectangle
-	if ( game.selection_rectangle != null ) {
-		game.selection_rectangle.zone.selectin(ev.clientX, ev.clientY, game.selection_rectangle.x, game.selection_rectangle.y) ;
-		needdraw = true ;
-	}
-	// During Targeting : Move helper
-	if ( game.target.update_helper(ev) )
-		needdraw = true ;
+	if ( game.selection_rectangle != null )
+		game.selection_rectangle.zone.selectin(ev.clientX, ev.clientY,
+			game.selection_rectangle.x, game.selection_rectangle.y) ;
+	// Target helper
+	game.target.update_helper(ev) ;
 	// Trigger event on widget
 	if ( ( widget != null ) && isf(widget.mousemove) )
 		widget.mousemove(ev) ;
-	// Redraw while DNDing
-	if ( game.draginit != null )
-		needdraw = true ;
-	if ( needdraw )
-		draw() ; // Canvas mouseMove
 }
 function canvasMouseUp(ev) {
 	widget_cache_update(ev) ;
@@ -504,11 +506,11 @@ function canvasMouseUp(ev) {
 	game.current_targeting = null ;
 	if ( game.target.tmp != null )
 		game.target.tmp.stop(null) ;
-	draw() ; // Canvas mouseUp
 	// Pointer management
-	if ( 
-		( isf(widget.card_under_mouse) && ( widget.card_under_mouse(ev) != null ) )
-		|| ( isf(widget.step_under_mouse) && ( widget.step_under_mouse(ev) != null ) )
+	if ( ( widget != null ) && (
+			( isf(widget.card_under_mouse) && ( widget.card_under_mouse(ev) != null ) )
+			|| ( isf(widget.step_under_mouse) && ( widget.step_under_mouse(ev) != null ) )
+		)
 	)
 		game.canvas.style.cursor = 'pointer' ; 
 	else
@@ -518,7 +520,6 @@ function canvasDblClick(ev) {
 	var widget = widget_under_mouse(ev) ;
 	if ( ( widget != null ) && isf(widget.dblclick) )
 		widget.dblclick(ev) ;
-	draw() ; // Canvas dblClick
 	/* Can't stop doubleclick selecting zoom in chromium
 	ev.preventDefault() ;
 	ev.stopPropagation() ;
@@ -545,15 +546,14 @@ function canvas_add_events(canvas) {
 	game.current_targeting = null ;
 	canvas.addEventListener('mousedown', canvasMouseDown, false) ;
 	//canvas.addEventListener('mouseout', canvasMouseDown, false) ;
-	canvas.addEventListener('mousemove', canvasMouseMove, false) ;
-	canvas.addEventListener('mouseup', canvasMouseUp, false) ;
+	window.addEventListener('mousemove', canvasMouseMove, false) ;
+	window.addEventListener('mouseup', canvasMouseUp, false) ;
 	canvas.addEventListener('mouseout', function(ev) {
 		// Mouseout previous item
 		if ( ( game.widget_under_mouse != null ) &&  isf(game.widget_under_mouse.mouseout) )
 			game.widget_under_mouse.mouseout(ev) ;
 		// Update widget cache
 		game.widget_under_mouse = null ;
-		draw() ;// Canvas mouseOut
 	}, false) ;
 	// Exception for dblclick, FAR MUCH simpler to trigger this way
 	canvas.addEventListener('dblclick', canvasDblClick, false) ;
@@ -599,7 +599,6 @@ function widget_cache_update(ev) {
 			}
 		}
 	}
-	draw() ;
 	return widget ;
 }
 function widget_under_mouse(ev) {

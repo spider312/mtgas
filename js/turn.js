@@ -86,9 +86,6 @@ function Step(name, icon, func, menu) { // Steps, essentially evenmential behavi
 			ev.preventDefault() ;
 		}
 	}
-	this.rect = function() { // Coordinates of rectangle representation of step (for "under mouse")
-		return new rectwh(this.x, this.y, this.w, this.h) ;
-	}
 	// Design
 	this.draw = function(context) {
 		context.drawImage(this.cache, this.x, this.y) ;
@@ -154,7 +151,7 @@ function Step(name, icon, func, menu) { // Steps, essentially evenmential behavi
 	this.stoped = false ;
 	// Image
 	this.img = null ;
-	game.image_cache.load(theme_image('/TurnIcons/'+icon), function(img, widget) {
+	game.image_cache.load(theme_image('TurnIcons/'+icon), function(img, widget) {
 		widget.img = img ;
 		widget.refresh() ;
 	}, function(widget) {
@@ -321,9 +318,7 @@ function Turn(game) {
 		// Button
 		if ( this.button != null )
 			this.button.draw(context) ;
-		// Arrow
-		//var rect = this.button.rect() ;
-		//var x = this.x + rect.x + rect.w + 10 ;
+		// Current player arrow
 		var x = 0 ;
 		var t = Math.ceil(turnsheight / 2) ;
 		canvas_set_alpha(zopacity, context) ;
@@ -342,9 +337,9 @@ function Turn(game) {
 			var tbry = this.y + t - 1 ;
 			var tty = this.y + 1 ;
 		}
-		// Rectangle
+			// Rectangle
 		context.fillRect(x + Math.ceil(t/2), rt, t, t) ;
-		// Triangle
+			// Triangle
 		context.beginPath() ;
 		context.moveTo(tblx, tbly) ;
 		context.lineTo(tbrx, tbry) ;
@@ -389,36 +384,22 @@ function Turn(game) {
 			var card = cards[i] ;
 			if ( card.attrs ) {
 				// Pow / tou
-				var chp = isn(card.attrs.pow_eot) ;
-				var cht = isn(card.attrs.thou_eot)
-				var refresh = false ;
-				if ( chp || cht ) {
-					if ( chp )
-						delete card.attrs.pow_eot ;
-					if ( cht )
-						delete card.attrs.thou_eot ;
-					refresh = true ;
-				}
-				if ( card.attrs.switch_pt_eot ) {
-					card.attrs.switch_pt_eot = false ;
-					refresh = true ;
-				}
-				// "Manualy" in order to be silent
-				if ( refresh )
-					card.refreshpowthou() ;
+				if ( isn(card.attrs.get('pow_eot')) )
+					card.attrs.set('pow_eot', null) 
+				if ( isn(card.attrs.get('thou_eot')) )
+					card.attrs.set('thou_eot', null) 
 				// Damages
 				if ( card.get_damages() > 0 )
 					card.set_damages(0) ;
 				// Animate
-				if ( iso(card.animated_attrs) && card.animated_attrs.eot ) {
+				if ( iso(card.animated_attrs) && card.animated_attrs.eot )
 					delete card.animated_attrs ;
-					card.refreshpowthou() ;
-				}
 				// Boost_bf_eot
-				if ( iso(card.attrs.boost_bf) )
-					for ( var j in card.attrs.boost_bf )
-						if ( card.attrs.boost_bf[j].enabled && card.attrs.boost_bf[j].eot )
-							card.boost_bf_enable(card.attrs.boost_bf[j]) ;
+				var boost_bf = card.attrs.get('boost_bf') ;
+				if ( iso(boost_bf) )
+					for ( var j in boost_bf )
+						if ( card.attrs.boost_bf[j].enabled && boost_bf[j].eot )
+							card.boost_bf_enable(boost_bf[j]) ;
 			}
 		}
 		game.player.battlefield.refresh_pt() ;
@@ -503,7 +484,7 @@ function Turn(game) {
 			if ( cards.length > 0 ) { // remove attacking status
 				var sel = new Selection()
 				for ( var i in cards )
-					if ( cards[i].attacking )
+					if ( cards[i].attrs.get('attacking') )
 						sel.add(cards[i]) ;
 				sel.attack_recieve(false, true) ; // Silently remove from attackers
 				sel.refresh('not attacking anymore') ;
@@ -540,10 +521,6 @@ function NextStep() {
 	this.mouseout = function(ev) {
 		game.settittle('') ;
 		game.canvas.style.cursor = '' ;
-	}
-
-	this.rect = function() { // Coordinates of rectangle representation of step (for "under mouse")
-		return new rectwh(this.x, this.y, this.w, this.h) ;
 	}
 	this.update = function() {
 		this.context.clearRect(0, 0, this.w, this.h) ;
@@ -842,12 +819,12 @@ function steps_init(turn) {
 				var exalted = 0 ;
 				for ( var i in game.player.battlefield.cards ) {
 					var card = game.player.battlefield.cards[i] ;
-					if ( card.attacking ) { // Attacking creatures
+					if ( card.attrs.get('attacking') ) { // Attacking creatures
 						attacking.add(card) ;
-						if ( card.attrs.battle_cry ) // Battlecry
+						if ( card.attrs.get('battle_cry') ) // Battlecry
 							battlecry.add(card) ;
 					}
-					if ( card.attrs.exalted ) // Exalted
+					if ( card.attrs.get('exalted') ) // Exalted
 						exalted++ ;
 				}
 				if ( ( exalted > 0 ) && ( attacking.cards.length == 1 ) ) // Trigger Exalted 
@@ -917,7 +894,7 @@ function trigger_li(trigger_list, card, msg) {
 function creatures_deal_dmg(player) { // Each player's attacking creatures fights each creature blocking it
 	for ( var i in player.battlefield.cards ) { // Each attacker will be solved individually (won't manage correctly creatures blocking multiple attackers)
 		var card = player.battlefield.cards[i] ;
-		if ( card.attacking ) { // Attacking creatures
+		if ( card.attrs.get('attacking') ) { // Attacking creatures
 			var pow = card.get_pow_total() ;
 			if ( card.has_attr('double_strike') )
 				pow *= 2 ;
@@ -957,7 +934,7 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 	if ( game.turn.current_player == attacking_player ) { // Changing life for defending player
 		for ( var i in attacking_player.battlefield.cards ) { // Sum
 			var card = attacking_player.battlefield.cards[i] ;
-			if ( card.attacking ) { // Attacking creatures
+			if ( card.attrs.get('attacking') ) { // Attacking creatures
 				var pow = card.get_pow_total() ;
 				if ( card.has_attr('double_strike') )
 					pow *= 2 ;
@@ -982,10 +959,10 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 	} else { // Changing life for attacking player
 		for ( var i in defending_player.battlefield.cards ) { // Sum
 			var card = defending_player.battlefield.cards[i] ;
-			if ( card.attacking && // Attacking creatures
-			card.has_attr('lifelink') && card.lifelink ) { // With lifelink
+			if ( card.attrs.get('attacking') && // Attacking creatures
+			card.has_attr('lifelink') ) { // With lifelink
 				var pow = card.get_pow_total() ;
-				if ( card.attrs.double_strike )
+				if ( card.has_attr('double_strike') )
 					pow *= 2 ;
 				life += pow ;
 			}

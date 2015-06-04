@@ -127,13 +127,10 @@ function VisibleZone(player, type) {
 			// Mouseover new item
 			if ( ( game.card_under_mouse != null ) && isf(game.card_under_mouse.mouseover) )
 				game.card_under_mouse.mouseover(ev) ;
+			// Leaving a card for zone background
 			if ( ( game.card_under_mouse == null ) && isf(this.mouseover) )
 				this.mouseover(ev) ;
-			// Display hovered card on top of other
-			if ( ! this.selzone )
-				this.refresh() ;
 		}
-		return card ;
 	}
 	// Accessors
 	zone.card_under_mouse = function(ev) {
@@ -188,8 +185,11 @@ function unselzone(result) { // Common
 	result.mouseup = function(ev) {
 		result.parent_mouseup(ev) ; // Target
 		// Drop
-		if ( ( game.drag != null ) && ( game.drag.zone != this ) )
+		if ( ( game.drag != null ) && ( game.drag.zone != this ) ) {
 			game.selected.changezone(this) ;
+			// Update cache as it's updated only on mousemove
+			game.card_under_mouse = game.selected.cards[game.selected.cards.length-1] ;
+		}
 	}
 	result.click = function(ev) {
 		switch ( ev.button ) {
@@ -215,45 +215,37 @@ function unselzone(result) { // Common
 	// Drawing
 	result.draw = function(context) {
 		context.drawImage(this.cache, this.x, this.y) ;
+		// Draw very volatile part : hovered card (in order not to refresh zone cache on each card leave)
+		var card = game.card_under_mouse ;
+		if ( ( game.widget_under_mouse == this ) && ( card != null ) && ( card.zone == this ) )
+			card.draw(context, card.x, card.y) ;
+	}
+	result.cards_set_cords = function() {
+		if ( this.cards.length < 1 )
+			return false ;
+		// Display of 1 card + m px of each other card
+		// (simulate 2 more cards : margin of "m" px on left & right)
+		var xm = ( this.w - cardwidth ) / ( this.cards.length + 1 ) ;
+		var ym = ( this.h - cardheight ) / ( this.cards.length + 1 ) ;
+		var cardswidth = Math.round(cardwidth + xm * ( this.cards.length ) ) ;
+		var cardsheight = Math.round(cardheight + ym * ( this.cards.length ) ) ;
+		var xo = 0
+		var yo = 0 ;
+		for ( var i = 0 ; i < this.cards.length ; i++ ) {
+			var card = this.cards[i] ;
+			card.coords_set(
+				this.x + Math.round(xo) + this.w - cardswidth,
+				this.y + Math.round(yo) + this.h - cardsheight
+			) ;
+			xo += xm ;
+			yo += ym ;
+		}
 	}
 	result.refresh = function() {
 		if ( this.editor_window != null )
 			refresh_list(this) ; // Will set some cards as "watching", must be done before canvas refreshing
 		// Compute coordinates for all zone's cards
-		if ( this.cards.length > 0 ) {
-			// Reinit all cards' position : Centered in zone
-			for ( var i = 0 ; i < this.cards.length ; i++ )
-				this.cards[i].coords_set(
-					this.x + ( this.w - cardwidth ) / 2,
-					this.y + ( this.h - cardheight ) / 2
-				) ;
-			// Count how many top cards are visible
-			var topidx = this.cards.length - 1 ;
-			this.vcards = 0 ;
-			while ( ( topidx - this.vcards >= 0 ) && this.cards[topidx-this.vcards].is_visible() )
-				this.vcards++ ;
-			if ( this.type == 'library' ) {
-				if ( this.vcards > 1 )
-					this.vcards = 1 ;
-			} else {
-				// More than 1 visible card : find a position to show them all
-				if ( this.vcards > 1 ) {
-					// Display of 1 card + m px of each other card
-					var xm = ( this.w - cardwidth ) / ( this.vcards + 1 ) ; // (simulate 2 more cards : margin of "m" px on left & right)
-					var ym = ( this.h - cardheight ) / ( this.vcards + 1 ) ;
-					var cardswidth = cardwidth + xm * ( this.vcards ) ;
-					var cardsheight = cardheight + ym * ( this.vcards ) ;
-					var xo = 1
-					var yo = 1 ;
-					for ( var i = this.vcards-1 ; i >= 0 ; i-- ) {
-						var card = this.cards[topidx-i] ;
-						card.coords_set(this.x + xo + this.w - cardswidth, this.y + yo + this.h - cardsheight) ;
-						xo += xm ;
-						yo += ym ;
-					}
-				}
-			}
-		}
+		this.cards_set_cords() ;
 		// Positions computed, let's draw that on cache
 		var context = this.context ;
 		context.clearRect(0, 0, this.w, this.h) ;
@@ -279,28 +271,25 @@ function unselzone(result) { // Common
 			context.fillRect(.5, .5, this.w, this.h) ;
 		}
 		canvas_reset_alpha(context) ;
-		// Data : card number
+		// Card number
 		var margin = 5 ;
 		context.font = "10pt Arial";
 		canvas_text_tr(context, this.cards.length, this.w - margin, margin, bordercolor) ;
 		// Cards
-		if ( this.cards.length == 0 ) {
-			// Icon
+		if ( this.cards.length == 0 ) { // Icon
 			if ( this.img != null )
 				context.drawImage(this.img, (this.w-this.img.width)/2 , (this.h-this.img.height)/2) ;
-		} else {
-			if ( this.vcards <= 1 ) // No visible card, draw back, 1 visible card, draw it
-				this.cards[this.cards.length-1].draw(context, card.x - this.x, card.y - this.y) ;
-			else { // More than 1 visible card
-				for ( var i = this.vcards-1 ; i >= 0 ; i-- ) // Draw them
-					if ( i < this.cards.length ) { // ???
-						var idx = this.cards.length-i-1 ; // this.cards.length - 1 = top index, i = 0-n top visible cards
-						var card = this.cards[idx] ;
-						card.draw(context, card.x - this.x, card.y - this.y) ;
-					}
-				var card = game.card_under_mouse ;
-				if ( ( game.widget_under_mouse == this ) && ( card != null ) && ( card.zone == this ) )
+		} else { // Cards visible
+			// Show only 1 card for hidden unselzones (libraries)
+			if ( ! this.default_visibility ) {
+				var card = this.cards[this.cards.length-1] ;
+				card.draw(context, card.x - this.x, card.y - this.y) ;
+			} else {
+				// Draw cards at their position
+				for ( var i = 0 ; i < this.cards.length ; i++ ) {
+					var card = this.cards[i] ;
 					card.draw(context, card.x - this.x, card.y - this.y) ;
+				}
 			}
 		}
 	}
@@ -314,8 +303,6 @@ function unselzone(result) { // Common
 	}, function(widget) {
 		log('Unable to load image for '+widget) ;
 	}, result) ;
-	// Cards
-	result.vcards = 0 ; // Number of visible cards from top
 	return result ;
 }
 function virtual_unselzones(result) { // Unselzones + life (targeting)
@@ -357,6 +344,16 @@ function virtual_unselzones(result) { // Unselzones + life (targeting)
 function library(player) {
 	var mylib = new VisibleZone(player, 'library') ;
 	unselzone(mylib) ;
+	mylib.cards_set_cords = function() { // Override unselzone with a simpler procedure
+		if ( this.cards.length < 1 )
+			return false ;
+		// Reinit all cards' position : Centered in zone
+		for ( var i = 0 ; i < this.cards.length ; i++ )
+			this.cards[i].coords_set(
+				this.x + ( this.w - cardwidth ) / 2,
+				this.y + ( this.h - cardheight ) / 2
+			) ;
+	}
 	// Events
 	mylib.dblclick = function(ev) {
 		if ( this.player.access() )

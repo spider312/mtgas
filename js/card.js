@@ -1,28 +1,42 @@
 // card.js : Class and prototype for cards (and tokens, and duplicates) management
+
+// Here
+	// - init
+	// - getters
+	// - setters
+// -> card/display.js
+	// - desgin
+	// - image
+// -> card/events.js
+	// - events
+// -> card/menu.js
+	// - menu
+// -> card/zone.js
+	// - zone
+// Here
+	// - attrs
+	// - rules
 function Card(id, extension, name, zone, attributes, exts) {
-	Widget(this) ;
 	this.type = 'card' ; // Used in right DND
 	this.init('c_' + id, extension, name, zone, attributes, exts) ;
-	this.image_url = card_image_url(this.ext, this.name, this.attrs) ;
 	this.bordercolor = 'black' ;
 	this.setzone(zone) ; // Initial zone initialisation
 	game.cards.push(this) ; // Auto referencing as a card
-	if ( ( zone.type == 'library' ) && game.options.get('check_preload_image') ) { // If option checked and not sideboard card
-		this.attrs.visible = true ;
-		this.load_image() ;
-		if ( this.transformed_attrs && iss(this.transformed_attrs.name) ) { // And transformed one if needed
-			this.attrs.transformed = true ;
-			this.load_image() ;
-			this.attrs.transformed = false ;
-		}
-		this.attrs.visible = null ;
-		this.load_image() ; // Load BG
+	// Preload image if option is checked and card is not in sideboard
+	if ( ( zone.type == 'library' ) && game.options.get('check_preload_image') ) {
+		game.image_cache.load(this.imgurl('initial')) ;
+		if ( this.attrs.base_has('transform') )
+			game.image_cache.load(this.imgurl('transform')) ;
+		if ( this.attrs.base_has('morph') )
+			game.image_cache.load(this.imgurl('morph')) ;
 	}
 }
 function card_prototype() {
 	// Methods
 		// Purely object
-	this.init = function(id, extension, name, zone, attributes, exts) { // Common initialisation code between card and token
+	this.init = function(id, extension, name, zone, attributes, exts) {
+		// Common initialisation code between card and token
+		Widget(this) ; // this doesn't put it in game.widgets
 		// Basic data
 		this.id = id ;
 		this.zone = zone ;
@@ -38,47 +52,15 @@ function card_prototype() {
 		this.coords_set() ;
 		this.targeted = false ;
 		this.img = null ;
+		this.img_loading = null ;
 		// Attributes
-		if ( ( typeof attributes == 'object' ) && ( attributes != null ) ) // typeof null == 'object', and null.attr crashes JS
-			var attrs = attributes ;
-		else
-			var attrs = {} ;
-		this.prev_visible = null ;
-		this.init_attrs(attrs) ;
-		// Expected and no need to sync
-		this.expected_attrs('manas', attrs) ;
-		this.expected_attrs('flip_attrs', attrs) ;
-		this.expected_attrs('transformed_attrs', attrs) ;
-		// Default value
-		if ( this.flip_attrs )
-			attrs.flipped = false ;
-		if ( this.transformed_attrs)
-			attrs.transformed = false ;
-		// / Attributes
-		this.orig_attrs = clone(attrs, true) ;
-		this.attrs = clone(this.orig_attrs, true) ;
-		this.sync_attrs = clone(this.attrs, true) ; // Track changes
+		attributes.name = name ;
+		attributes.ext = extension ;
+		this.attrs = new Attrs(attributes) ;
 		// Watching in list
 		this.watching = false ; // Nobody watches it
 		return this ;
 	}
-	this.init_attrs = function(attrs) { // Initialises all "must have" variables
-		if ( ! iso(attrs) )
-			attrs = this.attrs ;
-		attrs.visible = null ;
-		if ( attrs.vanishing && ! attrs.counter )
-			attrs.counter = attrs.vanishing ;
-		if ( attrs.fading && ! attrs.counter )
-			attrs.counter = attrs.fading ;
-	}
-	this.expected_attrs = function(param, attrs) { // 'move' data
-		if ( attrs[param] ) {
-			this[param] = attrs[param] ;
-			delete attrs[param] ;
-		}
-	}
-	this.toString = function() { return this.id } ;
-	this.toJSON = function() { return this.id } ;
 	this.del = function() {
 		// Remove linked data
 		game.target.del_by_target(this) ;
@@ -100,122 +82,124 @@ function card_prototype() {
 		delete this ;
 	}
 // === [ GETTERS ] =============================================================
-	// Generic
+	// Javascript generic (identification for network json)
+	this.toString = function() { return this.id } ;
+	this.toJSON = function() { return this.id } ;
+	// Buisness generic
 	this.is_color = function(color) {
-		if ( iss(this.attrs.color) && ( this.attrs.color.indexOf(color) != -1 ) )
-			return true ;
-		if ( iso(this.animated_attrs) && iss(this.animated_attrs.color) && ( this.animated_attrs.color.indexOf(color) != -1 ) )
+		var mycolor = this.attrs.get('color') ;
+		if ( iss(mycolor) && ( mycolor.indexOf(color) != -1 ) )
 			return true ;
 		return false ;
 	}
 	this.is_supertype = function(type) {
-		if ( iso(this.attrs.supertypes) && ( this.attrs.supertypes.indexOf(type) != -1 ) )
-			return true ;
-		if ( iso(this.animated_attrs) && iso(this.animated_attrs.supertypes) && ( this.animated_attrs.supertypes.indexOf(type) != -1 ) )
+		var supertypes = this.attrs.get('supertypes') ;
+		if ( iso(supertypes) && ( supertypes.indexOf(type) != -1 ) )
 			return true ;
 		return false ;
 	}
 	this.is_type = function(type) {
-		if ( iso(this.attrs.types) && ( this.attrs.types.indexOf(type) != -1 ) )
-			return true ;
-		if ( iso(this.animated_attrs) && iso(this.animated_attrs.types) && ( this.animated_attrs.types.indexOf(type) != -1 ) )
+		var mytypes = this.attrs.get('types') ;
+		if ( iso(mytypes) && ( mytypes.indexOf(type) != -1 ) )
 			return true ;
 		return false ;
 	}
 	this.is_subtype = function(subtype) {
-		if ( this.attrs.changeling )
+		if ( this.attrs.get('changeling') )
 			return true ;
-		var st = this.get_subtypes() ;
+		var st = this.attrs.get('subtypes') ;
 		if ( iso(st) && ( st.indexOf(subtype) != -1 ) )
-			return true ;
-		if ( iso(this.animated_attrs) && this.animated_attrs.changeling )
-			return true ;
-		if ( iso(this.animated_attrs) && iso(this.animated_attrs.subtypes) && ( this.animated_attrs.subtypes.indexOf(subtype) != -1 ) )
 			return true ;
 		return false ;
 	}
-	this.get_subtypes = function() {
-		if ( this.attrs.transformed && iso(this.transformed_attrs) ) // Transformed subtypes REPLACE subtypes
-			return this.transformed_attrs.subtypes ;
-		else
-			return this.attrs.subtypes ;
-	}
 	// Types
-	this.get_types = function() {
-		if ( this.attrs.transformed && iso(this.transformed_attrs) )
-			return this.transformed_attrs.types ;
-		else
-			return this.attrs.types ;
+	this.get_types = function(base) {
+		return this.attrs.get('types', [], base) ;
 	}
-	this.is_creature = function() {
-		return inarray('creature', this.get_types()) || iso(this.animated_attrs) || isn(this.attrs.pow_eot);
+	this.is_creature = function(base) {
+		return inarray('creature', this.get_types(base)) ;
 	}
-	this.is_land = function() {
-		return inarray('land', this.get_types()) ;
+	this.is_land = function(base) {
+		return inarray('land', this.get_types(base)) ;
 	}
-	this.is_planeswalker = function() {
-		return inarray('planeswalker', this.get_types()) ;
+	this.is_planeswalker = function(base) {
+		return inarray('planeswalker', this.get_types(base)) ;
 	}
 	// Identity
-	this.get_name = function(oldzone) {
-		var name = 'a card' ; // Generic default
-		if ( this.is_visible(oldzone) ) {
-			if ( iso(this.attrs.transformed) )
-				name = this.transformed_attrs.name ;
-			else
-				name = this.name ;
-		} else {
-			if ( this.zone.type == 'battlefield' ) {
-				name = 'faced down card' ;
-				if ( this.attrs.manifested )
-					name = 'a manifest' ;
-				if ( this.attrs.morphed )
-					name = 'a morph' ;
-			}
-		}
-		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
-			name = this.attrs.copy.get_name()+' copied by '+name
+	this.get_name = function(base) {
+		var name = this.attrs.get('name', null, base) ;
+		if ( iso(this.attrs.get('copy')) )
+			name = this.attrs.get('copy').get_name()+' copied by '+name ;
 		return name ;
-	}
-	this.debug_name = function() {
-		return this.name+' ('+this+')' ;
 	}
 	// Selection
 	this.selected = function() {
 		return ( game.selected.cards.indexOf(this) > -1 ) ;
 	}
 	// Misc
-	this.is_visible = function(oldzone) {
-		if ( typeof oldzone != 'object' )
-			oldzone = this.zone ;
-		if ( oldzone == this.zone ) { // Just zone, not "from another zone to that one"
-			if ( this.watching ) // Don't use normal visibility mecanism when watching a zone, as player is the only one who see the cards
-				return true ;
-			if ( typeof this.attrs.visible == 'boolean' ) // Forced as true or false, return value
-				return this.attrs.visible ;
-			else if ( this.attrs.visible != null ) // The only other possible value is null
-				log(this+'\'s visibility ('+this.attrs.visible+') differs from known values : [ true | null | false ]') ;
-			else { // Visibility is set as "null" wich means no value were forced (battlefield-hidden nor hand-revealed for example)
-				//value depends on zone
-				if ( this.zone.type == 'library' ) // Library is defaulted as not visible, exceptions :
-					if ( ( this.owner.attrs.library_revealed ) && ( this.zone.cards.indexOf(this) == this.zone.cards.length-1 ) )
-						return true ;
-				return this.zone.default_visibility ;
-			}
-		} else { // From a zone to another (only used in "get_names()", as during changezone) card is visible if any of leaving/going zone is
-			if ( ( this.attrs.visible == null ) && ( this.prev_visible == null ) ) // Card has no forced visibility nor it had in previous zone
-				return ( this.zone.default_visibility || oldzone.default_visibility ) ; // Return lower visibility between old and new zone
-			else { // Card has or had forced visibility
-				//	Check if card WAS visible or IS visible
-				var visibility_before = ( ( this.prev_visible !== false ) && oldzone.default_visibility ) ;
-				var visibility_after = ( ( this.attrs.visible !== false ) && this.zone.default_visibility ) ;
-				return visibility_before || visibility_after ;
-			}
-			// E.g. 
-			// 	from BF to grave : visible (both are)
-			// 	from library to BF : visible (only BF is, but opponnent will see the card)
-			// 	from opponent's hand to opponent's library : NOT visible (both are not, you won't see the card)
+	this.IndexInZone = function() { // Return card's index in its zone
+		return this.zone.cards.indexOf(this) ;
+	}
+	this.theorical_base = function(zone) { // Returns base depending on current (or param) zone
+		if ( ! iso(zone) )
+			zone = this.zone ;
+		return zone.default_visibility ? 'initial' : 'back' ;
+	}
+	this.is_visible = function() { // Deprecated
+		// Library top card revealed
+		if (
+			( this.zone.type == 'library' )
+			&& ( this.owner.attrs.library_revealed )
+			&& ( this.zone.cards.indexOf(this) == this.zone.cards.length-1 )
+		)
+			return true ;
+		// Other cases than exceptions
+		var base = this.attrs.base_current() ;
+		return ( base != 'back' ) ;
+	}
+	this.imgurl = function(base) {
+		if ( !iss(base) )
+			var base = this.attrs.base_current() ;
+		switch(base) {
+			case 'back' :
+				if ( this.watching )
+					base = 'initial' ;
+				else
+					return card_images('back.jpg')
+				break ;
+			case 'flip' : // Flip hasn't its own image, it uses normal card image rotated 180°
+				base = 'initial' ;
+				break ;
 		}
+		var ext = this.attrs.get('ext', null, base) ;
+		var name = this.attrs.get('name', null, base) ;
+		var nb = this.attrs.get('nb', null, base) ;
+		var result = '' ;
+		if ( this.attrs.get('token', null, base) ) {
+			var pow = this.attrs.get('pow', null, base) ;
+			var tou = this.attrs.get('thou', null, base) ;
+			result = token_image_url(ext, name, nb, pow, tou) ;
+		} else
+			result = card_image_url(ext, name, nb) ;
+		return card_images(result) ; // As array with fallback
+	}
+	this.position_name = function(word, link, index, zone) { // Returns a string describing card's position in its zone
+		// Used to display "on top of" or "on bottom of" when moving a card inside library
+		if ( ! isn(index) )
+			index = this.IndexInZone() ;
+		if ( ! iso(zone) )
+			zone = this.zone ;
+		if ( zone.type == 'library' )
+			switch ( index ) {
+				case 0 :
+					word = link+' bottom of' ;
+					break ;
+				case this.zone.cards.length-1 :
+					word = link+' top of' ;
+					break ;
+			}
+		word += ' '+zone.get_name() ;
+		return word ;
 	}
 	this.satisfy_condition = function(cond) {
 		if ( ! iss(cond) )
@@ -238,7 +222,8 @@ function card_prototype() {
 					break ;
 				case 'stype' :
 					if ( this.is_supertype(pieces[1]) )
-							return true ;
+						return true ;
+					break ;
 				case 'type' :
 					if ( this.is_type(pieces[1]) )
 						return true ;
@@ -246,8 +231,9 @@ function card_prototype() {
 				case 'ctype' :
 					if ( this.is_subtype(pieces[1]) )
 						return true ;
+					break ;
 				case 'name' :
-					if ( this.is_visible() && ( this.name == pieces[1] ) )
+					if ( this.attrs.get('name') == pieces[1] )
 						return true ;
 					break ;
 				default :
@@ -257,1173 +243,101 @@ function card_prototype() {
 		return false ;
 	}
 // === [ SETTERS ] =============================================================
-	this.set_visible = function(visible) {
-		this.prev_visible = this.attrs.visible ; // Backup previous for zonechange
-		this.attrs.visible = visible ;
-	}
 	this.coords_set = function(x, y) {
 		if ( ! isn(x) )
 			x = 0 ;
-		else
-			x = Math.floor(x) ;
 		if ( ! isn(y) )
 			y = 0 ;
-		else
-			y = Math.floor(y) ;
 		this.x = x ;
 		this.y = y ;
 		this.set_coords(this.x, this.y, this.w, this.h) ;
 	}
+// ### [ card/display.js ] ######################################################
 // === [ DESIGN ] ==============================================================
-	this.draw = function(context, x, y) {
-		// First, draw attached in reverse order
-		var attached = this.get_attached() ;
-		for ( var j = attached.length - 1 ; j >= 0 ; j-- ) { // Attached card position is stored in that card (for selection, click, etc.)
-			var card = attached[j] ;
-			var xo = this.x - card.x ;
-			var yo = this.y - card.y ;
-			card.draw(context, x-xo, y-yo) ;
-		}
-		// Then draw card on top
-		context.save() ; // For rotation
-		// Card may be drawn at specific coordinates (DND for ex), otherwise, draw it at its own coordinates*
-		var indnd = ( isn(x) && isn(y) ) ;
-		if ( ! isn(x) )
-			x = this.x ; //- this.zone.x ;
-		if ( ! isn(y) )
-			y = this.y ; //- this.zone.y ;
-		context.translate(x+this.w/2, y+this.h/2) ; // For rotation
-		// Rotate
-		var angle = 0 ;
-		if ( ( this.zone.type == 'battlefield' ) && this.tapped )
-			angle += 90 ;
-		var is_top = this.zone.player.is_top ;
-		if ( indnd && ( game.drag != null ) && game.selected.isin(this) && ( game.widget_under_mouse != null ) && ( game.widget_under_mouse.type == 'battlefield' ) ) // Draging current card on top BF
-			is_top = game.widget_under_mouse.player.is_top ;
-		if ( is_top && game.options.get('invert_bf') )
-			angle += 180 ;
-		if ( angle > 0 )
-			context.rotate(angle* Math.PI / 180) ;
-		context.translate(-this.w/2, -this.h/2) ; // For rotation
-		context.drawImage(this.cache, 0, 0) ;
-		context.restore() ; // For rotation
-	}
-	this.refresh = function(from) { // Redraw canvas cache
-		var context = this.context ;
-		context.clearRect(0, 0, this.w, this.h) ;
-		// card border is a rectangle with width double (half shown, half hidden under image)
-		var lw = 3 ;
-		context.lineWidth = lw * 2 ;
-		context.lineJoin = 'round' ;
-		// Border color depending on card status
-			// Outer line : UI card status (selected) 
-		if ( ( this.zone.selzone ) && this.selected() )
-			context.strokeStyle = 'lime' ;
-		else
-			context.strokeStyle = this.bordercolor ;
-		context.strokeRect(lw, lw, this.w-2*lw, this.h-2*lw) ;
-			// Inner line : card object status (attacking, revealed, won't untap)
-		var color = this.bordercolor ;
-		if ( this.zone.selzone && this.is_visible() ) {
-			if ( this.zone.type == 'hand' ) {
-				if ( this.attrs.visible == true )
-					color = 'blue' ;
-			} else if ( this.zone.type == 'battlefield' ) {
-				if ( this.attacking )
-					color = 'red' ;
-				else if ( ( this.attrs.no_untap ) || ( this.attrs.no_untap_once ) )
-					color = 'maroon' ;
-			}
-		}
-		if ( color != this.bordercolor ) { // Need to draw inner line
-			context.strokeStyle = color ;
-			var offset = 1.5 ;
-			context.strokeRect(lw+offset, lw+offset, this.w-2*(lw+offset), this.h-2*(lw+offset)) ;
-		}
-		// Flip
-		if ( this.attrs.flipped ) {
-			context.translate(this.w/2, this.h/2) ;
-			context.rotate(Math.PI) ;
-			context.translate(-this.w/2, -this.h/2) ;
-		}
-		// Image
-		if ( this.img != null )
-			context.drawImage(this.img, lw, lw, this.w-2*lw, this.h-2*lw) ;
-		// Flip
-		if ( this.attrs.flipped ) {
-			context.translate(this.w/2, this.h/2) ;
-			context.rotate(-Math.PI) ;
-			context.translate(-this.w/2, -this.h/2) ;
-		}
-		// Copy
-		if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) && ( this.attrs.copy.img != null ) ) {
-			var offset = 10 ;
-			var top = lw ;
-			var bottom = this.h-lw ;
-			var middle = lw + this.h/2
-			var center = lw + this.w/2
-			var left = lw+offset ;
-			var right = this.w-lw ;
-			context.save() ;
-			context.beginPath();
-			context.moveTo(right, top) ; // UR
-			context.lineTo(right, bottom) ; // BR
-			context.lineTo(left, bottom) ; // BL
-			//context.lineTo(left, middle) ; // ML
-			context.lineTo(center, top) ; // CT
-			context.lineTo(right, top) ; // UR
-			context.clip() ;
-			context.drawImage(this.attrs.copy.img, lw, lw, this.w-2*lw, this.h-2*lw) ;
-			context.restore() ;
-		}
-		if ( this.zone.type == 'battlefield' ) { // Textual infos (p/t, note, damages, counters)
-			var top = lw ;
-			var bottom = this.w-2*lw+1 ;
-			var left = lw ;
-			var right = this.h-2*lw+1 ;
-			if ( this.is_visible() && game.options.get('display_card_names') ) {
-				// Name
-				var name = this.get_name() ;
-				if ( name.length > 10 )
-					var name = name.substr(0, 10)+'...' ;
-				context.font = '7pt Arial' ;
-				canvas_framed_text_tl(context, name, top, left, 'white', cardwidth-2*(lw+2), this.bordercolor) ;
-			}
-			context.font = '12pt Arial' ;
-			// Note
-			var note = this.getnote() ;
-			if ( iss(note) && ( note != '' ) ) {
-				if ( iso(this.note_img) ) {
-					var w = 32 ;
-					var h = w ;
-					context.drawImage(this.note_img, (this.w-w)/2, (this.h-h)/2, w, h) ;
-				} else 
-					canvas_framed_text_c(context, note, this.w/2, this.h/2, 'white', cardwidth-2*(lw+2)-1, this.bordercolor) ;
-			}
-			// Damages
-			var damages = this.get_damages() ;
-			if ( damages > 0 )
-				canvas_framed_text_br(context, damages, bottom, right-12-5, 'red', cardwidth, this.bordercolor) ;
-			// Counters
-			var counters = this.getcounter() ;
-			if ( counters > 0 ) {
-				var color = 'white' ;
-				if ( this.is_planeswalker() && ( this.get_damages() >= counters ) )
-					color = 'red' ;
-				canvas_framed_text_bl(context, counters, top, right, color, cardwidth, this.bordercolor) ;
-			}
-			// PT
-			if ( iss(this.pow_thou) && ( this.pow_thou != '' ) )
-				canvas_framed_text_br(context, this.pow_thou, bottom, right, this.pow_thou_color, cardwidth, this.bordercolor) ;
-		}
-		if ( ( this.zone.type == 'hand' ) && game.options.get('display_card_names') && this.hasOwnProperty('manas') && this.is_visible() ) {
-			// Display mana cost
-				// Compute begining of cost displaying zone
-			var size = 16 ;
-			var w = this.manas.length * size ; // Width of an icon
-			var mw = cardwidth-2*(lw+2) ; // Max width all icon can take
-			if ( w > mw ) { // Cost larger than card
-				iw = Math.floor(mw/this.manas.length) ; // Compute new icon width
-				w = iw * this.manas.length ;
-			} else
-				iw = size ;
-				// Display each icon
-			for ( var i = 0 ; i < this.manas.length ; i++ ) {
-				var color = this.manas[i] ;
-				if ( ! game.manaicons[color] )
-					game.image_cache.load(theme_image('/ManaIcons/'+color+'.png'), function(img, data) {
-						var color = data[0] ;
-						game.manaicons[color] = img ;
-						var card = data[1] ;
-						card.refresh('mana image loaded') ;
-					}, function(data) {
-						var color = data[0] ;
-						log('Image not found for '+color) ;
-					}, [color, this]) ;
-				else
-					context.drawImage(game.manaicons[color], this.w - lw - w + iw * i, lw, iw, size) ;
-			}
-		}
-		// UI status (targeted, attaching ...)
-		var color = this.bordercolor
-		if ( game.dragover == this )
-			color = 'purple' ;
-		else if ( ( game.target.tmp != null ) && ( game.target.tmp.targeted == this ) )
-			color = 'yellow' ;
-		if ( color != this.bordercolor ) {
-			canvas_set_alpha(zopacity, context) ;
-			context.fillStyle = color ;
-			context.fillRect(0, 0, this.w, this.h) ;
-			canvas_reset_alpha(context) ;
-		}
-		/*
-		if ( !iss(from) )
-			from = '?' ;
-		refresh_card_count++ ;
-		log('refresh '+refresh_card_count+' '+from) ;
-		*/
-	}
-	this.rect = function() { // Coordinates of rectangle representation of card (for "under mouse")
-		if ( this.tapped ) {
-			var d = ( this.h - this.w ) / 2
-			var x = this.x - d ;
-			var y = this.y + d ;				
-			var w = this.h ;
-			var h = this.w ;
-		} else {
-			var x = this.x ;
-			var y = this.y ;
-			var w = this.w ;
-			var h = this.h ;
-		}
-		return new rectwh(x, y, w, h) ;
-	}
-// === [ IMAGE ] ===============================================================
-	this.load_image = function(callback, param) {
-		this.img_loading = game.image_cache.load(this.imgurl(), function(img, card) {
-			if ( img == card.img_loading ) { // Load image only if it's last asked
-				var prev_img = card.img ;
-				card.img = img ;
-				if ( isf(callback) )
-					callback(img, param) ;
-				card.refresh('load_image') ;
-				if ( ( prev_img != img ) && ( ! card.zone.selzone ) ) { // In unselzones, refresh entire zone cache
-					if ( card.zone.type == 'library' ) { // For library, only refresh top card
-						if ( card.IndexInZone() == card.zone.cards.length-1 )
-							card.zone.refresh() ;
-					} else
-						card.zone.refresh() ;
-				}
-				draw() ;
-			}
-		}, function(card, zone) {
-			log('Image not found for '+card.name+', creating text') ;
-		}, this, param) ;
-	}
-	this.imgurl = function(small) { // Return image URL depending on image status
-		if ( this.is_visible() ) {
-			var url = this.imgurl_relative() ;
-			if ( small )
-				return card_images('../THUMB/'+url) ;
-			else
-				return card_images(url) ;
-		} else
-			if ( small )
-				return card_images('../THUMB/back.jpg') ;
-			else {
-				if ( this.zone.type == 'battlefield' ) {
-					if ( this.attrs.manifested )
-						return card_images('TK/FRF/Manifest.2.2.jpg') ;
-					if ( this.attrs.morphed )
-						return card_images('TK/KTK/Morph.2.2.jpg') ;
-				}
-				return card_images('back.jpg') ;
-			}
-	}
-	this.imgurl_relative = function() {
-		if ( ( this.attrs.transformed ) && this.transformed_attrs && iss(this.transformed_attrs.name) )
-			return card_image_url(this.ext, this.transformed_attrs.name, this.attrs) ;
-		else
-			return this.image_url ;
-	}
-	this.zoom = function(doc) {
-		if ( ! doc )
-			var doc = document ;
-		var zoom = doc.getElementById('zoom') ;
-		zoom.thing = this ;
-		if ( this.attrs.flipped )
-			zoom.classList.add('rotated') ;
-		else
-			zoom.classList.remove('rotated') ;
-		// Load image
-		game.image_cache.load(this.imgurl(), function(img, card) {
-			doc.getElementById('zoom').src = img.src ;
-		}, function(card, url) {}, this) ;
-		// Manage image events
-		if ( this.is_visible() ) { // Image visible
-			if ( this.transformed_attrs ) { // Transform
-				// Give "zoom" image ability to display other face when hovered
-				zoom.onmouseover = function(ev) {
-					var card = ev.target.thing ;
-					card.attrs.transformed = ! card.attrs.transformed ; // Invert card's value on mouseover and restore on mouseout
-					card.zoom() ;
-				} ;
-				zoom.onmouseout = zoom.onmouseover ;
-			}
-			zoom.oncontextmenu = function(ev) { // Overwrite previous listener
-				var card = ev.target.thing ;
-				// Zoom will simulate card's menu
-				if ( ( card.zone.type == 'battlefield' ) || ( card.zone.type == 'hand' ) )
-					game.selected.set(card) ;
-				var menu = card.menu(ev)
-				return eventStop(ev) ;
-			} ;
-			zoom.onmousedown = function(ev) {
-				var card = ev.target.thing ;
-				card.mousedown(ev) ;
-				return eventStop(ev) ;
-			}
-		} else { // hidden cards
-			zoom.oncontextmenu = eventStop ; // Overwrite previous listener
-			zoom.onmousedown = eventStop ;
-		}
-	}
+	this.draw = card_draw ; // Draw card to a canvas
+	this.refreshpowthou = card_refreshpowthou ; // Cache pow, thou and color
+	this.refresh = card_refresh ; // Redraw canvas cache
+	this.rect = card_rect ; // Returns card's rectangle coordinates
+	this.load_image = card_load_image ;
+// ### [ card/events.js ] ######################################################
 // === [ EVENTS ] ==============================================================
-	this.mouseover = function(ev) {
-		var name = this.get_name() ;
-		if ( name.length > 10 ) 
-			game.settittle(name) ;
-		this.zoom() ;
-		this.refresh() ; // For bug "cards reversed in starting hand"
-		if ( ( game.draginit == null ) && ( game.current_targeting == null ) ) // Not dragging nor targeting
-			game.canvas.style.cursor = 'pointer' ;
-		if ( ( this.zone.type == 'battlefield' ) && ( this.get_attachedto() == null ) ) {
-			var idx = this.IndexInZone() ;
-			if ( idx != 0 ) { // If not last card in its zone, set it last (will be drawn after other, and appear over)
-				this.zone.cards.splice(idx, 1) ;
-				this.zone.cards.push(this) ;
-			}
-		}
-		if ( this.zone.selzone ) { // BF + hand utils (DND, target)
-			if ( game.draginit != null ) { // While left click holding
-				if ( game.draginit == this ) // Return on drag origin
-					game.drag = null ; // Undisplay DND helper
-				else { // Hover another card while DND
-					game.dragover = this ; // Mark as draged over
-					this.refresh('draged over') ;
-				}
-			}
-			if ( game.target.tmp != null ) { // Targeting in progress
-				if ( inarray(game.target.tmp.cards, this) ) // Card is targeting
-					game.target.tmp.stop(null) ; // Hide targets
-				else { // Card isn't selected, becomes targeted
-					game.target.tmp.over(this) ;
-					this.refresh('targeted') ;
-				}
-			}
-		}
-	}
-	this.mouseout = function(ev) {
-		game.settittle('') ;
-		if ( ( game.draginit == null ) && ( game.current_targeting == null ) )
-			game.canvas.style.cursor = '' ;
-		if ( this.zone.selzone ) { // BF + hand utils (DND, target)
-			if ( game.draginit != null ) { // While left click holding
-				if  ( game.draginit == this ) { // Leave drag origin
-					drag_start() ;
-					game.canvas.style.cursor = 'move' ;
-				} else {
-					game.dragover = null ; // Mark as draged out
-					this.refresh('draged out') ;
-				}
-			}
-			if ( game.current_targeting == this ) { // Leave while right click holding & card is targeting
-				game.target.start(game.selected.get_cards(), ev) ;
-				this.refresh('/targeted') ;
-			} else 
-				if ( game.target.tmp != null ) {
-					game.target.tmp.out(this) ;
-					this.refresh('/targeted') ;
-				}
-		}
-	}
-	this.mousedown = function(ev) {
-		switch ( ev.button ) {
-			case 0 : // Left click : Select (or deselect, or add to selection)
-				//if ( XOR(ev.shiftKey, ( game.turn.steps[game.turn.step].name == 'attackers' ) ) ) // With Shift
-				if ( ev.shiftKey ) // With Shift
-					game.selected.toggle(this)
-				else // Normal click
-					drag_init(this, ev) ;		
-				break ;
-			case 1 : // Middle button click
-				this.info() ;
-				return eventStop(ev) ; // Must be done in mousedown in order to cancel default action for middle clicking an image : open it in a new tab
-			case 2 : // Right click
-				if ( ! this.selected() ) // Right clicking on a card that isn't selected
-					game.selected.set(this) ; // Select only that one
-				// Prepare targeting
-				if ( game.current_targeting == null )
-					game.current_targeting = this ;
-				break ;
-		}
-	}
-	this.mouseup = function(ev) {
-		if ( game.target.tmp != null ) {
-			game.target.tmp.stop(this) ;
-			this.refresh() ;
-		} else {
-			// Drop
-			if ( game.drag != null ) {
-				switch ( this.zone.type ) {
-					case 'battlefield' :
-						selected = game.selected.get_cards() ;
-						for ( var i in selected )
-							this.attach(selected[i]) ;
-						break ;
-					case 'hand' :
-						var index = this.IndexInZone() ;
-						if ( game.selected.zone == this.zone )
-							game.selected.moveinzone(index) ;
-						else
-							game.selected.changezone(this.zone, null, index) ;
-							
-						break ;
-					default :
-						log('Impossible to drop '+game.drag+' on '+this+' in '+this.zone) ;
-				}
-				game.dragover = null ;
-				this.refresh() ;
-			}
-			// Damages
-			if ( ev.ctrlKey ) {
-				switch ( ev.button ) {
-					case 0 : // Left click
-						this.set_damages(this.get_damages()+1) ;
-						break ;
-					case 1 : // Middle button click
-						this.set_damages(0) ;
-						break ;
-					case 2 : // Right click
-						this.set_damages(this.get_damages()-1) ;
-						break ;
-				}
-			} else
-				switch ( ev.button ) {
-					case 2 : // Right click
-						this.menu(ev) ;
-				}
-		}
-		return eventStop(ev) ;
-	}
-	this.dblclick = function(ev) {
-		if ( ( ! this.zone.player.access() ) || ( ev.ctrlKey ) || ( ev.shiftKey ) ) // Ctrl is for damages, Shift for selection, we don't want to trigger dblclick
-			return eventStop(ev) ;
-		switch ( this.zone.type ) {
-			case 'battlefield' :
-				// Card's controler is declaring attackers
-				if ( this.is_creature() && ( this.zone.player == game.turn.current_player ) && ( game.turn.step == 5 ) )
-					game.selected.attack(this) ; // Must replace tap because vigilance creatures don't tap
-				else
-					game.selected.tap(!this.tapped) ;
-				break ;
-			case 'hand' :
-				var visible = null ; // Set to default visibility (not forced true) in order not to sync in default case
-				if ( ev.ctrlKey || ev.altKey || ev.shiftKey )
-					visible = false ;
-				// Changezone
-				game.selected.changezone(game.selected.zone.player.battlefield, visible, null) ;
-				// Create living weapon token
-				if ( this.attrs.living_weapon )
-					this.living_weapon() ;
-				if ( game.stonehewer && this.is_creature() )
-					tk.mojosto('stonehewer', this) ;
-				break ;
-			default :
-				log('Impossible to dbclick a card in '+this.zone.type) ;
-		}
-		return eventStop(ev) ; // Without, dblclick is passed under, that means 2 events are triggered on a card when
-		// player dblclick on a text on a card (1 for the text, 1 for the card under)
-	}
-	this.dragstart = function(ev) {
-		// Difference between position of each card and position of reference card's : when moving multiple cards, apply the same scheme on destination/drop
-		switch ( this.zone.type ) {
-			case 'battlefield' : // On BF : difference in X and Y coords in grid
-				for ( var i = 0 ; i < game.selected.cards.length ; i++ ) {
-					var mycard = game.selected.cards[i] ;
-					mycard.xoffset = mycard.grid_x - this.grid_x ;
-					mycard.yoffset = mycard.grid_y - this.grid_y ;
-				}
-				game.selected.cards.sort(function(a,b) { // Sort cards by coordinates
-					if ( a.grid_x == b.grid_x ) {
-						if ( a.grid_y == b.grid_y )
-							return 0
-						else
-							return a.grid_y - b.grid_y ;
-					} else
-						return a.grid_x - b.grid_x ;
-				}) ;
-				break ;
-			case 'hand' : // In hand : diffenrece in index in zone
-				game.selected.cards.reverse() ;
-				var xoffset = this.IndexInZone() ;
-				for ( var i = 0 ; i < game.selected.cards.length ; i++ ) {
-					var mycard = game.selected.cards[i] ;
-					mycard.xoffset = place_offset * ( xoffset - mycard.IndexInZone() ) ;
-					mycard.yoffset = 0 ;
-				}
-				break ;
-			default : // Elsewhere : null offset as only 1 card may be DNDed
-				for ( var i = 0 ; i < game.selected.cards.length ; i++ ) {
-					var mycard = game.selected.cards[i] ;
-					mycard.xoffset = 0 ;
-					mycard.yoffset = 0 ;
-				}
-		}
-	}
+	this.mouseover = card_mouseover ;
+	this.mouseout = card_mouseout ;
+	this.mousedown = card_mousedown ;
+	this.mouseup = card_mouseup ;
+	this.dblclick = card_dblclick ;
+	this.dragstart = card_dragstart ;
+	this.zoom = card_zoom ;
+// ### [ card/menu.js ] ########################################################
 // === [ MENU ] ================================================================
-	this.boost_bf = function() {
-		var result = [] ;
-		if ( iso(this.attrs.boost_bf) )
-			result = result.concat(this.attrs.boost_bf) ;
-		return result ;
-	}
-	this.boost_bf_enable = function(line) {
-		this.boost_bf_enable_recieve(line) ;
-		this.sync() ;
-	}
-	this.boost_bf_enable_recieve = function(line) {
-		line.enabled = ! line.enabled ;
-		game.player.battlefield.refresh_pt() ;
-		game.opponent.battlefield.refresh_pt() ;
-	}
-	this.mojosto = function(avatar, param) {
-		var obj = {'avatar': avatar}
-		if ( iso(param) ) { // Stonehewer giant
-			obj.cc = param.attrs.converted_cost ;
-			obj.target = param.toString() ;
-		} else
-			obj.cc = param ;
-		action_send('mojosto', obj) ;
-	}
-	this.menu = function(ev) {
-		var card = this ;
-		switch ( card.zone.type ) {
-			case 'battlefield' :
-				if ( card.zone.player.access() )
-					var selected = game.selected.get_cards() ;
-				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
-					var selected = [card] ; //new Selection([card])
-				var menu = new menu_init(selected) ;
-				// First item : selection specific
-				if ( selected.length > 1 ) // Multiple cards, just show the number
-					menu.addline(selected.length+' cards') ;
-				else { 
-					// Card specific submenu
-					var cardmenu = new menu_init(selected) ;
-					if ( card.zone.player.access() ) {
-						if ( iss(card.attrs.avatar) ) {
-							def = this.zone.untaped_lands() ; // ceil((game.turn.num+1)/2, 0)
-							switch ( card.attrs.avatar ) {
-								case 'momir' :
-									cardmenu.addline('Creature ...', function() {
-										cc = prompt_int('Converted cost', def) ;
-										if ( cc != null ) {
-											this.mojosto('momir', cc) ;
-											if ( game.nokiou )
-												this.mojosto('nokiou', cc) ;
-										}
-									}) ;
-									cardmenu.addline('Nonland, noncreature permanent ...',    function() {
-										cc = prompt_int('Converted cost', def) ;
-										if ( cc != null )
-											this.mojosto('nokiou', cc) ;
-									}) ;
-									cardmenu.addline('Momir also puts a noncreature permanent',    function() {
-										game.nokiou = ! game.nokiou ;
-									}).checked = game.nokiou ;
-
-									break ;
-								case 'jhoira' :
-									cardmenu.addline('Instants', function() {
-										this.mojosto('jhoira-instant', cc) ;
-									}) ;
-									cardmenu.addline('Sorceries', function() {
-										this.mojosto('jhoira-sorcery', cc) ;
-									}) ;
-									break ;
-								case 'stonehewer' :
-									cardmenu.addline('Activated', function() {
-										game.stonehewer = ! game.stonehewer ;
-									}).checked = game.stonehewer ;
-									break ;
-								default :
-									log('Avatar '+card.attrs.avatar+' no exist') ;
-							}
-						}
-						// Morph
-						if ( card.owner.me && iss(card.attrs.morph) )
-							if ( card.attrs.visible == false) {
-								card.attrs.visible = true ; // Temporary shunt visibility for morph display
-								cardmenu.addline('Morph as '+card.name+' ('+card.attrs.morph+')', card.face_up).moimg = card.imgurl() ;
-								card.attrs.visible = false ; // End of Temporary shunt visibility for morph display
-							} else {
-								cardmenu.addline('Unmorph', card.morph).moimg = card.imgurl() ;
-							}
-						// Manifest
-						if ( this.attrs.manifester ) {
-							cardmenu.addline('Manifest', card.manifest) ;
-						}
-						// Flip
-						if ( this.flip_attrs != null )
-							cardmenu.addline('Flip', card.flip).checked = card.attrs.flipped ;
-						// Transform
-						if ( card.transformed_attrs ) {
-							var l = cardmenu.addline('Transform', card.toggle_transform) ;
-							l.checked = card.attrs.transformed ;
-							this.attrs.transformed = ! this.attrs.transformed ;
-							l.moimg = card.imgurl() ;
-							this.attrs.transformed = ! this.attrs.transformed ;
-						}
-						// Tokens
-						var tokens = [] ;
-						if ( card.attrs.transformed && card.transformed_attrs ) {
-							if ( card.transformed_attrs.tokens )
-								tokens = card.transformed_attrs.tokens ;
-						} else {
-							if ( card.attrs.tokens )
-								tokens = card.attrs.tokens ;
-						}
-						for ( var i = 0 ; i < tokens.length ; i++ ) {
-							var ext = card.ext ;
-							var name = tokens[i].name ;
-							var attrs = tokens[i].attrs ;
-							var img = token_image_name(name, ext, attrs) ;
-							ext = token_extention(img, ext, this.exts) ;
-							if ( isn(attrs.pow) && isn(attrs.thou) )
-								var txt = 'Token '+name+' '+attrs.pow+'/'+attrs.thou ;
-							else
-								var txt = name ;
-							if ( tokens[i].nb > 1 )
-								txt += ' x '+tokens[i].nb
-							var zone = game.player.battlefield ; // By default, create token on asking player's battlefield
-							if ( goldfish ) // Goldfish players want it on card's controler battlefield
-								zone = card.zone ;
-							var l = cardmenu.addline(txt, create_token, ext, name, zone, attrs, tokens[i].nb) ;
-							l.moimg = card_images('/TK/'+ext+'/'+img) ;
-						}
-						// Animate
-						if ( iso(card.attrs.animate) ) {
-							for ( var i = 0 ; i < card.attrs.animate.length ; i++ ) {
-								var anim = card.attrs.animate[i] ;
-								var name = 'Animate as '+anim.pow+'/'+anim.tou
-								if ( iso(anim.subtypes) )
-									name += ' '+anim.subtypes.join(' ') ;
-								if ( iss(anim.cost) )
-									name += ' ('+anim.cost+')' ;
-								cardmenu.addline(name, card.animate, anim) ;
-							}
-						}
-						// Cascade
-						if ( this.attrs.cascade )
-							cardmenu.addline('Cascade', this.cascade) ;
-						// Boost BF
-						var boost_bf = this.boost_bf() ;
-						if ( boost_bf.length > 0 ) {
-							for ( var i = 0 ; i < boost_bf.length ; i++ ) {
-								var str = '' ;
-								if ( ! boost_bf[i].self )
-									str += 'Other ' ;
-								if ( iss(boost_bf[i].cond) )
-									str += boost_bf[i].cond+' ' ;
-								else
-									str += 'Creat ' ;
-								if ( boost_bf[i].control == -1 )
-									str += 'opponent control ' ;
-								else if ( boost_bf[i].control == 1 )
-									str += 'you control ' ;
-								str += 'get '+disp_int(boost_bf[i].pow)+'/'+disp_int(boost_bf[i].tou) ;
-								if ( boost_bf[i].eot )
-									str += ' until end of turn' ;
-								var l = cardmenu.addline(str, this.boost_bf_enable, boost_bf[i]) ;
-								l.checked = boost_bf[i].enabled ;
-							}
-						}
-					}
-					menu_merge(menu, selected[0].get_name(), cardmenu) ;
-				}
-				menu.addline() ;
-				if ( ! card.zone.player.access()  )
-					menu.addline('No action') ;
-				else {
-					// Remove targets
-					if ( game.target.alltargets(card).length > 0 ) 
-						menu.addline('Remove targets',		function() {
-							var targets = game.target.alltargets(card) ;
-							for ( var i = 0 ; i < targets.length ; i++ )
-								targets[i].del() ;
-						}) ;
-					// Tap
-					var entry = menu.addline('Tap',  game.selected.tap, ! card.tapped) ;
-					entry.override_target = game.selected ;
-					entry.checked = card.tapped ;
-					// Attacking status
-					if ( card.attacking ) // Any moment, if attacking
-						menu.addline('Cancel attack', game.selected.attack, this).override_target = game.selected ;
-					else
-						// Card's controler is declaring attackers
-						if ( card.is_creature() && ( card.zone.player == game.turn.current_player ) && ( game.turn.step == 5 ) ) // During attackers declaration step
-							menu.addline('Attack without tapping', game.selected.attack_notap, this).override_target = game.selected ;
-					var submenu = new menu_init(selected) ;
-					this.changezone_menu(submenu) ;
-					menu.addline('Move', submenu) ;
-					menu.addline() ;
-					// P/T
-					var pt = menu.addline('Set Power/Toughness', card.ask_powthou) ;
-					pt.buttons.push({'text': '+1', 'callback': function(ev, cards) {
-						(new Selection(cards)).add_powthou(1, 1) ;
-					}}) ;
-					pt.buttons.push({'text': '-1', 'callback': function(ev, cards) {
-						(new Selection(cards)).add_powthou(-1, -1) ;
-					}}) ;
-					var pteot = menu.addline('Change P/T until EOT', card.ask_powthou_eot) ;	
-					pteot.buttons.push({'text': '+1', 'callback': function(ev, cards) {
-						(new Selection(cards)).add_powthou_eot(1, 1) ;
-					}}) ;
-					pteot.buttons.push({'text': '-1', 'callback': function(ev, cards) {
-						(new Selection(cards)).add_powthou_eot(-1, -1) ;
-					}}) ;
-					// Counters
-					var c = menu.addline('Set counters', card.setcounter) ;
-					if ( card.attrs.transformed && card.transformed_attrs)
-						var steps = clone(card.transformed_attrs.steps) ;
-					else
-						var steps = clone(this.attrs.steps)
-					if ( ( ! steps ) || ( steps.length < 1 ) )
-						var steps = ['+1', '-1'] ;
-					if ( ! this.attrs.counter )
-						var counter = 0 ;
-					else
-						var counter = this.attrs.counter ;
-					if ( this.is_planeswalker() && ! inarray('-X', steps) )
-						steps.push('+X') ;
-					for ( i in steps ) {
-						var step = parseInt(steps[i]) ;
-						if ( step != 0 ) {
-							var compstep = step ; // Step used just for comparison
-							if ( isNaN(compstep) )
-								compstep = -1 ;
-							var menubut = {'text': steps[i]} ;
-							if ( counter + compstep >= 0 ) {
-								menubut.callback = function(ev, cards, param) {
-									(new Selection(cards)).add_counter(param) ;
-								}
-								menubut.param = step ;
-							}
-							c.buttons.push(menubut) ;
-						}
-					}
-					// Note
-					menu.addline('Set a note', card.setnote) ;
-					menu.addline() ;
-					// Face down
-					if ( card.is_visible() )
-						fufunc = card.face_down ;
-					else
-						fufunc = card.face_up ;
-					var line = menu.addline('Face down',		fufunc) ;
-					line.checked = ( card.attrs.visible == false ) ;
-					//if ( ( game.player == card.zone.player ) && ( line.checked ) )
-						//line.moimg = card_images(card.imgurl_relative()) ;
-					if ( line.checked )
-						line.buttons.push({'text': 'Look', 'callback': function(ev, cards) {
-							for ( var i = 0 ; i < cards.length ; i++ ) {
-								var card = cards[i] ;
-								message_send(game.player.get_name()+' looked facedown card') ;
-								message(card.name) ;
-								card.attrs.visible = true ;
-								card.zoom() ;
-								card.attrs.visible = false ;
-							}
-						}}) ;
-
-					// Duplicate
-					menu.addline('Duplicate',		card.duplicate) ;
-					// Copy
-					var tby = game.target.targetedby(card) ;
-					if ( ( tby.length == 1 ) && ( ( tby[0].type == 'card' ) || ( tby[0].type == 'token' ) ) ) { 
-						if ( ( iso(this.attrs.copy) ) && ( tby[0] == this.attrs.copy ) ) {
-						} else
-							menu.addline('Copy '+tby[0].get_name(),	card.copy) ;
-					}
-					if ( iso(this.attrs.copy) && ( this.attrs.copy != null ) )
-						menu.addline('Uncopy '+this.attrs.copy.get_name(),	card.uncopy) ;
-					// No untap
-					menu.addline() ;
-					if ( isb(card.attrs.no_untap) )
-						var no_untap = card.attrs.no_untap ;
-					else
-						var no_untap = false ;
-					menu.addline('Won\'t untap',		card.untap_toggle).checked = no_untap ;
-					if ( isb(card.attrs.no_untap_once) )
-						var no_untap_once = card.attrs.no_untap_once ;
-					else
-						var no_untap_once = false ;
-					menu.addline('Won\'t untap once',	card.untap_once_toggle).checked = no_untap_once ;
-				}
-				break ;
-			case 'hand' :
-				if ( card.zone.player.access() )
-					var selected = game.selected.get_cards() ;
-				else // Current player has no access on card (spectactor), he can't have a selection. Let's create one with only current card
-					var selected = [card] ; //new Selection([card])
-				var menu = new menu_init(selected) ;
-				// First item : selection specific
-				if ( selected.length > 1 ) // Multiple cards, just show the number
-					menu.addline(selected.length+' cards') ;
-				else { 
-					// Card specific submenu
-					var cardmenu = new menu_init(selected) ;
-					if ( card.zone.player.access() ) {
-						if ( iss(card.attrs.morph) )
-							cardmenu.addline('Morph', card.morph) ;
-						if ( isn(card.attrs.suspend) )
-							cardmenu.addline('Suspend ('+card.attrs.suspend_cost+')', card.suspend) ;
-						if ( iss(card.attrs.cycling) )
-							cardmenu.addline('Cycle ('+card.attrs.cycling+')',	card.cycle) ;
-						// Create living weapon token
-						if ( card.attrs.living_weapon )
-							cardmenu.addline('Living weapon ', function() {
-								this.changezone(this.owner.battlefield) ;
-								this.living_weapon() ;
-							}) ;
-					}
-
-					menu_merge(menu, selected[0].get_name(), cardmenu) ;
-				}
-				menu.addline() ;
-				if ( card.zone.player.access() ) {
-					this.changezone_menu(menu) ;
-					menu.addline() ;
-					var line = menu.addline('Reveal', 	game.selected.toggle_reveal_from_hand, card)
-					line.checked = ( card.attrs.visible == true ) ;
-					line.override_target = game.selected ;
-				}
-				break ;
-			case 'library' :
-			case 'graveyard' :
-			case 'exile' :
-				var menu = new menu_init() ;
-				this.changezone_menu(menu) ;
-				break ;
-			default : 
-				menu.addline('No menu on a card from zone ' + card.zone.type) ;
-		}
-		menu.addline() ;
-		if ( card.is_visible() ) {
-			menu.addline('Informations (MCI)', card.info) ;
-		} else
-			menu.addline('No information aviable from hidden card') ;
-		if ( game.options.get('debug') )
-			menu.addline('Debug internals', function(card) {
-				log2(this) ;
-				log2(this.attrs) ;
-				if ( iso(this.attrs.bonus) )
-					log2(this.attrs.bonus) ;
-			}) ;
-		menu.start(ev) ;
-		return menu ;
-	}
-	this.changezone_menu = function(menu, target) { // Generate a menu depending on current zone, to send card to each other zone
-		var card = this ;
-		var player = card.owner ;
-		if ( target ) // Called from listeditor
-			var sel = new Selection([target]) ;
-		else // Called from SVG
-			var sel = game.selected ;
-		if ( this.zone.type != 'battlefield' ) {
-			menu.addline('To battlefield',	sel.changezone, player.battlefield).override_target = sel ;
-			menu.addline('Play face down',	sel.changezone, player.battlefield, false).override_target = sel ;
-		}
-		if ( this.zone.type != 'hand' )
-			menu.addline('To hand',			sel.changezone, player.hand).override_target = sel ;
-		if ( this.zone.type != 'library' ) {
-			menu.addline('To library top',		sel.changezone, player.library).override_target = sel ;
-			menu.addline('To library bottom',		sel.changezone, player.library, null, 0).override_target = sel ;
-		} else {
-			var i = card.IndexInZone() ;
-			var j = card.zone.cards.length - 1 ;
-			if ( i != j )
-				menu.addline('To library top',		sel.moveinzone, j).override_target = sel ;
-			if ( i != 0 )
-				menu.addline('To library bottom',		sel.moveinzone, 0).override_target = sel ;
-		}
-		if ( this.zone.type != 'graveyard' )
-			menu.addline('To graveyard',		sel.changezone, player.graveyard).override_target = sel ;
-		if ( this.zone.type != 'exile' )
-			menu.addline('To exile',		sel.changezone, player.exile).override_target = sel ;
-	}
-	this.info = function() {
-		var res = this.is_visible() ;
-		if ( res )
-			window.open('http://magiccards.info/query?q=!'+this.name+'&v=card&s=cname') ;
-		else
-			log('You can\'t ask info for hidden card') ;
-		return res ;
-	}
+	this.menu = card_menu ;
+	this.changezone_menu = card_changezone_menu ;
+	this.info = card_info ;
+	this.mojosto = card_mojosto ;
+// ### [ card/zone.js ] ########################################################
 // === [ ZONE MANAGEMENT ] =====================================================
-	// Workaround for selections
-	this.changezone = function(zone, visible, index, xzone, yzone) {
-		if ( game.selected ) // Flashback not clearing selection
-			game.selected.clear() ;
-		// Automatically place
-		if ( ! isn(xzone) )
-			xzone = 0 ;
-		if ( ! isn(yzone) )
-			yzone = this.place_row() ;
-		var sel = new Selection([this]) ;
-		var result = sel.changezone(zone, visible, index, xzone, yzone) ;
-		return result ;
-	}
-	this.changezone_recieve = function(zone, visible, index, xzone, yzone) {
-		if ( typeof visible != 'boolean') 
-			visible = null ;
-		if ( !isn(index) )
-			index = null ;
-		if ( !isn(xzone) )
-			xzone = null ;
-		if ( !isn(yzone) )
-			yzone = null ;
-		//var sel = new Selection([this]) ;
-		game.selected.set(this) ; // Use global selection in order to keep it up to date
-		return game.selected.changezone_recieve(zone, visible, index, xzone, yzone) ;
-	}
-	this.moveinzone = function(to_index) {
-		var sel = new Selection([this]) ;
-		return sel.moveinzone(to_index) ;
-	}
-	// Zone management
-	this.IndexInZone = function() { // Return card's index in its zone
-		return this.zone.cards.indexOf(this) ;
-	}
-	this.setzone = function(zone, visible, index, xzone, yzone) { // Change a card's zone, here goes stuff to do on new zone
-		if ( ( zone.type != 'battlefield' ) && ( this.owner != zone.player ) )
-			zone = this.owner[zone.type] ;
-		var oldzone = this.zone ;
-		this.zone = zone ; // Set new zone
-		if ( typeof visible != 'boolean' )
-			visible = null ; // No forced value, behaviour will only depend on zone
-		if ( ! isn(index) )
-			index = zone.cards.length ;
-		this.zone.cards.splice(index, 0, this) ; // Insert this card into zone
-		if ( visible == false ) { // Card forced as face down
-			this.on_face_down() ;
-			//this.sync() ; // Face up on cards played face down from hand doesn't works without
-		} else {
-			if ( ( oldzone.type != 'battlefield' ) || ( this.zone.type != 'battlefield' ) ) { // Don't reinit if going from a BF to a BF
-				var vi = this.attrs.visible ;
-				this.attrs = clone(this.orig_attrs, true) ; // Resync with creation attrs, because they will change afterward
-				this.attrs.visible = vi ;
-				delete this.animated_attrs ;
-			}
-			this.set_visible(visible) ;
-		}
-		switch ( this.zone.type ) { // Specific actions depending on zone type
-			case 'battlefield' : // to a battlefield
-				if ( this.attrs.tapped // Comes into play tapped
-					|| ( iss(this.attrs.ciptc) && eval(this.attrs.ciptc) ) // Condition for coming into play tapped
-				   )
-					this.tapped = true ;
-				else
-					this.tapped = false ;
-				this.attacking = false ;
-				this.attrs.damages = 0 ;
-				// Force xdest,ydest to enter in grid, as when moving to extremes, system may be thinking we are moving outside
-				if ( ! isn(xzone) )
-					xzone = 0 ;
-				if ( ! isn(yzone) )
-					yzone = this.place_row() ;
-				xzone = max(xzone, 0) ;
-				xzone = min(xzone, bfcols-1) ;
-				yzone = max(yzone, 0) ;
-				yzone = min(yzone, bfrows-1) ;
-				if ( ! this.place_recieve(xzone, yzone) ) {
-					log('Failed to place '+this.name+' at '+xzone+', '+yzone) ;
-					return false ;
-				}
-				this.refreshpowthou() ;
-				this.zone.refresh_card(this) ;
-				break ;
-			default :
-				this.refresh('setzone') ;
-				// Refresh new zone's cards coordinates
-				if ( isf(this.zone.refresh) ) // Some virtual or non visual zones have none (sideboard)
-					this.zone.refresh() ;
-		}
-		this.load_image() ; // Visibility possibly changed, reload image
-		return true ;
-	}
-	this.position_name = function(word, link, index, zone) { // Returns for a card, a string describing the position in a zone
-					// Used to display "on top of" or "on bottom of" when moving a card inside library
-		if ( ! isn(index) )
-			index = this.IndexInZone() ;
-		if ( ! iso(zone) )
-			zone = this.zone ;
-		if ( zone.type == 'library' )
-			switch ( index ) {
-				case 0 :
-					word = link+' bottom of' ;
-					break ;
-				case this.zone.cards.length-1 :
-					word = link+' top of' ;
-					break ;
-			}
-		word += ' '+zone.get_name() ;
-		return word ;
-	}
-	this.place_row = function() { // Returns wich row to place card by default (depending on its type and user configuration)
-		var optype = '' ;
-		if ( this.is_creature() )
-			optype = 'place_creatures' ;
-		else 
-			if ( this.is_land() )
-				optype = 'place_lands' ;
-			else
-				optype = 'place_noncreatures' ;
-		var yzone = 0 ;
-		switch ( game.options.get(optype) ) {
-			case 'top' :
-				yzone = 0 ;
-				break ;
-			case 'middle' :
-				yzone = Math.floor(bfrows/2) ;
-				break ;
-			case 'bottom' :
-				yzone = bfrows - 1 ;
-				break ;
-			default :
-				switch ( optype ) {
-					case 'place_noncreatures' :
-						yzone = 0 ; // Noncreatures spells on first line
-						break ;
-					case 'place_creatures' :
-						yzone = Math.floor(bfrows/2) ; // Creatures on middle line
-						break ;
-					case 'place_lands' :
-						yzone = bfrows - 1 ; // Lands on last line
-						break ;
-					default :
-						log('Place problem') ;
-				}
-		}
-		return yzone ;
-
-	}
-		// Movement
-	this.place = function(xzone, yzone) {
-		if ( ! isn(xzone) )
-			xzone = null ;
-		if ( ! isn(yzone) )
-			yzone = null ;
-		var res = this.place_recieve(xzone, yzone) ;
-		if ( res )
-			action_send('place', {'card': this.id, 'x': this.grid_x, 'y': this.grid_y}) ;
-		return res ;
-	}
-	this.place_recieve = function(xzone,yzone) { // Move card to x,y if unoccupied, else x+1,y, etc.
-		if ( this.zone.type != 'battlefield' ) {
-			log('Unable to place a card ('+this.name+') in '+this.zone) ;
-			return false ;
-		}
-		// Default place
-		if ( ! isn(xzone) )
-			xzone = 0 ;
-		if ( ! isn(yzone) )
-			yzone = 0 ;
-		// Force xdest,ydest to enter in grid
-		xzone = max(xzone, 0) ;
-		xzone = min(xzone, bfcols-1) ;
-		yzone = max(yzone, 0) ;
-		yzone = min(yzone, bfrows-1) ;
-		// In case of moving multiple cards to battlefield, each one has offsets indicating relative positions of each other
-		var i = xzone ;
-		var j = yzone ;
-		// Loop all place_offset in line, then idem for all other lines
-		var k = 0 ;
-		var l = 1 ; // Try lines from top to bottom
-		if ( j == this.zone.grid[0].length - 1 ) // Trying to place on last line
-			var l = -1 ; // Try lines from bottom to top
-		while ( ! this.move(i, j) ) {
-			// Here, placing at i, j failed, let's find out next plausible position
-			if ( this.zone.grid_full() ) { // Tried all positions
-				log('Tried all positions, zone is full') ;
-				return false ;
-			}
-			if ( this.zone.grid_line_full(j) ) { // Line is full
-				j += l ; // Try next line, in desired direction
-				i = 0 ; // Try from left
-				k = 0 ; // Try without offset
-				// Stay inside grid
-				if ( j >= this.zone.grid[i].length )
-					j = 0 ;
-				if ( j < 0 )
-					j = this.zone.grid[i].length ;
-			} else { // Line isn't full
-				i += place_offset ;
-				if ( i >= this.zone.grid.length ) // End of line of grid with this offset, trying another offset
-					i = ++k ;
-			}
-		}
-		this.zone.refresh_card(this) ;
-		return true ;
-	}
-	this.move = function(xdest, ydest) { // Move if possible a card to x, y, returns false otherwise
-		if ( this.zone.type != 'battlefield' ) {
-			log('Unable to move a card ('+this.name+') on a '+this.zone.type) ;
-			return false ;
-		}
-		// Force xdest,ydest to enter in grid, as when moving to extremes, system may be thinking we are moving outside
-		xdest = max(xdest, 0) ;
-		xdest = min(xdest, bfcols-1) ;
-		ydest = max(ydest, 0) ;
-		ydest = min(ydest, bfrows-1) ;
-		var destination = this.zone.grid[xdest][ydest] ;
-		if ( destination != null ) { // Check if destination is clearable
-			if ( ( destination.grid_x != xdest ) || ( destination.grid_y != ydest ) ) { // Checking if it's still here
-				this.zone.grid[xdest][ydest] = null ; // else clear (garbage collected)
-				log('A card previously declared as being at '+xdest+', '+ydest+' isn\'t there anymore : '+destination.get_name()+' ('+destination+') : cleaned') ;
-			}
-		}
-		var destination = this.zone.grid[xdest][ydest] ;
-		result = ( ( destination == null ) || ( destination == this ) ) ;
-		if ( result ) { // There is no card on destination : move
-			if ( this.get_attachedto() != null ) {
-				this.detach() ;
-				this.sync_attrs = clone(this.attrs, true) ;
-			} else
-				this.clean_battlefield() ;
-			this.set_grid(xdest, ydest) ;
-			this.zone.grid[this.grid_x][this.grid_y] = this ; // Move
-			// Consider attached cards as being @ new pos
-			var attached = this.get_attached() ;
-			if ( attached != null )
-				for ( var i = 0 ; i < attached.length ; i++ )
-					attached[i].set_grid(xdest, ydest) ;
-			game.sound.play('click') ;
-		}
-		return result ;
-	}
-	this.set_grid = function(x, y) {
-		this.grid_x = x ;
-		this.grid_y = y ;
-	}
-	this.clean_battlefield = function() { // Clean old position in BF after moving a card
-		// Clean old position
-		if ( ! this.zone.ingrid )
-			log(this.zone+'') ;
-		else {
-			if ( isn(this.grid_x) && isn(this.grid_y) ) {
-				if ( this.zone.ingrid(this.grid_x, this.grid_y) ) { // Only working of it was not in another zone before
-					if ( this.zone.grid[this.grid_x][this.grid_y] == this ) { // card is root card (card @ current position, not attached to it)
-						this.zone.grid[this.grid_x][this.grid_y] = null ; // Clean battlefield
-						//log(this.get_name()+' : cleaning '+this.grid_x+', '+this.grid_y)
-					}
-					// Else, card was a card attached to root card, nothing should be done
-				} else 
-					log('Can\'t clean a card at '+this.grid_x+', '+this.grid_y+' : not in grid : '+this.get_name()) ;
-			}/* else
-				log('Cleaning a card that has no position : '+this.get_name()) ;*/
-		}
-	}
+	this.moveinzone = card_moveinzone ;
+	this.changezone = card_changezone ;
+	this.changezone_recieve = card_changezone_recieve ;
+	this.setzone = card_setzone ;
+	this.place_row = card_place_row ;
+	this.place = card_place ;
+	this.place_recieve = card_place_recieve ;
+	this.move = card_move ;
+	this.set_grid = card_set_grid ;
+	this.clean_battlefield = card_clean_battlefield ;
 // === [ ATTRIBUTES + SYNCHRONISATION ] ========================================
-	this.syncfilter = function(key, value) {
-		if ( iso(value) && ( value != null ) && 
-			( ( value.type == "card" ) || ( value.type == "token" ) ) ) {
-			return value.id ;
+	this.base_set = function(base) {
+		this.base_set_recieve(base) ;
+		action_send('base', {'card': this.id, 'base': base}) ;
+	}
+	this.base_set_recieve = function(base) {
+		// Save current state for messages
+		var oldbase = this.attrs.base_current() ;
+		var cardname = this.get_name() ;
+		// Action
+		this.attrs.base_transfer(base, 'pow') ;
+		this.attrs.base_transfer(base, 'thou') ;
+		this.attrs.base_set(base) ;
+		// Messages
+		var msg = null ;
+		switch ( base ) { // To
+			case 'back': 
+			case 'manifest': // Theorically shouldn't exist
+			case 'morph': 
+				msg = active_player.name+' turns '+cardname+' face down ('+base+')' ;
+				break ;
+			case 'transform': 
+			case 'flip': 
+				msg = active_player.name+' '+base+'s '+cardname+' into '+this.get_name() ;
+				break ;
+			case 'initial':
+				switch ( oldbase ) { // From
+					case 'back': 
+					case 'manifest': 
+					case 'morph': 
+						msg = active_player.name+' turns '+this.get_name()+' face up ('+oldbase+')' ;
+						break ;
+					case 'transform': 
+					case 'flip': 
+						msg = active_player.name+' '+oldbase+'s '+cardname+' into '+this.get_name() ;
+						break ;
+					default: 
+						log('Base set '+oldbase+' -> '+base) ;
+				}
+				break ;
+			default: 
+				log('Base set '+oldbase+' -> '+base) ;
 		}
-		return value ;
+		// Message after change as sometimes it requires new state
+		if ( msg != null )
+			message(msg, 'note') ;
+		// Refresh representation
+		this.refreshpowthou() ;
+		this.load_image() ;
 	}
 	this.sync = function() { // Send
+		/*
 		var result = false ; // By default, no action will be done
 		// Send only difference between last synched attrs and current attrs
 		var attrs = {} ;
@@ -1434,8 +348,8 @@ function card_prototype() {
 			if ( ( i == 'siding' ) && ( this != game.player ) ) // I am the lone who can change my siding status
 				continue ;
 			// Compare JSON for objects/arrays
-			var previous = JSON.stringify(this.sync_attrs[i]/*, this.syncfilter*/) ;
-			var current = JSON.stringify(this.attrs[i]/*, this.syncfilter*/) ;
+			var previous = JSON.stringify(this.sync_attrs[i]) ;
+			var current = JSON.stringify(this.attrs[i]) ;
 			if ( previous != current ) {
 				attrs[i] = this.attrs[i] ;
 				this.sync_attrs[i] = this.attrs[i] ;
@@ -1449,6 +363,8 @@ function card_prototype() {
 			action_send('attrs', {'card': this.id, 'attrs': attrs}) ; // this.attrs for full sync, attrs for diff sync
 		}
 		return attrs ;
+		*/
+		action_send('attrs', {'card': this.id, 'attrs': this.attrs.own}) ; 
 	}
 	this.setattrs = function(attrs) { // Get a new "attrs" array, and compare each element with current "attrs" array, then apply each difference
 		if ( isb(attrs.flipped) && ( attrs.flipped != this.attrs.flipped ) )
@@ -1485,59 +401,12 @@ function card_prototype() {
 			if ( ( this.attrs.pow_eot != attrs.pow_eot ) | ( this.attrs.thou_eot != attrs.thou_eot ) )
 				this.disp_powthou_eot_recieve(pow_eot, thou_eot) ;
 		}
-
-		if ( typeof attrs.switch_pt != 'undefined' ) {
-			if ( attrs.switch_pt != this.attrs.switch_pt )
-				this.switch_powthou_recieve() ;
-		}
-		if ( typeof attrs.switch_pt_eot != 'undefined' ) {
-			if ( attrs.switch_pt_eot != this.attrs.switch_pt_eot )
-				this.switch_powthou_eot_recieve() ;
-		}
 		if ( typeof attrs.counter != 'undefined' )
 			if ( this.attrs.counter != attrs.counter )
 				this.setcounter_disp(attrs.counter) ;
 		if ( typeof attrs.note != 'undefined' )
 			if ( this.attrs.note != attrs.note )
 				this.setnote_recieve(attrs.note)
-		if ( typeof attrs.visible != 'undefined' )
-			if ( this.attrs.visible != attrs.visible )  { // Visibility : revealed cards in hand or face-down cards on BF
-				switch ( this.zone.type ) {
-					case 'battlefield' :
-						switch ( attrs.visible ) {
-							case null : // Default behaviour : display depending on zone
-							case true : // Forced revealed
-								this.face_up_recieve() ;
-								break ;
-							case false : // Face down on BF
-								this.face_down_recieve() ;
-								break ;
-							default : 
-								log('Unknown value '+attrs.visible+' for card visibility') ;
-						}
-						break ;
-					case 'hand' :
-						log('Trying to define hand visibility in card, despite it\'s managed by selection')
-						break ;
-					case 'library' :
-					case 'graveyard' :
-					case 'exile' :
-						switch ( attrs.visible ) {
-							case true : 
-								this.reveal_from_unselzone_recieve() ;
-								break ;
-							case null :
-							case false : 
-								this.unreveal_from_unselzone_recieve() ;
-								break ;
-							default :
-								log('Unknown value '+attrs.visible+' for card visibility') ;
-						}
-						break ;
-					default :
-						log('Unknown value '+this.zone.type+' for card zone type') ;
-				}
-			}
 		if ( typeof attrs.no_untap != 'undefined' )
 			if ( this.attrs.no_untap != attrs.no_untap ) {
 				if ( attrs.no_untap )
@@ -1570,10 +439,6 @@ function card_prototype() {
 			game.player.battlefield.refresh_pt() ;
 			game.opponent.battlefield.refresh_pt() ;
 		}
-		if ( typeof attrs.morphed != 'undefined' ) {
-			this.attrs.morphed = attrs.morphed ;
-			this.load_image();
-		}
 		if ( typeof attrs.manifested != 'undefined' ) {
 			this.attrs.manifested = attrs.manifested ;
 			this.load_image();
@@ -1585,17 +450,19 @@ function card_prototype() {
 				if ( attachedto != null )
 					attachedto.attach_recieve(this) ;
 		}
-		this.sync_attrs = clone(this.attrs, true) ;
+		//this.sync_attrs = clone(this.attrs, true) ;
 	}
 	this.has_attr = function(attr) {
-		if ( this.attrs[attr] == true )
+		if ( this.attrs.get(attr) == true )
 			return true ;
 		if ( iso(this.animated_attrs) && isb(this.animated_attrs[attr]) && this.animated_attrs[attr] )
 			return true ;
 		var attached = this.get_attached() ;
-		for ( var i = 0 ; i < attached.length ; i++ )
-			if ( iso(attached[i].attrs.bonus) && attached[i].attrs.bonus[attr] )
+		for ( var i = 0 ; i < attached.length ; i++ ) {
+			var bonus = attached[i].attrs.get('bonus') ;
+			if ( iso(bonus) && bonus[attr] )
 				return true ;
+		}
 		// this.apply_boost : 
 		var cards = this.zone.cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
@@ -1613,133 +480,13 @@ function card_prototype() {
 		}
 		return false ;
 	}
-	// Flip
-	this.flip = function() {
-		this.attrs.flipped = ! this.attrs.flipped ;
-		this.sync() ; // Only send flip status, same flip_recieve will be done on both side
-		this.attrs.flipped = ! this.attrs.flipped ;
-		this.flip_recieve() ;
-	}
-	this.flip_recieve = function() {
-		message(active_player.name+' flips '+this.get_name()) ;
-		var flipped = ! this.attrs.flipped ;
-		if ( flipped )
-			this.attrs = clone(this.flip_attrs, true) ;
-		else
-			this.attrs = clone(this.orig_attrs) ;
-		this.attrs.flipped = flipped ; // Must be done after attrs overwriting
-		this.refreshpowthou() ;
-		this.zone.refresh_pt() ;
-	}
-	// Transform
-	this.toggle_transform = function() {
-		if ( this.attrs.transformed )
-			this.untransform() ;
-		else
-			this.transform() ;
-	}
-	this.transform = function() {
-		if ( this.transform_recieve() )
-			this.sync() ;
-	}
-	this.transform_recieve = function() {
-		if ( ! this.transformed_attrs ) // If a non-transformable card recieve transform, it will crash
-			return false ;
-		var cardname = this.get_name() ; // Backup as it will change during process
-		this.attrs.transformed = true ; // Transform itself
-		this.load_image() ; // Reload image
-		// Save & delete powthou as it's used by is_creature
-		var ipow = this.get_pow() ;
-		var ithou = this.get_thou() ;
-		delete this.attrs.pow ;
-		delete this.attrs.thou ;
-		delete this.attrs.pow_eot ;
-		delete this.attrs.thou_eot ;
-		if ( iss(this.attrs.trigger_upkeep) ) // Special case for Delver
-			delete this.attrs.trigger_upkeep ;
-		if ( this.is_creature() ) { // If card is a creat, apply transformed pow/tou
-			var mpow = 0 ;
-			var mthou = 0 ;
-			if ( isn(this.orig_attrs.pow) )
-				mpow = this.orig_attrs.pow ;
-			if ( isn(this.orig_attrs.thou) )
-				mthou = this.orig_attrs.thou ;
-			mpow -= ipow ;
-			mthou -= ithou ;
-			this.set_powthou(this.transformed_attrs.pow - mpow, this.transformed_attrs.thou - mthou) ;
-		}
-		this.transform_attrs(this.transformed_attrs) ; // Replace attrs by transformed ones, in case they differ
-		this.sync_attrs = clone(this.attrs, true) ; // Only sync 'transformed' status, other attrs change will be done client-side
-		this.sync_attrs.transformed = false ;
-		this.refreshpowthou() ;
-		this.zone.refresh_pt(iso(this.attrs.boost_bf)||iso(this.orig_attrs.boost_bf)) ;
-		message(active_player.name+' transforms '+cardname+' into '+this.get_name()) ;
-		return true ;
-	}
-	this.transform_attrs = function(from) { // Copy some attrs from an attrs obj into card's one, removing unexisting attrs
-		var creat_attrs = Array( 'double_strike', 'lifelink', 'vigilance', 'infect', 'trample', 'trigger_upkeep', 'boost_bf' ) ; // pow, thou
-		for ( var i = 0 ; i < creat_attrs.length ; i++ ) {
-			var attr = creat_attrs[i] ;
-			if ( isset(from[attr]) ) // In from
-				this.attrs[attr] = from[attr] ; // Copy
-			else // Not in from
-				if ( isset(this.attrs[attr]) ) // But existing in to
-					delete this.attrs[attr] ; // Delete in to
-		}
-	}
-	this.untransform = function() {
-		if ( this.untransform_recieve() )
-			this.sync() ;
-	}
-	this.untransform_recieve = function() {
-		if ( ! this.transformed_attrs ) // If a non-transformable card recieve transform, it will crash
-			return false ;
-		var cardname = this.get_name() ; // Backup as it will change during process
-		this.attrs.transformed = false ; // Untransform itself
-		this.load_image() ; // Reload image
-		if ( this.is_creature() ) { // If card is a creat, apply untransformed pow/tou
-			var mpow = this.transformed_attrs.pow - this.get_pow() ;
-			var mthou = this.transformed_attrs.thou - this.get_thou() ;
-			this.set_powthou(this.orig_attrs.pow - mpow, this.orig_attrs.thou - mthou) ;
-		}
-		this.transform_attrs(this.orig_attrs) ; // Restore original attrs, in case they differ from transformed
-		this.sync_attrs = clone(this.attrs, true) ; // Only sync 'transformed' status, other attrs change will be done client-side
-		this.sync_attrs.transformed = true ;
-		this.refreshpowthou() ;
-		this.zone.refresh_pt(iso(this.attrs.boost_bf)||iso(this.transformed_attrs.boost_bf)) ;
-		message(active_player.name+' reverts '+cardname+' as '+this.get_name()) ;
-		return true ;
-	}
-	// Damages
-	this.get_damages = function() {
-		if ( ! isn(this.attrs.damages) )
-			return 0 ;
-		else
-			return this.attrs.damages ;
-	}
-	this.set_damages = function(nb) {
-		this.set_damages_recieve(nb) ;
-		this.sync() ;
-	}
-	this.set_damages_recieve = function(nb) {
-		if ( ! isn(nb) || ( nb < 0 ) )
-			nb = 0 ;
-		this.attrs.damages = nb ;
-		this.refreshpowthou() ;
-	}
 	// Power / thoughness
 		// Permanent
 	this.get_pow = function() { // Getter
-		if ( ! isn(this.attrs.pow) )
-			return 0 ;
-		else
-			return this.attrs.pow ;
+		return this.attrs.get('pow', 0) ;
 	}
 	this.get_thou = function() {
-		if ( ! isn(this.attrs.thou) )
-			return 0 ;
-		else
-			return this.attrs.thou ;
+		return this.attrs.get('thou', 0) ;
 	}
 	this.get_powthou = function() {
 		return this.get_pow()+'/'+this.get_thou() ;
@@ -1747,7 +494,7 @@ function card_prototype() {
 	this.set_pow = function(nb) { // Setter which does not display anything
 		if ( isn(nb) ) {
 			var pow = nb - this.get_pow() ;
-			this.attrs.pow = nb ;
+			this.attrs.set('pow', nb) ;
 		} else 
 			var pow = 0 ;
 		return disp_int(pow) ;
@@ -1755,7 +502,7 @@ function card_prototype() {
 	this.set_thou = function(nb) {
 		if ( isn(nb) ) {
 			var thou = nb - this.get_thou() ;
-			this.attrs.thou = nb ;
+			this.attrs.set('thou', nb) ;
 		} else
 			var thou = 0 ;
 		return disp_int(thou) ;
@@ -1764,18 +511,12 @@ function card_prototype() {
 		return this.set_pow(pow)+'/'+this.set_thou(thou) ;
 	}
 	this.add_pow = function(nb) { // Setter that adds instead of replace, and does not display anything
-		if ( isn(nb) ) {
-			if ( ! isn(this.attrs.pow) )
-				this.attrs.pow = 0 ;
-			this.attrs.pow += nb ;
-		}
+		if ( isn(nb) )
+			this.attrs.set('pow', this.attrs.get('pow', 0) + nb) ;
 	}
 	this.add_thou = function(nb) {
-		if ( isn(nb) ) {
-			if ( ! isn(this.attrs.thou) )
-				this.attrs.thou = 0 ;
-			this.attrs.thou += nb ;
-		}
+		if ( isn(nb) )
+			this.attrs.set('thou', this.attrs.get('thou', 0) + nb) ;
 	}
 	this.add_powthou = function(pow, thou) {
 		return this.add_pow(pow)+'/'+this.add_thou(thou) ;
@@ -1790,8 +531,8 @@ function card_prototype() {
 			this.refreshpowthou() ;
 			message(this.get_name()+' is now '+this.get_powthou_total()+' ('+bonus+')', 'pow_thou') ;
 		} else {
-			delete this.attrs.pow ;
-			delete this.attrs.thou ;
+			this.attrs.set('pow', null) ;
+			this.attrs.set('thou', null) ;
 			this.refreshpowthou() ;
 			message(this.get_name()+' hasn\'t power nor toughness anymore', 'pow_thou') ;
 		}
@@ -1810,16 +551,10 @@ function card_prototype() {
 	}
 		// Temporary
 	this.get_pow_eot = function() { // Getter
-		if ( ! isn(this.attrs.pow_eot) )
-			return 0 ;
-		else
-			return this.attrs.pow_eot ;
+		return this.attrs.get('pow_eot', 0) ;
 	}
 	this.get_thou_eot = function() {
-		if ( ! isn(this.attrs.thou_eot) )
-			return 0 ;
-		else
-			return this.attrs.thou_eot ;
+		return this.attrs.get('thou_eot', 0) ;
 	}
 	this.get_powthou_eot = function() {
 		return disp_int(this.get_pow_eot())+'/'+disp_int(this.get_thou_eot()) ;
@@ -1827,21 +562,21 @@ function card_prototype() {
 	this.set_pow_eot = function(nb) { // Setter which does not display anything
 		if ( isn(nb) ) {
 			var pow = nb - this.get_pow_eot() ;
-			this.attrs.pow_eot = nb ;
+			this.attrs.set('pow_eot', nb) ;
 		} else 
 			var pow = 0 ;
-		if ( this.attrs.pow_eot == 0 )
-			delete this.attrs.pow_eot ;
+		if ( this.attrs.get('pow_eot') == 0 )
+			this.attrs.set('pow_eot', null) ;
 		return disp_int(pow) ;
 	}
 	this.set_thou_eot = function(nb) {
 		if ( isn(nb) ) {
 			var thou = nb - this.get_thou_eot() ;
-			this.attrs.thou_eot = nb ;
+			this.attrs.set('thou_eot', nb) ;
 		} else
 			var thou = 0 ;
-		if ( this.attrs.thou_eot == 0 )
-			delete this.attrs.thou_eot ;
+		if ( this.attrs.get('thou_eot') == 0 )
+			this.attrs.set('thou_eot', null) ;
 		return disp_int(thou) ;
 	}
 	this.set_powthou_eot = function(pow, thou) {
@@ -1849,20 +584,20 @@ function card_prototype() {
 	}
 	this.add_pow_eot = function(nb) { // Setter that adds instead of replace, and does not display anything
 		if ( isn(nb) ) {
-			if ( ! isn(this.attrs.pow_eot) )
-				this.attrs.pow_eot = 0 ;
-			this.attrs.pow_eot += nb ;
-			if ( this.attrs.pow_eot == 0 )
-				delete this.attrs.pow_eot ;
+			var val = this.attrs.get('pow_eot', 0) + nb ;
+			if ( val == 0 )
+				this.attrs.set('pow_eot', null) ;
+			else
+				this.attrs.set('pow_eot', val) ;
 		}
 	}
 	this.add_thou_eot = function(nb) {
 		if ( isn(nb) ) {
-			if ( ! isn(this.attrs.thou_eot) )
-				this.attrs.thou_eot = 0 ;
-			this.attrs.thou_eot += nb ;
-			if ( this.attrs.thou_eot == 0 )
-				delete this.attrs.thou_eot ;
+			var val = this.attrs.get('thou_eot', 0) + nb ;
+			if ( val == 0 )
+				this.attrs.set('thou_eot', null) ;
+			else
+				this.attrs.set('thou_eot', val) ;
 		}
 	}
 	this.add_powthou_eot = function(pow, thou) {
@@ -1877,8 +612,8 @@ function card_prototype() {
 			var bonus = this.set_powthou_eot(pow, thou) ;
 			message(this.get_name()+' is now '+this.get_powthou_total()+' ('+bonus+') until end of turn', 'pow_thou') ;
 		} else {
-			delete this.attrs.pow_eot ;
-			delete this.attrs.thou_eot ;
+			this.attrs.set('pow_eot', null) ;
+			this.attrs.set('thou_eot', null) ;
 			message(this.get_name()+' hasn\'t anymore power nor toughness bonus until EOT', 'pow_thou') ;
 		}
 		this.refreshpowthou() ;
@@ -1898,12 +633,13 @@ function card_prototype() {
 		// Conditionnal
 	this.get_pow_cond = function(pt) {
 		var result = 0 ;
-		if ( iso(this.attrs.powtoucond) ) {
-			if ( iss(pt) && isn(this.attrs.powtoucond[pt]) )
-				var boost = this.attrs.powtoucond[pt] ;
+		var powtoucond = this.attrs.get('powtoucond') ;
+		if ( iso(powtoucond) ) {
+			if ( iss(pt) && isn(powtoucond[pt]) )
+				var boost = powtoucond[pt] ;
 			else
 				var boost = 1 ;
-			var from_str = this.attrs.powtoucond.from ;
+			var from_str = powtoucond.from ;
 			var player = this.zone.player ;
 			if ( from_str[0] == '!' ) {
 				from_str = from_str.substr(1) ;
@@ -1919,96 +655,70 @@ function card_prototype() {
 				if ( iso(player.opponent[from_str]) )
 					from = from.concat(player.opponent[from_str].cards) ;
 			}
-			switch ( this.attrs.powtoucond.what ) {
+			switch ( powtoucond.what ) {
 				case 'cards' : // Standard case : counting cards (master of etherium, kotr)
 				case 'card' : // Standard case : presence of any number (kird ape)
 					for ( var i in from ) {
-						if ( isb(this.attrs.powtoucond.other) && this.attrs.powtoucond.other && ( from[i] == this ) )
+						if ( isb(powtoucond.other) && powtoucond.other && ( from[i] == this ) )
 							continue ;
-						if ( from[i].satisfy_condition(this.attrs.powtoucond.cond) ) {
+						if ( from[i].satisfy_condition(powtoucond.cond) ) {
 							result += boost ;
-							if ( this.attrs.powtoucond.what == 'card' ) // Searching for 1
+							if ( powtoucond.what == 'card' ) // Searching for 1
 								break ;
 						}
 					}
 					break ;
 				case 'types' : // Tarmogoyf
 					var types = [] ;
-					for ( var i in from )
-						for ( var j in from[i].attrs.types )
-							if ( ! inarray(from[i].attrs.types[j], types) )
-								types.push(from[i].attrs.types[j]) ;
+					for ( var i in from ) {
+						var mytypes = from[i].attrs.get('types') ;
+						for ( var j in mytypes )
+							if ( ! inarray(mytypes[j], types) )
+								types.push(mytypes[j]) ;
+					}
 					result += types.length ;
 					break ;
 				default :
-					log('Unknown what : '+this.attrs.powtoucond.what) ;
+					log('Unknown what : '+powtoucond.what) ;
 			}
 
 		}
 		return result ;
 	}
-		// Total	
-	this.get_pow_tot = function() {
+		// Total (attrs + cond + eot + attach + boost)
+	this.get_port_total = function(port) { // port = pow or thou, as string
 		var result = 0 ;
+		var myport = ( port == 'thou' ) ? 'tou' : port ; // Attach bonus and boost have tou instead of thou
 		// Native
-		if ( isn(this.attrs.pow) )
-			result += this.attrs.pow ;
+		result += this.attrs.get(port, 0) ;
 		// Conditionnal
-		result += this.get_pow_cond('pow') ;
+		result += this.get_pow_cond(port) ;
 		// EOT
-		if ( isn(this.attrs.pow_eot) )
-			result += this.attrs.pow_eot ;
+		result += this.attrs.get(port+'_eot', 0) ;
 		// Attach
 		var a = this.get_attached() ;
 		for ( var i = 0 ; i < a.length ; i++ ) {
-			if ( iso(a[i].attrs.bonus) && isn(a[i].attrs.bonus.pow) )
-				result += a[i].attrs.bonus.pow ;
-			if ( iso(a[i].attrs.powtoucond) )
-				result += a[i].get_pow_cond('pow') ;
+			result += a[i].get_pow_cond(port) ;
+			var bonus = a[i].attrs.get('bonus') ;
+			if ( iso(bonus) && isn(bonus[myport]) )
+				result += bonus[myport] ;
 		}
 		// Boost
-		result += this.apply_boost('pow') ;
+		result += this.apply_boost(myport) ;
 		return result
+
 	}
 	this.get_pow_total = function() {
-		if ( this.attrs.switch_pt | this.attrs.switch_pt_eot )
-			return this.get_thou_tot() ;
-		else
-			return this.get_pow_tot() ;
-	}
-	this.get_thou_tot = function() {
-		var result = 0 ;
-		// Native
-		if ( isn(this.attrs.thou) )
-			result += this.attrs.thou ;
-		// Conditionnal
-		result += this.get_pow_cond('thou') ;
-		// EOT
-		if ( isn(this.attrs.thou_eot) )
-			result += this.attrs.thou_eot ;
-		// Attach
-		var a = this.get_attached() ;
-		for ( var i = 0 ; i < a.length ; i++ ) {
-			if ( iso(a[i].attrs.bonus) && isn(a[i].attrs.bonus.tou) )
-				result += a[i].attrs.bonus.tou ;
-			if ( iso(a[i].attrs.powtoucond) )
-				result += a[i].get_pow_cond('thou') ;
-		}
-		// Boost
-		result += this.apply_boost('tou') ;
-		return result
+		return this.get_port_total('pow') ;
 	}
 	this.get_thou_total = function() {
-		if ( this.attrs.switch_pt | this.attrs.switch_pt_eot )
-			return this.get_pow_tot() ;
-		else
-			return this.get_thou_tot() ;
+		return this.get_port_total('thou') ;
 	}
 	this.get_powthou_total = function() {
 		return this.get_pow_total()+'/'+this.get_thou_total() ;
 	}
-	// All creat booster
-	this.apply_boost = function(type) {
+	// Returns sum of all cards' boost_bf in battlefields
+	this.apply_boost_from = function(type, zone, own) {
 		var result = 0 ;
 		var cards = this.zone.cards ;
 		for ( var i = 0 ; i < cards.length ; i++ ) {
@@ -2021,78 +731,38 @@ function card_prototype() {
 					continue ;
 				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
 					continue ;
-				if ( boost.control < 0 )
+				if ( own && ( boost.control < 0 ) )
 					continue ;
-				result += boost[type] ;
-			}
-		}
-		var cards = this.zone.player.opponent[this.zone.type].cards ;
-		for ( var i = 0 ; i < cards.length ; i++ ) {
-			var boost_bf = cards[i].boost_bf() ;
-			for ( var j = 0 ; j < boost_bf.length ; j++ ) {
-				var boost = boost_bf[j] ;
-				if ( ! boost.enabled )
-					continue ;
-				if ( ( ! boost.self ) && ( this == cards[i] ) ) // Boost doesn't work on self
-					continue ;
-				if ( iss(boost.cond) && ( ! this.satisfy_condition(boost.cond) ) ) // Boost verify a condition
-					continue ;
-				if ( boost.control > 0 )
+				if ( ! own && ( boost.control > 0 ) )
 					continue ;
 				result += boost[type] ;
 			}
 		}
 		return result ;
 	}
-	this.refreshpowthou = function() { // Cache power and toughness in order not to recompute it on each frame draw
-		var redraw = ( ( this.zone.type == 'battlefield' ) /*&& this.is_creature()*/ ) // Only redraw if it's a creature on the battlefield
-		redraw = redraw && ( ( isn(this.attrs.pow) && isn(this.attrs.thou) ) || ( isn(this.attrs.pow_eot) && isn(this.attrs.thou_eot) ) ) ; // Don't redraw if pow/thou has been removed
-		if ( redraw ) { // Would redraw
-			this.pow_thou = this.get_powthou_total() ;
-			this.pow_thou_color = 'white' ;
-			if ( this.get_damages() >= this.get_thou_total() ) // Show damages would kill creat
-				this.pow_thou_color = 'red' ;
-			else
-				if ( isn(this.attrs.pow_eot) || isn(this.attrs.thou_eot) ) // Show creat has modified P/T until EOT
-					this.pow_thou_color = 'lightblue' ;
-		} else // Wouldn't redraw
-			this.pow_thou = '' ; // Erase
-		this.refresh('powtou') ;
-		return redraw ;
+	this.apply_boost = function(type) {
+		var result = 0 ;
+		result += this.apply_boost_from(type, this.zone, true) ;
+		result += this.apply_boost_from(type, this.zone.player.opponent[this.zone.type], false) ;
+		return result ;
 	}
-	// Switch
-	this.switch_powthou = function() {
-		this.switch_powthou_recieve()
+	// Damages
+	this.get_damages = function() {
+		return this.attrs.get('damages', 0) ;
+	}
+	this.set_damages = function(nb) {
+		this.set_damages_recieve(nb) ;
 		this.sync() ;
 	}
-	this.switch_powthou_recieve = function() {
-		this.attrs.switch_pt = ! this.attrs.switch_pt ;
-		if ( this.attrs.switch_pt )
-			message(this.get_name()+' has switched power and toughness', 'pow_thou') ;
-		else
-			message(this.get_name()+' hasn\'t switched power and toughness anymore', 'pow_thou') ;
-		this.refreshpowthou() ;
-	}
-	this.switch_powthou_eot = function() {
-		this.switch_powthou_eot_recieve()
-		this.sync() ;
-	}
-	this.switch_powthou_eot_recieve = function() {
-		this.attrs.switch_pt_eot = ! this.attrs.switch_pt_eot ;
-		if ( this.attrs.switch_pt_eot )
-			message(this.get_name()+' has switched power and toughness until end of turn', 'pow_thou') ;
-		else
-			message(this.get_name()+' hasn\'t switched power and toughness until end of turn anymore', 'pow_thou') ;
+	this.set_damages_recieve = function(nb) {
+		if ( ! isn(nb) || ( nb < 0 ) )
+			nb = null ;
+		this.attrs.set('damages', nb) ;
 		this.refreshpowthou() ;
 	}
 	// Counters
 	this.getcounter = function() {
-		var result = 0 ;
-		if ( isn(this.attrs.counter) )
-			result += this.attrs.counter ;
-		if ( result < 0 )
-			result = 0 ;
-		return result ;
+		return this.attrs.get('counter', 0) ;
 	}
 	this.addcounter = function(nb) {
 		if ( !isn(nb) )
@@ -2121,7 +791,7 @@ function card_prototype() {
 		if ( ! isn(nb) || nb < 0 )
 			nb = 0 ;
 		if ( nb != this.getcounter() ) {
-			this.attrs.counter = nb ;
+			this.attrs.set('counter', nb) ;
 			if ( this.is_planeswalker() && ( nb < this.getcounter() ) ) // taking damages
 				this.set_damages(max(0, this.get_damages() - old_nb + nb)) ;
 			this.refresh('counters') ;
@@ -2129,36 +799,35 @@ function card_prototype() {
 	}
 	// Note
 	this.getnote = function() {
-		var result = '' ;
-		if ( iss(this.attrs.note) )
-			result = this.attrs.note ;
-		return result ;
+		return this.attrs.get('note', '')
 	}
 	this.setnote = function(note) {
 		if ( ! iss(note) ) {
-			if ( this.getnote() == '' ) // Empty note
-				note = game.target.targetedby(this).map(function(val, idx, arr) { return val.get_name() ;}).join(', ') ;
-			else
+			if ( this.getnote() == '' ) {
+				var targeted = game.target.targetedby(this) ;
+				var targetednames = targeted.map(function(val, idx, arr) { return val.get_name() ;}) ;
+				note = targetednames.join(', ') ;
+			} else
 				note = this.getnote() ;
 			note = prompt('Note for '+this.get_name()+' ?', note) ;
 		}
-		if ( note != null ) {
-			this.setnote_recieve(note) ;
-			this.sync() ;
-		}
+		this.setnote_recieve(note) ;
+		this.sync() ;
 	}
 	this.setnote_recieve = function(note) {
-		if ( note != this.attrs.note ) {
-			this.attrs.note = note ;
+		if ( note == '' )
+			note = null ;
+		if ( note != this.attrs.get('note') ) {
+			this.attrs.set('note', note) ;
 			delete this.note_img ;
 			if ( inarray(note.toUpperCase(), game.manacolors) )
-				game.image_cache.load(theme_image('/ManaIcons/'+note.toUpperCase()+'.png'), function(img, card) {
+				game.image_cache.load(theme_image('ManaIcons/'+note.toUpperCase()+'.png'), function(img, card) {
 					card.note_img = img ;
 					card.refresh() ;
 				}, function(card, zone) {
 					log('Image not found for '+card.name+', creating text') ;
 				}, this, param) ;
-			if ( note == '' )
+			if ( note == null )
 				message(this.get_name()+' isn\'t annoted anymore', 'note') ;
 			else
 				message(this.get_name()+'\'s annotation is now : '+note, 'note') ;
@@ -2167,163 +836,81 @@ function card_prototype() {
 	}
 	// No untap as normal
 	this.untap_toggle = function() {
-		if ( this.attrs.no_untap )
+		if ( this.attrs.get('no_untap', false) )
 			this.untap_as_normal_recieve() ;
 		else
 			this.does_not_untap_recieve() ;
 		this.sync() ;
 	}
 	this.untap_once_toggle = function() {
-		if ( this.attrs.no_untap_once )
+		if ( this.attrs.get('no_untap_once') )
 			this.untap_as_normal_once_recieve() ;
 		else
 			this.does_not_untap_once_recieve() ;
 		this.sync() ;
 	}
 	this.untap_as_normal_recieve = function() {
-		this.attrs.no_untap = false ;
+		this.attrs.set('no_untap', null) ; 
 		message(this.get_name()+' will untap as normal', 'note') ;
 		this.refresh('untap_as_normal') ;
 	}
 	this.untap_as_normal_once_recieve = function() {
-		this.attrs.no_untap_once = false ;
+		this.attrs.set('no_untap_once', null) ;
 		message(this.get_name()+' will untap as normal', 'note') ;
 		this.refresh('untap_as_normal_once') ;
 	}
 	this.does_not_untap_recieve = function() {
-		this.attrs.no_untap = true ;
+		this.attrs.set('no_untap', true) ;
 		message(this.get_name()+' wont untap as normal', 'note') ;
 		this.refresh('does_not_untap') ;
 	}
 	this.does_not_untap_once_recieve = function() {
-		this.attrs.no_untap_once = true ;
+		this.attrs.set('no_untap_once', true) ;
 		message(this.get_name()+' wont untap as normal next untap phase', 'note') ;
 		this.refresh('does_not_untap_once') ;
 	}
-		// Reveal
-	this.toggle_reveal_from_hand = function() {
-		if ( this.attrs.visible )
-			this.unreveal_from_hand() ;
+		// Reveal (hand + library top)
+	this.toggle_reveal = function(mycard) {
+		if ( ! mycard )
+			mycard = this ;
+		if ( mycard.attrs.get('visible') )
+			mycard.unreveal() ;
 		else
-			this.reveal_from_hand() ;
+			mycard.reveal() ;
 	}
-	this.reveal_from_hand = function() {
-		if ( this.reveal_from_hand_recieve() )
-			this.sync() ;
+	this.reveal = function(mycard) {
+		if ( ! mycard )
+			mycard = this ;
+		if ( mycard.reveal_recieve(mycard) )
+			mycard.sync() ;
 	}
-	this.reveal_from_hand_recieve = function() {
-		if ( this.attrs.visible != true )  { // Not forced as true
-			this.set_visible(true) ;
-			this.load_image() ; // Display image if in opponent's hand
-			message(active_player.name+' reveals '+this.get_name()+' from hand', 'note') ;
+	this.reveal_recieve = function(mycard) {
+		if ( ! mycard )
+			mycard = this ;
+		if ( ! mycard.attrs.get('visible') ) { // Not already forced as true
+			mycard.attrs.set('visible', true) ;
+			mycard.load_image() ; // Display background if in opponent's hand
+			message(active_player.name+' reveals '+mycard.get_name()+' from '+mycard.zone.get_name(), 'note') ;
 			return true ; // Returns if something changed
 		}
 		return false ;
 	}
-	this.unreveal_from_hand = function() {
-		if ( this.unreveal_from_hand_recieve() )
-			this.sync() ;
-	}
-	this.unreveal_from_hand_recieve = function() {
-		if ( this.attrs.visible == true )  { // Forced as true
-			this.set_visible(null) ;
-			this.load_image() ; // Display background if in opponent's hand
-			message(active_player.name+' hides '+this.get_name()+' from hand', 'note') ;
-			return true ; // Returns if something changed
-		}
-		return false ;
-	}
-		// show / hide for zones purpose (reveal top card of library typicaly)
-	this.toggle_reveal_from_unselzone = function(mycard) {
+	this.unreveal = function(mycard) {
 		if ( ! mycard )
 			mycard = this ;
-		if ( mycard.attrs.visible )
-			mycard.unreveal_from_unselzone() ;
-		else
-			mycard.reveal_from_unselzone() ;
-	}
-	this.reveal_from_unselzone = function(mycard) {
-		if ( ! mycard )
-			mycard = this ;
-		if ( mycard.reveal_from_unselzone_recieve(mycard) )
+		if ( mycard.unreveal_recieve(mycard) )
 			mycard.sync() ;
 	}
-	this.reveal_from_unselzone_recieve = function(mycard) {
+	this.unreveal_recieve = function(mycard) {
 		if ( ! mycard )
 			mycard = this ;
-		if ( mycard.attrs.visible != true ) {
-			mycard.set_visible(true) ;
-			message(active_player.name+' reveals '+mycard.get_name()+' from '+mycard.zone.get_name()) ;
-			mycard.load_image() ;
-			return true ;
-		}
-		return false ;
-	}
-	this.unreveal_from_unselzone = function(mycard) {
-		if ( ! mycard )
-			mycard = this ;
-		if ( mycard.unreveal_from_unselzone_recieve(mycard) )
-			mycard.sync() ;
-	}
-	this.unreveal_from_unselzone_recieve = function(mycard) {
-		if ( ! mycard )
-			mycard = this ;
-		if ( mycard.attrs.visible != null ) {
+		if ( mycard.attrs.get('visible') ) {
 			message(active_player.name+' hides '+mycard.get_name()+' from '+mycard.zone.get_name()) ;
-			mycard.set_visible(null) ;
+			mycard.attrs.set('visible', null) ;
 			mycard.load_image() ;
 			return true ;
 		}
 		return false ;
-	}
-		// Face up/down
-	this.face_up = function() {
-		if ( this.face_up_recieve() )
-			this.sync() ;
-	}
-	this.face_up_recieve = function() {
-		if ( this.zone.type != 'battlefield' ) {
-			log('Impossible to toggle face a card on '+this.zone.type) ;
-			return false ;
-		}
-		if ( this.attrs.visible ) {
-			log('Can\'t face up a visible card') ;
-			return false ;
-		}
-		this.attrs = clone(this.orig_attrs, true) ; // Resync with creation attrs
-		this.set_visible(null) ; // Return to default behaviour : display depending zone
-		this.load_image() ;
-		this.refreshpowthou() ;
-		message(active_player.name+' turns '+this.get_name()+' face up', 'note') ;
-		return true ;
-	}
-	this.face_down = function() {
-		if ( this.face_down_recieve() )
-			this.sync() ;
-	}
-	this.face_down_recieve = function() {
-		if ( this.zone.type != 'battlefield' ) {
-			log('Impossible to toggle face a card on '+this.zone.type) ;
-			return false ;
-		}
-		if ( this.attrs.visible == false ) { // this.attrs.visible can be "null" which behaves as "false", but on BF means "visible"
-			log('Can\'t face down a hidden card') ;
-			return false ;
-		}
-		message(active_player.name+' turns '+this.get_name()+' face down', 'note') ; // Message before changing because next line will change get_name's behaviour
-		this.on_face_down() ;
-		this.load_image() ;
-		this.refreshpowthou() ;
-		return true ;
-	}
-	this.on_face_down = function() {
-		var prev_attrs = clone(this.attrs, true) ;
-		this.attrs = {} ;
-		this.init_attrs() ;
-		this.attrs.visible = prev_attrs.visible ; // Its attributes have to be managed individually from faced-up card, except the visible value that will be saved before beeing set
-		this.set_visible(false) ;
-		if ( iss(prev_attrs.morph) )
-			this.attrs.morph = prev_attrs.morph ; // Restore morph
 	}
 	// Attach
 	this.get_attachedto = function() { // Returns the card which this is attached, or null
@@ -2338,18 +925,18 @@ function card_prototype() {
 	}
 	this.attach = function(dragcard) { // Attach dragcard to this
 		this.attach_recieve(dragcard) ;
-		//dragcard.sync() ;
 		action_send('attach', {'card': dragcard.toString(), 'to': this.toString()}) ;
 	}
 	this.attach_recieve = function(attached) {
 		var attach_to = this ; // By default, attach to dropped card
-		while ( attach_to.get_attachedto() != null ) // But if it is attached itself, attach to bottom attached card
+		while ( attach_to.get_attachedto() != null ) // But if it is attached itself, attach to root attached card
 			attach_to = attach_to.get_attachedto() ;
 		if ( attach_to != attached ) {
 			if ( attach_to.zone != attached.zone ) // If attached from hand, library, grave ...
 				attached.changezone_recieve(attach_to.zone) ; // First move it to desired zone
 			attached.detach() ; // If attached, detached from where it is attached
-			while ( ( attached.get_attached() != null ) && ( attached.get_attached().length > 0 ) ) { // If attached has itself attached cards, detach those and replace them
+			// If attached has itself attached cards, detach those and replace them
+			while ( ( attached.get_attached() != null ) && ( attached.get_attached().length > 0 ) ) {
 				var changeattach = attached.get_attached()[0] ;
 				changeattach.detach() ;
 				changeattach.place() ;
@@ -2360,7 +947,8 @@ function card_prototype() {
 			// Clean
 			attached.clean_battlefield() ;
 			attached.set_grid(attach_to.grid_x, attach_to.grid_y) ;
-			attach_to.place_recieve(attach_to.grid_x, attach_to.grid_y) ; // Re place it where it already is, in order to place correctly all attached
+				// Re place it where it already is, in order to place correctly all attached
+			attach_to.place_recieve(attach_to.grid_x, attach_to.grid_y) ;
 			attach_to.refreshpowthou() ;
 			message(attached.get_name()+' attached to '+attach_to.get_name(), 'note') ;
 		} else
@@ -2381,9 +969,6 @@ function card_prototype() {
 		}
 	}
 	// Duplicate
-	this.duplicate_attrs = function(name, to) {
-		to[name] = this[name] ;
-	}
 	this.duplicate = function() {
 		var card = this ;
 		action_send('duplicate', {'card': this.toString()}, function(data) {
@@ -2391,13 +976,11 @@ function card_prototype() {
 		}) ;
 	}
 	this.duplicate_recieve = function(id) {
-		var attrs = clone(this.attrs, true) ;
-		this.duplicate_attrs('transformed_attrs', attrs) ;
-		var duplicate = new Token(id, this.ext, this.name, this.zone, attrs, this.imgurl_relative()) ;
+		var attrs = clone(this.attrs.base_get(), true) ;
+		var duplicate = new Token(id, attrs.ext, attrs.name, this.zone, attrs) ;
 		duplicate.get_name = function() {
 			return this.name+' (copy)' ; // Default is token, overriding
 		}
-		//duplicate.place(0, duplicate.place_row()) ;
 		message(active_player.name+' duplicates '+this.get_name(), 'zone') ;
 	}
 	// Copy (cloning effect)
@@ -2416,7 +999,7 @@ function card_prototype() {
 		}
 		message(this.get_name()+' becomes a copy of '+card.get_name()) ; // get it without "copy of ..." suffix
 		this.attrs = clone(card.orig_attrs, true) ;
-		this.sync_attrs = clone(this.attrs) ;
+		//this.sync_attrs = clone(this.attrs) ;
 		this.attrs.copy = card ;
 		// Refresh data linked to attrs
 		this.refreshpowthou() ; // Own
@@ -2445,6 +1028,22 @@ function card_prototype() {
 			log(this+' can\'t uncopy '+this.attrs.copy) ;
 	}
 // === [ RULES ] ===============================================================
+	this.boost_bf = function() {
+		var result = [] ;
+		var boost_bf = this.attrs.get('boost_bf') ;
+		if ( iso(boost_bf) )
+			result = result.concat(boost_bf) ;
+		return result ;
+	}
+	this.boost_bf_enable = function(line) {
+		this.boost_bf_enable_recieve(line) ;
+		this.sync() ;
+	}
+	this.boost_bf_enable_recieve = function(line) {
+		line.enabled = ! line.enabled ;
+		game.player.battlefield.refresh_pt() ;
+		game.opponent.battlefield.refresh_pt() ;
+	}
 	this.cycle = function() {
 		(new Selection(this)).settype('cycle').changezone(this.owner.graveyard) ;
 		this.owner.hand.draw_card() ;
@@ -2521,34 +1120,15 @@ function card_prototype() {
 		}
 	}
 	this.living_weapon = function() {
-		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
+		create_token('MBS', 'Germ', this.owner.battlefield, {'color': 'B', 'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
 			tk.attach(lw) ;
 		}, this) ;
-	}
-	this.morph = function() {
-		if ( this.zone.type != 'battlefield' )
-			this.changezone(this.owner.battlefield, false) ;
-		else
-			this.face_down() ;
-		this.attrs.types = ['creature'] ;
-		this.attrs.morphed = true ;
-		this.load_image();
-		this.disp_powthou(2, 2) ;
-		this.refreshpowthou() ;
 	}
 	this.manifest = function() {
 		var zone = game.player.library ;
 		if ( zone.cards.length > 0 ) {
-			var tobf = new Selection() ;
-			var card = zone.cards[zone.cards.length-1] ;
-			tobf.add(card) ;
-			card.attrs.types = ['creature'] ; // Just in order to place it as a creature
-			tobf.changezone(game.player.battlefield, false) ;
-			card.attrs.types = ['creature'] ; // Can "attack"
-			card.attrs.manifested = true ;
-			card.load_image();
-			card.disp_powthou(2, 2) ;
-			card.refreshpowthou() ;
+			var tobf = new Selection(zone.cards[zone.cards.length-1]) ;
+			tobf.changezone(game.player.battlefield, 'manifest') ;
 		}
 	}
 }

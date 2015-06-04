@@ -21,7 +21,7 @@ function game_start() { // When page is loaded : initialize everything
 	var pt = new card_prototype() ;
 	Card.prototype = pt ;
 	Token.prototype = pt ;
-	//Attrs.prototype = new Attrs_prototype() ;
+	Attrs.prototype = new Attrs_prototype() ;
 	// caching getElementById
 	zoom = document.getElementById('zoom') ; // Redraw right column when zoom size changes
 	zoom.addEventListener('load', resize_right_column, false) ;
@@ -223,8 +223,8 @@ function manage_action(action, active_player) {
 				var my = 0
 				for ( var i in avatars ) {
 					var avatar = avatars[i] ;
-					var tk = new Token(my, '', avatar, game.player.battlefield, {'types':['avatar'], 'avatar': i}
-						, '../VOA/'+avatar+'.full.jpg', false) ;
+					var tk = new Token(my, '../VOA', avatar, game.player.battlefield,
+						{'types':['avatar'], 'avatar': i}, false) ;
 					tk.place_recieve(22+my++, 0) ;
 				}
 			}
@@ -281,7 +281,7 @@ function manage_action(action, active_player) {
 			for ( var i = 0 ; i < param.cards.cards.length ; i++ ) // If opponent moved cards in selection, remove those cards from selection
 				if ( inarray(param.cards.cards[i], game.selected.cards) )
 					game.selected.remove(param.cards.cards[i]) ;
-			param.cards.changezone_recieve(param.zone, param.visible, param.index, param.x, param.y, param.offset) ;
+			param.cards.changezone_recieve(param.zone, param.base, param.index, param.x, param.y, param.offset) ;
 			break ;
 		case 'sattrs' :
 			param.cards.setattrs(param.attrs) ;
@@ -290,8 +290,9 @@ function manage_action(action, active_player) {
 		case 'card' :
 			var card = new Card(id, param.ext_img, param.name, param.zone, param.attrs, param.exts) ;
 			if ( param.zone.player == game.player ) {
-				if ( game.stonehewer && ! card.is_land() )
+				if ( game.stonehewer && ! card.is_land('initial') ) {
 					game.stonehewer = false ;
+				}
 				if ( document.getElementById('side_window') != null ) {
 					deck_ul = document.getElementById('deck') ;
 					side_ul = document.getElementById('side') ;
@@ -301,12 +302,11 @@ function manage_action(action, active_player) {
 			break ;
 		case 'mojosto' :
 			message(active_player.name+'\'s avatar '+param.avatar+' casts '+param.name) ;
-			var url = card_image_url(param.ext, param.name, param.attrs.nb) ;
-			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs, url) ;
+			var tk = new Token(id, param.ext, param.name, param.zone, param.attrs) ;
 			if ( ( action.recieved == '0' ) && ( action.sender == player_id ) ) { // Unmanaged
 				game.connection.send({'type': 'recieve', 'id': action.id}) ;
 				if ( game.stonehewer && tk.is_creature() )
-					tk.mojosto('stonehewer', tk) ;
+					tk.mojosto('stonehewer', tk.attrs.get('converted_cost'), tk) ;
 				if ( iss(param.target) )
 					get_card(param.target).attach(tk) ;
 			}
@@ -333,6 +333,9 @@ function manage_action(action, active_player) {
 			break ;
 		case 'delarrow' :
 			game.target.del_by_orig_dest(param.card, param.target) ;
+			break ;
+		case 'base' :
+			param.card.base_set_recieve(param.base) ;
 			break ;
 		case 'attrs' :
 			param.card.setattrs(param.attrs) ;

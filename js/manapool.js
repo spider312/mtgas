@@ -10,7 +10,7 @@ function color_most(mana) {
 	return result ;
 }
 function pay(cost, manaleft) { // If manaleft can pay cost, return mana left after paying cost, otherwise, return null
-	// First separate manas into 3 types
+	// First separate manas into types
 	var mana_colored = [] ; // Mana that can only be paid by 1 color
 	var mana_hybrid = [] ; // Hybrid colored / colored
 	var mana_unhybrid = [] ; // Hybrid colored / colorless
@@ -225,7 +225,7 @@ function Manapool(game, player) {
 		// Sum cards cost
 		var cost = [] ;
 		for ( var i in cards_split )
-			cost = cost.concat(cards_split[i].manas) ;
+			cost = cost.concat(cards_split[i].attrs.get('manas')) ;
 		// Try to spend mana
 		var manaleft = pay(cost, this.mana()) ;
 		if ( manaleft == null ) {
@@ -237,12 +237,11 @@ function Manapool(game, player) {
 	}
 	this.mouseup = function(ev) { // Drop
 		if ( game.drag != null ) {
-			var manaleft = this.mana() ;
 			var cost = [] ;
 			var cards_split = game.selected.get_cards() ;
 			for ( var i in cards_split )
-				cost = cost.concat(cards_split[i].manas) ;
-			manaleft = pay(cost, manaleft) ; // Real pay with asking X
+				cost = cost.concat(cards_split[i].attrs.get('manas')) ;
+			var manaleft = pay(cost, this.mana()) ; // Real pay with asking X
 			if ( manaleft == null )
 				return false ;
 			for ( var i in manaleft )
@@ -282,9 +281,6 @@ function Mana(zone, color, x, y, w) {
 			this.value = val ;
 		this.refresh() ;
 		return true ;
-	}
-	this.rect = function() { // Coordinates of rectangle representation of mana (for "under mouse")
-		return new rectwh(this.x, this.y, this.w, this.h) ;
 	}
 	// Design
 	this.draw = function(context) {
@@ -344,7 +340,7 @@ function Mana(zone, color, x, y, w) {
 	this.w = w ;
 	this.h = w ; // Square
 	this.img = null ;
-	game.image_cache.load(theme_image('/ManaIcons/'+color+'.png'), function(img, widget) {
+	game.image_cache.load(theme_image('ManaIcons/'+color+'.png'), function(img, widget) {
 		widget.img = img ;
 		widget.refresh() ;
 	}, function(widget) {

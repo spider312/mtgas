@@ -18,27 +18,25 @@ function Selection() {
 		return arr.join(',') ;
 	}
 	this.cards_names = function(oldzone) {
-		var arr = [] ;
-		var fd = 0 ;
-		var c = 0 ;
-		for ( var i = 0 ; i < this.cards.length ; i++ ) { // Regroup cards by name
-			var name = this.cards[i].get_name(oldzone) ;
-			switch (name) {
-				case 'a card'  : 
-					c++ ;
-					break ;
-				case 'faced down card' :
-					fd++ ;
-					break ;
-				default : 
-					arr.push(name) ;
-			}
+		// Regroup cards by name
+		var names = {} ;
+		for ( var i = 0 ; i < this.cards.length ; i++ ) {
+			var name = this.cards[i].get_name() ;
+			if ( names[name] )
+				names[name]++ ;
+			else
+				names[name] = 1 ;
 		}
-		if ( c > 0 )
-			arr.push(c+' cards') ;
-		if ( fd > 0 )
-			arr.push(fd+' faced down cards') ;
-		return arr.join(', ') ;
+		// Generate output
+		var result = [] ;
+		for ( i in names ) {
+			var name = i ;
+			if ( names[i] > 1 )
+				//name = names[i] + '*' + name ;
+				name = name + '*' + names[i] ;
+			result.push(name) ;
+		}
+		return result.join(', ') ;
 	}
 		// Setters
 	this.settype = function(type) {
@@ -55,12 +53,12 @@ function Selection() {
 		return ( idx > -1 ) ;
 	}
 	this.clear = function() {
-			while ( this.cards.length > 0 ) {
-				var card = this.cards.pop() ;
-				if ( ( this == game.selected ) && card.zone.selzone )
-					card.refresh('selection clear') ;
-			}
-			this.zone = null ;
+		while ( this.cards.length > 0 ) {
+			var card = this.cards.pop() ;
+			if ( ( this == game.selected ) && card.zone.selzone )
+				card.refresh('selection clear') ;
+		}
+		this.zone = null ;
 	}
 	this.set = function() { // Set cards in parameter as the only ones in selection
 		this.clear() ; // Clear old selection
@@ -73,7 +71,7 @@ function Selection() {
 	this.add = function() { // Add cards in parameter to selection
 		for ( var i = 0 ; i < arguments.length ; i++ ) {
 			var card = arguments[i] ;
-			if ( this.cards.indexOf(card) == -1 ) { // If card not even in selection
+			if ( this.cards.indexOf(card) == -1 ) { // If card not already in selection
 				if ( card.zone != this.zone ) { // If card isn't in same zone than last selection
 					this.clear() ; // Clear old selection
 					this.zone = card.zone ; // Set selection in new zone
@@ -137,11 +135,9 @@ function Selection() {
 	// Actions management
 	this.refresh = function(reason) {
 		if ( isn(reason) )
-			reason = 'selection.refresh()'
-		for ( var i = 0 ; i < this.cards.length ; i++ ) {
-			var card = this.cards[i] ;
-			card.refresh(reason) ;
-		}
+			reason = 'selection refresh'
+		for ( var i = 0 ; i < this.cards.length ; i++ )
+			this.cards[i].refresh(reason) ;
 	}
 	this.sync = function(obj) { // Send
 		action_send('sattrs', {'cards': this.cards_ids(), 'attrs': obj}) ; // this.attrs for full sync, attrs for diff sync
@@ -174,7 +170,7 @@ function Selection() {
 			this.add_counter_recieve(attrs.counter) ;
 		// Revealed from hand
 		if ( isb(attrs.revealed) )
-			this.reveal_from_hand_recieve(attrs.revealed, attrs.type) ;
+			this.reveal_recieve(attrs.revealed, attrs.type) ;
 	}
 	// Actions
 		// Pow / Tou
@@ -261,7 +257,8 @@ function Selection() {
 		var sel_a = new Selection() ; // Cards that will attack (creatures, not already attacking)
 		if ( ! iso(refcard) )
 			refcard = this.cards[0] ;
-		var tapping = ! ( refcard.tapped || refcard.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
+		// [un]taping and [un]attacking depending on double clicked card
+		var tapping = ! ( refcard.attrs.get('tapped') || refcard.attrs.get('attacking') ) ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
 			if ( card.is_creature() ) // Creatures attack
@@ -280,10 +277,11 @@ function Selection() {
 		var sel_t = new Selection() ; // Cards that will be [un]tapped (all except creatures with vigilance, except if untapping)
 		if ( ! iso(refcard) )
 			refcard = this.cards[0] ;
-		var tapping = ! ( refcard.tapped || refcard.attacking ) ; // [un]taping and [un]attacking depending on double clicked card
+		// [un]taping and [un]attacking depending on double clicked card
+		var tapping = ! ( refcard.attrs.get('tapped') || refcard.attrs.get('attacking') ) ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.is_creature() && ( card.attacking != tapping ) ) // Creatures attack
+			if ( card.is_creature() && ( card.attrs.get('attacking') != tapping ) ) // Creatures attack
 				sel_a.add(card) ;
 			if ( ( ! card.has_attr('vigilance') ) || ( ! tapping ) ) // All cards except vigilance creatures taps, except when untapping
 				sel_t.add(card) ;
@@ -302,7 +300,7 @@ function Selection() {
 		if ( ( this.cards.length < 1 ) || ( this.zone.type != 'battlefield' ) )
 			return false ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
-			this.cards[i].attacking = b ;
+			this.cards[i].attrs.set('attacking', b) ;
 		this.refresh('attacking') ;
 		if ( ! silent )  {
 			if ( b )
@@ -329,7 +327,7 @@ function Selection() {
 			return false ;
 		b = ( b == true ) ;
 		for ( var i = 0 ; i < this.cards.length ; i++ )
-			this.cards[i].tapped = b ;
+			this.cards[i].attrs.set('tapped', b) ;
 		if ( b )
 			var action = 'taps' ;
 		else
@@ -339,17 +337,17 @@ function Selection() {
 		return true ;
 	}
 		// Reveal
-	this.toggle_reveal_from_hand = function(card) {
-		this.reveal_from_hand(!card.attrs.visible) ; // Selection visibility becomes opposite of card visibility
+	this.toggle_reveal = function(card) {
+		this.reveal(!card.attrs.visible) ; // Selection visibility becomes opposite of card visibility
 	}
-	this.reveal_from_hand = function(b, type) {
+	this.reveal = function(b, type) {
 		var attrs = {'revealed': b}
 		if ( isb(type) && type )
 			attrs.type = 'rand' ;
-		if ( this.reveal_from_hand_recieve(b, attrs.type) )
+		if ( this.reveal_recieve(b, attrs.type) )
 			this.sync(attrs) ;
 	}
-	this.reveal_from_hand_recieve = function(b, type) {
+	this.reveal_recieve = function(b, type) {
 		if ( ! isb(b) )
 			b = false ;
 		var result = false ; // By default, consider this method has done nothing and won't sync
@@ -359,9 +357,9 @@ function Selection() {
 			var card = this.cards[i] ;
 			if ( card.attrs.visible != b )  { // Not forced as true
 				if ( b )
-					card.set_visible(b) ; // Force as true
+					card.attrs.set('visible', b) ; // Force as true
 				else
-					card.set_visible(null) ; // Set as default value : display depending on zone
+					card.attrs.set('visible', null) ; // Set as default value : display depending on zone
 				card.load_image() ; // Display image if in opponent's hand
 				result = true ; // At least one card revealed, will sync
 			}
@@ -377,59 +375,41 @@ function Selection() {
 		return result ;
 	}
 		// Zone
-	this.changezone = function(zone, visible, index, xzone, yzone) {
+	this.changezone = function(zone, base, index, xzone, yzone) {
 		if ( this.cards.length < 1 )
 			return false ;
-		// Automatically place
-		if ( ! isn(xzone) )
-			xzone = 0 ;
-		if ( ! isn(yzone) ) {
-			if ( this.cards.length > 1 )
-				yzone = 0 ;
-			else
-				yzone = this.cards[0].place_row() ; // Have to know before sending
-		}
 		// Client part
-		result = this.changezone_recieve(zone, visible, index, xzone, yzone) ;
+		result = this.changezone_recieve(zone, base, index, xzone, yzone) ;
 		// Server part
 		if ( result ) {
 			var attrs = {'cards': this.cards_ids(), 'zone': zone.toString()} ;
-			if ( typeof visible == 'boolean')
-				attrs.visible = visible ;
+			if ( iss(base) )
+				attrs.base = base ;
 			if ( isn(index) )
 				attrs.index = index ;
 			// Transmit placement
-			attrs.x = xzone ;
-			attrs.y = yzone ;
+			if ( isn(xzone) )
+				attrs.x = xzone ;
+			if ( isn(yzone) )
+				attrs.y = yzone ;
 			if ( iss(this.type) && ( this.type != '' ) )
 				attrs.type = this.type ;
 			action_send('zone', attrs) ;
 		}
 		return result ;
 	}
-	this.changezone_recieve = function(zone, visible, index, xzone, yzone) { 
+	this.changezone_recieve = function(zone, base, index, xzone, yzone) { 
 		if ( this.cards.length < 1 )
 			return false ;
-		if ( typeof visible != 'boolean')
-			visible = null ;
-		if ( !isn(index) )
-			index = null ;
-		if ( !isn(xzone) )
-			xzone = null ;
-		if ( !isn(yzone) )
-			yzone = null ;
 		if ( zone == this.zone ) { // Changing from zone in which this is
-			log('changezone from and to '+zone+' : '+this.cards_names()) ;
-			for ( var i = 0 ; i < this.cards.length ; i++ ) {
-				var card = this.cards[i] ;
-				card.set_visible(visible) ; // Maybe we just wanted to change visibility (such as non side-out cards in side_do)
-				card.load_image() ; // Load new image in case it changed
-				card.sync() ; // Send attrs changes to opponent anyway
-			}
+			for ( var i = 0 ; i < this.cards.length ; i++ )
+				this.cards[i].base_set(base) ; // Maybe we just wanted to change base
+				// (such as non side-out cards in side_do)
 			return false ; // Don't send changezone to opponent
 		}
 		var oldzone = this.zone ;
-		this.zone = zone ; // All cards have been moved, inform selection that its zone changed
+		var cardname = this.cards_names() ; // Save cards names beefore changing zone in case it goes to a darker zone
+		this.zone = zone ; // Selection zone change
 		var boost_bf = false ;
 		var oldindex = 0 ; // Index of top moving card, used to distinguish drawn cards and tutored cards
 		var errored = new Selection() ;
@@ -438,18 +418,15 @@ function Selection() {
 			var idx = card.zone.cards.indexOf(card) ;
 			if ( idx > oldindex )
 				oldindex = idx ;
-			card.watching = ( zone.editor_window != null ) // A list editor is opened on this zone, make the card watchable
+			card.watching = ( zone.editor_window != null ) ;
 			game.target.del_by_target(card) ;
-			if ( ( oldzone.type == 'battlefield' ) && ( zone.type != 'battlefield' ) ) { // Leaving a BF & not going to a BF : preclean (detach)
+			// Leaving a BF & not going to a BF : preclean (detach)
+			if ( ( oldzone.type == 'battlefield' ) && ( zone.type != 'battlefield' ) ) {
 				card.detach() ; // Needs .attrs which is changed in setzone
 				// Detach all cards attached (after grid cleaning, as first attached will take its place)
 				var attached = card.get_attached() ;
 				while ( attached.length > 0 )
 					attached[0].place_recieve() ; // Replace on BF
-			}
-			if ( oldzone != card.zone ) { // Typically, a conflict that happend when a player is moving a card while it's opponent is doing it (collision)
-				log(card.id+' '+card.get_name()+' moving from '+card.zone+' to '+zone+' but should be in '+oldzone) ;
-				//continue ; // And should be ignored // or NOT, seems to forbid a card to move "sometimes"
 			}
 			if ( card.zone.type == 'battlefield' ) { // Leaving a BF
 				// Changing a token's zone (+duplicates), except for from BF to BF
@@ -461,8 +438,8 @@ function Selection() {
 				delete card.x ; // if going to another BF, setzone must not clean
 				delete card.y ;
 			}
-			if ( ( card.zone.type == 'sideboard' ) || ( zone.type == 'sideboard' ) ) // Leaving sideboard or going to sideboard
-				card.orig_zone = zone ; // Update "orig zone", used for future sideboards, working on recieve (such as F5)
+			if ( ( card.zone.type == 'sideboard' ) || ( zone.type == 'sideboard' ) ) // Leaving or going to sideboard
+				card.orig_zone = zone ; // Update "orig zone", for future sideboards work on recieve (F5)
 			// Changing a card's zone (or a token from BF to BF)
 			var xdest = xzone 
 			var ydest = yzone ;
@@ -472,9 +449,7 @@ function Selection() {
 			if ( isn(card.yoffset) )
 				ydest += card.yoffset ;
 				// Set zone
-			//if ( card.is_visible() )
-				//visible = true ; // If card was visible in previous zone, it keeps being
-			if ( ! card.setzone(zone, visible, index, xdest, ydest) ) {
+			if ( ! card.setzone(zone, base, index, xdest, ydest) ) {
 				log('Something went wrong in setzone('+zone+', '+index+', '+xzone+', '+yzone+'), reverting') ;
 				errored.add(card) ;
 			}
@@ -486,19 +461,16 @@ function Selection() {
 					break ;
 			}
 		}
-		// On each changezone, refresh all powtou from all creat on all BF (only if they have to, such as tarmo, or if a card moving may affects them, such as goblin king)
+		// On each changezone, refresh all powtou from all creat on all BF
 		game.player.battlefield.refresh_pt() ;
 		game.opponent.battlefield.refresh_pt() ;
-		if ( isf(oldzone.refresh) ) // Side doesn't have
-			oldzone.refresh() ; // At least one card was removed, refresh zone
-		else
-			log(game.opponent.get_name()+' sided '+this.cards.length+' cards') ;
 		switch ( oldzone.type ) {
 			case 'library' : // Left library
 				if ( oldzone.player.attrs.library_revealed && ( oldzone.cards.length > 0 ) )
 					oldzone.cards[oldzone.cards.length-1].load_image() ; // Refresh top card of library
 				break ;
 		}
+		oldzone.refresh() ; // At least one card was removed, refresh zone
 		// Message display and sound
 		var sound = '' ;
 		if ( ! zone.player.attrs.siding ) { // No changezone messages while siding
@@ -538,10 +510,12 @@ function Selection() {
 							fw += 'randomly ' ;
 							break ;
 					}
-					var cardname = this.cards_names(oldzone) ; // Save card names before changing zone, as it may change with attributes (transform)
+					// Refresh cards names if going to a lighter zone
+					if ( this.zone.default_visibility > oldzone.default_visibility )
+						cardname = this.cards_names() ;
 					var word = 'moves '+cardname+' from '+oldzone.get_name()+' to '+zone.get_name() ;
 					sound = 'move' ;
-					if ( oldzone.player == zone.player )
+					if ( oldzone.player == zone.player ) {
 						if ( zone.type == 'exile' )
 								word = 'exiles '+cardname+' from '+oldzone.type ;
 						else if ( zone.type == 'battlefield' ) {
@@ -569,6 +543,7 @@ function Selection() {
 								word = 'discards '+cardname ;
 						} else if ( zone.type == 'library' )
 							word = 'moves '+cardname+' from '+oldzone.get_name()+' '+card.position_name('to', 'to') ;
+					}
 					message(active_player.name+' '+fw+word, meaning) ;
 			}
 		}

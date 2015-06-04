@@ -1,47 +1,37 @@
 // image.js : Images and cache management
-// Lib
+// URL management
 function card_image_url(ext, name, nb) {
-	name = name.replace(/"/g, '') ;
-/*
-	$name = str_replace(' / ', '', $name) ; // Fire / Ice -> FireIce
-	$name = str_replace(' // ', '', $name) ; // Idem with escaping
-	$name = str_replace(':', '', $name) ; // Circle of protection: Black -> Circle of protection Black
-	$name = str_replace('"', '', $name) ; // Kongming, "Sleeping Dragon"
-*/
-	var url = '/'+ext+'/'+card_image_name(name) ;
+	var url = ext + '/' + card_image_name(name) ;
 	if ( isn(nb) && ( nb > 0 ) )
 		url += nb ;
 	url += '.full.jpg' ;
 	return url ;
 }
 function card_image_name(name) { // Follow card names conventions from slightlymagic
+	name = name.replace(/"/g, '') ;
 	name = name.replace(' / ', '') ; // "Fire / Ice" -> "FireIce"
 	name = name.replace(':', '') ; // "Circle of protection: Black" -> "Circle of protection Black"
 	return name ;
 }
-function card_images(url) {
-	// http://www.wizards.com/global/images/magic/general/[card name s/ /_/g].jpg
-	var result = [] ;
-	if ( url != '' )
-		result.push(cardimages + '/' + url) ; // User data
-	if ( cardimages != cardimages_default ) // If user data differs from default data
-		result.push(cardimages_default + '/' + url) ; // Add default data as fallback
-	for ( var i = 0 ; i < result.length ; i++ ) {
-		if ( result[i].indexOf('//') > -1 ) {
-			//while ( result[i].indexOf('//') > -1 )
-				//result[i] = result[i].replace(/\/\//g, '\/') ;
-			result[i] = result[i].replace(new RegExp('//*', 'g'), '\/') ;
-			result[i] = result[i].replace('http:/', 'http://') ;
-			result[i] = result[i].replace('file:/', 'file://') ;
-		}
-		if ( ( result[i].indexOf('http:') == -1 ) && ( result[i].indexOf('file:') == -1 ) ) // User has enter a URL without http nor file
-			result[i] = 'file://'+result[i] ; // Let's presume it's a local folder
-	}
-	return result ;
+function token_image_url(ext, name, nb, pow, tou) { // Raw URL to display
+	return 'TK/'+ ext + '/' + token_image(name, nb, pow, tou) ;
 }
-function theme_image(name) {
-	return [ url+'/themes/'+theme+'/'+name ] ;
+function token_image(name, nb, pow, tou) { // File name for token image, used in token searching + raw URL
+	var img = name ;
+	if ( isn(nb) ) // Multi image tokens
+		img += nb ;
+	if ( isn(pow) && isn(tou) ) // Emblems doesn't have them
+		img += '.'+pow+'.'+tou ;
+	img += '.jpg' ;
+	return img ;
 }
+function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
+	// Only used in options
+	if ( ( url.indexOf('://') < 0 ) && ( url.indexOf('/') > 0 ) )
+		url = '/'+url ;
+	return url ;
+}
+// HTML
 function player_avatar(avatar, alt, title, prefix) {
 	var fallback = fallback_avatar ;
 	if ( iss(prefix) )
@@ -55,12 +45,24 @@ function player_avatar(avatar, alt, title, prefix) {
 	}, false) ;
 	return img
 }
-function localize_image(url) { // Detects if url is absolute or relative, then add an initial / if relative
-	if ( ( url.indexOf('://') < 0 ) && ( url.indexOf('/') > 0 ) )
-		url = '/'+url ;
-	return url ;
+// Cache
+	// Lib
+function card_images(url) { // Returns, from a relative card URL, a list of absolute URL from user theme + default
+	var result = [] ;
+	if ( cardimages[cardimages.length-1] != '/' )
+		url = '/' + url ;
+	result.push(cardimages + url) ; // User data
+	if ( cardimages != cardimages_default ) // If user data differs from default data
+		result.push(cardimages_default + url) ; // Add default data as fallback
+	return result ;
 }
-// Classes
+function theme_image(name) {
+	var str = url ;
+	if ( url[url.length-1] != '/' )
+		str += '/';
+	return [ str+'themes/'+theme+'/'+name ] ;
+}
+	// Class
 function image_cache() {
 /* This class tries to load a list of images and keep track of any success or fail of this result
  * If called back with an image ever successed, failed, or currently loading : 
@@ -93,8 +95,10 @@ function image_cache() {
 				myimg = this.cache_loaded[idx][1] ;
 				if ( this.debug )
 					log('IMG CACHE - using loaded cache : '+url) ;
-				//callback_load(myimg, obj) ; // Use it to gain time (it's in browser's cache)
-				window.setTimeout(callback_load, 0, myimg, obj) ; // There, nothing has been returned, card.load_image doesn't know which image it is loading
+				if ( isf(callback_load) )
+					//callback_load(myimg, obj) ; // Use it to gain time (it's in browser's cache)
+					window.setTimeout(callback_load, 10, myimg, obj) ;
+				// There, nothing has been returned, card.load_image caller doesn't know which image it is loading
 				// With any delay, image has been returned and stored as loading, and can be compared by callback
 				return myimg ; // And stop process, all is done
 			} // Else, continue process
@@ -154,7 +158,7 @@ function image_cache() {
 			cache.addEventListener('load', function(ev) { // Correctly loaded for the first time
 				var idx = game.image_cache.not_loading_anymore(this.src_orig) ;
 				if ( game.image_cache.debug )
-					log('IMG CACHE - loaded : '+this_orig.src+' ('+idx+')') ;
+					log('IMG CACHE - loaded : '+this.src_orig+' ('+idx+')') ;
 				if ( idx != -1 ) { // If it's considered as not loaded yet
 					game.image_cache.cache_loaded.push(new Array(this.src_orig, this)) // Consider it as loaded
 					if ( game.image_cache.debug )
