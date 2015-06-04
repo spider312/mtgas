@@ -45,7 +45,7 @@ foreach ( $matches_list as $match ) { //
 	$html = cache_get($url, $path, $verbose) ;
 	// Name, cost, type, text and image
 	$info_regex = '' ;
-	$info_regex .= 'value="(?<number>\d*?)".*?';
+	$info_regex .= '<input type=text name=num value="(?<number>\d*?)" maxlength=3 style="font-family: verdana;font-size: 12px; width: 30;border:none;background:\#fffff2;" align=absmiddle>.*?' ;
 	$info_regex .= '<div style=".*?" align=right>(?<cost>\<img.*?'.'\>)?</div>.*?' ; // Cost
 	$info_regex .= '<div class=S16>(?<frname>.*?)</div>.*?' ; // French name
 	$info_regex .= '<div class=S16>(<img src=graph/moteur/sun.png> )?(?<name>[^<>]*?)</div>
