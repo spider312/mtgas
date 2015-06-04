@@ -120,6 +120,8 @@ function card_text_sanitize($text) {
 	$text = preg_replace('/ ?\([^)]*\([^()]*?\)[^(]*\)/', '', $text) ; // UGLY workaround for parenthesis contained in parenthesis on MV
 	$text = preg_replace('/ ?\(.*?\)/', '', $text) ; // Remove helper texts
 	$text = preg_replace('/ *— */', ' - ', $text) ;
+	$text = str_replace(chr(151), '-', $text) ;
+	$text = str_replace(chr(149), '*', $text) ;
 	$text = str_replace("\r\n", "\n", $text) ; // Keep only one type of carriage return
 	$text = str_replace(chr(147), '"', $text) ;
 	$text = str_replace(chr(148), '"', $text) ;
