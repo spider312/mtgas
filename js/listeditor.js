@@ -15,6 +15,8 @@ function card_list_edit_n(zone, dest, bottom) {
 		return n ;
 }
 function card_list_edit(zone, dest, n) {
+	if ( isn(n) && ( n == 0 ) )
+		return false ;
 	// Unicity
 	if ( zone.editor_window != null ) {
 		game.infobulle.set('Already open : '+zone.get_name()) ;
@@ -30,17 +32,12 @@ function card_list_edit(zone, dest, n) {
 	zone.editor_window = document.createElement('div') ;
 	var m = 'looks at ' ;
 	if ( isn(n) ) { // If user wants to watch only top N cards
-		if ( n == 0 ) {
-			zone.editor_window.close() ;
-			return false ;
+		if ( n > 0 ) {
+			m += ' top '+n+' cards of ' ;
+			zone.editor_window.firstcard = zone.cards[zone.cards.length-n-1] ; // Remember the first card the list shouldn't display
 		} else {
-			if ( n > 0 ) {
-				m += ' top '+n+' cards of ' ;
-				zone.editor_window.firstcard = zone.cards[zone.cards.length-n-1] ; // Remember the first card the list shouldn't display
-			} else {
-				m += ' bottom '+(-n)+' cards of ' ;
-				zone.editor_window.firstcard = zone.cards[-n] ; // Remember the first card the list shouldn't display
-			}
+			m += ' bottom '+(-n)+' cards of ' ;
+			zone.editor_window.firstcard = zone.cards[-n] ; // Remember the first card the list shouldn't display
 		}
 	}
 	m += zone.player.name+'\'s '+zone.type ;
@@ -123,19 +120,19 @@ function card_list_edit(zone, dest, n) {
 			var zone = eval(ev.target.parentNode.parentNode.zone) ;
 			var sel = new Selection(zone.editor_window.initial_sorting) ;
 			zone.cards = sel.cards ;
-			refresh_list(zone, zone.cards) ;
+			refresh_list(zone) ;
 		}, 'Sort list like zone is currently sorted') ;
 		listtool.appendChild(b_sort_cur) ;
 		var b_sort_deck = create_button('Deck', function(ev) {
 			var zone = eval(ev.target.parentNode.parentNode.zone) ;
 			zone.cards.sort(sort_deck) ;
-			refresh_list(zone, zone.cards) ;
+			refresh_list(zone) ;
 		}, 'Sort list like decklist') ;
 		listtool.appendChild(b_sort_deck) ;
 		var b_sort_alpha = create_button('Alphabet', function(ev) {
 			var zone = eval(ev.target.parentNode.parentNode.zone) ;
 			zone.cards.sort(sort_alphabet) ;
-			refresh_list(zone, zone.cards) ;
+			refresh_list(zone) ;
 		}, 'Sort list alphabetically') ;
 		listtool.appendChild(b_sort_alpha) ;
 	}
@@ -144,11 +141,11 @@ function card_list_edit(zone, dest, n) {
 	ul.id = 'cards' ;
 	zone.editor_window.cardlist = ul ;
 	zone.editor_window.appendChild(ul) ;
-	// List filling
-	zone.refresh() ; //refresh_list(zone) ;
 	// Add to document
 	document.body.appendChild(zone.editor_window) ;
 	ul.style.height = (zone.editor_window.clientHeight-listtool.offsetHeight)+'px' ;
+	// List filling
+	zone.refresh() ;
 	return zone.editor_window ;
 }
 // Main function : fill list
@@ -159,20 +156,20 @@ function refresh_list(zone) {
 	node_empty(myul) ;
 	var cards = zone.cards ;
 	// "All" element
-	var myli = create_li('Uninitialized', 'all') ;
-	myli.title = 'Select an action to apply to every displayed cards in list' ;
-	myli.addEventListener('contextmenu', allContextMenu, false) ;
-	myli.addEventListener('click', allContextMenu, false) ;
-	myli.addEventListener('select', eventLog, false) ;
-	var firstli = myli ;
-	myul.appendChild(myli) ;
-	// List
-	if ( isn(editor_window.n) && ( editor_window.n < 0 ) ) // From bottom : don't display top cards until first card encountered
-		var disp = false ;
-	else
-		var disp = true ;
+	var allli = create_li('Uninitialized', 'all') ;
+	allli.title = 'Select an action to apply to every displayed cards in list' ;
+	allli.addEventListener('contextmenu', allContextMenu, false) ;
+	allli.addEventListener('click', allContextMenu, false) ;
+	allli.cards = [] ;
+	myul.appendChild(allli) ;
+	// List display
+	if ( isn(editor_window.n) && ( editor_window.n < 0 ) ) // From bottom
+		var disp = false ; // Don't display top cards until first card encountered
+	else // From top
+		var disp = true ; // Display top cards until first card encountered
 	for ( var i = cards.length - 1 ; i >= 0 ; i-- ) { // From topdeck to bottomdeck
-		if ( editor_window.firstcard ) // Watching top/bottom cards
+		// Watching top/bottom cards
+		if ( editor_window.firstcard )
 			if ( editor_window.firstcard == cards[i] ) // Next display is the first not-to-display
 				if ( editor_window.n < 0 ) { // From bottom
 					disp = true ; // Display next cards
@@ -181,19 +178,9 @@ function refresh_list(zone) {
 					break ; // Stop listing
 		if ( ! disp )
 			continue ;
-		var iv = cards[i].is_visible() ; // Store value before making it visible by watching
-		cards[i].watching = true ;
+		// Create / reuse li
 		if ( ! iso(cards[i].li) ) { // No cache, create element
 			var myli = create_li(cards[i].get_name(), 'card') ;
-			myli.thing = cards[i] ;
-			if ( myli.thing.img != null && iv ) { // Use image cache
-				myli.removeChild(myli.firstChild) ;
-				myli.style.backgroundImage = 'url(\"'+myli.thing.img.src+'\")' ;
-			} else // Load image
-				myli.thing.load_image(function(img, myli) {
-					myli.removeChild(myli.firstChild) ;
-					myli.style.backgroundImage = 'url(\"'+img.src+'\")' ;
-				}, myli) ;
 			myli.addEventListener('mousedown', listMouseDown, false) ;
 			myli.addEventListener('mouseup', listMouseUp, false) ;
 			myli.addEventListener('mouseenter', listMouseEnter, false) ;
@@ -201,14 +188,22 @@ function refresh_list(zone) {
 			myli.addEventListener('click', eventStop, false) ;
 			myli.addEventListener('dblclick', listDblClick, false) ;
 			myli.addEventListener('contextmenu', listContextMenu, false) ;
-			myli.title = "Double click "+cards[i].name+" to send it to "+dest.type ;
+			myli.title = 'Double click '+cards[i].name+' to send it to '+dest.type ;
+			myli.thing = cards[i] ;
 			myli.thing.li = myli ; // Cache it
 		} else { // Cache exists
-			myli = cards[i].li ; // Use it
+			var myli = cards[i].li ; // Use it
 			myli.className = 'card' ; // Reinit its class (dragged, draggedover status)
-			myli.thing.load_image() ;
 		}
+		// Load image
+		myli.thing.watching = true ;
+		myli.thing.load_image(function(img, myli) {
+			myli.style.backgroundImage = 'url(\"'+img.src+'\")' ;
+			node_empty(myli) ; // Initial card name
+		}, myli) ;
+		// Add to ul
 		myul.appendChild(myli) ;
+		allli.cards.push(myli.thing) ;
 	}
 	if ( isn(editor_window.n) ) {
 		if ( editor_window.n < 0 ) // From bottom
@@ -217,7 +212,7 @@ function refresh_list(zone) {
 			var nb = cards.length - i - 1 ;
 	} else
 		var nb = cards.length ;
-	firstli.textContent = 'On displayed '+nb+' cards ...' ;
+	allli.textContent = 'On displayed '+nb+' cards ...' ;
 }
 // Events functions
 function listMouseDown(ev) {
@@ -283,58 +278,14 @@ function listDblClick(ev) { // Double click : send to BF
 }
 function listContextMenu(ev) {
 	var card = ev.target.thing ;
-	var menu = new menu_init(card) ;
-	card.changezone_menu(menu, card) ;
-	menu.addline('Shuffle and put on top', function(card) {
-		card.zone.editor_window.close() ;
-		card.moveinzone(card.zone.cards.length) ;
-	}, card) ;
-	menu.addline() ;
-	if ( card.is_visible() ) {
-		menu.addline('Informations (offsite)', card.info) ;
-		menu.addline('Internals (debug)', function(card) {
-			log2(this) ;
-			log2(this.attrs) ;
-		}) ;
-	} else
-		menu.addline('No information aviable from hidden card') ;
-	return menu.start(ev) ;
+	if ( ! card.selected() ) // Menu on a card that isn't selected
+		game.selected.set(card) ; // Select only that one
+	return card.menu(ev) ;
 }
-function allContextMenu(ev) {
-	var mycard = ev.target.nextSibling.thing ; // All is based on first card
-	var menu = new menu_init(mycard) ;
-	if ( ! mycard )
-		menu.addline('No cards in list') ;
-	else {
-		if ( mycard.zone != mycard.owner.hand )
-			menu.addline('To hand',		allContextAction,	mycard.owner.hand, ev) ;
-		if ( mycard.zone != mycard.owner.battlefield )
-			menu.addline('To battlefield',	allContextAction,	mycard.owner.battlefield, ev) ;
-		if ( mycard.zone != mycard.owner.library ) {
-			menu.addline('To top deck',	allContextAction,	mycard.owner.library, ev) ;
-			menu.addline('To bottom deck',	allContextAction,	mycard.owner.library, ev, 0) ;
-		} else { // If we are in a deck edit, it's full or only top, the only interesting action is bottom
-			menu.addline('To bottom deck',	allContextAction,	mycard.owner.library, ev, 0) ;
-		}
-		if ( mycard.zone != mycard.owner.graveyard )
-			menu.addline('To graveyard',	allContextAction,	mycard.owner.graveyard, ev) ;
-		if ( mycard.zone != mycard.owner.exile )
-			menu.addline('To exile',	allContextAction,	mycard.owner.exile, ev) ;
-	}
-	return menu.start(ev) ;
-}
-function allContextAction(zone, ev, index) {
-	// Get all displayed cards
-	var li = ev.target ;
-	var arr = new Array() ;
-	while ( ( li.nextSibling != null ) && ( li.nextSibling.className == 'card' ) ) {
-		li = li.nextSibling ;
-		arr.push(li.thing) ;
-	}
-	// Apply action
-	var sel = new Selection(arr) ;
-	if ( sel.zone == zone )
-		sel.moveinzone(index) ;
-	else
-		sel.changezone(zone, null, index) ;
+function allContextMenu(ev) { // Menu called on all displayed li, as they mey have change since opening
+	var cards = ev.target.cards ;
+	if ( cards.length < 1 )
+		return eventStop(ev) ;
+	game.selected.set(cards) ; // Use global selection to reuse card menu
+	return cards[0].menu(ev) ;
 }
