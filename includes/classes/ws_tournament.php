@@ -450,10 +450,12 @@ class Tournament {
 		foreach ( $this->players as $i => $player )
 			$player->insert($i) ; // And store them now we're sure to start
 		// TS3
-		ts3_co() ;
-		$cid = ts3_chan('Tournament '.$this->id, $this->name) ; // Create chan
-		ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
-		ts3_disco() ;
+		if ( $this->observer->ts3 ) {
+			ts3_co() ;
+			$cid = ts3_chan('Tournament '.$this->id, $this->name) ; // Create chan
+			ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
+			ts3_disco() ;
+		}
 		// Unicity
 		$upool = array() ; // All cards in current tournament's players pools
 			//that comes from a "uniq" extension
@@ -595,9 +597,11 @@ class Tournament {
 		$games = array() ;
 		$table = 1 ;
 		$this->send() ; // Workaround for redirection, client must know tournament status
-		ts3_co() ;
-		$cid = ts3_chan('Tournament '.$this->id, $this->name) ; // Get this channel
-		$crid = 0 ; // By default, don't create round channel (in case there are no players)
+		if ( $this->observer->ts3 ) {
+			ts3_co() ;
+			$cid = ts3_chan('Tournament '.$this->id, $this->name) ; // Get this channel
+			$crid = 0 ; // By default, don't create round channel (in case there are no players)
+		}
 		foreach ( $matches as $match ) {
 			$creator = array_shift($match) ;
 			$joiner = array_shift($match) ;
@@ -622,17 +626,20 @@ class Tournament {
 			// Set BYE's game already finished
 			if ( $joiner == null ) {
 				$creator->set_ready(true) ;
-				ts3_invite(array($creator), $cid) ;
+				if ( $this->observer->ts3 )
+					ts3_invite(array($creator), $cid) ;
 			} else {
-				// TS3
-				if ( $crid == 0 ) // Create round channel
-					$crid = ts3_chan('Round '.$this->round, $this->name, $cid) ;
-				$ctid = ts3_chan('Table '.$table, $this->name, $crid) ; // Create table subchannel
-				ts3_invite(array($creator, $joiner), $ctid, true) ;
+				if ( $this->observer->ts3 ) {
+					if ( $crid == 0 ) // Create round channel
+						$crid = ts3_chan('Round '.$this->round, $this->name, $cid) ;
+					$ctid = ts3_chan('Table '.$table, $this->name, $crid) ; // Create table subchannel
+					ts3_invite(array($creator, $joiner), $ctid, true) ;
+				}
 			}
 			$games[] = $game ;
 		}
-		ts3_disco() ;
+		if ( $this->observer->ts3 )
+			ts3_disco() ;
 		$this->games[] = $games ;
 		$this->log('', 'round', $this->round) ;
 		$this->timer_goon($this->data->rounds_duration*60) ;
@@ -773,10 +780,6 @@ class Tournament {
 		return $matches ;
 	}
 	public function end() { // Last round ended normally
-		ts3_co() ;
-		$cid = ts3_chan('MOGG') ; // Create chan
-		ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
-		ts3_disco() ;
 		$this->observer->move_tournament($this, 'running', 'ended') ;
 		$this->set_status(6) ;
 		$this->terminate() ;
@@ -797,6 +800,12 @@ class Tournament {
 		$this->due_time = now() ;
 		$this->commit('due_time') ;
 		$this->timer_cancel() ;
+		if ( $this->observer->ts3 ) {
+			ts3_co() ;
+			$cid = ts3_chan('MOGG') ; // Create chan
+			ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
+			ts3_disco() ;
+		}
 	}
 	// Websocket communication
 	public function send() {

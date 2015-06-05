@@ -37,6 +37,8 @@ class GameServer {
 	public $build = null ;
 	public $tournament = null ;
 	public $game = null ;
+	// Parameters
+	public $ts3 = false ;
 	// MTG data
 	public $tokens = array() ;
 	// MOGG data
@@ -82,6 +84,9 @@ class GameServer {
 		$router->addRoute('#^/draft#i', $this->draft);
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
+		// Params
+		global $ts3 ;
+		$this->ts3 = $ts3 ;
 		$this->warn('Server created') ;
 	}
 	public function import() {

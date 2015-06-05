@@ -61,7 +61,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
 <?php
 include 'index_tournaments.php' ;
-include 'index_ts.php' ;
+//include 'index_ts.php' ;
 ?>
 
   </div><!-- id="left_col" --><!-- - - - - - - - - - - / LEFT COLUMN - - - - - - - - - - -->
