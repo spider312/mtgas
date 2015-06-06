@@ -1093,10 +1093,12 @@ function card_prototype() {
 			case 'library' :
 			case 'graveyard' :
 			case 'exile' :
+			case 'sideboard' :
 				var menu = new menu_init() ;
 				this.changezone_menu(menu) ;
 				break ;
 			default : 
+				var menu = new menu_init() ;
 				menu.addline('No menu on a card from zone ' + card.zone.type) ;
 		}
 		menu.addline() ;
@@ -1114,13 +1116,10 @@ function card_prototype() {
 		menu.start(ev) ;
 		return menu ;
 	}
-	this.changezone_menu = function(menu, target) { // Generate a menu depending on current zone, to send card to each other zone
+	this.changezone_menu = function(menu) { // Generate a menu depending on current zone, to send card to each other
 		var card = this ;
 		var player = card.owner ;
-		if ( target ) // Called from listeditor
-			var sel = new Selection([target]) ;
-		else // Called from SVG
-			var sel = game.selected ;
+		var sel = game.selected ;
 		if ( this.zone.type != 'battlefield' ) {
 			menu.addline('To battlefield',	sel.changezone, player.battlefield).override_target = sel ;
 			menu.addline('Play face down',	sel.changezone, player.battlefield, false).override_target = sel ;
