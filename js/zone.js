@@ -791,7 +791,7 @@ function battlefield(player) {
 		var result = 0 ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
-			if ( card.is_land() && ! card.attrs.get('tapped') )
+			if ( card.is_land() && ! card.tapped )
 				result++ ;
 		}
 		return result ;
@@ -1013,8 +1013,8 @@ function battlefield(player) {
 				continue ;
 			// Attrs
 			if ( ! card.has_attr('no_untap') ) {
-				if ( card.attrs.get('no_untap_once') ) {
-					card.attrs.set('no_untap_once', false) ;
+				if ( card.attrs.no_untap_once ) {
+					card.attrs.no_untap_once = false ;
 					card.refresh() ;
 					card.sync() ;
 				} else
