@@ -387,8 +387,10 @@ function library(player) {
 				line.checked = mylib.player.attrs.library_revealed ;
 				if ( ! mylib.player.attrs.library_revealed ) {
 					var topcard = mylib.cards[mylib.cards.length-1] ;
-					var checked = topcard.attrs.get('visible', false) ; // Default to card visibility
-					menu.addline('Reveal top card',		topcard.toggle_reveal,	topcard).checked = checked ;
+					var checked = topcard.attrs.visible ; // Default to card visibility
+					if ( checked == null ) // Replace 'null' value by false to display unchecked checkbox
+						checked = false ;
+					menu.addline('Reveal top card',		topcard.toggle_reveal_from_unselzone,	topcard).checked = checked ;
 				}
 				menu.addline() ;
 				menu.addline('To hand ...',		mylib.changezone,	mylib.player.hand) ;
