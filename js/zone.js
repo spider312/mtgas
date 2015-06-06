@@ -56,7 +56,7 @@ function Zone(player, type) {
 		var nb = prompt_int('How many cards to reveal from your '+this.type+' ?', 1) ;
 		var sel = this.rand_selection(this.cards, nb) ;
 		if ( sel )
-			sel.reveal(true, true) ;
+			sel.reveal_from_hand(true, true) ;
 	}
 	this.get_card = function(id) { // duplicated here for cardlisteditor that can't use globals (based on another window object)
 		for ( var j = 0 ; j < this.cards.length ; j++ )
@@ -779,7 +779,7 @@ function hand(player) {
 	}
 	myhand.reveal = function(b) {
 		var sel = new Selection(this.cards) ;
-		sel.reveal(b) ;
+		sel.reveal_from_hand(b) ;
 	}
 	return myhand ;
 }
