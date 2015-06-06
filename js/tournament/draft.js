@@ -224,7 +224,7 @@ function draft_update(data) {
 			continue ;
 		if ( iso(card.attrs.transformed_attrs) && iss(card.attrs.transformed_attrs.name) ) {
 			var name = card.attrs.transformed_attrs.name ;
-			var url = card_image_url(content.ext_img, name, card.attrs) ;
+			var url = card_image_url(content.ext_img, name, card.attrs.nb) ;
 			game.image_cache.load(card_images(url), function(img, tag) {
 				tag.transformed_url = img.src ;
 				tag.addEventListener('mouseover', function(ev) {

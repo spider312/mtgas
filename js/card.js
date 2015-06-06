@@ -3,7 +3,7 @@ function Card(id, extension, name, zone, attributes, exts) {
 	Widget(this) ;
 	this.type = 'card' ; // Used in right DND
 	this.init('c_' + id, extension, name, zone, attributes, exts) ;
-	this.image_url = card_image_url(this.ext, this.name, this.attrs) ;
+	this.image_url = card_image_url(this.ext, this.name, this.attrs.nb) ;
 	this.bordercolor = 'black' ;
 	this.setzone(zone) ; // Initial zone initialisation
 	game.cards.push(this) ; // Auto referencing as a card
@@ -522,7 +522,7 @@ function card_prototype() {
 	}
 	this.imgurl_relative = function() {
 		if ( ( this.attrs.transformed ) && this.transformed_attrs && iss(this.transformed_attrs.name) )
-			return card_image_url(this.ext, this.transformed_attrs.name, this.attrs) ;
+			return card_image_url(this.ext, this.transformed_attrs.name, this.attrs.nb) ;
 		else
 			return this.image_url ;
 	}
