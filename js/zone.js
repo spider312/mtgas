@@ -289,9 +289,10 @@ function unselzone(result) { // Common
 			if ( this.img != null )
 				context.drawImage(this.img, (this.w-this.img.width)/2 , (this.h-this.img.height)/2) ;
 		} else {
-			if ( this.vcards <= 1 ) // No visible card, draw back, 1 visible card, draw it
-				this.cards[this.cards.length-1].draw(context, card.x - this.x, card.y - this.y) ;
-			else { // More than 1 visible card
+			if ( this.vcards <= 1 ) { // No visible card, draw back, 1 visible card, draw it
+				var card = this.cards[this.cards.length-1] ;
+				card.draw(context, card.x - this.x, card.y - this.y) ;
+			} else { // More than 1 visible card
 				for ( var i = this.vcards-1 ; i >= 0 ; i-- ) // Draw them
 					if ( i < this.cards.length ) { // ???
 						var idx = this.cards.length-i-1 ; // this.cards.length - 1 = top index, i = 0-n top visible cards
