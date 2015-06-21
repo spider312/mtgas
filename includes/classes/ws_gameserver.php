@@ -7,6 +7,7 @@ require_once 'includes/card.php' ;
 require_once 'includes/ranking.php' ;
 require_once 'includes/ts3.php' ;
 // Websocket objects
+require_once 'includes/classes/ws_ban.php' ;
 require_once 'includes/classes/ws_game.php' ;
 require_once 'includes/classes/ws_tournament.php' ;
 require_once 'includes/classes/ws_registration.php' ;
@@ -75,7 +76,7 @@ class GameServer {
 		$this->build = new BuildHandler($this->logger, $this, 'build') ;
 		$this->game = new GameHandler($this->logger, $this, 'game') ;
 		$this->admin = new AdminHandler($this->logger, $this, 'admin') ;
-		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game') ;
+		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game', 'admin') ;
 		// Routes
 		$router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);
 		$router->addRoute('#^/index#i', $this->index);
@@ -125,6 +126,8 @@ class GameServer {
 	}
 	public function import_mogg() {
 		$this->warn("\tBegin MOGG import") ;
+		$this->bans = new Bans($this) ;
+		$this->warn("\t\t".count($this->bans->list).' bans imported') ;
 		global $db ;
 			// Running games
 		$this->joined_duels = array() ;

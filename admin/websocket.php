@@ -25,10 +25,12 @@ html_menu() ;
 ?>
 
   <div class="section">
-   <h1>Index <?=ws_indicator();?></h1>
+   <h1>Server <?=ws_indicator();?></h1>
+   <h2>Handlers</h2>
    <ul id="connected_users"></ul>
+   <h2>Bans</h2>
+   <ul id="bans"></ul>
   </div>
-
 
   <div class="section">
    <h1>Games</h1>

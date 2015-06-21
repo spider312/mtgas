@@ -18,6 +18,7 @@ class AdminHandler extends ParentHandler {
 			$h = $this->observer->{$handler} ;
 			$overall->handlers->{$handler} = $h->list_users() ;
 		}
+		$overall->bans = $this->observer->bans->list ;
 		// MTG Data
 		$overall->extensions = count(Extension::$cache) ;
 		$overall->cards = count(Card::$cache) ;
@@ -72,6 +73,18 @@ class AdminHandler extends ParentHandler {
 							$this->say(implode($kicked).' kicked') ;
 					} else
 						$this->say('Trying to kick from unexisting handler '.$data->handler) ;
+				}
+				break ;
+			case 'ban' :
+				if ( property_exists($data, 'id') && property_exists($data, 'reason') ) {
+					$this->observer->bans->add($data->reason, null, $data->id) ;
+					$this->register_user($user, $data) ;
+				}
+				break ;
+			case 'unban' :
+				if ( property_exists($data, 'id') ) {
+					$this->observer->bans->del($data->id) ;
+					$this->register_user($user, $data) ;
 				}
 				break ;
 			default :

@@ -68,9 +68,15 @@ class ParentHandler extends WebSocketUriHandler {
 				break ;
 			case 'register' :
 				if ( isset($data->player_id) && isset($data->nick) ) {
-					$user->player_id = $data->player_id ;
-					$user->nick = $data->nick ;
-					$this->register_user($user, $data) ;
+					$ban = $this->observer->bans->is(null, $data->player_id) ;
+					if ( $ban ) {
+						$this->say('Connexion attempt from banned user '.$data->player_id.' ('.$ban->reason.')') ;
+						$user->sendString('{"type": "ban", "reason": "'.$ban->reason.'"}') ;
+					} else {
+						$user->player_id = $data->player_id ;
+						$user->nick = $data->nick ;
+						$this->register_user($user, $data) ;
+					}
 				} else {
 					$this->say('Incomplete registration : '.$data->player_id.' / '.$data->nick) ;
 					$user->close();

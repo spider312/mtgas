@@ -162,9 +162,7 @@ class IndexHandler extends ParentHandler {
 			foreach ( $this->observer->pending_tournaments as $tournament )
 				if ( $tournament->registered($user) !== false )
 					$tournament->unregister($user, $this) ;
-			//$this->broadcast('{"type": "unregister", "player_id": "'.$user->player_id.'"}') ;
 			$this->broadcast(json_encode($this->list_users())) ;
-		} else
-			$this->say('Disconection from unregistered user') ;
+		}
 	}
 }

@@ -1,9 +1,10 @@
 function start(ev) { // On page load
+	var connected_users = document.getElementById('connected_users') ;
+	var bans = document.getElementById('bans') ;
 	var pending_duels = document.getElementById('pending_duels') ;
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
-	var connected_users = document.getElementById('connected_users') ;
 	var mtg_data = document.getElementById('mtg_data') ;
 	var refresh_mtg_data = document.getElementById('refresh_mtg_data') ;
 	refresh_mtg_data.addEventListener('click', function(ev) {
@@ -15,13 +16,15 @@ function start(ev) { // On page load
 	game.connection = new Connexion('admin', function(data, ev) { // OnMessage
 		switch ( data.type  ) {
 			case 'overall' :
+				clear() ;
 				for ( var i in data.handlers )
 					handler_li(i, data.handlers[i], connected_users) ;
+				for ( var i = 0 ; i < data.bans.length ; i++ )
+					bans.appendChild(ban_li(data.bans[i])) ;
 				//fill_duel(pending_duels, data.pending_duels) ;
 				//fill_duel(joined_duels, data.joined_duels) ;
 				//fill_tournament(pending_tournaments, data.pending_tournaments) ;
 				//fill_tournament(running_tournaments, data.running_tournaments) ;
-				console.log(data) ;
 				player_number(data, 'pending_duels') ;
 				player_number(data, 'joined_duels') ;
 				player_number(data, 'pending_tournaments') ;
@@ -33,10 +36,22 @@ function start(ev) { // On page load
 				debug('Unknown type '+data.type) ;
 				debug(data) ;
 		}
-	}, function(ev) { // OnClose/OnConnect
-		node_empty(connected_users, pending_duels, joined_duels,
-			pending_tournaments, running_tournaments, mtg_data) ;
-	}) ;
+	}, clear);// OnClose/OnConnect
+}
+function clear() {
+	node_empty(
+		connected_users, bans,
+		pending_duels, joined_duels,
+		pending_tournaments, running_tournaments,
+		mtg_data) ;
+}
+function ban_li(data) {
+	var li = create_li(data.id+' : '+data.player_id+' : '+data.reason) ;
+	var button = create_button('Unban', function(ev) {
+		game.connection.send('{"type": "unban", "id": "'+data.id+'"}') ;
+	}, 'Unban player') ;
+	li.appendChild(button) ;
+	return li ;
 }
 function handler_li(name, handler, node) {
 	// User list
@@ -55,6 +70,18 @@ function player_li(user, handler) {
 		var data = '{"type": "kick", "handler": "'+handler+'", "id": "'+user.player_id+'"}';
 		game.connection.send(data) ;
 	}, 'Disconnect user') ;
+	li.appendChild(button) ;
+	var input_reason = create_input('reason', '', null) ;
+	li.appendChild(input_reason) ;
+	var button = create_button('Ban ID', function(ev) {
+		var reason = input_reason.value ;
+		if ( reason == '' ) 
+			alert('Type a reason') ;
+		else {
+			var data = '{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}';
+			game.connection.send(data) ;
+		}
+	}, 'Ban player by its ID ('+user.player_id+')') ;
 	li.appendChild(button) ;
 	return li ;
 }
