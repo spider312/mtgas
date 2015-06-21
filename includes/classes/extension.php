@@ -70,10 +70,10 @@ class Extension {
 	private function rand_card($from, &$booster, &$upool) {
 		shuffle($from) ;
 		foreach ( $from as $card ) {
-			if ( in_array($card, $booster) )
+			if ( card_in_booster($card, $booster) )
 				continue ;
 			if ( $this->get_data('uniq', false) ) {
-				if ( in_array($card, $upool) )
+				if ( card_in_booster($card, $upool) )
 					continue ;
 				else
 					$upool[] = $card ;
@@ -187,4 +187,10 @@ class Extension {
 			Extension::$cache[] = new Extension($ext) ;
 		return $raw ;
 	}
+}
+function card_in_booster($card, $booster) {
+	foreach ( $booster as $currcard  )
+		if ( $card->name == $currcard->name )
+			return true ;
+	return false ;
 }
