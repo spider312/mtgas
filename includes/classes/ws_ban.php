@@ -68,9 +68,9 @@ class Ban {
 			`host`,
 			`player_id`
 		) VALUES (
-			'{$this->reason}',
-			'{$this->host}',
-			'{$this->player_id}'
+			'".$db->escape($this->reason)."',
+			'".$db->escape($this->host)."',
+			'".$db->escape($this->player_id)."'
 		);") ;
 	}
 	public function is($host = null, $player_id = null) {

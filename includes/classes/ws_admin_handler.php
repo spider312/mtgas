@@ -67,7 +67,7 @@ class AdminHandler extends ParentHandler {
 								$cnx->close('Kicked') ;
 								$kicked[] = $cnx->nick ;
 							}
-						if ( count($kicked) > 0 )
+						if ( count($kicked) == 0 )
 							$this->say('No players with id '.$data->id.' to kick') ;
 						else
 							$this->say(implode($kicked).' kicked') ;
