@@ -181,6 +181,7 @@ class Extension {
 		return $ext ;
 	}
 	static function fill_cache() {
+		Extension::$cache = array() ;
 		global $db_cards ;
 		$raw = $db_cards->select("SELECT * FROM `extension` ORDER BY release_date DESC, priority DESC") ;
 		foreach ( $raw as $ext )

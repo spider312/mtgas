@@ -7,10 +7,11 @@ class AdminHandler extends ParentHandler {
 		$overall = new stdClass() ;
 		$overall->type = 'overall' ;
 		// Games & tournaments
-		$overall->pending_duels = $this->observer->pending_duels ;
-		$overall->joined_duels = $this->observer->joined_duels ;
-		$overall->pending_tournaments = $this->observer->pending_tournaments ;
-		$overall->running_tournaments = $this->observer->running_tournaments ;
+		$overall->pending_duels = count($this->observer->pending_duels) ;
+		$overall->joined_duels = count($this->observer->joined_duels) ;
+		$overall->pending_tournaments = count($this->observer->pending_tournaments) ;
+		$overall->running_tournaments = count($this->observer->running_tournaments) ;
+		$overall->ended_tournaments = count($this->observer->ended_tournaments) ;
 		// Handlers (connected users)
 		$overall->handlers = new stdClass() ;
 		foreach ( $this->observer->handlers as $handler ) {
@@ -51,6 +52,9 @@ class AdminHandler extends ParentHandler {
 						}
 					$t->send() ;
 				}
+				break ;
+			case 'refresh_mtg_data' :
+				$this->observer->import_mtg() ;
 				break ;
 			case 'kick' :
 				if ( property_exists($data, 'handler') && property_exists($data, 'id') ) {

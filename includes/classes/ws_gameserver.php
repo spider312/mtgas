@@ -90,29 +90,41 @@ class GameServer {
 		$this->warn('Server created') ;
 	}
 	public function import() {
-		// MTG Data
+		$this->import_mtg() ;
+		$this->import_mogg() ;
+		$this->export() ;
+	}
+	public function import_mtg() {
+		$this->warn("\tBegin MTG import") ;
 		Extension::fill_cache() ;
-		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
+		$this->warn("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
-		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
+		$this->warn("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
 		// Token images
 		$exts = array_reverse(Extension::$cache) ;
 		// Files (for tokens existence)
 		$base = '/home/hosted/mogg/img/MIDRES/TK/' ;
 		$tokendirs = scan($base) ;
 		// Processing (list all existing tokens ordered by database)
+		$nbtoken = 0 ;
 		$orderedtokens = array() ;
 		foreach ( $exts as $obj )
 			if ( isset($tokendirs[$obj->se]) ) {
 				$orderedtokens[$obj->se] = $tokendirs[$obj->se] ;
+				$nbtoken += count($tokendirs[$obj->se]) ;
 				unset($tokendirs[$obj->se]) ;
 			}
 		if ( isset($tokendirs['EXT']) ) { // Fallback tokens without specific extension
 			$orderedtokens['EXT'] = $tokendirs['EXT'] ;
+			$nbtoken += count($tokendirs[$obj->se]) ;
 			unset($tokendirs['EXT']) ;
 		}
 		$this->tokens = $orderedtokens ;
-		// MOGG Data
+		$this->warn("\t\t$nbtoken tokens listed") ;
+		$this->warn("\tEnd MTG import") ;
+	}
+	public function import_mogg() {
+		$this->warn("\tBegin MOGG import") ;
 		global $db ;
 			// Running games
 		$this->joined_duels = array() ;
@@ -127,7 +139,7 @@ class GameServer {
 				$this->joined_duels[] = $g ;
 			}
 		}
-		$this->warn("\t".count($this->joined_duels).' running duels imported') ; 
+		$this->warn("\t\t".count($this->joined_duels).' running duels imported') ; 
 			// Running tournaments
 		foreach ( $db->select("SELECT `id` FROM `tournament`
 			WHERE `status` > '1' AND `status` < '6'	ORDER BY `id` ASC") as $tournament ) {
@@ -135,13 +147,18 @@ class GameServer {
 			if ( $t )
 				$this->running_tournaments[] = $t ;
 		}
-		$this->warn("\t".count($this->running_tournaments).' running tournaments imported') ;
+		$this->warn("\t\t".count($this->running_tournaments).' running tournaments imported') ;
+		$this->warn("\tEnd MOGG import") ;
+	}
+	public function export() {
+		$this->warn("\tBegin export") ;
 		// Export
 		ranking_to_file('ranking/week.json', 'WEEK') ;
 		ranking_to_file('ranking/month.json', 'MONTH') ;
 		ranking_to_file('ranking/year.json', 'YEAR') ;
 		ranking_to_file('ranking/all.json', 'YEAR', 10) ;
-		$this->warn("\t".'Ranking exported') ;
+		$this->warn("\t\t".'Ranking exported') ;
+		$this->warn("\tEnd export") ;
 	}
 	public function start() {
 		$this->check() ;

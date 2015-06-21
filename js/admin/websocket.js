@@ -1,22 +1,31 @@
-$(function() { // On page load
+function start(ev) { // On page load
 	var pending_duels = document.getElementById('pending_duels') ;
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
 	var connected_users = document.getElementById('connected_users') ;
 	var mtg_data = document.getElementById('mtg_data') ;
+	var refresh_mtg_data = document.getElementById('refresh_mtg_data') ;
+	refresh_mtg_data.addEventListener('click', function(ev) {
+		game.connection.send({'type': 'refresh_mtg_data'}) ;
+	}, false) ;
 	game = {} ;
 	game.options = new Options(true) ;
 	// Websockets
 	game.connection = new Connexion('admin', function(data, ev) { // OnMessage
 		switch ( data.type  ) {
 			case 'overall' :
-				for ( var i = 0 ; i < data.handlers.index.users.length ; i++ )
-					connected_users.appendChild(player_li(data.handlers.index.users[i], 'index')) ;
-				fill_duel(pending_duels, data.pending_duels) ;
-				fill_duel(joined_duels, data.joined_duels) ;
-				fill_tournament(pending_tournaments, data.pending_tournaments) ;
-				fill_tournament(running_tournaments, data.running_tournaments) ;
+				for ( var i in data.handlers )
+					handler_li(i, data.handlers[i], connected_users) ;
+				//fill_duel(pending_duels, data.pending_duels) ;
+				//fill_duel(joined_duels, data.joined_duels) ;
+				//fill_tournament(pending_tournaments, data.pending_tournaments) ;
+				//fill_tournament(running_tournaments, data.running_tournaments) ;
+				console.log(data) ;
+				player_number(data, 'pending_duels') ;
+				player_number(data, 'joined_duels') ;
+				player_number(data, 'pending_tournaments') ;
+				player_number(data, 'running_tournaments') ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
 				break ;
@@ -28,7 +37,17 @@ $(function() { // On page load
 		node_empty(connected_users, pending_duels, joined_duels,
 			pending_tournaments, running_tournaments, mtg_data) ;
 	}) ;
-})
+}
+function handler_li(name, handler, node) {
+	// User list
+	var ul = create_ul() ;
+	for ( var i = 0 ; i < handler.users.length ; i++ )
+		ul.appendChild(player_li(handler.users[i], name)) ;
+	// Handler LI
+	var li = create_li(name) ;
+	li.appendChild(ul) ;
+	node.appendChild(li) ;
+}
 function player_li(user, handler) {
 	var li = create_li(user.nick) ;
 	li.title = user.player_id ;
@@ -38,6 +57,10 @@ function player_li(user, handler) {
 	}, 'Disconnect user') ;
 	li.appendChild(button) ;
 	return li ;
+}
+function player_number(data, fieldname) {
+	var field = document.getElementById(fieldname+'_input') ;
+	field.value = data[fieldname] ;
 }
 function fill_duel(node, datas) {
 	if ( datas.length < 1 )
