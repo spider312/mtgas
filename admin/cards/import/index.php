@@ -46,6 +46,7 @@ html_menu() ;
       <?=html_option('mtgjson', 'MTGJSON', $source) ; ?>
       <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
       <?=html_option('mv', 'Magic Ville', $source) ; ?>
+      <?=html_option('mv_dom', 'Magic Ville DOM', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
@@ -105,10 +106,10 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.$card->rarity.'</td>
       <td>'."\n      " ;
 	if ( count($card->urls) > 1 ) {
-		echo '      <ul>' ;
+		echo '      <ul>'."\n" ;
 		foreach ( $card->urls as $url )
-			echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>' ;
-		echo '</ul>'."\n" ;
+			echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>'."\n" ;
+		echo '      </ul>'."\n" ;
 	} else
 		echo '      <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a>'."\n" ;
 	echo '</td>
@@ -181,7 +182,7 @@ foreach ( $import_log as $i => $log ) {
 		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
 			continue ;
 		echo '     <tr>
-      <td>'.$i.' : '.$card->name.'</td>
+      <td>'.$i.' : <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a></td>
       <td><img src="'.$card->images[0].'"></td>
       <td>' ;
 		foreach ( $log['updates'] as $field => $upd ) {

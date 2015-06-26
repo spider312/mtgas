@@ -90,10 +90,21 @@ function rmkdir($dir) { // mkdir recursively without umask bug
 // Common between MagicVille and MythicSpoiler
 function mv2txt($tmp) {
 	// Costs parsing before strip_tags
-	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.)(.).gif alt="%\1\2">#', '{$1/$2}', $tmp) ; // Hybrid
-	$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%\1">#', '{$1}', $tmp) ; // Normal
-	$tmp = str_replace(' : ', ': ', $tmp) ; // Stick to MCI policy
+		//tmp comment for import of an extension without hybrid
+	//$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.)(.).gif alt="%\1\2">#', '{$1/$2}', $tmp) ; // Hybrid
+	
+	//$tmp = preg_replace('#<img style="vertical-align:-20%;" src=graph/manas_c/(.).gif alt="%\1">#', '{$1}', $tmp) ; // Normal
+	$tmp = preg_replace('#<img alt="%(.)" src="graph/manas_c/\1.gif" style="vertical-align:-20%;">#', '{$1}', $tmp) ; // Reformated by DOM parser + C14N()
+	$tmp = preg_replace('@<br></br>(\S)@', "\n".'\1', $tmp) ; // 2 br not followed by a CR : add a CR
+	$tmp = str_replace('&#xD;', '', $tmp) ; // \r cleanup
+	$tmp = str_replace("\n\n", "\n", $tmp) ; // No need for 2 consecutive \n
+	//echo $tmp ;
+	//echo "\n<hr>\n" ;
 	$tmp = strip_tags($tmp) ; // Purify
+	//$tmp = htmlentities($tmp) ;
+	//echo $tmp ;
+	//echo "\n<hr>\n" ;
+	//echo "\n<hr>\n" ;
 	$tmp = trim($tmp) ; // Cleanup
 	return $tmp ;
 }
@@ -121,12 +132,13 @@ function mv2cost($tmp) {
 // Debug
 function strdebug($str, $index=false) {
 	//$arr = preg_split('/(?<!^)(?!$)/u', $str ); 
-	$arr = str_split($str) ;
+	//$arr = str_split($str) ;
+	$arr = $str ;
 	$result = '<table>' ;
 	$indexes = '' ;
 	$letters = '' ;
 	$ords = '' ;
-	for ( $i=0 ; $i < count($arr) ; $i++ ) {
+	for ( $i=0 ; $i < strlen($arr) ; $i++ ) {
 		$indexes .= '<td>'.$i.'</td>' ;
 		$letters .= '<td>'.$arr[$i].'</td>' ;
 		$ords .= '<td>'.ord($arr[$i]).'</td>' ;
