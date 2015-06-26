@@ -401,7 +401,7 @@ class ImportExtension {
 		foreach ( $this->cards as $card ) {
 			echo $card->name.' : ' ;
 			if ( $card->secondname != '' ) {
-				if ( count($card->images) != 2 )
+				if ( count($card->images) < 2 )
 					die('2 images expected for tranfsorm') ;
 				$path = $dir.card_img_by_name($card->name, 1, 1) ;
 				cache_get($card->images[0], $path, true, true) ;
@@ -409,8 +409,8 @@ class ImportExtension {
 				cache_get($card->images[1], $path, true, true) ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
-					if ( count($images['images']) != 2 )
-						die('2 images expected for tranfsorm translation') ;
+					if ( count($images['images']) < 2 )
+						echo '2 images expected for tranfsorm translation'."\n" ;
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					echo " - $lang : " ;
 					$path = $langdir.card_img_by_name($card->name, 1, 1) ;
