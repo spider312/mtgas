@@ -4,6 +4,9 @@ use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class AdminHandler extends ParentHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
+		$this->refresh($user) ;
+	}
+	private function refresh(WebSocketTransportInterface $user) { // Send overall data to user
 		$overall = new stdClass() ;
 		$overall->type = 'overall' ;
 		// Games & tournaments
@@ -56,6 +59,7 @@ class AdminHandler extends ParentHandler {
 				break ;
 			case 'refresh_mtg_data' :
 				$this->observer->import_mtg() ;
+				$this->refresh($user) ;
 				break ;
 			case 'kick' :
 				if ( property_exists($data, 'handler') && property_exists($data, 'id') ) {
@@ -69,8 +73,10 @@ class AdminHandler extends ParentHandler {
 							}
 						if ( count($kicked) == 0 )
 							$this->say('No players with id '.$data->id.' to kick') ;
-						else
+						else {
 							$this->say(implode($kicked).' kicked') ;
+							$this->refresh($user) ;
+						}
 					} else
 						$this->say('Trying to kick from unexisting handler '.$data->handler) ;
 				}
@@ -78,13 +84,13 @@ class AdminHandler extends ParentHandler {
 			case 'ban' :
 				if ( property_exists($data, 'id') && property_exists($data, 'reason') ) {
 					$this->observer->bans->add($data->reason, null, $data->id) ;
-					$this->register_user($user, $data) ;
+					$this->refresh($user) ;
 				}
 				break ;
 			case 'unban' :
 				if ( property_exists($data, 'id') ) {
 					$this->observer->bans->del($data->id) ;
-					$this->register_user($user, $data) ;
+					$this->refresh($user) ;
 				}
 				break ;
 			default :
