@@ -71,17 +71,11 @@ function player_li(user, handler) {
 		game.connection.send(data) ;
 	}, 'Disconnect user') ;
 	li.appendChild(button) ;
-	var input_reason = create_input('reason', '', null) ;
-	li.appendChild(input_reason) ;
 	var button = create_button('Ban ID', function(ev) {
-		var reason = input_reason.value ;
-		if ( reason == '' ) 
-			alert('Type a reason') ;
-		else {
-			var data = '{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}';
-			game.connection.send(data) ;
-		}
-	}, 'Ban player by its ID ('+user.player_id+')') ;
+		var reason = prompt('Reason for banning '+user.nick) ;
+		if ( ( reason != null ) && ( reason != '' ) )
+			game.connection.send('{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}') ;
+	}, 'Ban player by ID ('+user.player_id+')') ;
 	li.appendChild(button) ;
 	return li ;
 }
