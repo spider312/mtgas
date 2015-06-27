@@ -46,6 +46,8 @@ html_menu() ;
    <ul id="pending_tournaments"></ul>
    <h2>Running <input type="text" id="running_tournaments_input" size="4" disabled></h2>
    <ul id="running_tournaments"></ul>
+   <h2>Ended <input type="text" id="ended_tournaments_input" size="4" disabled></h2>
+   <ul id="ended_tournaments"></ul>
   </div>
 
   <div class="section">

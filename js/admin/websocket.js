@@ -29,6 +29,7 @@ function start(ev) { // On page load
 				player_number(data, 'joined_duels') ;
 				player_number(data, 'pending_tournaments') ;
 				player_number(data, 'running_tournaments') ;
+				player_number(data, 'ended_tournaments') ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
 				break ;
