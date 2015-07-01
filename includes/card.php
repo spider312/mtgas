@@ -37,7 +37,7 @@ function card_search($get, $connec=null) {
 		unset($get['lang']) ;
 	}
 	// Search part of word
-	$result = query($select.get2where($get, 'LIKE', '%', '%', 'card').$where.$order, 'Card listing', $connec) ;
+	$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
 	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )
