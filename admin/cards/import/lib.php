@@ -5,8 +5,11 @@ $base_image_dir = $homedir.'/img/' ;
 // Cache management
 function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
+	$content = '' ;
 	clearstatcache() ;
-	if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
+	if ( $url == '' )
+		$message .= '[empty url]' ;
+	else if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
 		$message .= '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
 	} else {
@@ -317,10 +320,19 @@ class ImportExtension {
 				$card_obj->nbpics = $card_obj->nbimages ; // Workaround in order import card obj has the same name as in DB
 				foreach ( array('rarity', 'nbpics', 'multiverseid') as $field ) {
 					if ( $res->$field != $card_obj->$field ) {
-						if ( ( $field != 'multiverseid' ) || ( $card_obj->$field != '0' ) ) { // Don't set multiverseID 0
-							$upd[$field] = $res->$field ; // Mark filed as updated, saving old value for returning
-							$updates[] = "`$field` = '".mysql_real_escape_string($card_obj->$field)."'" ;
+						switch ( $field ) {
+							/*case 'rarity' :
+								if ( $res->$field == 'S' )
+									continue 2 ;
+								break ;*/
+							case 'multiverseid' :
+								if ( ( $card_obj->$field == '' )
+									|| ( $card_obj->$field == '0' ) ) // Don't set multiverseID 0
+									continue 2 ;
+								break ;
 						}
+						$upd[$field] = $res->$field ; // Mark filed as updated, saving old value for returning
+						$updates[] = "`$field` = '".mysql_real_escape_string($card_obj->$field)."'" ;
 					}
 				}
 				if ( count($updates) == 0 ) {
@@ -442,17 +454,25 @@ class ImportExtension {
 		foreach ( $this->tokens as $token ) {
 			echo $token['type'].' : ' ;
 			$name = $token['type'] ;
-			if ( preg_match('/Emblem (.*)/', $name, $matches) ) // Token is an emblem
-				foreach ( $this->cards as $card ) // Search which planeswalker it is for
-					if ( $card->name == $matches[1] ) {
+			if ( preg_match('/Emblem (.*)/', $name, $matches) ) { // Token is an emblem
+				$found = false ;
+				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
+					if ( ( $card->name == $matches[1] ) || ( $card->secondname == $matches[1] ) ) {
+						$found = true ;
 						$attrs = $card->attrs() ;
+						if ( $card->secondname == $matches[1] )
+							$attrs = $attrs->transformed_attrs ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
+						break ;
 					}
+				}
+				if ( !$found ) { // No planeswalker found, don't DL
+					echo "Planeswalker not found for emblem\n" ;
+					continue ;
+				}
+			}
 			$path = $tkdir.$name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-			if ( curl_get_file_size($image) > filesize($path) )
-				cache_get($token['image_url'], $path, true) ;
-			else
-				echo "No update needed" ;
+			cache_get($token['image_url'], $path, true, true) ;
 			echo "\n" ;
 		}
 		/*
