@@ -232,7 +232,7 @@ foreach ( $actions as $i => $action ) {
 $_SESSION['importer'] = $importer ; // May need to comment 'session_name()' in /lib.php
 ?></pre>
    <a href="images.php" target="img_dl">Download</a><br>
-   <iframe name="img_dl" class="fullwidth">
+   <iframe name="img_dl" class="fullwidth" height="800">
    </iframe>
   </div>
 
