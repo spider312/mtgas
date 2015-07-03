@@ -100,9 +100,14 @@ class IndexHandler extends ParentHandler {
 					$data->joiner_id = $user->player_id ;
 					$duel = $duel->join($data) ;
 					$duel->type = 'joineduel' ;
+					// Send first one time to both players
 					$duel->redirect = true ;
-					$this->broadcast(json_encode($duel)) ;
+					$json = json_encode($duel) ;
+					$this->send_first($json, $duel->creator_id) ;
+					$this->send_first($json, $duel->joiner_id) ;
+					// Then broadcast to inform other users game was joined
 					$duel->redirect = false ;
+					$this->broadcast(json_encode($duel)) ;
 					$this->observer->joined_duels[] = $duel ;
 				}
 				break ;
@@ -154,6 +159,15 @@ class IndexHandler extends ParentHandler {
 		foreach ( $this->getConnections() as $user )
 			if ( $user != $sender )
 				$user->sendString($msg) ;
+	}
+	// Send a message to first connected user with given player_id
+	public function send_first($msg, $player_id) {
+		foreach ( $this->getConnections() as $user )
+			if ( isset($user->player_id) && ( $user->player_id == $player_id ) ) {
+				$user->sendString($msg) ;
+				return true ;
+			}
+		return false ;
 	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( isset($user->player_id) ) {
