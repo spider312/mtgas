@@ -180,6 +180,16 @@ class GameHandler extends ParentHandler {
 					$this->observer->index->broadcast('{"type": "duelcancel", "id": "'.$user->game->id.'"}');
 				else if ( $field != '' )
 					$this->observer->index->broadcast(json_encode($user->game)) ;
+				// Clean duel if it has no players connected to
+				$connexions = $this->getConnections() ;
+				$connected = false ;
+				foreach ( $connexions as $cnx )
+					if ( $cnx->game->id == $user->game->id ) {
+						$connected = true ;
+						break ;
+					}
+				if ( ! $connected )
+					$this->observer->clean_duel($user->game) ;
 			}
 		}
 	}
