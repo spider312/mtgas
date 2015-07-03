@@ -98,6 +98,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Types
 	$type_nodes = $card_xpath->query("//div[@class='G12']") ;
 	$types = $type_nodes->item($us_idx)->nodeValue ;
+	$types = trim($types) ;
+	$types = str_replace(chr(194).chr(151), '-', $types) ;
 	// Text
 	$text_nodes = $card_xpath->query("//div[@class='S12' or @class='S11']") ; //div[@id='EngShort']
 	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
@@ -131,8 +133,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Rarity
 	$rarity_node = $card_xpath->query("//img[contains(@src, '$rarity_url')]") ;
 	if ( $rarity_node->length <= 0 ) {
-		$importer->adderror('Rarity icon not found', $url) ;
-		$rarity = 'N' ;
+		$importer->adderror('Rarity icon not found', $href) ;
+		$rarity = 'C' ;
 	} else {
 		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
 		$rarity = $rarities[$rarity_id] ;
