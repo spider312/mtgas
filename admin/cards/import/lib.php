@@ -419,9 +419,13 @@ class ImportExtension {
 				cache_get($card->images[0], $path, true, true) ;
 				$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
 				cache_get($card->images[1], $path, true, true) ;
+				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
-					if ( count($images['images']) < 2 )
+					$nbimages = count($images['images']) ;
+					if ( $nbimages < 1 )
+						continue ;
+					if ( $nbimages < 2 )
 						echo '2 images expected for tranfsorm translation'."\n" ;
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					echo " - $lang : " ;
@@ -439,8 +443,10 @@ class ImportExtension {
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
-					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
+					if ( count($images['images']) < 1 )
+						continue ;
 					echo " - $lang : " ;
+					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					foreach ( $images['images'] as $i => $image ) {
 						$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
 						cache_get($image, $path, true, true) ;
@@ -475,11 +481,6 @@ class ImportExtension {
 			cache_get($token['image_url'], $path, true, true) ;
 			echo "\n" ;
 		}
-		/*
-		// Thumbnailing
-		shell_exec($homedir.'/bin/thumb '.$this->dbcode) ;
-		shell_exec($homedir.'/bin/thumb TK/'.$this->dbcode) ;
-		*/
 		umask($oldumask) ;
 		echo "\n".'Finished in '.(microtime(true)-$begin).' (think about thumbnailing)' ;
 		return true ;
@@ -546,27 +547,26 @@ class ImportCard {
 	}
 	function setlang($code, $name, $url=null) { // Add language data for current card, overwriting all data for that card/lang
 		$name = ucfirst($name) ;
-		if ( isset($this->langs[$code]) ) {
-			$this->langs[$code]['name'] = $name ;
-			$this->addlangimg($code, $url) ;
-		} else
-			$this->langs[$code] = array('name' => $name, 'images' => array($url)) ;
+		if ( ! isset($this->langs[$code]) )
+			$this->langs[$code] = array() ;
+		$this->langs[$code]['name'] = $name ;
+		$this->addlangimg($code, $url) ;
 	}
 	function addlang($code, $name, $url=null) { // Add data to current language data (name append for dual cards, URL image for cards with multiple images)
 		$name = ucfirst($name) ;
 		if ( isset($this->langs[$code]) ) {
 			if ( $name != $this->langs[$code]['name'] )
 				$this->langs[$code]['name'] .= ' / '.$name ;
-			if ( $url != null )
-				$this->langs[$code]['images'][] = $url ;
+			$this->addlangimg($code, $url) ;
 		} else
 			$this->setlang($code, $name, $url) ;
 	}
 	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
-		if ( ! isset($this->langs[$code]) )
-			$this->langs[$code] = array('images' => array($url)) ;
-		else
-			$this->langs[$code]['images'][] = $url ;
+		if ( ! isset($this->langs[$code]['images']) )
+			$this->langs[$code]['images'] = array() ;
+		if ( ( $url == null ) || ( $url == '' ) )
+			return false ;
+		$this->langs[$code]['images'][] = $url ;
 	}
 	function attrs() {
 		$arr = array('name' => $this->name, 'cost' => $this->cost, // Needed for attrs
