@@ -33,9 +33,11 @@ $importer->setext($code, $title, $nbcards) ;
 $card_links = $xpath->query("//td[@class='S12']/a");
 $card_dom = new DOMDocument;
 for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
+	$frimg = null ;
 	$trtext = 'Uninitialized' ;
 	$trpt = '' ;
 	$trimg = 'void' ;
+	$frtrimg = null ;
 	// Link
 	$card_link = $card_links->item($i) ;
 	$href = $card_link->getAttribute('href') ;
@@ -79,6 +81,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Img
 	$img_node = $card_xpath->query("//td[@width=325]/img") ;
 	$img = $base_url.$img_node->item(0)->getAttribute('src') ;
+	if ( strpos($img, 'FR') ) {
+		$frimg = $img ;
+		$img = str_replace('FR', '', $img) ;
+	}
 // Token
 	if ( $number > $importer->nbcards ) {
 		$pow = 0 ; $tou = 0 ;
@@ -146,7 +152,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	if ( ! $card )
 		continue ;
 	// Translation
-	$card->addlang('fr', $frname) ;
+	$card->addlang('fr', $frname, $frimg) ;
 	// Moon
 	if ( $name_nodes->length > 3 ) {
 		// Name
@@ -169,6 +175,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		// Image
 		if ( preg_match('#if \(bflst==1\) \{document\["BIGflippic"\].src="(.*?)";bflst=2;\}#', $card_html, $matches) )
 			$trimg = $matches[1] ;
+		if ( strpos($trimg, 'FR') ) {
+			$frtrimg = $trimg ;
+			$trimg = str_replace('FR', '', $trimg) ;
+		}
 		// Import
 		$card->transform(
 			card_name_sanitize($trname)
@@ -177,6 +187,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			, $trtext
 			, $base_url.$trimg
 		) ;
+		if ( $frtrimg != null )
+			$card->addlangimg('FR', $frtrimg) ;
 	}
 }
 function mv_planeswalker($text_nodes, $text_idx) {
