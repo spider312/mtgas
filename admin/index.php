@@ -24,7 +24,7 @@ function start() { // On page load
 	game.options = new Options(true) ;
 	var report_list = document.getElementById('report_list') ;
 	report_list.addEventListener('change', function(ev) {
-		var select = ev.srcElement ;
+		var select = this ;
 		var option = select.options[select.selectedIndex] ;
 		var spl = option.value.split('|') ;
 		if ( spl.length < 5 )
