@@ -982,8 +982,7 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 	} else { // Changing life for attacking player
 		for ( var i in defending_player.battlefield.cards ) { // Sum
 			var card = defending_player.battlefield.cards[i] ;
-			if ( card.attacking && // Attacking creatures
-			card.has_attr('lifelink') && card.lifelink ) { // With lifelink
+			if ( card.attacking && card.has_attr('lifelink') ) { // Attacking creatures with lifelink
 				var pow = card.get_pow_total() ;
 				if ( card.attrs.double_strike )
 					pow *= 2 ;
