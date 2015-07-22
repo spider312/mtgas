@@ -1,4 +1,5 @@
 /* ========== Menu ========== */
+/* Menu frame */
 .menu {
 	z-index: 1000 ;
 	position: absolute ;
@@ -10,26 +11,31 @@
 	background-color: white ;
 	border: 1px solid #AAAAAA ;
 }
-.text { /* TD without an HR */
-	padding-right: 15px !important ;
-}
-.menu td	{
+/* Menu line */
+.menu td {
 	white-space: nowrap ;
 	font-size: 0.75em ;
 	font-family: Verdana, Geneva, sans-serif ;
 	margin: 0 ;
-	/*padding-left: 5px ;
-	padding-right: 5px ;
-	padding-top: 0 ;
-	padding-bottom: 0 ;*/
 	padding: 0 ;
 	border: 1px solid white ; /* Will be colorized hover */
 }
-.menu hr	{
-	color: darkgray ; /* Both for maximal compatibility */
-	background-color: darkgray ;
-	margin: 0 ;
+/* Menu line not separator */
+.menu .text {
+	padding-right: 15px ; /* Equilibrate with space reserved for checkbox; also usefull for submenu icon */
 }
+/* Checkbox */
+.menu input {
+	margin: 1px 2px 1px 0 ; /* Top & bot 1px for lisibility, right 2px not to stick to text */
+	vertical-align: bottom ; /* The only way i found to align checkbox and text */
+}
+/* Separator */
+.menu hr {
+	margin: 0 ;
+	background-color: lightgray ; color: lightgray ; /* Both for maximal compatibility */
+	opacity: .40 ; /* Impossible to get it lighter without opacity */
+}
+/* Behaviour */
 .menu .active:hover	{
 	background-color: #90B2DE ;
 	border-color: #4B6E99 ;
@@ -38,9 +44,9 @@
 .menu .inactive	{
 	color: darkgray ;
 }
+/* Submenu */
 .menu .submenu {
 	background-image: url('../iconSubMenu.png') ;
 	background-position: right center ;
 	background-repeat: no-repeat ;
-
 }
