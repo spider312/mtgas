@@ -263,17 +263,19 @@ function pool_update(place, zone) {
 				var img = Img(place, line.ext_img, line.name, line.attrs.nb)
 				img.id = classname+i ;
 				img.classList.add(classname) ;
+				img.addEventListener('dragstart', eventStop, false) ; // No DND
 				// https://developer.mozilla.org/fr/docs/Glisser_et_d%C3%A9poser
+				/*
 				img.addEventListener('dragstart', function(ev) {
 					ev.dataTransfer.setData('drag', ev.target.id) ;
 					ev.target.classList.add('drag') ;
 				}, false) ;
 				img.addEventListener('dragend', function(ev) {
 					ev.target.classList.remove('drag') ;
-					/*var player = game.tournament.get_player(player_id) ;
-					if ( player == null )
-						return false ;
-					deck_stats_cc(drafted_cards) ;*/
+					//var player = game.tournament.get_player(player_id) ;
+					//if ( player == null )
+					//	return false ;
+					//deck_stats_cc(drafted_cards) ;
 				}, false) ;
 				img.addEventListener('dragenter', function(ev) {
 					var cardid = ev.dataTransfer.getData('drag') ;
@@ -299,6 +301,7 @@ function pool_update(place, zone) {
 				}, false) ;
 				img.addEventListener('dragover', eventStop, false) ; // Confirm drop
 				img.addEventListener('drop', eventStop, false) ; // No redirect to img
+				*/
 				break ;
 			default : 
 				alert(typeof line) ;

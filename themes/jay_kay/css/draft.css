@@ -42,7 +42,7 @@ td.self {
 	line-height: 0 ; /* No space between "lines" of cards */
 }
 .drafted.card, .sided.card {
-	cursor: move ; /* Drag'n'drop*/
+	/*cursor: move ; /* Drag'n'drop*/
 }
 /* DND */
 .drag {
