@@ -37,21 +37,23 @@ function card_search($get, $connec=null) {
 		unset($get['lang']) ;
 	}
 	// Search part of word
-	$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
+	$query = $select.get2where($get, 'LIKE', '%', '%').$where.$order ;
+	$result = query($query, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
 	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )
 		$from-- ;
 	while ( ( $obj = mysql_fetch_object($result) ) && ( count($data->cards) < $data->limit ) ) {
-		$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics
+		$query = "SELECT extension.id, extension.se, extension.name, card_ext.nbpics
 				FROM card_ext, extension
 				WHERE
 					card_ext.nbpics != 0 AND
 					card_ext.card = '".$obj->id."' AND
 					card_ext.ext = extension.id
-				ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
+				ORDER BY extension.priority DESC" ;
+		$result2 = query($query, 'Card\' extension', $connec) ;
 		$obj->ext = array() ;
-		while ( $obj_ext = mysql_fetch_object($query) )
+		while ( $obj_ext = mysql_fetch_object($result2) )
 			$obj->ext[] = $obj_ext ;
 		$data->cards[] = $obj ;
 	}
