@@ -36,7 +36,7 @@ class Tournament {
 			if ( $tournament != null )
 				return $tournament ;
 		}
-		$options = Tournament::check_create($data) ;
+		$options = $this->check_create($data) ;
 		if ( is_string($options) )
 			return $options ;
 		global $db ;
