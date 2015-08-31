@@ -36,7 +36,7 @@ class Tournament {
 			if ( $tournament != null )
 				return $tournament ;
 		}
-		$options = $this->check_create($data) ;
+		$options = Tournament::check_create($data) ;
 		if ( is_string($options) )
 			return $options ;
 		global $db ;
@@ -210,18 +210,12 @@ class Tournament {
 		foreach ( $db->select("SELECT content, player, number, pick, destination
 		                        FROM `booster`
 					WHERE `tournament` = {$this->id}") as $boost ) {
-			/*
-			$player = $this->get_player($boost->player, 'order') ;
-			if ( $player == null ) {
-				$this->say('Player '.$boost->player.' not found in boost import') ;
-				continue ;
-			}*/
 			$booster = new Booster($this, $boost->player, $boost->number, $boost->pick, $boost->destination) ;
 			$booster->get_content(json_decode($boost->content)) ;
 			$this->boosters[] = $booster ;
 		}
 	}
-	public function check_create($data) { // Called when not imported from DB, basic checks
+	static function check_create($data) { // Called when not imported from DB, basic checks
 		$options = new stdClass() ;
 		// Boosters for limited
 		switch ( $data->format ) {
