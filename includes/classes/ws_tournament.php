@@ -71,7 +71,7 @@ class Tournament {
 	}
 	public function debug($msg) {
 		if ( $this->debug_mode )
-			echo "Tournament {$this->id} : $msg\n" ;
+			$this->say("Tournament {$this->id} : $msg\n") ;
 		return false ; // for return debug(debug message) ;
 	}
 	public function say($msg) {

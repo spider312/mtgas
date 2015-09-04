@@ -100,7 +100,7 @@ class Registration {
 				$this->summarize() ;
 				return true ;
 			}
-		echo "can't find $name to remove" ;
+		$this->say("can't find $name to remove") ;
 	}
 	private function card_removed() { // After a card was removed, check if deck still has 40 cards
 		if ( $this->ready && ( count($this->deck_obj->main) < 40 ) )
