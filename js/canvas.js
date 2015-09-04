@@ -304,6 +304,12 @@ function draw_timer() {
 			game.context.restore() ;
 		} else
 			log(game.widgets[i]+' has no draw method') ;
+	// Cards number
+	if ( game.options.get('zone_card_number') == 'follow' ) {
+		var zone = game.widget_under_mouse ;
+		if ( iso(zone) && isf(zone.disp_card_number) )
+			zone.disp_card_number(game.context, true) ;
+	}
 	// Selection rectangle
 	if ( ( game.selection_rectangle != null ) && ( game.mouseX != game.selection_rectangle.x ) ) { // Only show if mouse moved on X axis, for hand selection not being drawn on click
 		// xb, yb is upper left corner, xe, ye is bottom right (necessary for limitation)

@@ -157,6 +157,17 @@ function VisibleZone(player, type) {
 		// Didn't loop attached cards
 		return null ;
 	}
+	zone.disp_card_number = function(context, force) {
+		var margin = 5 ;
+		context.font = "10pt Arial";
+		var x = this.w ;
+		var y = 0 ;
+		if ( this.selzone || force ) {
+			x += this.x ;
+			y += this.y ;
+		}
+		canvas_text_tr(context, this.cards.length, x - margin, y + margin, bordercolor) ;
+	}
 	return zone ;
 }
 // === [ UNSELZONES ] ==========================================================
@@ -280,9 +291,9 @@ function unselzone(result) { // Common
 		}
 		canvas_reset_alpha(context) ;
 		// Data : card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.w - margin, margin, bordercolor) ;
+		var opt = game.options.get('zone_card_number') ;
+		if ( ( opt == 'all' ) || ( opt == 'selzone' ) )
+			this.disp_card_number(context) ;
 		// Cards
 		if ( this.cards.length == 0 ) {
 			// Icon
@@ -708,9 +719,9 @@ function hand(player) {
 		for ( var i = this.cards.length ; i > 0 ; i-- )
 			this.cards[i-1].draw(context) ;
 		// Data : card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.x +this.w - margin, this.y + margin, bordercolor) ;
+		var opt = game.options.get('zone_card_number') ;
+		if ( ( opt == 'all' ) || ( opt == 'selzone' ) ) 
+			this.disp_card_number(context) ;
 	}
 	myhand.refresh = function() { // For each card in zone, calculate + store its coords
 		if ( this.editor_window != null )
@@ -865,9 +876,9 @@ function battlefield(player) {
 			}
 		canvas_reset_alpha(context) ;
 		// Data : card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.x +this.w - margin, this.y + margin, bordercolor) ;
+		var opt = game.options.get('zone_card_number') ;
+		if ( opt == 'all' )
+			this.disp_card_number(context) ;
 		// Grid
 		if ( ( game.drag != null ) && ( game.widget_under_mouse == this) ) {
 			context.strokeStyle = 'white' ;
