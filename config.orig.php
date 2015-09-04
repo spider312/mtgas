@@ -1,7 +1,8 @@
 <?php
 // MUST CHANGE
 $dir = '/path/to/folder/containing/this/' ; // Required for cron inclusions, can be relative to ~
-$url = 'http://mogg.fr/' ;
+$wshost = 'mogg.fr' ;
+$url = 'http://'.$wshost.'/' ;
 // Database
 	// MTGAS database
 $mysql_db = 'mtgas' ;

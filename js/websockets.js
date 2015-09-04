@@ -1,5 +1,5 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
-function Connexion(url, onmessage, onclose, registration_data) {
+function Connexion(path, onmessage, onclose, registration_data) {
 	// Accessors
 	this.toString = function() {
 		return 'websocket connexion to '+this.url ;
@@ -175,9 +175,9 @@ function Connexion(url, onmessage, onclose, registration_data) {
 		// GUI
 	this.indicator_color('violet', 'initializing') ;
 		// params
-	this.baseurl = 'ws://dev.mogg.fr:'+wsport+'/' ;
+	this.baseurl = 'ws://'+wshost+':'+wsport+'/' ;
 	this.url = this.baseurl ;
-	if ( iss(url) ) this.url += url ;
+	if ( iss(path) ) this.url += path ;
 	if ( isf(onmessage) ) this.onmessage = onmessage ;
 	else this.onmessage = null ;
 	if ( isf(onclose) ) this.onclose = onclose ;
