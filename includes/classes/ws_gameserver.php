@@ -238,11 +238,11 @@ class GameServer {
 	public function clean_duel($duel) {
 		$i = array_search($duel, $this->joined_duels) ;
 		if ( $i > -1 ) {
-			$this->say('Delete duel '.$duel->name) ;
 			$duels = array_splice($this->joined_duels, $i, 1) ;
 			foreach ( $duels as $spliceduel )
 				unset($spliceduel) ;
-		}
+		} else
+			$this->say('Joined duel not found : '.$duel->name) ;
 	}
 		// Tournament
 	public function move_tournament($tournament, $from, $to) {
