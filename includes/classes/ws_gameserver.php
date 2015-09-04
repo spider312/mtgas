@@ -62,7 +62,8 @@ class GameServer {
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
 		//$this->logger->addWriter($writer2);
 			// Filter log messages not showing debug
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
+		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
 		$writer->addFilter($filter);
 		//$writer2->addFilter($filter);
 		// WebSocket server
