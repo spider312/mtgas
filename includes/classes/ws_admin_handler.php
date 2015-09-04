@@ -15,6 +15,8 @@ class AdminHandler extends ParentHandler {
 		$overall->pending_tournaments = count($this->observer->pending_tournaments) ;
 		$overall->running_tournaments = count($this->observer->running_tournaments) ;
 		$overall->ended_tournaments = count($this->observer->ended_tournaments) ;
+		$overall->cache_games = count(Game::$cache) ;
+		$overall->cache_tournament = count(Tournament::$cache) ;
 		// Handlers (connected users)
 		$overall->handlers = new stdClass() ;
 		foreach ( $this->observer->handlers as $handler ) {

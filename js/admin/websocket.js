@@ -32,6 +32,8 @@ function start(ev) { // On page load
 				player_number(data, 'ended_tournaments') ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
+				mtg_data.appendChild(create_li('Games : '+data.cache_games)) ;
+				mtg_data.appendChild(create_li('Tournaments : '+data.cache_tournament)) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
