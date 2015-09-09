@@ -274,6 +274,21 @@ function manage_action(action, active_player) {
 			var pool = eval(param.pool) ;
 			pool.set_recieve(param.value) ;
 			break ;
+		// Arrow actions
+		case 'arrow' :
+			if ( param.from.indexOf('game') == 0 ) // if my string param contains 'game' : it's a zone
+				var from = eval(param.from) ;
+			else // Otherwise, it's a card
+				var from = get_card(param.from) ;
+			if ( param.to.indexOf('game') == 0 ) // if my string param contains 'game' : it's a zone
+				var to = eval(param.to) ;
+			else // Otherwise, it's a card
+				var to = get_card(param.to) ;
+			game.target.add(from, to, param.reach) ;
+			break ;
+		case 'delarrow' :
+			game.target.del_by_orig_dest(param.card, param.target) ;
+			break ;
 		// Selection actions
 		case 'zone' :
 			if ( iss(param.type) && ( param.type != '' ) )
@@ -287,6 +302,7 @@ function manage_action(action, active_player) {
 			param.cards.setattrs(param.attrs) ;
 			break ;
 		// Card actions
+			// Creation
 		case 'card' :
 			var card = new Card(id, param.ext_img, param.name, param.zone, param.attrs, param.exts) ;
 			if ( param.zone.player == game.player ) {
@@ -317,22 +333,9 @@ function manage_action(action, active_player) {
 		case 'duplicate' :
 			param.card.duplicate_recieve(id) ;
 			break ;
+			// Other
 		case 'place' :
 			param.card.place_recieve(param.x,param.y) ;
-			break ;
-		case 'arrow' :
-			if ( param.from.indexOf('game') == 0 ) // if my string param contains 'game' : it's a zone
-				var from = eval(param.from) ;
-			else // Otherwise, it's a card
-				var from = get_card(param.from) ;
-			if ( param.to.indexOf('game') == 0 ) // if my string param contains 'game' : it's a zone
-				var to = eval(param.to) ;
-			else // Otherwise, it's a card
-				var to = get_card(param.to) ;
-			game.target.add(from, to, param.reach) ;
-			break ;
-		case 'delarrow' :
-			game.target.del_by_orig_dest(param.card, param.target) ;
 			break ;
 		case 'base' :
 			param.card.base_set_recieve(param.base) ;
