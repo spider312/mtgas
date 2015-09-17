@@ -100,12 +100,12 @@ class Extension {
 			$nb_c += $nb_l ;
 		// foil (break unicity)
 		global $proba_foil ;
-		if ( ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
+		if ( ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
 			$nb_c-- ;
 			$this->rand_card($this->cards, $result, $upool) ;
 		}
 		// timeshifted (for TSP)
-		if ( $this->get_data('timeshift', false) ) {
+		if ( ( $nb_c > 0 ) && $this->get_data('timeshift', false) ) {
 			$ext = Extension::get('TSB') ;
 			$ext->get_cards() ;
 			if ( array_key_exists('S', $ext->cards_rarity) ) {
@@ -115,7 +115,7 @@ class Extension {
 				echo "No timeShift found" ;
 		} 
 		// transformable (for ISD/DKA)
-		if ( $this->get_data('transform', false) ) {
+		if ( ( $nb_c > 0 ) && $this->get_data('transform', false) ) {
 			$r = '' ; // Transform rarity
 			$n = rand(1, 14) ;
 			if ( $n > 13 )		$r = Extension::r_or_m($this->cards_tr) ;
@@ -127,7 +127,7 @@ class Extension {
 			}
 		}
 		// rare or mythic
-		if ( array_key_exists('R', $this->cards_rarity) ) {
+		if ( array_key_exists('R', $this->cards_rarity) || array_key_exists('M', $this->cards_rarity) ) {
 			for ( $i = 0 ; $i < $nb_r ; $i++ )
 				$this->rand_card($this->cards_rarity[Extension::r_or_m($this->cards_rarity)]
 					, $result, $upool);
@@ -144,7 +144,8 @@ class Extension {
 			for ( $i = 0 ; $i < $nb_c ; $i++ )
 				$this->rand_card($this->cards_rarity['C'], $result, $upool) ;
 		else
-			echo 'Not enough commons leftin ext '.$ext." ($c/".count($cards['C']).")\n" ;
+			if ( $nb_c > 0 )
+				echo 'Not enough commons leftin ext '.$ext." ($nb_c/".count($cards['C']).")\n" ;
 
 		return $result ;
 	}
