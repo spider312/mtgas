@@ -37,7 +37,7 @@ function card_search($get, $connec=null) {
 		unset($get['lang']) ;
 	}
 	// Search part of word
-	$query = $select.get2where($get, 'LIKE', '%', '%').$where.$order ;
+	$query = $select.get2where($get, 'LIKE', '%', '%', 'card').$where.$order ;
 	$result = query($query, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
@@ -709,9 +709,11 @@ function manage_text($name, $text, $target) {
 					switch ( $words[0] ) {
 						case 'unless' : 
 							unset($target->tapped) ; // A condition will replace hard tapped
-							if ( $matches[1] == 'unless you control two or fewer other lands' )
+							if ( $matches[1] == 'unless you control two or fewer other lands' ) {
 								$target->ciptc = 'this.zone.player.controls({"types": "land"})>3' ;
-							elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
+							} elseif ( $matches[1] == 'unless you control two or more basic lands' ) {
+								$target->ciptc = '(this.zone.player.controls({"supertypes": "basic"})<2)' ;
+							} elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
 								$target->ciptc = '(this.zone.player.controls({"subtypes": "'.strtolower($matches[1]).'"})==0)' ;
 								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($matches[2]).'"})==0)' ;
 							} else // Unmanaged
