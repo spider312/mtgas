@@ -102,6 +102,9 @@ class GameServer {
 		$this->say("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
+		$this->import_tokens() ;
+	}
+	public function import_tokens() {
 		// Token images
 		$exts = array_reverse(Extension::$cache) ;
 		// Files (for tokens existence)
