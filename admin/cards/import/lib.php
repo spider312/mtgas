@@ -3,7 +3,7 @@ include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 $homedir = substr(`bash -c "echo ~"`, 0, -1) ;
 $base_image_dir = $homedir.'/img/' ;
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
+function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=1800/*43200/*12*3600*/) {
 	$message = '' ;
 	$content = '' ;
 	clearstatcache() ;
@@ -463,12 +463,19 @@ class ImportExtension {
 			if ( preg_match('/Emblem (.*)/', $name, $matches) ) { // Token is an emblem
 				$found = false ;
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
-					if ( ( $card->name == $matches[1] ) || ( $card->secondname == $matches[1] ) ) {
+					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
+						continue ;
+					$attrs = $card->attrs() ;
+					// Check card subtype
+					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($matches[1]) ) ) {
 						$found = true ;
-						$attrs = $card->attrs() ;
-						if ( $card->secondname == $matches[1] )
-							$attrs = $attrs->transformed_attrs ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
+						break ;
+					}
+					// Check transform subtype
+					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($matches[1]) ) ) {
+						$found = true ;
+						$name = 'Emblem.'.$attrs->transformed_attrs->subtypes[0] ;
 						break ;
 					}
 				}
