@@ -859,7 +859,7 @@ function manage_text($name, $text, $target) {
 		$target->living_weapon = true ;
 	// Token creation
 	//if ( preg_match_all('/[Pp]uts? (?<number>\w+)( (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+))? (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
-	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<number>\w+) (?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 		foreach ( $all_matches as $matches ) {
 			$token = new stdClass() ;
 			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
