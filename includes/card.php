@@ -475,7 +475,7 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 			if ( ! in_array($matches[1], $target->steps) ) // Not adding multiple times the same item
 				$target->steps[] = $matches[1] ;
 			// Emblem
-			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"/', $piece, $matches) ) {
+			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $piece, $matches) ) {
 				$token = new stdClass() ;
 				$token->nb = 1 ;
 				$token->name = 'Emblem.'.$target->subtypes[0] ;
@@ -484,6 +484,7 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 				$token->attrs->subtypes = array() ;
 				manage_text($name, $matches[1], $token->attrs) ;
 				$target->tokens[] = $token ;
+				manage_text($name, $matches[2], $target) ;
 			} else
 				manage_text($name, $piece, $target) ;
 		}
