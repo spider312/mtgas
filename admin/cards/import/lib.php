@@ -460,7 +460,16 @@ class ImportExtension {
 		foreach ( $this->tokens as $token ) {
 			echo $token['type'].' : ' ;
 			$name = $token['type'] ;
-			if ( preg_match('/Emblem (.*)/', $name, $matches) ) { // Token is an emblem
+			// Manage multiple tokens with the same name
+			$same = array_filter($this->tokens, function($tk) use ($token) { return tokenpath($tk) == tokenpath($token) ; }) ;
+			if ( count($same) > 1 ) {
+				if ( ! isset($multiple) )        $multiple = array() ;
+				if ( ! isset($multiple[$name]) ) $multiple[$name] = 1 ;
+				else                             $multiple[$name]++ ;
+				$name .= $multiple[$name] ;
+			}
+			// Token is an emblem
+			if ( preg_match('/Emblem (.*)/', $name, $matches) ) {
 				$found = false ;
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
 					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
@@ -484,14 +493,18 @@ class ImportExtension {
 					continue ;
 				}
 			}
-			$path = $tkdir.$name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-			cache_get($token['image_url'], $path, true, true) ;
+			cache_get($token['image_url'], $tkdir.tokenpath($token, $name), true, true) ;
 			echo "\n" ;
 		}
 		umask($oldumask) ;
 		echo "\n".'Finished in '.(microtime(true)-$begin).' (think about thumbnailing)' ;
 		return true ;
 	}
+}
+function tokenpath($token, $name='') {
+	if ( $name == '' )
+		$name = $token['type'] ;
+	return $name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
 }
 class ImportCard {
 	public $ext = null ;
