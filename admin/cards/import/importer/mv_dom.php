@@ -77,7 +77,6 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		default:
 			echo "Unmanaged PT nodes number : {$pt_nodes->length} $name\n" ;
 	}
-	//echo $name.' '.$pt_nodes->length.' : '.$pt."\n" ;
 	// Img
 	$img_node = $card_xpath->query("//td[@width=325]/img") ;
 	$img = $base_url.$img_node->item(0)->getAttribute('src') ;
@@ -86,7 +85,9 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		$img = str_replace('FR', '', $img) ;
 	}
 // Token
-	if ( $number > $importer->nbcards ) {
+	//if ( $number > $importer->nbcards ) {
+	$token_number_node = $card_xpath->query("//tr[@height=460]/td[@width='37%']/div") ;
+	if ( ( $token_number_node->length == 4 ) || ( $token_number_node->length == 7 ) ) {
 		$pow = 0 ; $tou = 0 ;
 		if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
 			$pow = intval($matches['pow']) ;
@@ -131,7 +132,6 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				$text = $pt."\n".mv2txt($text) ;
 				$trtext = mv_planeswalker($text_nodes, 5);
 			}
-			//echo "$name\n$text<hr>$trtext<hr><hr>" ;
 			break ;
 		default :
 			echo "Unmanaged number of texts : {$text_nodes->length} - $name\n" ;
@@ -194,7 +194,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 function mv_planeswalker($text_nodes, $text_idx) {
 	$text = $text_nodes->item($text_idx)->C14N() ;
 	$text = mv2txt($text)."\n" ;
-	if ( preg_match_all('/\s*([+|-]?\d)\s*(\w.*\w)\s*/', $text, $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/\s*([+|-]?\d*)\s*(.*?)\n/', $text, $matches, PREG_SET_ORDER) ) {
 		$text = '' ;
 		foreach ( $matches as $match )
 			$text .= $match[1].': '.$match[2]."\n" ;
