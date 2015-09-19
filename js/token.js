@@ -85,7 +85,6 @@ function token_name(name, ext, attrs) { // Modify name depending on extension if
 			i-- ;
 			if ( i > 0 ) // If found, add rand number between 1 and max
 				name += ( rand(i) + 1 ) ;
-			log('detected '+i);
 		}
 	return name ;
 }
