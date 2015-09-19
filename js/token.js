@@ -26,7 +26,7 @@ function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // 
 	if ( ! isn(nb) )
 		nb = 1 ;
 	for ( var i = 0 ; i < nb ; i++ ) {
-		action_send('token', {'zone': zone.toString(), 'ext': ext, 'name': token_name(name, ext), 'attrs': attrs}, function(data) {
+		action_send('token', {'zone': zone.toString(), 'ext': ext, 'name': token_name(name, ext, attrs), 'attrs': attrs}, function(data) {
 			var tk = create_token_recieve(data.id, data.param.ext, data.param.name, eval(data.param.zone), JSON_parse(data.param.attrs)) ;
 			if ( typeof oncreate == 'function' )
 				oncreate(tk, oncreateparam) ; // ATM : Living weapon
@@ -75,20 +75,31 @@ function token_extention(img, ext, exts) { // Search token in extensions
 	log(img+' found in no extension') ;
 	return '' ;
 }
-function token_name(name, ext) { // Modify name depending on extension if needed (adds random numbers to tokens having multiple images)
-	if (
-		( name == 'Eldrazi Spawn' )
-		||
-		( ( name == 'Zombie' ) && ( ( ext == 'ISD' ) || ( ext == 'DKA' ) ) )
-	)
-		name += ( rand(3) + 1 ) ;
+function token_name(name, ext, attrs) { // Modify name depending on extension if needed (adds random numbers to tokens having multiple images)
+	if ( iso(game.tokens_catalog[ext]) ) // Token itself not found
+		if ( !iss(game.tokens_catalog[ext][name]) ) { // Search multiple tokens (Eldrazi Spawn & Scion, ISD Zombie)
+			var n, i = 0 ;
+			do { // Search max number 
+				n = token_multiple_image_name(name, ext, attrs, ++i) ;
+			} while ( iss(game.tokens_catalog[ext][n]) ) ;
+			i-- ;
+			if ( i > 0 ) // If found, add rand number between 1 and max
+				name += ( rand(i) + 1 ) ;
+			log('detected '+i);
+		}
 	return name ;
 }
-function token_image_name(name, ext, attrs) { // Returns an image name from a token
-	name = token_name(name, ext) ;
+function token_multiple_image_name(name, ext, attrs, nb) { // Simulate multiple token name
+	if ( isn(nb) )
+		name += nb ;
 	if ( isn(attrs.pow) && isn(attrs.thou) ) // Emblems doesn't have them
 		name += '.'+attrs.pow+'.'+attrs.thou ;
 	name += '.jpg' ;
+	return name ;
+}
+function token_image_name(name, ext, attrs) { // Returns an image name from a token
+	name = token_name(name, ext, attrs) ;
+	name = token_multiple_image_name(name, ext, attrs) ; // Returns the same as simulator
 	return name ;
 }
 function token_image_url(ext, name, attrs) { // Returns an image's full URL
