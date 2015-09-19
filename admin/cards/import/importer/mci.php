@@ -16,7 +16,7 @@ function card_image_url($match, $code='en') {
 	global $ext_source ;
 	return 'http://magiccards.info/scans/'.$code.'/'.strtolower($ext_source).'/'.$match['id'].'.jpg' ;
 }
-function get_split($name) {
+function get_split(&$name) {
 	$split = false ;
 	if ( 	preg_match('/(?<splitname>.*) \((?<fullname>(\1)\/(?<otherpart>.*))\)/', $name, $name_matches)
 		|| preg_match('/(?<splitname>.*) \((?<fullname>(?<otherpart>.*)\/(\1))\)/', $name, $name_matches) ) {
@@ -58,7 +58,7 @@ foreach ( $matches as $match ) {
 	$name = $match['name'] ;
 	// Double cards : recompute name, mark as being second part (in which case card will be added, not replaced)
 	$doubleface = false ;
-	$split = get_split(&$name) ;
+	$split = get_split($name) ;
 	// Types / cost
 	$typescost = $card_matches['typescost'] ;
 	if ( preg_match('#(?<types>.*)(, \n(?<cost>.*))#', $typescost, $typescost_matches) ) {
@@ -127,7 +127,7 @@ foreach ( $matches as $match ) {
 		$url = card_image_url($match, $code) ;
 		if ( array_search($lang['code'], array('de', 'fr', 'it', 'es', 'pt')) !== false ) { // Expected charset
 			$lname = $lang['name'] ;
-			get_split(&$lname) ;
+			get_split($lname) ;
 			if ( ! $secondpart )
 				$lastcard->setlang($code, $lname, $url) ;
 			else {
