@@ -443,7 +443,7 @@ function manacost($str) { // Simplify mana cost, removing $ { } from various syn
 }
 // Structured text parsing
 function parse_creature($name, $text_lines, $target) { // Creatures : pow/tou
-	$pt = '[\d\*\+\-\.]*' ; // Numerics, *, + for *+1, - for *-1, . for unhinged half pow/tou points
+	$pt = '[\d\*\+\-\.\^]*' ; // Numerics, *, + for *+1, - for *-1, . for unhinged half pow/tou points, ^ S.N.O.T.
 	$txt = trim($text_lines[0]) ;
 	if ( preg_match('/^(?<pow>'.$pt.')\/(?<tou>'.$pt.')$/', $txt, $matches) ) {
 		$target->pow = intval($matches['pow']) ;
@@ -561,6 +561,12 @@ function manage_text($name, $text, $target) {
 	// Spell effect
 	if ( stripos($text, 'Manifest') !== false )
 		$target->manifester = true ;
+	// Devoid
+	if ( stripos($text, 'Devoid') !== false ) {
+		global $allcolorscode ;
+		$target->color = $allcolorscode[1] ;
+	}
+	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
 		$target->no_untap = true ;
@@ -643,10 +649,16 @@ function manage_text($name, $text, $target) {
 				break ;
 			case 'combat' :
 				$step = 'combat' ;
-				if ( $matches['step'] == 'combat on your turn' )
-					$player = 1 ;
-				else
-					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				switch ( $matches['step'] ) {
+					case 'combat on your turn':
+						$player = 1 ;
+						break ;
+					case 'combat on each opponent\'s turn':
+						$player = 0 ;
+						break ;
+					default:
+						echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				}
 				break ;
 			case 'enchanted' :
 				$player = -1 ;
