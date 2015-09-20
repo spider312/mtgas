@@ -1,6 +1,7 @@
 <?php
 // Init
 $importer->init('http://magiccards.info/'.$ext_source.'/en.html') ;
+$hasonlytransform = ($ext_source == 'ori') ; // Hardcoded value to force transform on editions missing the 'color indicator' (ORI)
 $list_regex = '#<tr class="(even|odd)">
 \s*<td align="right">(?<id>\d*[ab]?)</td>
 \s*<td><a href="(?<url>/'.$ext_source.'/en/\d*a?b?\.html)">(?<name>.*)</a></td>
@@ -99,21 +100,22 @@ foreach ( $matches as $match ) {
 	$secondpart = ( intval($match['id']).'b' == $match['id'] ) ;
 	$secondpart = $secondpart && ( $name != $lastcard->name ) ; // Brothers Yamazaki
 	if ( $secondpart ) {
-		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) { // Double Face card
+		if ( $hasonlytransform || preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) { // Double Face card
 			// Don't work for chalice of life/death, as it has no color indicator
 			$doubleface = true ;
 			$ci = '' ;
-			foreach ( explode(' ', $colors_matches['color']) as $color )
-				if ( ( $c = array_search(strtolower($color), $colors) ) !== false )
-					$ci .= $c ;
+			if ( isset($colors_matches['color']) )
+				foreach ( explode(' ', $colors_matches['color']) as $color )
+					if ( ( $c = array_search(strtolower($color), $colors) ) !== false )
+						$ci .= $c ;
 			$lastcard->transform($name, $ci, $types, $text, card_image_url($match)) ;
 		} else { 
 			if ( $split ) // Split card
 				$lastcard->split($name, $cost, $types, $text) ;
-			else { // Flip card
+			else // Flip card
 				$lastcard->flip($name, $types, $text) ;
-			}
 		}
+		$lastcard->addurl($card_url) ; // On MCI, all seconparts are managed in a second page, inform importer even if useless for now
 	} else { // "normal" cards (1 line on mci) or first part of split card
 		$rarity = substr($match['rarity'], 0, 1) ;
 		if ( preg_match('/\(Color Indicator: (?<color>.{1,100})\)/', $html, $colors_matches) ) // Cards with no casting cost (Ancestral Vision)
@@ -138,7 +140,7 @@ foreach ( $matches as $match ) {
 				else
 					$lastcard->addlangimg($code, $url) ;
 			}
-		} else
+		} else if ( ! ( $split && $secondpart ) )
 			$lastcard->addlangimg($code, $url) ;
 	}
 }
