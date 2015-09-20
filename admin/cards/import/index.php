@@ -110,7 +110,7 @@ foreach ( $importer->cards as $i => $card ) {
 		echo '      <li><a href="'.$url.'" target="_blank">'.$name.'</a></li>'."\n" ;
 	}
 	echo '</td>
-      <td>'.$card->cost.'</td>
+      <td>'.manacost2html($card->cost).'</td>
       <td>'.$card->types.'</td>
       <td>'.$card->nbimages.'</td>
       <td>' ;

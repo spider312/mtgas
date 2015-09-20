@@ -315,4 +315,31 @@ function theme_image($name) {
 	global $theme ;
 	return '/themes/'.$theme.'/'.$name ;
 }
+function manas2html($manas) { // Returns HTML code for icons representing array 'manas'
+	if ( count($manas) == 0 )
+		$manas[] = 'X' ;
+	$colors = '' ;
+	foreach ( $manas as $mana )
+		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'" width="16" height="16">' ;
+	return $colors ;
+}
+function manacost2html($cost) { // Returns HTML code for icons representing string 'cost'
+	if ($cost == '' )  // Manage ''
+		$manas = array('0') ;
+	else if ( is_numeric($cost) ) // Manage '10'
+		$manas = array($cost) ;
+	else
+		$manas = str_split($cost) ;
+	return manas2html($manas) ;
+}
+function manas2color($manas) { // Returns HTML code for icons representing card color for manas in param
+	$mymanas = array() ;
+	foreach ( $manas as $mana ) {
+		if ( is_numeric($mana) || (  $mana == 'X' ))
+			continue ;
+		if ( array_search($mana, $mymanas) === false )
+			$mymanas[] = $mana ;
+	}
+	return manas2html($mymanas) ;
+}
 ?>
