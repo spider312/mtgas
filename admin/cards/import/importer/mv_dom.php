@@ -120,7 +120,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		case 3 : // Normal case
 			$text = $text_nodes->item($us_idx+1)->C14N() ;
 			$text = mv2txt($text) ;
-			$text = str_replace(chr(194).chr(151), '-', $text) ;
+			$text = str_replace(chr(194), '', $text) ; // Strange char appearing before - and * in modal and keywords
+			$text = str_replace(chr(160), ' ', $text) ; // Repair bug due to correction above
 			if ( $pt != '' )
 				$text = $pt."\n".$text ;
 			break ;
