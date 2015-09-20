@@ -64,6 +64,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	//$frname = card_name_sanitize($frname) ;
 	$name = trim($name_nodes->item($us_idx)->nodeValue) ;
 	$name = card_name_sanitize($name) ;
+	if ( $name == '' ) {
+		$importer->adderror('No name', $href) ;
+		continue;
+	}
 	// PT
 	$pt_nodes = $card_xpath->query("//div[@class='G14']") ;
 	switch ( $pt_nodes->length) {
@@ -149,8 +153,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		$rarity = 'L' ;
 	// Card import
 	$card = $importer->addcard($href, $rarity, $name, $cost, $types, $text, $img) ;
-	if ( ! $card )
+	if ( ! $card ) {
+		$importer->adderror('Card not added', $href) ;
 		continue ;
+	}
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
 	// Moon
