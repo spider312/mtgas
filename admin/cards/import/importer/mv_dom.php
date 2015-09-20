@@ -89,9 +89,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		$img = str_replace('FR', '', $img) ;
 	}
 // Token
-	//if ( $number > $importer->nbcards ) {
 	$token_number_node = $card_xpath->query("//tr[@height=460]/td[@width='37%']/div") ;
-	if ( ( $token_number_node->length == 4 ) || ( $token_number_node->length == 7 ) ) {
+	if ( ( $number > $importer->nbcards ) || ( $token_number_node->length == 4 ) || ( $token_number_node->length == 7 ) ) {
 		$pow = 0 ; $tou = 0 ;
 		if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
 			$pow = intval($matches['pow']) ;
