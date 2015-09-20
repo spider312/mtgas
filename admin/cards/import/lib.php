@@ -584,6 +584,8 @@ class ImportCard {
 			$this->langs[$code]['images'] = array() ;
 		if ( ( $url == null ) || ( $url == '' ) )
 			return false ;
+		if ( $code == 'en' ) // Some splits on MCI
+			return $this->addimage($url) ;
 		$this->langs[$code]['images'][] = $url ;
 	}
 	function attrs() {
