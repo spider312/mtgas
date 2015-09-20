@@ -172,10 +172,29 @@ $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
 $actions = array() ;
+$translations = array() ;
 foreach ( $import_log as $i => $log ) {
 	$card = $log['card'] ;
+	$updated = false ;
+	foreach ( $log['langs'] as $code => $lang ) {
+		$action = $lang['action'] ;
+		if ( ! isset($translations[$action]) )
+			$translations[$action] = 1 ;
+		else
+			$translations[$action]++ ;
+		if ( isset($lang['from']) )
+			$updated = true ;
+	}
 	if ( count($log['updates']) > 0 ) {
 		$updates++ ;
+		$updated = true ;
+	} else {
+		if ( $log['found'] )
+			$found[] = $card->name ;
+		else
+			$notfound[] = $card->name ;
+	}
+	if ( $updated ) {
 		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
 			continue ;
 		echo '     <tr>
@@ -186,14 +205,16 @@ foreach ( $import_log as $i => $log ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
 			echo '<strong>'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
 		}
+		foreach ( $log['langs'] as $code => $lang ) {
+			if ( ! isset($lang['from']) ) continue ;
+			$diff = new HtmlDiff($lang['from'], $lang['to']) ;
+			echo '<strong>'.$code.' name : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
+			//echo '<pre>'.print_r($lang, true).'</pre>' ;
+			echo strdebug($lang['from']).strdebug($lang['to']) ;
+		}
 		echo '</td>
      </tr>
 ' ;
-	} else {
-		if ( $log['found'] )
-			$found[] = $card->name ;
-		else
-			$notfound[] = $card->name ;
 	}
 	if ( isset($actions[$log['action']]) )
 		$actions[$log['action']][] = $card ;
@@ -202,14 +223,15 @@ foreach ( $import_log as $i => $log ) {
 }
 ?>
     </tbody>
-    <caption><?php echo $updates ; ?> cards to update <button id="imported_cards_button">Show / Hide</button></caption>
+    <caption><?php echo $updates ; ?> cards + <?php echo $translations['update'] ?> translations to update<button id="imported_cards_button">Show / Hide</button></caption>
    </table>
 <?php
 if ( count($found) > 0 )
 	echo '<p title="'.implode(', ', $found).'">'.count($found).' cards found but not updated</p>' ;
 if ( count($notfound) > 0 )
 	echo '<p class="warn" title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
-echo 'Actions on links : ' ;
+// Links
+echo '<p>Actions on links : <ul>' ;
 foreach ( $actions as $i => $action ) {
 	$names = array() ;
 	foreach ( $action as $card )
@@ -218,8 +240,14 @@ foreach ( $actions as $i => $action ) {
 		$class = 'class="warn" ' ;
 	else
 		$class = '' ;
-	echo '<p '.$class.'title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
+	echo '<li '.$class.'title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</li>' ;
 }
+echo '</ul></p>' ;
+// Translations
+echo '<p>Actions on translations : <ul>' ;
+foreach ( $translations as $action => $nb )
+	echo '<li>'.$action.' : '.$nb.'</li>' ;
+echo '</ul></p>' ;
 ?>
   </div>
 
