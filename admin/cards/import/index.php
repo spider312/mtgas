@@ -21,11 +21,8 @@ html_head(
  <body>
 
 <style type=text/css>
-	#import_cards, #import_tokens, #imported_cards {
+	.hidden {
 		display: none ;
-	}
-	#import_cards.shown, #import_tokens.shown, #imported_cards.shown {
-		display: table-row-group ;
 	}
 	caption {
 		min-width: 500px ;
@@ -237,21 +234,16 @@ $_SESSION['importer'] = $importer ; // May need to comment 'session_name()' in /
   </div>
 
 <script type="text/javascript">
-	document.getElementById('import_cards_button').addEventListener('click', function(ev) {
-		tbody = document.getElementById('import_cards') ;
-		tbody.classList.toggle('shown') ;
-	}, false) ;
-	var e = document.getElementById('import_tokens_button')
-	if ( e ) 
-		e.addEventListener('click', function(ev) {
-			tbody = document.getElementById('import_tokens') ;
-			tbody.classList.toggle('shown') ;
-		}, false) ;
-	document.getElementById('imported_cards_button').addEventListener('click', function(ev) {
-		tbody = document.getElementById('imported_cards') ;
-		tbody.classList.toggle('shown') ;
-	}, false) ;
-
+	var buttons = ['import_cards', 'import_tokens', 'imported_cards'] ;
+	for ( var i = 0 ; i < buttons.length ; i++ ) {
+		var button = buttons[i] ; // ID
+		var but = document.getElementById(button+'_button'); // Button
+		if ( ! but ) continue ;
+		but.target = document.getElementById(button) ; // TBody to toggle
+		if ( ! but.target ) continue ;
+		but.target.classList.add('hidden') ; // Hide by default
+		but.addEventListener('click', function(ev) { this.target.classList.toggle('hidden') ; }, false) ; // Toggle on button click
+	}
 </script>
 
  </body>
