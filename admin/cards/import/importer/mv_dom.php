@@ -193,7 +193,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			, $base_url.$trimg
 		) ;
 		if ( $frtrimg != null )
-			$card->addlangimg('FR', $frtrimg) ;
+			$card->addlangimg('fr', $frtrimg) ;
 	}
 }
 function mv_planeswalker($text_nodes, $text_idx) {
