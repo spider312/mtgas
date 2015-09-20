@@ -21,6 +21,9 @@ html_head(
  <body>
 
 <style type=text/css>
+	td > li {
+		list-style-type: none ;
+	}
 	.hidden {
 		display: none ;
 	}
@@ -102,25 +105,36 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
       <td>'."\n      " ;
-	if ( count($card->urls) > 1 ) {
-		echo '      <ul>'."\n" ;
-		foreach ( $card->urls as $url )
-			echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>'."\n" ;
-		echo '      </ul>'."\n" ;
-	} else
-		echo '      <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a>'."\n" ;
+	foreach ( $card->urls as $i => $url ) {
+		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
+		echo '      <li><a href="'.$url.'" target="_blank">'.$name.'</a></li>'."\n" ;
+	}
 	echo '</td>
       <td>'.$card->cost.'</td>
       <td>'.$card->types.'</td>
       <td>'.$card->nbimages.'</td>
       <td>' ;
-	foreach ( $card->images as $image)
-		echo '<li><a href="'.$image.'" target="_blank">'.$image.'</a></li>' ;
-	echo '</td>
-      <td>'.$card->multiverseid.'</td>
-      <td>'.count($card->langs).' : '.implode(', ', array_keys($card->langs)).'</td>
-     </tr>
-' ;
+	foreach ( $card->images as $i => $image)
+		echo '<li><a href="'.$image.'" target="_blank">['.($i+1).']</a></li>' ;
+	echo '      </td>'."\n" ;
+	echo '      <td>'.$card->multiverseid.'</td>'."\n" ;
+	echo '      <td>' ;
+	$line = array() ; // Pivot multiple images for a card's translations
+	foreach ( $card->langs as $code => $lang ) {
+		if ( isset($lang['name']) ) {
+			$title = ' title="'.$lang['name'].'"' ;
+			$code = ''.$code.'*' ;
+		} else
+			$title = '' ;
+		foreach ( $lang['images'] as $i =>$image ) {
+			if ( !isset($line[$i]) )
+				$line[$i] = '' ;
+			$line[$i] .= '<a target="_blank" href="'.$image.'"'.$title.'>'.$code.'</a> ' ;
+		}
+	}
+	echo implode($line, '<br>') ; // /Pivot
+	echo '      </td>'."\n" ;
+	echo '     </tr>'."\n" ;
 }
 ?>
     </tbody>
@@ -195,26 +209,25 @@ foreach ( $import_log as $i => $log ) {
 			$notfound[] = $card->name ;
 	}
 	if ( $updated ) {
+		echo '     <tr>'."\n" ;
+		echo '      <td>'.$i.' : <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a></td>'."\n" ;
 		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
-			continue ;
-		echo '     <tr>
-      <td>'.$i.' : <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a></td>
-      <td><img src="'.$card->images[0].'"></td>
-      <td>' ;
+			echo '      <td>only multiverseID</td>'."\n" ;
+		else
+			echo '      <td><img src="'.$card->images[0].'"></td>'."\n" ;
+		echo '      <td>'."\n" ;
 		foreach ( $log['updates'] as $field => $upd ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
-			echo '<strong>'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
+			echo '       <strong title="'.$card->{$field}.'">'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
 		}
 		foreach ( $log['langs'] as $code => $lang ) {
 			if ( ! isset($lang['from']) ) continue ;
 			$diff = new HtmlDiff($lang['from'], $lang['to']) ;
-			echo '<strong>'.$code.' name : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
-			//echo '<pre>'.print_r($lang, true).'</pre>' ;
+			echo '       <strong>'.$code.' name : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
 			echo strdebug($lang['from']).strdebug($lang['to']) ;
 		}
-		echo '</td>
-     </tr>
-' ;
+		echo '      </td>'."\n" ;
+		echo '     </tr>'."\n" ;
 	}
 	if ( isset($actions[$log['action']]) )
 		$actions[$log['action']][] = $card ;
@@ -223,7 +236,7 @@ foreach ( $import_log as $i => $log ) {
 }
 ?>
     </tbody>
-    <caption><?php echo $updates ; ?> cards + <?php echo $translations['update'] ?> translations to update<button id="imported_cards_button">Show / Hide</button></caption>
+    <caption><?php echo $updates ; ?> cards <?php echo isset($translations['update']) ? '+ '.$translations['update'].' translations' : '' ; ?> to update<button id="imported_cards_button">Show / Hide</button></caption>
    </table>
 <?php
 if ( count($found) > 0 )
