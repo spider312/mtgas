@@ -169,19 +169,21 @@ foreach ( $p as $i => $c ) {
 	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
 		continue ;
 	// Cost
+	/*
 	$manas = array() ;
 	foreach ( $d->manas as $mana ) {
 		if ( is_numeric($mana) || (  $mana == 'X' ))
 			continue ;
 		if ( array_search($mana, $manas) === false )
 			$manas[] = $mana ;
-	}
+	}*/
+	$manas = $d->manas ;
 	if ( count($manas) == 0 )
 		$manas[] = 'X' ;
 	$colors = '' ;
 	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'">' ;
-	echo '    <tr title="'.htmlentities($c->text).'">
+	echo '    <tr title="'.htmlentities(implode($d->manas)."\n".$c->text).'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
