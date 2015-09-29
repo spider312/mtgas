@@ -12,37 +12,41 @@ function card_search($get, $connec=null) {
 		unset($get['limit']) ;
 	} else
 		$data->limit = 30 ;
+	$firstresult = ($data->page-1)*$data->limit ;
 	$get['name'] = card_name_sanitize($get['name']) ;
-	$from = ($data->page-1)*$data->limit ;
+	// Start to build query
+	$select = '`card`.*' ;
+	$from = '`card`' ;
 	$where = '' ;
+	$order = '`card`.`name`' ;
+	// Special fields that modify query instead of just beeing searched
 	if ( isset($get['ext']) && ( $get['ext'] != '' ) ) {
-		$select = 'SELECT `card`.*, `extension`.`se` FROM `card` LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
-		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' )' ; // OR `extension`.`name` LIKE \''.$get['ext'].'%\' ;
+		$select .= ', `extension`.`se`' ;
+		$from .= 'LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
+		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' )' ;
 		unset($get['ext']) ;
-	} else {
-		$select = 'SELECT * FROM `card` ' ;
-		$where = '' ;
 	}
-	$order = ' ORDER BY `card`.`name`' ;
 	if ( isset($get['lang']) ) {
 		if ( $get['lang'] != 'en' ) {
 			$data->lang = $get['lang'] ;
-			$select .= ' LEFT JOIN `cardname`
-			ON `card`.`id` = `cardname`.`card_id`' ;
-			$get['card_name'] = $get['name'] ; // Search in lang table
-			$where .= ' AND `cardname`.`lang` = "'.$data->lang.'"' ;
-			$order = ' ORDER BY `cardname`.`card_name`' ;
-			unset($get['name']) ; // Search only in lang table
+			$select .= ', `cardname`.`card_name` ' ;
+			$from .= ' LEFT JOIN `cardname` ON `card`.`id` = `cardname`.`card_id`' ;
+			$where .= ' AND `cardname`.`lang` = "'.$get['lang'].'"' ;
+			$where .= ' AND `cardname`.`card_name` LIKE "%'.$get['name'].'%"' ;
+			unset($get['name']) ; // Don't search that name in card table, it has been searched in lang table
+			$order = '`cardname`.`card_name`' ;
 		}
 		unset($get['lang']) ;
 	}
-	// Search part of word
-	$query = $select.get2where($get, 'LIKE', '%', '%', 'card').$where.$order ;
+	// Normal fields
+	$where .= get2where($get, 'LIKE', '%', '%', 'card') ;
+	// Parts acquired, merge and query
+	$query = "SELECT $select FROM $from WHERE 1 $where ORDER BY $order";
 	$result = query($query, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
-	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )
-		$from-- ;
+	while ( ( $firstresult > 0 ) && ( $obj = mysql_fetch_object($result) ) )
+		$firstresult-- ;
 	while ( ( $obj = mysql_fetch_object($result) ) && ( count($data->cards) < $data->limit ) ) {
 		$query = "SELECT extension.id, extension.se, extension.name, card_ext.nbpics
 				FROM card_ext, extension
@@ -58,6 +62,18 @@ function card_search($get, $connec=null) {
 		$data->cards[] = $obj ;
 	}
 	return $data ;
+}
+function get2where($get, $comp, $prefix, $suffix, $table='') {
+	$where = '' ;
+	foreach ( $get as $i => $val ) {
+		if ( ( $i != 'submit' ) && ( $val != '' ) ) {
+			$where .= 'AND ' ;
+			if ( $table != '' )
+				$where .= '`'.$table.'`.' ;
+			$where .= '`'.$i . '` '.$comp.' \''.$prefix . mysql_real_escape_string($val) . $suffix . '\' ' ;
+		}
+	}
+	return $where ;
 }
 function ext_id($se='', $conn=null) {
 	$query = query("SELECT id FROM extension WHERE `se` = '$se'", 'ext2id', $conn) ;
