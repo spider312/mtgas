@@ -75,38 +75,6 @@ function get2where($get, $comp, $prefix, $suffix, $table='') {
 	}
 	return $where ;
 }
-function ext_id($se='', $conn=null) {
-	$query = query("SELECT id FROM extension WHERE `se` = '$se'", 'ext2id', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) ) 
-			return $arr['id'] ;
-		else
-			return -1 ;
-	} else 
-		return -2 ;
-}
-function ext_se($id=-1, $conn=null) {
-	$query = query("SELECT * FROM extension WHERE `id` = '$id'", 'id2ext', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) ) 
-			return $arr['se'] ;
-		else
-			return '' ;
-	} else 
-		return '' ;
-
-}
-function card_id($name, $conn=null) {
-	$name = mysql_real_escape_string($name) ;
-	$query = query("SELECT id FROM card WHERE `name` = '$name'", 'cardname2id', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) )
-			return $arr['id'] ;
-		else
-			return -1 ;
-	} else 
-		return -2 ;
-}
 // === [ LIB ] =================================================================
 function card_name_sanitize($name) {
 	// Base
