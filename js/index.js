@@ -21,6 +21,8 @@ function start() { // On page load
 	}) ;
 	save_restore('draft_boosters') ; // hidden for saving
 	save_restore('sealed_boosters') ;
+	save_restore('rounds_number') ;
+	save_restore('rounds_duration') ;
 	// DOM Elements cache
 	shout = document.getElementById('shout') ;
 	shouts = document.getElementById('shouts') ;
