@@ -120,9 +120,12 @@ function Step(name, icon, func, menu) { // Steps, essentially evenmential behavi
 		if ( alpha > 0 ) {
 			if ( game.options.get('transparency') )
 				canvas_set_alpha(alpha, context) ;
-			context.globalCompositeOperation = 'source-atop' ; // Only cover image where it's been drawn
-			context.fillRect(.5, .5, this.w, this.h) ;
-			context.globalCompositeOperation = 'source-over' ;
+			//context.globalCompositeOperation = 'source-atop' ; // Only cover image where it's been drawn
+			//context.fillRect(.5, .5, this.w, this.h) ;
+			//context.globalCompositeOperation = 'source-over' ;
+			context.strokeStyle = bgcolor ;
+			context.roundedRect(1.5, 1.5, this.w-3, this.h-3, 5, bgcolor) ;
+			context.strokeStyle = bordercolor ;
 			if ( game.options.get('transparency') )
 				canvas_reset_alpha(context) ;
 		}
