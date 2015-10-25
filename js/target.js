@@ -109,7 +109,7 @@ function Targets() {
 		if ( ( this.targets.length > 0 ) || ( this.tmp != null ) ) { // Something to draw
 			context.save() ;
 			// Init context
-			canvas_set_alpha(bgopacity)
+			canvas_set_alpha(1)
 			context.lineWidth = 8 ;
 			context.lineCap = 'round' ;
 				// Definitive
