@@ -201,6 +201,8 @@ function create_img(src, alt, title) {
 }
 function create_a(text, href, onclick, title) {
 	var a = document.createElement('a') ;
+	if ( text == null )
+		text = 'null' ;
 	if ( issn(text) )
 		a.appendChild(document.createTextNode(text)) ;
 	else
