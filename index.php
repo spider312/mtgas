@@ -45,6 +45,11 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 }
 ?>
 
+<?php
+	if ( is_file($dir.'/header.php') )
+		include $dir.'/header.php' ;
+?>
+
   <div id="left_col"><!-- - - - - - - LEFT COLUMN - - - - - - -->
 
   <div id="shoutbox" class="section">
