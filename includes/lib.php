@@ -324,8 +324,8 @@ function manas2html($manas) { // Returns HTML code for icons representing array 
 	return $colors ;
 }
 function manacost2html($cost) { // Returns HTML code for icons representing string 'cost'
-	if ($cost == '' )  // Manage ''
-		$manas = array('0') ;
+	if ($cost == '' )  // Manage '' => No casting cost (land)
+		return '' ;
 	else if ( is_numeric($cost) ) // Manage '10'
 		$manas = array($cost) ;
 	else

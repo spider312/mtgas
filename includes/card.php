@@ -855,19 +855,21 @@ function manage_text($name, $text, $target) {
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
-	//if ( preg_match_all('/[Pp]uts? (?<number>\w+)( (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+))? (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
-	if ( preg_match_all('/(?<number>\w+) (?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	$colreg = implode('|', $colors) ;
+	if ( preg_match_all('/(?<number>\w+) ((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	// Godsire, Hazezon Tamar
+	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
 		foreach ( $all_matches as $matches ) {
 			$token = new stdClass() ;
-			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
+			$token->nb = text2number($matches['number']) ;
 			if ( $token->nb < 1 )
-				$token->nb = 1 ;
+				$token->nb = 1 ; // Put at least 1 token
 			$token->attrs = new stdClass() ;
 			// Token name -> types / subtypes -> name
-			$types = explode(' ', $matches['name']) ;
-			$nameparts = array() ;
+			$types = explode(' ', $matches['types']) ;
+			$nameparts = array() ; // Get case sensitive names parts before they get lowercased as subtypes
 			foreach ( $types as $type )
-				if ( array_search($type, $cardtypes) !== false )
+				if ( array_search($type, $cardtypes) !== false ) // Additionnal card types (artifact, enchant ...) are parsed as subtypes, filter them
 					$token->attrs->types[] = strtolower($type) ;
 				else {
 					$token->attrs->subtypes[] = strtolower($type) ;
@@ -880,7 +882,7 @@ function manage_text($name, $text, $target) {
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
 			$target->tokens[] = $token ;
 		}
-	}
+	} 
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {

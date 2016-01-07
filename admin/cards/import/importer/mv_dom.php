@@ -1,12 +1,13 @@
 <?php
 // MV Constants
 $base_url = 'http://www.magic-ville.com/fr/' ;
-$mana_url = 'graph/manas/big/' ;
+$mana_url = 'graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 
-// Importer 
-$importer->init($base_url.'set_cards.php?setcode='.$ext_source.'&lang=eng') ;
+// Importer
+$import_url = $base_url.'set_cards.php?setcode='.$ext_source.'&lang=eng' ;
+$importer->init($import_url) ;
 $ext_path = 'cache/'.$source.'_'.$ext_source ;
 $html = cache_get($importer->url, $ext_path, $verbose) ;
 
@@ -24,13 +25,15 @@ $title = preg_replace('/ - (.*)/', '', $title_node->item(0)->nodeValue) ;
 $code_node = $xpath->query("//img[contains(@src, 'bigsetlogos')]");
 $code = preg_replace('#(.*/)|(\..*)#', '', $code_node->item(0)->getAttribute('src')) ;
 	// Cards nb
-if ( preg_match('#<div>(?<cards>\d*) cartes, sortie en (?<month>.*?) (?<year>\d*)</div>#', $html, $matches) )
+if ( preg_match('#<div class=G14>&mdash; (?<cards>\d*) cartes</div>#', $html, $matches) )
 	$nbcards = $matches['cards'] ;
+else
+	die('<a href="'.$import_url.'">No card number found') ;
 	// Set data
 $importer->setext($code, $title, $nbcards) ;
 
 // Cards
-$card_links = $xpath->query("//td[@class='S12']/a");
+$card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
 $card_dom = new DOMDocument;
 for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$frimg = null ;
@@ -103,8 +106,9 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Cost
 	$cost_nodes = $card_xpath->query("//img[contains(@src, '$mana_url')]") ;
 	$cost = '' ;
-	for ( $j = 0 ; $j < $cost_nodes->length ; $j++ )
+	for ( $j = 0 ; $j < $cost_nodes->length ; $j++ ) {
 		$cost .= preg_replace("#$mana_url|(\..*)#", '', $cost_nodes->item($j)->getAttribute('src')) ;
+	}
 	// Types
 	$type_nodes = $card_xpath->query("//div[@class='G12']") ;
 	$types = $type_nodes->item($us_idx)->nodeValue ;
