@@ -344,6 +344,7 @@ function Mana(zone, color, x, y, w) {
 	this.w = w ;
 	this.h = w ; // Square
 	this.img = null ;
+	if ( color === 'X' ) color = 'E' ; // New colorless mana symbol instead of an X
 	game.image_cache.load(theme_image('/ManaIcons/'+color+'.png'), function(img, widget) {
 		widget.img = img ;
 		widget.refresh() ;
