@@ -269,7 +269,9 @@ function Pool(player) {
 		input.addEventListener('click', func(this.side, input), false) ;
 		var label = create_label(input.id, input) ;
 		label.classList.add('selector') ;
-		label.style.backgroundImage = 'url('+theme_image('ManaIcons/'+i+'.png')[0]+')' ;
+		var manacolor = i ;
+		if ( manacolor === 'X' ) manacolor = 'E' ;
+		label.style.backgroundImage = 'url('+theme_image('ManaIcons/'+manacolor+'.png')[0]+')' ;
 		var func = function(zone, input) {
 			return function(ev) {
 				zone.field = 'converted_cost' ;
