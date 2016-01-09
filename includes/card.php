@@ -204,9 +204,11 @@ class attrs {
 			$color = $colors[$i] ;
 			if ( isint($color) ) // Hybrid colored / colorless, ignore colorless part
 				continue ;
-			if ( $color == 'X' ) // X in cost isn't a color
-				continue ;
-			if ( $color == 'P' ) // Phyrexian mana
+			if (
+				( $color == 'X' ) // X in cost isn't a color
+				|| ( $color == 'P' ) // Phyrexian mana
+				|| ( $color == 'E' ) // Colorless mana
+			)
 				continue ;
 			if ( strpos($this->color, $color) === false )
 				$this->color .= $color ;
