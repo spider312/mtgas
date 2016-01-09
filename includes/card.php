@@ -201,7 +201,7 @@ function cost_explode($cost) {
 class attrs {
 	function add_color($colors) {
 		for ( $i = 0 ; $i < strlen($colors) ; $i++ ) {
-			$color = $colors[$i] ;
+			$color = strtoupper($colors[$i]) ;
 			if ( isint($color) ) // Hybrid colored / colorless, ignore colorless part
 				continue ;
 			if (

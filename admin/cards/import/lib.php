@@ -193,6 +193,7 @@ class ImportExtension {
 		$name = card_name_sanitize($oldname) ;
 		$text = card_text_sanitize($text) ;
 		$types = preg_replace('#\s+#', ' ', $types) ;
+		$cost = strtoupper($cost) ;
 		if ( $name == '' )
 			return $this->adderror('Empty name', $card_url) ;
 		// Searching in already imported cards
