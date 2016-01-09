@@ -28,18 +28,23 @@ class Extension {
 	public function add_card($card, $rarity='') {
 		if ( $card == null )
 			return false ;
-		$this->cards[] = $card ;
-		$this->cards_nb = count($this->cards) ;
-		if ( $this->get_data('transform', false) 
-			&& property_exists($card->attrs, 'transformed_attrs') )
-			$dest =& $this->cards_tr ;
-		else
-			$dest =& $this->cards_rarity ;
-		if ( $rarity == '' )
-			$rarity = $card->rarity ;
-		if ( ! array_key_exists($rarity, $dest) )
-			$dest[$rarity] = array() ;
-		$dest[$rarity][] = $card ;
+		$nb = 1 ;
+		if ( $card->name === 'Wastes' )
+			$nb = 2 ;
+		for ( $i = 0 ; $i < $nb ; $i++ ) {
+			$this->cards[] = $card ;
+			$this->cards_nb = count($this->cards) ;
+			if ( $this->get_data('transform', false) 
+				&& property_exists($card->attrs, 'transformed_attrs') )
+				$dest =& $this->cards_tr ;
+			else
+				$dest =& $this->cards_rarity ;
+			if ( $rarity == '' )
+				$rarity = $card->rarity ;
+			if ( ! array_key_exists($rarity, $dest) )
+				$dest[$rarity] = array() ;
+			$dest[$rarity][] = $card ;
+		}
 	}
 	private function get_cards() { // Import card list from DB and dispatch by rarity/transformability
 		if ( count($this->cards) > 0 )
