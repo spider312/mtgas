@@ -9,7 +9,7 @@ $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 $import_url = $base_url.'set_cards.php?setcode='.$ext_source.'&lang=eng' ;
 $importer->init($import_url) ;
 $ext_path = 'cache/'.$source.'_'.$ext_source ;
-$html = cache_get($importer->url, $ext_path, $verbose) ;
+$html = cache_get($importer->url, $ext_path, $verbose, true, 300) ; // Update && limit cache life time for this file
 
 // DOM parsing
 libxml_use_internal_errors(true) ; // No warnings during parsing
