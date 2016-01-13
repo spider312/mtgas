@@ -1907,7 +1907,10 @@ function card_prototype() {
 				var boost = this.attrs.powtoucond[pt] ;
 			else
 				var boost = 1 ;
-			var from_str = this.attrs.powtoucond.from ;
+			var from_str = 'battlefield' ;
+			if ( iss(this.attrs.powtoucond.from)) {
+				from_str = this.attrs.powtoucond.from ;
+			}
 			var player = this.zone.player ;
 			if ( from_str[0] == '!' ) {
 				from_str = from_str.substr(1) ;
