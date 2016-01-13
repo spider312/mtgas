@@ -496,7 +496,7 @@ class ImportExtension {
 function tokenpath($token, $name='') {
 	if ( $name == '' )
 		$name = $token['type'] ;
-	return $name.((($token['pow']!='')||($token['tou']!=''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
+	return $name.((($token['pow']!=='')||($token['tou']!==''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
 }
 class ImportCard {
 	public $ext = null ;
