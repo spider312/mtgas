@@ -47,6 +47,7 @@ html_menu() ;
       <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
       <?/*=html_option('mv', 'Magic Ville', $source) ; */?>
       <?=html_option('mv_dom', 'Magic Ville DOM', $source) ; ?>
+      <?=html_option('mtgsalvation', 'MTGSalvation', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
