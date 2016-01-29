@@ -1,0 +1,17 @@
+config.php
+admin/.ht*
+admin/cards/import/version.json
+
+composer.lock
+composer.phar
+vendor/
+
+js/lib/Flotr2/examples/*
+css
+
+ranking/*
+stats/*
+decks/*
+img/avatar/*
+
+admin/cards/import/cache/
