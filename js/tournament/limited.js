@@ -25,7 +25,7 @@ function TournamentLimited() {
 				var name = this.name ;
 				if ( iso(this.data.boosters) )
 					name += ' ('+this.data.boosters.join('-')+')' ;
-				var a = create_a(name, '/tournament/?id='+this.id) ;
+				var a = create_a(name, url+'/tournament/?id='+this.id) ;
 				a.target = '_blank' ;
 				a.title = 'Open me in a new tab, or you will be redirected here' ;
 				al.appendChild(a) ;
