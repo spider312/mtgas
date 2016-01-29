@@ -37,7 +37,7 @@ function notification_send(title, txt, tag) {
 		if ( notification_granted() ) {
 			options = {} ;
 			options.body = txt ;
-			options.icon = '/themes/jay_kay/Mogg Maniac.crop.png' ;
+			options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
 			if ( iss(tag) )
 				options.tag = tag
 			var n = new Notification(title, options) ;
