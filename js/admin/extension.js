@@ -42,7 +42,7 @@ function update_list(obj) {
 	if ( !iso(obj) )
 		obj = {} ;
 	obj['ext'] = ext ;
-	$.getJSON('/admin/cards/json/cards.php', obj, function(data) {
+	$.getJSON('json/cards.php', obj, function(data) {
 		cardnb.value = data.length ;
 		var tbody = document.getElementById('cards')
 		node_empty(tbody) ;
@@ -96,7 +96,7 @@ function remove_from_ext(ev) {
 	var cell = ev.target.parentNode ;
 	var row = cell.parentNode ;
 	cell.classList.add('updating') ;
-	$.getJSON('/admin/cards/json/ext_remove_card.php', {'ext': ext, 'card': row.id}, function(data) {
+	$.getJSON('json/ext_remove_card.php', {'ext': ext, 'card': row.id}, function(data) {
 		cell.classList.remove('updating') ;
 		if ( ( data.nb != 0 ) && ( data.nb != 1 ) )
 			alert(data.nb) ;
