@@ -313,7 +313,7 @@ function json_verbose_error($i=-1) {
 // Theme
 function theme_image($name) {
 	global $theme, $url ;
-	return $url.'themes/'.$theme.'/'.$name ;
+	return $url.'/themes/'.$theme.'/'.$name ;
 }
 function manas2html($manas) { // Returns HTML code for icons representing array 'manas'
 	$colors = '' ;
