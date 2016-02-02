@@ -15,10 +15,10 @@ if ( array_key_exists('theme', $_COOKIE) )
 		$theme = $_COOKIE['theme'] ;
 
 // Default menu entries
-menu_add(__('menu.ranking'), '/top.php', __('menu.ranking.title')) ;
-menu_add(__('menu.data'), '/player.php', __('menu.data.title')) ;
+menu_add(__('menu.ranking'), $url.'/top.php', __('menu.ranking.title')) ;
+menu_add(__('menu.data'), $url.'/player.php', __('menu.data.title')) ;
 menu_add('<img src='.theme_image("icon-facebook.png").' alt="Facebook">', 'https://www.facebook.com/mogg.fr', __('menu.facebook.title')) ;
-menu_add(__('menu.gui'), '/doc/GUI.php', __('menu.gui.title')) ;
+menu_add(__('menu.gui'), $url.'/doc/GUI.php', __('menu.gui.title')) ;
 menu_add('<img src='.theme_image("youtube.png").' alt="Video tutorials"> Tutorials', 'https://www.youtube.com/playlist?list=PL6EGvnccEmrmP6D8_wRv0OMR0_ESfZGV2', 'Video tutorials') ;
 menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title')) ;
 menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title')) ;
