@@ -26,7 +26,7 @@ class Booster { // Only used in draft, interface with "booster" db table
 				, property_exists($card, 'nb')?$card->nb:0) ;
 		$this->summarize() ;
 	}
-	public function generate($ext, $upool) { // Creation by daemon
+	public function generate($ext, &$upool) { // Creation by daemon
 		// Generate content
 		$ext_obj = Extension::get($ext) ;
 		if ( $ext_obj == null ) {

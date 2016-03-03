@@ -458,16 +458,9 @@ class Tournament {
 				$number = 0 ;
 				foreach ( $this->data->boosters as $ext ) {
 					$number++ ; // Number of current booster in draft for player
-					//$booster = null ;
 					foreach ( $this->players as $player ) {
-						//if ( ( $booster == null ) || ! $this->data->clone_sealed ) {
-							$booster = new Booster($this, $player->order, $number) ;
-							$booster->generate($ext, $upool) ;
-						/*} else {
-							$boost = new Booster($this, $player->order, $number) ;
-							$boost->get_content($booster->content) ;
-							$boost->insert() ;
-						}*/
+						$booster = new Booster($this, $player->order, $number) ;
+						$booster->generate($ext, $upool) ;
 						$this->boosters[] = $booster ;
 					}
 				}
