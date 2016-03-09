@@ -1,4 +1,5 @@
 <?php
+include 'lib.php' ;
 if ( array_key_exists('path', $_GET) )
 	$path = $_GET['path'] ;
 else
@@ -51,12 +52,13 @@ div.avatar img {
  <body>
 <?php
 function dir_list($path) {
+	global $url;
 	foreach ( scandir($path) as $file )
 		if ( ( $file != '.' ) && ( $file != '..' ) )
 			if ( is_dir($path.$file) )
 				dir_list($path.$file.'/') ;
 			else
-				echo '<div class="avatar" onclick="select(\''.addslashes($path.$file).'\')"><img title="'.$path.$file.'" src="'.$path.$file.'"></div>'."\n" ;
+				echo '<div class="avatar" onclick="select(\''.$url.'/'.addslashes($path.$file).'\')"><img title="'.$path.$file.'" src="'.$path.$file.'"></div>'."\n" ;
 }
 dir_list($path) ;
 ?>
