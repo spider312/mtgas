@@ -884,7 +884,15 @@ function manage_text($name, $text, $target) {
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
 			$target->tokens[] = $token ;
 		}
-	} 
+	}
+	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$token->name = "Clue" ;
+		$target->tokens[] = $token ;
+	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
