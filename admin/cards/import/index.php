@@ -106,9 +106,9 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
       <td>'."\n      " ;
-	foreach ( $card->urls as $i => $url ) {
+	foreach ( $card->urls as $i => $card_url ) {
 		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
-		echo '      <li><a href="'.$url.'" target="_blank">'.$name.'</a></li>'."\n" ;
+		echo '      <li><a href="'.$card_url.'" target="_blank">'.$name.'</a></li>'."\n" ;
 	}
 	echo '</td>
       <td>'.manacost2html($card->cost).'</td>
