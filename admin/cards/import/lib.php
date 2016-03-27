@@ -392,6 +392,8 @@ class ImportExtension {
 	function download() {
 		// Dirs
 		$begin = microtime(true) ;
+		$verbose = true ;
+		$update = true ;
 		global $base_image_dir ;
 		$dir = $base_image_dir.'HIRES/'.$this->dbcode.'/' ;
 		if ( ! rmkdir($dir) )
@@ -408,40 +410,44 @@ class ImportExtension {
 				if ( count($card->images) < 2 )
 					die('2 images expected for tranfsorm') ;
 				$path = $dir.card_img_by_name($card->name, 1, 1) ;
-				cache_get($card->images[0], $path, true, true) ;
+				cache_get($card->images[0], $path, $verbose, $update) ;
 				$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
-				cache_get($card->images[1], $path, true, true) ;
+				cache_get($card->images[1], $path, $verbose, $update) ;
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
 					$nbimages = count($images['images']) ;
-					if ( $nbimages < 1 )
+					if ( $nbimages !== 2 ) {
+						echo "$nbimages instead of 2 expected" ;
 						continue ;
-					if ( $nbimages < 2 )
-						echo '2 images expected for tranfsorm translation'."\n" ;
+					}
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					echo " - $lang : " ;
 					$path = $langdir.card_img_by_name($card->name, 1, 1) ;
-					cache_get($image, $path, true, true) ;
+					$image = $images['images'][0] ;
+					cache_get($image, $path, $verbose, $update) ;
 					$path = $langdir.card_img_by_name($card->secondname, 1, 1) ;
-					cache_get($image, $path, true, true) ;
+					$image = $images['images'][1] ;
+					cache_get($image, $path, $verbose, $update) ;
 					echo "\n" ;
 				}
 			} else {
 				foreach ( $card->images as $i => $image ) {
 					$path = $dir.card_img_by_name($card->name, $i+1, count($card->images)) ;
-					cache_get($image, $path, true, true) ;
+					cache_get($image, $path, $verbose, $update) ;
 				}
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
-					if ( count($images['images']) < 1 )
+					if ( count($images['images']) < 1 ) {
+						echo "No card images\n" ;
 						continue ;
+					}
 					echo " - $lang : " ;
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					foreach ( $images['images'] as $i => $image ) {
 						$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
-						cache_get($image, $path, true, true) ;
+						cache_get($image, $path, $verbose, $update) ;
 					}
 					echo "\n" ;
 				}
@@ -485,7 +491,7 @@ class ImportExtension {
 					continue ;
 				}
 			}
-			cache_get($token['image_url'], $tkdir.tokenpath($token, $name), true, true) ;
+			cache_get($token['image_url'], $tkdir.tokenpath($token, $name), $verbose, $update) ;
 			echo "\n" ;
 		}
 		umask($oldumask) ;

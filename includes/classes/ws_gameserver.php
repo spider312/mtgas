@@ -94,7 +94,6 @@ class GameServer {
 	public function import() {
 		$this->import_mtg() ;
 		$this->import_mogg() ;
-		$this->export() ;
 	}
 	public function import_mtg() {
 		$this->say("\tBegin MTG import") ;
@@ -157,7 +156,7 @@ class GameServer {
 		$this->say("\t\t".count($this->running_tournaments).' running tournaments imported') ;
 		$this->say("\tEnd MOGG import") ;
 	}
-	public function export() {
+	public function export() { // Not called anymore, week & month are generated on tournament end and year and all are generated via crontab
 		$this->say("\tBegin export") ;
 		// Export
 		ranking_to_file('ranking/week.json', 'WEEK') ;

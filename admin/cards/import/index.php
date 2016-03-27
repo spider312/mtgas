@@ -95,8 +95,8 @@ if ( count($importer->cards) != $nbimages )
       <th>Name</th>
       <th>Cost</th>
       <th>Types</th>
+      <th>Nb</th>
       <th>Images</th>
-      <th>URL</th>
       <th>MultiverseID</th>
       <th>Langs</th>
      </tr>
@@ -106,35 +106,27 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
       <td>'."\n      " ;
-	foreach ( $card->urls as $i => $url ) {
+	foreach ( $card->urls as $i => $card_url ) {
 		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
-		echo '      <li><a href="'.$url.'" target="_blank">'.$name.'</a></li>'."\n" ;
+		echo '      <li><a href="'.$card_url.'" target="_blank">'.$name.'</a></li>'."\n" ;
 	}
 	echo '</td>
       <td>'.manacost2html($card->cost).'</td>
       <td>'.$card->types.'</td>
-      <td>'.$card->nbimages.'</td>
-      <td>' ;
+      <td>'.$card->nbimages.'</td>';
+	echo '      <td>' ;
 	foreach ( $card->images as $i => $image)
 		echo '<li><a href="'.$image.'" target="_blank">['.($i+1).']</a></li>' ;
 	echo '      </td>'."\n" ;
 	echo '      <td>'.$card->multiverseid.'</td>'."\n" ;
-	echo '      <td>' ;
-	$line = array() ; // Pivot multiple images for a card's translations
+	// One column for each lang
 	foreach ( $card->langs as $code => $lang ) {
-		if ( isset($lang['name']) ) {
-			$title = ' title="'.$lang['name'].'"' ;
-			$code = ''.$code.'*' ;
-		} else
-			$title = '' ;
+		echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
 		foreach ( $lang['images'] as $i =>$image ) {
-			if ( !isset($line[$i]) )
-				$line[$i] = '' ;
-			$line[$i] .= '<a target="_blank" href="'.$image.'"'.$title.'>'.$code.'</a> ' ;
+			echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
 		}
+		echo '      </td>'."\n" ;
 	}
-	echo implode($line, '<br>') ; // /Pivot
-	echo '      </td>'."\n" ;
 	echo '     </tr>'."\n" ;
 }
 ?>
@@ -211,7 +203,12 @@ foreach ( $import_log as $i => $log ) {
 	}
 	if ( $updated ) {
 		echo '     <tr>'."\n" ;
-		echo '      <td>'.$i.' : <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a></td>'."\n" ;
+		echo '      <td>'."\n" ;
+		echo '       <li>#'.$i."</li>\n" ;
+		echo '       <li>'.$card->name."</li>\n" ;
+		echo '       <li><a href="'.$card->urls[0].'" target="_blank">source ('.$source.')</a></li>'."\n" ;
+		echo '       <li><a href="../card.php?id='.$log['id'].'" target="_blank">destination</a></li>'."\n" ;
+		echo '      </td>'."\n" ;
 		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
 			echo '      <td>only multiverseID</td>'."\n" ;
 		else
