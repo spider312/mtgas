@@ -38,7 +38,6 @@ $card_dom = new DOMDocument;
 for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$frimg = null ;
 	$trtext = 'Uninitialized' ;
-	$trpt = '' ;
 	$trimg = 'void' ;
 	$frtrimg = null ;
 	// Link
@@ -58,10 +57,11 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Name (+fr translation)
 	$name_nodes =  $card_xpath->query("//div[@class='S16']") ;
 	$fr_idx = 0 ; // French items are before english items
-	if ( $name_nodes->length > 2 ) // Double face
-		$us_idx = 2 ; // English items are after french sun and moon items
-	else // Simple face
+	if ( $name_nodes->length > 2 ) { // Double face
+		$us_idx = $name_nodes->length - 2 ; // English items are after french sun and moon items
+	} else { // Simple face
 		$us_idx = 1 ; // English items are right after french items
+	}
 	$frname = trim($name_nodes->item($fr_idx)->nodeValue) ;
 	//$frname = html_entity_decode($frname, ENT_COMPAT, 'UTF-8') ;
 	//$frname = card_name_sanitize($frname) ;
@@ -73,13 +73,17 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}
 	// PT
 	$pt_nodes = $card_xpath->query("//div[@class='G14']") ;
+	$trpt = '' ;
 	switch ( $pt_nodes->length) {
 		case 2: // Has 1 PT (normal)
 			$pt = $pt_nodes->item(1)->nodeValue ;
 			break ;
-		case 4: // Has 2 PT (transform)
-			$pt = $pt_nodes->item(2)->nodeValue ;
-			$trpt = $pt_nodes->item(3)->nodeValue ;
+		// Has 2 PT (transform)
+		case 3: // French version miss moon data
+		case 4: // Normal
+		case 5: // ???
+			$pt = $pt_nodes->item($pt_nodes->length-2)->nodeValue ;
+			$trpt = $pt_nodes->item($pt_nodes->length-1)->nodeValue ;
 			break ;
 		default:
 			echo "Unmanaged PT nodes number : {$pt_nodes->length} $name\n" ;
@@ -117,9 +121,18 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Text
 	$text_nodes = $card_xpath->query("//div[@class='S12' or @class='S11']") ; //div[@id='EngShort']
 	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
-	switch ( $text_nodes->length ) {
+	// Workaround for missing french transformed data
+	$text_nodes_length = $text_nodes->length ;
+	if ( $text_nodes->length == 5 ) { // Instead of 6
+		$types_arr = explode(' - ', $types) ;
+		if ( $types_arr[0] !== 'Planeswalker' ) {
+			echo "Workarounded $name - $text_nodes_length\n" ;
+			$text_nodes_length = 6 ;
+		}
+	}
+	switch ( $text_nodes_length ) {
 		case 6 : // Transform
-			$trtext = $text_nodes->item(4)->C14N() ;
+			$trtext = $text_nodes->item($text_nodes->length-2)->C14N() ;
 			$trtext = mv2txt($trtext) ;
 		case 3 : // Normal case
 			$text = $text_nodes->item($us_idx+1)->C14N() ;
@@ -133,10 +146,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$text = mv_planeswalker($text_nodes, 3) ;
 			break ;
 		case 8 : // Double face, moon is a planeswalker
-			if ( $pt == '' ) { // Sun is a planeswalker (ISD Garruk)
+			if ( $pt == '' ) { // Sun is a planeswalker (ISD Garruk, SOI Arlinn Kord)
 				$text = mv_planeswalker($text_nodes, 4) ;
 				$trtext = mv_planeswalker($text_nodes, 6);
-			} else { // Sun is a creature
+			} else { // Sun is a creature (ORI Planeswalkers)
 				$text = $text_nodes->item(4)->C14N() ;
 				$text = $pt."\n".mv2txt($text) ;
 				$trtext = mv_planeswalker($text_nodes, 5);
@@ -165,21 +178,26 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
 	// Moon
-	if ( $name_nodes->length > 3 ) {
+	if ( $name_nodes->length > 2 ) {
+		$idx = $name_nodes->length - 1 ;
 		// Name
-		$trname = trim($name_nodes->item(3)->nodeValue) ;
+		$trname = trim($name_nodes->item($idx)->nodeValue) ;
 		// Types
-		$trtypes_node = $type_nodes->item(3) ;
+		$trtypes_node = $type_nodes->item($idx) ;
 		$trtypes = trim($trtypes_node->nodeValue) ;
 		$trtypes = str_replace(chr(194).chr(151), '-', $trtypes) ;
 		// Color
 		$trcolor = '' ;
 		$node = $trtypes_node->firstChild ;
-		do {
+		while( $node->nodeName == 'img' ) {
 			$src = $node->getAttribute('src') ;
-			$trcolor .= preg_replace("#graph/manas/l|(\..*)#", '', $src) ;
+			if ( preg_match("#graph/manas/l(.)\.gif#", $src, $matches) ) {
+				$trcolor .= $matches[1] ;
+			} else {
+				echo "Not a valid mana icon URL : $src\n";
+			}
 			$node = $node->nextSibling ;
-		} while( $node->nodeName == 'img' ) ;
+		}
 		// Text & PT : managed in sun face text & PT managements
 		if ( $trpt != '' )
 			$trtext = $trpt."\n".$trtext ;
@@ -199,7 +217,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			, $base_url.$trimg
 		) ;
 		if ( $frtrimg != null )
-			$card->addlangimg('fr', $frtrimg) ;
+			$card->addlangimg('fr', $base_url.$frtrimg) ;
 	}
 }
 function mv_planeswalker($text_nodes, $text_idx) {
