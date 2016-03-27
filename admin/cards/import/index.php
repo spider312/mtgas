@@ -56,7 +56,7 @@ html_menu() ;
      <label>Ext code (in DB) : <input type="text" name="ext_local" value="<?=$ext_local?>"></label>
      <label><?=html_checkbox('apply', $apply) ; ?>Apply<label>
     </fieldset>
-    <button type="sublit">Refresh</button>
+    <button type="submit">Refresh</button>
    </form>
   </div>
 
