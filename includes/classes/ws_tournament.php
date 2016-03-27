@@ -705,8 +705,13 @@ class Tournament {
 		// A first pass computing players scores is needed before computing opponent w
 		foreach ( $this->players as $player )
 			$player->get_score() ;
-		foreach ( $this->players as $player )
-			$score->{$player->player_id} = $player->get_omw() ;
+		foreach ( $this->players as $player ) {
+			if ( isset($player->player_id) ) {
+				$score->{$player->player_id} = $player->get_omw() ;
+			} else {
+				echo "Player has no playerID" ;
+			}
+		}
 		usort($this->players, array('Tournament', 'players_end_compare')) ;
 		// Update rank cache
 		foreach ( $this->players as $i => $player )
