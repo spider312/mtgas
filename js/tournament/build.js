@@ -314,7 +314,7 @@ function Zone(pool, node, name, sort) {
 			return result ;
 		},
 		'types': function(cols) {
-			var types = ['planeswalker', 'creature', 'land', 'artifact', 'enchant', 'sorcery', 'instant', 'tribal'] ;
+			var types = ['planeswalker', 'creature', 'land', 'artifact', 'enchantment', 'sorcery', 'instant', 'tribal'] ;
 			var result = [] ;
 			for ( var i = 0 ; i < types.length ; i++ ) {
 				if ( cols[types[i]] )
