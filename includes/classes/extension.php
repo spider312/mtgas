@@ -34,11 +34,17 @@ class Extension {
 		for ( $i = 0 ; $i < $nb ; $i++ ) {
 			$this->cards[] = $card ;
 			$this->cards_nb = count($this->cards) ;
-			if ( $this->get_data('transform', false) 
-				&& property_exists($card->attrs, 'transformed_attrs') )
+			if ( 
+				(
+					$this->get_data('transform', false) 
+					|| $this->get_data('transform2', false) 
+				)
+				&& property_exists($card->attrs, 'transformed_attrs')
+			) {
 				$dest =& $this->cards_tr ;
-			else
+			} else {
 				$dest =& $this->cards_rarity ;
+			}
 			if ( $rarity == '' )
 				$rarity = $card->rarity ;
 			if ( ! array_key_exists($rarity, $dest) )
@@ -129,6 +135,19 @@ class Extension {
 			if ( array_key_exists($r, $this->cards_tr) ) {
 				$nb_c-- ;
 				$this->rand_card($this->cards_tr[$r], $result, $upool) ;
+			}
+		}
+		// transformable, 2nd wave (SOI)
+		if ( ( $nb_c > 0 ) && $this->get_data('transform2', false) ) {
+			// 1 common is replaced by 1 transform common or uncommon
+			$nb_c-- ;
+			$tr_c = array_merge($this->cards_tr['C'], $this->cards_tr['U']) ;
+			$this->rand_card($tr_c, $result, $upool) ;
+			// once over 8 boosters 1 uncommon is replaced by 1 transform rare or mythic
+			if ( ( rand(1, 8) == 1 ) && ( $nb_u > 0 ) ) {
+				$nb_u-- ;
+				$tr_r = array_merge($this->cards_tr['R'], $this->cards_tr['R'], $this->cards_tr['M']) ; // Rares appears twice than mythics
+				$this->rand_card($tr_r, $result, $upool) ;
 			}
 		}
 		// rare or mythic
