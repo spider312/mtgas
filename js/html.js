@@ -447,11 +447,16 @@ function create_tr(table) {
 	return row ;
 }
 function create_td(row, text, colspan) {
-	var cell = row.insertCell(-1) ;
+	if ( row ) {
+		var cell = row.insertCell(-1) ;
+	} else {
+		var cell = document.createElement('td') ;
+	}
 	var child = null ;
 	switch ( typeof text ) {
 		case 'undefined' :
 			text = 'undef' ;
+			break ;
 		case 'number' :
 		case 'string' :
 			child = document.createTextNode(text)
@@ -463,7 +468,9 @@ function create_td(row, text, colspan) {
 		default : 
 			alert(typeof text) ;
 	}
-	cell.appendChild(child) ;
+	if ( child !== null ) {
+		cell.appendChild(child) ;
+	}
 	if ( colspan )
 		cell.colSpan = colspan ;
 	return cell ;

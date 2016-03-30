@@ -75,10 +75,10 @@ function Connexion(path, onmessage, onclose, registration_data) {
 			try {
 				data = JSON.parse(ev.data) ;
 			} catch (e) {
-				alert("Websocket can't parse JSON : "+ev.data) ;
+				console.error("Websocket can't parse JSON : "+ev.data) ;
 			}
 			if ( data == null ) {
-				alert('Unparsable data : '+ev.data) ;
+				console.error('Unparsable data : '+ev.data) ;
 				return false ;
 			}
 			switch ( data.type  ) { // Websocket messages interpreted by this

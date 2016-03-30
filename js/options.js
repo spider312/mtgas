@@ -485,7 +485,12 @@ function gallery() {
 // Code copied from index.js, TODO : include it in new management
 // Other saved fields (not displayed in options, mostly index fields save)
 function save_restore(field, onsave, onrestore) {
-	var myfield = document.getElementById(field) ;
+	if ( typeof field === 'string' ) {
+		var myfield = document.getElementById(field) ;
+	} else {
+		var myfield = field ;
+		field = field.name ;
+	}
 	if ( myfield != null ) {
 		// Prepare save trigger
 		switch ( myfield.type ) { // Depending on type
@@ -549,7 +554,13 @@ function store(key, value) {
 	*/
 }
 function save(myfield) {
-	var field = myfield.id ;
+	if ( myfield.id ) {
+		var field = myfield.id ;
+	} else if ( myfield.name ) {
+		var field = myfield.name ;
+	} else {
+		return false ;
+	}
 	if ( myfield.type == 'checkbox' )
 		var value = myfield.checked ;
 	else
