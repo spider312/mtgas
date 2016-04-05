@@ -920,25 +920,27 @@ function manage_text($name, $text, $target) {
 			$cond = trim($match['cond']) ;
 			switch ( $cond ) {
 				// Sipmply parsable condition
-				case '':
-					if ( $match['token'] != '' ) {
+				case '': // No "base" condition (example : "creature tokens you control get +1/+1")
+					if ( $match['token'] === ' token' ) { // 'creature(?<token> token)?s' : token detected
 						$boost_bf->cond = 'class=token' ;
 					}
 					break ;
-				case 'nontoken':
+				case 'nontoken': // Hardcoded non token object
 					$boost_bf->cond = 'class=card' ;
 					break ;
 				// Complex condition, parse it
 				default:
 					$ci = array_search($cond, $colors) ;
+					// Color selector
 					if ( $ci !== false )
 						$boost_bf->cond = "color=$ci" ;
 					else {
+						// Types selector
 						$types = explode(' and ', $cond) ;
 						foreach ( $types as $i => $type ) {
-							if ( $type == 'artifact' )
+							if ( $type == 'artifact' ) // Hardcoded artifact is a card type, not a creature type
 								$types[$i] = "type=$type" ;
-							else
+							else // Defaults to creature type
 								$types[$i] = "ctype=$type" ;
 						}
 						$boost_bf->cond = implode('|', $types) ;
