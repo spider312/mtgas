@@ -917,23 +917,32 @@ function manage_text($name, $text, $target) {
 			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
 				$boost_bf->control = -1 ;
 			// Conditions (creature type, color ...)
-			if ( $match['token'] != '' )
-				$boost_bf->cond = 'class=token' ;
 			$cond = trim($match['cond']) ;
-			if ( $cond != '' ) {
-				$ci = array_search($cond, $colors) ;
-				if ( $ci !== false )
-					$boost_bf->cond = "color=$ci" ;
-				else {
-					$types = explode(' and ', $cond) ;
-					foreach ( $types as $i => $type ) {
-						if ( $type == 'artifact' )
-							$types[$i] = "type=$type" ;
-						else
-							$types[$i] = "ctype=$type" ;
+			switch ( $cond ) {
+				// Sipmply parsable condition
+				case '':
+					if ( $match['token'] != '' ) {
+						$boost_bf->cond = 'class=token' ;
 					}
-					$boost_bf->cond = implode('|', $types) ;
-				}
+					break ;
+				case 'nontoken':
+					$boost_bf->cond = 'class=card' ;
+					break ;
+				// Complex condition, parse it
+				default:
+					$ci = array_search($cond, $colors) ;
+					if ( $ci !== false )
+						$boost_bf->cond = "color=$ci" ;
+					else {
+						$types = explode(' and ', $cond) ;
+						foreach ( $types as $i => $type ) {
+							if ( $type == 'artifact' )
+								$types[$i] = "type=$type" ;
+							else
+								$types[$i] = "ctype=$type" ;
+						}
+						$boost_bf->cond = implode('|', $types) ;
+					}
 			}
 			$eot = false ;
 			if ( array_key_exists('attrs', $match) ) {
