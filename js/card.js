@@ -1681,7 +1681,7 @@ function card_prototype() {
 		return true ;
 	}
 	this.transform_attrs = function(from) { // Copy some attrs from an attrs obj into card's one, removing unexisting attrs
-		var creat_attrs = Array( 'double_strike', 'lifelink', 'vigilance', 'infect', 'trample', 'trigger_upkeep', 'boost_bf', 'bonus' ) ; // pow, thou
+		var creat_attrs = Array( 'double_strike', 'lifelink', 'vigilance', 'infect', 'trample', 'trigger_upkeep', 'boost_bf', 'bonus', 'powtoucond' ) ; // pow, thou
 		for ( var i = 0 ; i < creat_attrs.length ; i++ ) {
 			var attr = creat_attrs[i] ;
 			if ( isset(from[attr]) ) // In from
