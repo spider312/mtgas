@@ -217,7 +217,7 @@ function html_head($title='No title', $css=array(), $js=array(), $rss=array()) {
  <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <title>'.$appname.' : '.$title.'</title>
-  <link type="image/jpg" rel="icon" href="'.theme_image($index_image).'">'."\n" ;
+  <link type="image/png" rel="icon" href="'.theme_image($index_image).'">'."\n" ;
   	$css[] = 'debug.css' ;
 	add_css($css) ;
 	$js[] = 'debug.js' ;
