@@ -235,15 +235,16 @@ function html_foot() {
 </html>' ;
 }
 class menu_entry {
-	function __construct($name, $url, $title='') {
+	function __construct($name, $url, $title='', $new_tab=false) {
 		$this->name = $name ;
 		$this->url = $url ;
 		$this->title = $title ;
+		$this->new_tab = $new_tab ;
 	}
 }
-function menu_add($name, $url, $title='') {
+function menu_add($name, $url, $title='', $new_tab=false) {
 	global $menu_entries ;
-	$menu_entries[] = new menu_entry($name, $url, $title) ;
+	$menu_entries[] = new menu_entry($name, $url, $title, $new_tab) ;
 	return $menu_entries ;
 }
 function html_menu($additionnal_entries=null) {
@@ -257,7 +258,11 @@ function html_menu($additionnal_entries=null) {
 			$separator = '' ;
 		else
 			$separator = ' - ' ;
-		echo '    <a title="'.$entry->title.'" href="'.$entry->url.'">'.$entry->name.'</a>'.$separator."\n" ;
+		$target = '' ;
+		if ( $entry->new_tab ) {
+			$target = ' target="_ blank"' ;
+		}
+		echo '    <a title="'.$entry->title.'" href="'.$entry->url.'"'.$target.'>'.$entry->name.'</a>'.$separator."\n" ;
 	}
 	echo '    <a id="identity_shower" title="'.__('menu.identity_shower.title').'">Nickname</a>'."\n" ;
 	echo '   </header>'."\n\n" ;

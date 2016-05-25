@@ -17,11 +17,11 @@ if ( array_key_exists('theme', $_COOKIE) )
 // Default menu entries
 menu_add(__('menu.ranking'), $url.'/top.php', __('menu.ranking.title')) ;
 menu_add(__('menu.data'), $url.'/player.php', __('menu.data.title')) ;
-menu_add('<img src='.theme_image("icon-facebook.png").' alt="Facebook">', 'https://www.facebook.com/mogg.fr', __('menu.facebook.title')) ;
-menu_add(__('menu.gui'), $url.'/doc/GUI.php', __('menu.gui.title')) ;
-menu_add('<img src='.theme_image("youtube.png").' alt="Video tutorials" target="_ blank"> Tutorials', 'https://www.youtube.com/playlist?list=PL2cnRVtBdqkVJZNql_RBeUj6MNQJ2y0nS', 'Video tutorials') ;
-menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title')) ;
-menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title')) ;
+menu_add('<img src='.theme_image("icon-facebook.png").' alt="Facebook">', 'https://www.facebook.com/mogg.fr', __('menu.facebook.title'), true) ;
+menu_add(__('menu.gui'), $url.'/doc/GUI.php', __('menu.gui.title'), true) ;
+menu_add('<img src='.theme_image("youtube.png").' alt="Video tutorials"> Tutorials', 'https://www.youtube.com/playlist?list=PL2cnRVtBdqkVJZNql_RBeUj6MNQJ2y0nS', 'Video tutorials', true) ;
+menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title'), true) ;
+menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title'), true) ;
 
 // Session
 $session_id = $appname.'playerid' ;
