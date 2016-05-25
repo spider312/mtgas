@@ -260,7 +260,7 @@ function html_menu($additionnal_entries=null) {
 			$separator = ' - ' ;
 		$target = '' ;
 		if ( $entry->new_tab ) {
-			$target = ' target="_ blank"' ;
+			$target = ' target="_blank"' ;
 		}
 		echo '    <a title="'.$entry->title.'" href="'.$entry->url.'"'.$target.'>'.$entry->name.'</a>'.$separator."\n" ;
 	}
