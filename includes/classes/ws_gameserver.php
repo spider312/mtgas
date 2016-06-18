@@ -107,7 +107,7 @@ class GameServer {
 		// Token images
 		$exts = array_reverse(Extension::$cache) ;
 		// Files (for tokens existence)
-		$base = '/home/hosted/mogg/img/MIDRES/TK/' ;
+		$base = '/home/mogg/img/MIDRES/TK/' ;
 		$tokendirs = scan($base) ;
 		// Processing (list all existing tokens ordered by database)
 		$nbtoken = 0 ;
