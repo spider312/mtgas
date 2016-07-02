@@ -1,5 +1,5 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
-function Connexion(url, onmessage, onclose, registration_data) {
+function Connexion(path, onmessage, onclose, registration_data) {
 	// Accessors
 	this.toString = function() {
 		return 'websocket connexion to '+this.url ;
@@ -16,9 +16,12 @@ function Connexion(url, onmessage, onclose, registration_data) {
 		}
 	}
 	this.refresh_indicator = function() {
-		var title = this.pingmean(1)+'ms' ;
-		title += ' / '+this.pingmean(this.ping_times.length)+'ms' ;
-		this.indicator.title = 'Connexion : '+this.title + ' ('+title+')' ;
+		var title = this.title ;
+		if ( this.connexion != null ) {
+			title += '('+this.pingmean(1)+'ms' ;
+			title += ' / '+this.pingmean(this.ping_times.length)+'ms)' ;
+		}
+		this.indicator.title = 'Connexion : '+title ;
 	}
 	// Master Methods
 	this.connect = function() {
@@ -35,7 +38,7 @@ function Connexion(url, onmessage, onclose, registration_data) {
 				case this.connexion.CLOSED :
 					break ;
 				default :
-					alert('Unknown ReadyState : '+this.connexion.readyState)
+					alert('Unknown ReadyState : '+this.connexion.readyState) ;
 			}
 		}
 		this.indicator_color('orange', 'connecting') ;
@@ -72,22 +75,26 @@ function Connexion(url, onmessage, onclose, registration_data) {
 			try {
 				data = JSON.parse(ev.data) ;
 			} catch (e) {
-				alert("Websocket can't parse JSON : "+ev.data) ;
+				console.error("Websocket can't parse JSON : "+ev.data) ;
 			}
 			if ( data == null ) {
-				alert('Unparsable data : '+ev.data) ;
+				console.error('Unparsable data : '+ev.data) ;
 				return false ;
 			}
-			switch ( data.type  ) {
-				case 'ping' :
+			switch ( data.type  ) { // Websocket messages interpreted by this
+				case 'ping' : // Server sent ping, answer as soon as possible
 					data.type = 'pong' ;
 					connexion.send(JSON.stringify(data)) ;
 					break ;
-				case 'pong' :
+				case 'pong' : // Server replied to a ping, update indicator
 					connexion.pingtime(new Date() - connexion.ping_sent) ;
 					setTimeout.call(connexion, connexion.ping, connexion.ping_delay) ;
 					break ;
-				default : 
+				case 'ban' : // Server informed us we're ban, inform and stop connexion loop
+					alert('You are banned : '+data.reason) ;
+					connexion.close(1000, 'Banned : '+data.reason) ;
+					break ;
+				default : // Each other message is sent to websocket connexion initializer
 					if ( isf(connexion.onmessage) )
 						connexion.onmessage(data, ev) ;
 			}
@@ -136,11 +143,16 @@ function Connexion(url, onmessage, onclose, registration_data) {
 			}
 	}
 	this.close = function(code, reason) {
+		if ( ! isn(code) )
+			code = 1000 ;
+		if ( ! iss(reason) )
+			reason = 'no reason given' ;
 		if ( this.connexion != null ) {
 			this.connexion.close(code, reason) ;
-			clearInterval(this.timer);
-			this.timer = null ;
+			this.connexion = null ;
 		}
+		clearInterval(this.timer);
+		this.timer = null ;
 	}
 	this.events = function() {
 		window.addEventListener('blur', this.sendevent(this), false) ;
@@ -163,9 +175,9 @@ function Connexion(url, onmessage, onclose, registration_data) {
 		// GUI
 	this.indicator_color('violet', 'initializing') ;
 		// params
-	this.baseurl = 'ws://dev.mogg.fr:'+wsport+'/' ;
+	this.baseurl = 'ws://'+wshost+':'+wsport+'/' ;
 	this.url = this.baseurl ;
-	if ( iss(url) ) this.url += url ;
+	if ( iss(path) ) this.url += path ;
 	if ( isf(onmessage) ) this.onmessage = onmessage ;
 	else this.onmessage = null ;
 	if ( isf(onclose) ) this.onclose = onclose ;

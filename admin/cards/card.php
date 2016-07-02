@@ -89,8 +89,9 @@ echo '  <h2>#'.$card_bdd['id'].'</h2>' ;
 
 // Add to extension
 if ( array_key_exists('ext', $_GET) ) {
-	$ext_id = ext_id($_GET['ext']) ;
-	if ( $ext_id > 0 ) {
+	$query = query("SELECT id FROM extension WHERE `se` = '".$_GET['ext']."'", 'ext2id') ;
+	if ( $arr = mysql_fetch_array($query) ) {
+		$ext_id = $arr['id'] ;
 		if ( $card = query_oneshot("SELECT * FROM `card_ext` WHERE `card` = '$id' AND `ext` = '$ext_id' ;") ) {
 			if ( query("UPDATE `card_ext` SET `rarity` = '".$_GET['rarity']."', `nbpics` = '".$_GET['nbpics']."' WHERE `card` = '".$card_bdd['id']."' AND `ext` = '$ext_id' LIMIT 1 ; ; ") )
 				echo '<p>Card successfully updated for extension '.$_GET['ext'].' with rarity '.$_GET['rarity'].'</p>' ;

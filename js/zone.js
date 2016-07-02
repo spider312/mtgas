@@ -56,7 +56,7 @@ function Zone(player, type) {
 		var nb = prompt_int('How many cards to reveal from your '+this.type+' ?', 1) ;
 		var sel = this.rand_selection(this.cards, nb) ;
 		if ( sel )
-			sel.reveal(true, true) ;
+			sel.reveal_from_hand(true, true) ;
 	}
 	this.get_card = function(id) { // duplicated here for cardlisteditor that can't use globals (based on another window object)
 		for ( var j = 0 ; j < this.cards.length ; j++ )
@@ -154,6 +154,17 @@ function VisibleZone(player, type) {
 		// Didn't loop attached cards
 		return null ;
 	}
+	zone.disp_card_number = function(context, force) {
+		var margin = 5 ;
+		context.font = "10pt Arial";
+		var x = this.w ;
+		var y = 0 ;
+		if ( this.selzone || force ) {
+			x += this.x ;
+			y += this.y ;
+		}
+		canvas_text_tr(context, this.cards.length, x - margin, y + margin, bordercolor) ;
+	}
 	return zone ;
 }
 // === [ UNSELZONES ] ==========================================================
@@ -185,11 +196,8 @@ function unselzone(result) { // Common
 	result.mouseup = function(ev) {
 		result.parent_mouseup(ev) ; // Target
 		// Drop
-		if ( ( game.drag != null ) && ( game.drag.zone != this ) ) {
+		if ( ( game.drag != null ) && ( game.drag.zone != this ) )
 			game.selected.changezone(this) ;
-			// Update cache as it's updated only on mousemove
-			game.card_under_mouse = game.selected.cards[game.selected.cards.length-1] ;
-		}
 	}
 	result.click = function(ev) {
 		switch ( ev.button ) {
@@ -271,25 +279,28 @@ function unselzone(result) { // Common
 			context.fillRect(.5, .5, this.w, this.h) ;
 		}
 		canvas_reset_alpha(context) ;
-		// Card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.w - margin, margin, bordercolor) ;
+		// Data : card number
+		var opt = game.options.get('zone_card_number') ;
+		if ( ( opt == 'all' ) || ( opt == 'selzone' ) )
+			this.disp_card_number(context) ;
 		// Cards
 		if ( this.cards.length == 0 ) { // Icon
 			if ( this.img != null )
 				context.drawImage(this.img, (this.w-this.img.width)/2 , (this.h-this.img.height)/2) ;
-		} else { // Cards visible
-			// Show only 1 card for hidden unselzones (libraries)
-			if ( ! this.default_visibility ) {
+		} else {
+			if ( this.vcards <= 1 ) { // No visible card, draw back, 1 visible card, draw it
 				var card = this.cards[this.cards.length-1] ;
 				card.draw(context, card.x - this.x, card.y - this.y) ;
-			} else {
-				// Draw cards at their position
-				for ( var i = 0 ; i < this.cards.length ; i++ ) {
-					var card = this.cards[i] ;
+			} else { // More than 1 visible card
+				for ( var i = this.vcards-1 ; i >= 0 ; i-- ) // Draw them
+					if ( i < this.cards.length ) { // ???
+						var idx = this.cards.length-i-1 ; // this.cards.length - 1 = top index, i = 0-n top visible cards
+						var card = this.cards[idx] ;
+						card.draw(context, card.x - this.x, card.y - this.y) ;
+					}
+				var card = game.card_under_mouse ;
+				if ( ( game.widget_under_mouse == this ) && ( card != null ) && ( card.zone == this ) )
 					card.draw(context, card.x - this.x, card.y - this.y) ;
-				}
 			}
 		}
 	}
@@ -303,6 +314,8 @@ function unselzone(result) { // Common
 	}, function(widget) {
 		log('Unable to load image for '+widget) ;
 	}, result) ;
+	// Cards
+	result.vcards = 0 ; // Number of visible cards from top
 	return result ;
 }
 function virtual_unselzones(result) { // Unselzones + life (targeting)
@@ -702,9 +715,9 @@ function hand(player) {
 		for ( var i = this.cards.length ; i > 0 ; i-- )
 			this.cards[i-1].draw(context) ;
 		// Data : card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.x +this.w - margin, this.y + margin, bordercolor) ;
+		var opt = game.options.get('zone_card_number') ;
+		if ( ( opt == 'all' ) || ( opt == 'selzone' ) ) 
+			this.disp_card_number(context) ;
 	}
 	myhand.refresh = function() { // For each card in zone, calculate + store its coords
 		if ( this.editor_window != null )
@@ -773,7 +786,7 @@ function hand(player) {
 	}
 	myhand.reveal = function(b) {
 		var sel = new Selection(this.cards) ;
-		sel.reveal(b) ;
+		sel.reveal_from_hand(b) ;
 	}
 	return myhand ;
 }
@@ -859,9 +872,9 @@ function battlefield(player) {
 			}
 		canvas_reset_alpha(context) ;
 		// Data : card number
-		var margin = 5 ;
-		context.font = "10pt Arial";
-		canvas_text_tr(context, this.cards.length, this.x +this.w - margin, this.y + margin, bordercolor) ;
+		var opt = game.options.get('zone_card_number') ;
+		if ( opt == 'all' )
+			this.disp_card_number(context) ;
 		// Grid
 		if ( ( game.drag != null ) && ( game.widget_under_mouse == this) ) {
 			context.strokeStyle = 'white' ;

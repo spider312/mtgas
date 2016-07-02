@@ -68,34 +68,34 @@ html_menu() ;
   <div id="builder_buttons" class="section">
    <ul>
     <li><button id="add_md" accesskey="a" title="Add card to deck">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1rightarrow.png" alt="=&gt;">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/1rightarrow.png" alt="=&gt;">
     </button></li>
     <li><button id="add_sb" accesskey="b" title="Add card to sideboard">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/2rightarrow.png" alt="&gt;&gt;">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/2rightarrow.png" alt="&gt;&gt;">
     </button></li>
     <li><button id="del" accesskey="d" title="Remove card from deck / sideboard">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1leftarrow.png" alt="&lt;=">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/1leftarrow.png" alt="&lt;=">
     </button></li>
     <li><hr>
     <li><button id="up" accesskey="u" title="up card">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1uparrow.png" alt="&gt;&gt;">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/1uparrow.png" alt="&gt;&gt;">
     </button></li>
     <li><button id="down" accesskey="j" title="down card">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/1downarrow.png" alt="&lt;=">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/1downarrow.png" alt="&lt;=">
     </button></li>
     <li><hr>
     <li><button id="comment" accesskey="c" title="Add a comment over selected line">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/edit.png" alt="comment">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/edit.png" alt="comment">
     </button></li>
     <li><hr>
     <li><button id="save" accesskey="s" title="Save deck">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesave.png" alt="save">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/filesave.png" alt="save">
     </button></li>
     <li><button id="saveas" accesskey="v" title="Save deck giving it another name">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/filesaveas.png" alt="save">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/filesaveas.png" alt="save">
     </button></li>
     <li><button id="export" accesskey="e" title="Save deck as a file on your computer">
-     <img src="/themes/<?php echo $theme ; ?>/deckbuilder/export.png" alt="save">
+     <img src="themes/<?php echo $theme ; ?>/deckbuilder/export.png" alt="save">
     </button></li>
    </ul>
   </div>

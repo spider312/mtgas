@@ -21,6 +21,8 @@ function start() { // On page load
 	}) ;
 	save_restore('draft_boosters') ; // hidden for saving
 	save_restore('sealed_boosters') ;
+	save_restore('rounds_number') ;
+	save_restore('rounds_duration') ;
 	// DOM Elements cache
 	shout = document.getElementById('shout') ;
 	shouts = document.getElementById('shouts') ;
@@ -56,6 +58,8 @@ function start() { // On page load
 				break ;
 			case 'extensions' :
 				get_extensions(data.data) ;
+				// On connect, server send extensions after current data (shouts, games, tournaments ...)
+				// We don't want to notify for those initial data if page hasn't focus
 				game.send_notifications = true ;
 				break ;
 			// Shoutbox
@@ -94,8 +98,9 @@ function start() { // On page load
 				if ( tr == null )
 					running_tournament_remove(data.id) ;
 				if ( pending_tournament_add(data)
-					&& game.send_notifications
+					&& ( tr == null )
 					&& ( data.min_players > 1 )
+					&& game.send_notifications
 					&& ! document.hasFocus() )
 					notification_send('Mogg Tournament',
 						'New tournament : '+data.format+' '+data.name, 'tournament');

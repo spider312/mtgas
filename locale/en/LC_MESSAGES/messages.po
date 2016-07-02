@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Mogg\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-22 22:20+0100\n"
-"PO-Revision-Date: 2014-11-22 22:20+0100\n"
+"PO-Revision-Date: 2015-08-28 09:05+0100\n"
 "Last-Translator: SpideR <poedit@spiderou.net>\n"
 "Language-Team: - <lang@mogg.fr>\n"
 "Language: en_US\n"
@@ -13,7 +13,7 @@ msgstr ""
 "X-Poedit-KeywordsList: __;gettext;gettext_noop\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.7.5\n"
 "X-Poedit-SearchPath-0: ../../../.\n"
 
 #: ../../.././index_duels.php:2
@@ -122,7 +122,7 @@ msgstr "A deck from scratch"
 
 #: ../../.././index_decks.php:28
 msgid "index.decks.create"
-msgstr "From scratch"
+msgstr "New deck"
 
 #: ../../.././index_decks.php:30
 msgid "index.decks.create.name"

@@ -1,7 +1,8 @@
 <?php
 // MUST CHANGE
 $dir = '/path/to/folder/containing/this/' ; // Required for cron inclusions, can be relative to ~
-$url = 'http://mogg.fr/' ;
+$wshost = 'mogg.fr' ;
+$url = 'http://'.$wshost.'/' ;
 // Database
 	// MTGAS database
 $mysql_db = 'mtgas' ;
@@ -39,19 +40,19 @@ foreach ( $langs as $code => $name ) // Add each languages
 	if ( $code != 'n' )
 		$cardimages_choice[$name] =  'http://img.mogg.fr/'.strtoupper($code).'/' ;
 
-// May change
-$wait_duration = 3 * 60 ; // 3 minutes waiting for players beeing redirected
+// MTG rules to be tweaked
 $build_duration = 40 * 60 ; // 40 mins for build
 $round_duration = 60 * 60 ; // 60 mins for rounds as there are no additionnal turns
-$index_timeout = 10 ; // Server pings index clients every 10 secs
-$tournament_timeout = 300 ; // Server drops players after 5 minutes if already disconnected on last check
-
-// MTG rules to be tweaked
 $draft_base_time = 15 ; // Draft time = 15 secs + 5 secs per card in booster
 $draft_time_per_card = 5 ;
 $draft_lastpick_time = 60 ; // 60 seconds to views picks at the end of all boosters except last one
 $proba_m = 8 ; // 1 chance over 8 to get a mythic instead of a rare
 $proba_foil = 3 ; // 1 chance over 3 to get a (foil) card of any rarity instead of a common
+
+// May change
+$wait_duration = 3 * 60 ; // 3 minutes waiting for players beeing redirected
+$index_timeout = 10 ; // Server pings index clients every 10 secs
+$tournament_timeout = 300 ; // Server drops players after 5 minutes if already disconnected on last check
 
 // Shouldn't change
 $appname = 'MTGAS' ; // Must be different on servers hosted behind the same hostname
@@ -59,4 +60,5 @@ $default_theme = 'jay_kay' ;
 $index_image = 'Mogg Maniac.crop.png' ; // Relative to theme folder
 $log = false ; // Daemon returning data
 $wsport = 1337 ;
+$ts3 = false ;
 ?>

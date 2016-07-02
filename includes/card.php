@@ -12,82 +12,68 @@ function card_search($get, $connec=null) {
 		unset($get['limit']) ;
 	} else
 		$data->limit = 30 ;
+	$firstresult = ($data->page-1)*$data->limit ;
 	$get['name'] = card_name_sanitize($get['name']) ;
-	$from = ($data->page-1)*$data->limit ;
+	// Start to build query
+	$select = '`card`.*' ;
+	$from = '`card`' ;
 	$where = '' ;
+	$order = '`card`.`name`' ;
+	// Special fields that modify query instead of just beeing searched
 	if ( isset($get['ext']) && ( $get['ext'] != '' ) ) {
-		$select = 'SELECT `card`.*, `extension`.`se` FROM `card` LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
-		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' OR `extension`.`name` LIKE \''.$get['ext'].'%\' )' ;
+		$select .= ', `extension`.`se`' ;
+		$from .= 'LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
+		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' )' ;
 		unset($get['ext']) ;
-	} else {
-		$select = 'SELECT * FROM `card` ' ;
-		$where = '' ;
 	}
-	$order = ' ORDER BY `card`.`name`' ;
 	if ( isset($get['lang']) ) {
 		if ( $get['lang'] != 'en' ) {
 			$data->lang = $get['lang'] ;
-			$select = 'SELECT * FROM `card` LEFT JOIN `cardname`
-			ON `card`.`id` = `cardname`.`card_id`' ;
-			$get['card_name'] = $get['name'] ; // Search in lang table
-			$where .= ' AND `cardname`.`lang` = "'.$data->lang.'"' ;
-			$order = ' ORDER BY `cardname`.`card_name`' ;
-			unset($get['name']) ; // Search only in lang table
+			$select .= ', `cardname`.`card_name` ' ;
+			$from .= ' LEFT JOIN `cardname` ON `card`.`id` = `cardname`.`card_id`' ;
+			$where .= ' AND `cardname`.`lang` = "'.$get['lang'].'"' ;
+			$where .= ' AND `cardname`.`card_name` LIKE "%'.$get['name'].'%"' ;
+			unset($get['name']) ; // Don't search that name in card table, it has been searched in lang table
+			$order = '`cardname`.`card_name`' ;
 		}
 		unset($get['lang']) ;
 	}
-	// Search part of word
-	$result = query($select.get2where($get, 'LIKE', '%', '%').$where.$order, 'Card listing', $connec) ;
+	// Normal fields
+	$where .= get2where($get, 'LIKE', '%', '%', 'card') ;
+	// Parts acquired, merge and query
+	$query = "SELECT $select FROM $from WHERE 1 $where ORDER BY $order";
+	$result = query($query, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
-	while ( ( $from > 0 ) && ( $obj = mysql_fetch_object($result) ) )
-		$from-- ;
+	while ( ( $firstresult > 0 ) && ( $obj = mysql_fetch_object($result) ) )
+		$firstresult-- ;
 	while ( ( $obj = mysql_fetch_object($result) ) && ( count($data->cards) < $data->limit ) ) {
-		$query = query("SELECT extension.id, extension.se, extension.name, card_ext.nbpics
+		$query = "SELECT extension.id, extension.se, extension.name, card_ext.nbpics
 				FROM card_ext, extension
 				WHERE
 					card_ext.nbpics != 0 AND
 					card_ext.card = '".$obj->id."' AND
 					card_ext.ext = extension.id
-				ORDER BY extension.priority DESC", 'Card\' extension', $connec) ;
+				ORDER BY extension.priority DESC" ;
+		$result2 = query($query, 'Card\' extension', $connec) ;
 		$obj->ext = array() ;
-		while ( $obj_ext = mysql_fetch_object($query) )
+		while ( $obj_ext = mysql_fetch_object($result2) )
 			$obj->ext[] = $obj_ext ;
 		$data->cards[] = $obj ;
 	}
 	return $data ;
 }
-function ext_id($se='', $conn=null) {
-	$query = query("SELECT id FROM extension WHERE `se` = '$se'", 'ext2id', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) ) 
-			return $arr['id'] ;
-		else
-			return -1 ;
-	} else 
-		return -2 ;
-}
-function ext_se($id=-1, $conn=null) {
-	$query = query("SELECT * FROM extension WHERE `id` = '$id'", 'id2ext', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) ) 
-			return $arr['se'] ;
-		else
-			return '' ;
-	} else 
-		return '' ;
-
-}
-function card_id($name, $conn=null) {
-	$name = mysql_real_escape_string($name) ;
-	$query = query("SELECT id FROM card WHERE `name` = '$name'", 'cardname2id', $conn) ;
-	if ( mysql_num_rows($query) == 1 ) {
-		if ( $arr = mysql_fetch_array($query) )
-			return $arr['id'] ;
-		else
-			return -1 ;
-	} else 
-		return -2 ;
+function get2where($get, $comp, $prefix, $suffix, $table='') {
+	$where = '' ;
+	foreach ( $get as $i => $val ) {
+		if ( ( $i != 'submit' ) && ( $val != '' ) ) {
+			$where .= 'AND ' ;
+			if ( $table != '' )
+				$where .= '`'.$table.'`.' ;
+			$where .= '`'.$i . '` '.$comp.' \''.$prefix . mysql_real_escape_string($val) . $suffix . '\' ' ;
+		}
+	}
+	return $where ;
 }
 // === [ LIB ] =================================================================
 function card_name_sanitize($name) {
@@ -215,12 +201,14 @@ function cost_explode($cost) {
 class attrs {
 	function add_color($colors) {
 		for ( $i = 0 ; $i < strlen($colors) ; $i++ ) {
-			$color = $colors[$i] ;
+			$color = strtoupper($colors[$i]) ;
 			if ( isint($color) ) // Hybrid colored / colorless, ignore colorless part
 				continue ;
-			if ( $color == 'X' ) // X in cost isn't a color
-				continue ;
-			if ( $color == 'P' ) // Phyrexian mana
+			if (
+				( $color == 'X' ) // X in cost isn't a color
+				|| ( $color == 'P' ) // Phyrexian mana
+				|| ( $color == 'E' ) // Colorless mana
+			)
 				continue ;
 			if ( strpos($this->color, $color) === false )
 				$this->color .= $color ;
@@ -441,7 +429,7 @@ function manacost($str) { // Simplify mana cost, removing $ { } from various syn
 }
 // Structured text parsing
 function parse_creature($name, $text_lines, $target) { // Creatures : pow/tou
-	$pt = '[\d\*\+\-\.]*' ; // Numerics, *, + for *+1, - for *-1, . for unhinged half pow/tou points
+	$pt = '[\d\*\+\-\.\^]*' ; // Numerics, *, + for *+1, - for *-1, . for unhinged half pow/tou points, ^ S.N.O.T.
 	$txt = trim($text_lines[0]) ;
 	if ( preg_match('/^(?<pow>'.$pt.')\/(?<tou>'.$pt.')$/', $txt, $matches) ) {
 		$target->pow = intval($matches['pow']) ;
@@ -473,7 +461,7 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 			if ( ! in_array($matches[1], $target->steps) ) // Not adding multiple times the same item
 				$target->steps[] = $matches[1] ;
 			// Emblem
-			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"/', $piece, $matches) ) {
+			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $piece, $matches) ) {
 				$token = new stdClass() ;
 				$token->nb = 1 ;
 				$token->name = 'Emblem.'.$target->subtypes[0] ;
@@ -482,6 +470,7 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 				$token->attrs->subtypes = array() ;
 				manage_text($name, $matches[1], $token->attrs) ;
 				$target->tokens[] = $token ;
+				manage_text($name, $matches[2], $target) ;
 			} else
 				manage_text($name, $piece, $target) ;
 		}
@@ -558,6 +547,12 @@ function manage_text($name, $text, $target) {
 	// Spell effect
 	if ( stripos($text, 'Manifest') !== false )
 		$target->manifester = true ;
+	// Devoid
+	if ( stripos($text, 'Devoid') !== false ) {
+		global $allcolorscode ;
+		$target->color = $allcolorscode[1] ;
+	}
+	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
 		$target->no_untap = true ;
@@ -640,10 +635,16 @@ function manage_text($name, $text, $target) {
 				break ;
 			case 'combat' :
 				$step = 'combat' ;
-				if ( $matches['step'] == 'combat on your turn' )
-					$player = 1 ;
-				else
-					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				switch ( $matches['step'] ) {
+					case 'combat on your turn':
+						$player = 1 ;
+						break ;
+					case 'combat on each opponent\'s turn':
+						$player = 0 ;
+						break ;
+					default:
+						echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				}
 				break ;
 			case 'enchanted' :
 				$player = -1 ;
@@ -707,9 +708,11 @@ function manage_text($name, $text, $target) {
 					switch ( $words[0] ) {
 						case 'unless' : 
 							unset($target->tapped) ; // A condition will replace hard tapped
-							if ( $matches[1] == 'unless you control two or fewer other lands' )
+							if ( $matches[1] == 'unless you control two or fewer other lands' ) {
 								$target->ciptc = 'this.zone.player.controls({"types": "land"})>3' ;
-							elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
+							} elseif ( $matches[1] == 'unless you control two or more basic lands' ) {
+								$target->ciptc = '(this.zone.player.controls({"supertypes": "basic"})<2)' ;
+							} elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
 								$target->ciptc = '(this.zone.player.controls({"subtypes": "'.strtolower($matches[1]).'"})==0)' ;
 								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($matches[2]).'"})==0)' ;
 							} else // Unmanaged
@@ -854,19 +857,21 @@ function manage_text($name, $text, $target) {
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
-	//if ( preg_match_all('/[Pp]uts? (?<number>\w+)( (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+))? (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
-	if ( preg_match_all('/(?<number>\w+) (?<pow>\d|X|\*+)\/(?<tou>\d|X|\*+) (?<color>\w+)( and (?<color2>\w+))* (?<name>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	$colreg = implode('|', $colors) ;
+	if ( preg_match_all('/(?<number>\w+) ((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	// Godsire, Hazezon Tamar
+	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
 		foreach ( $all_matches as $matches ) {
 			$token = new stdClass() ;
-			$token->nb = text2number($matches['number'], 1) ; // Override X value with 1 to put at least 1 token
+			$token->nb = text2number($matches['number']) ;
 			if ( $token->nb < 1 )
-				$token->nb = 1 ;
+				$token->nb = 1 ; // Put at least 1 token
 			$token->attrs = new stdClass() ;
 			// Token name -> types / subtypes -> name
-			$types = explode(' ', $matches['name']) ;
-			$nameparts = array() ;
+			$types = explode(' ', $matches['types']) ;
+			$nameparts = array() ; // Get case sensitive names parts before they get lowercased as subtypes
 			foreach ( $types as $type )
-				if ( array_search($type, $cardtypes) !== false )
+				if ( array_search($type, $cardtypes) !== false ) // Additionnal card types (artifact, enchant ...) are parsed as subtypes, filter them
 					$token->attrs->types[] = strtolower($type) ;
 				else {
 					$token->attrs->subtypes[] = strtolower($type) ;
@@ -879,6 +884,14 @@ function manage_text($name, $text, $target) {
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
 			$target->tokens[] = $token ;
 		}
+	}
+	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$token->name = "Clue" ;
+		$target->tokens[] = $token ;
 	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
@@ -904,23 +917,34 @@ function manage_text($name, $text, $target) {
 			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
 				$boost_bf->control = -1 ;
 			// Conditions (creature type, color ...)
-			if ( $match['token'] != '' )
-				$boost_bf->cond = 'class=token' ;
 			$cond = trim($match['cond']) ;
-			if ( $cond != '' ) {
-				$ci = array_search($cond, $colors) ;
-				if ( $ci !== false )
-					$boost_bf->cond = "color=$ci" ;
-				else {
-					$types = explode(' and ', $cond) ;
-					foreach ( $types as $i => $type ) {
-						if ( $type == 'artifact' )
-							$types[$i] = "type=$type" ;
-						else
-							$types[$i] = "ctype=$type" ;
+			switch ( $cond ) {
+				// Sipmply parsable condition
+				case '': // No "base" condition (example : "creature tokens you control get +1/+1")
+					if ( $match['token'] === ' token' ) { // 'creature(?<token> token)?s' : token detected
+						$boost_bf->cond = 'class=token' ;
 					}
-					$boost_bf->cond = implode('|', $types) ;
-				}
+					break ;
+				case 'nontoken': // Hardcoded non token object
+					$boost_bf->cond = 'class=card' ;
+					break ;
+				// Complex condition, parse it
+				default:
+					$ci = array_search($cond, $colors) ;
+					// Color selector
+					if ( $ci !== false )
+						$boost_bf->cond = "color=$ci" ;
+					else {
+						// Types selector
+						$types = explode(' and ', $cond) ;
+						foreach ( $types as $i => $type ) {
+							if ( $type == 'artifact' ) // Hardcoded artifact is a card type, not a creature type
+								$types[$i] = "type=$type" ;
+							else // Defaults to creature type
+								$types[$i] = "ctype=$type" ;
+						}
+						$boost_bf->cond = implode('|', $types) ;
+					}
 			}
 			$eot = false ;
 			if ( array_key_exists('attrs', $match) ) {

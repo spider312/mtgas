@@ -63,7 +63,7 @@ html_head('Drafting #'.$id,
   </div>
 
   <div id="back" class="section">
-   <a id="mainpage" title="Main page" href="../"><img src="/themes/<?=$theme?>/<?=$index_image?>"></a>
+   <a id="mainpage" title="Main page" href="../"><img src="themes/<?=$theme?>/<?=$index_image?>"></a>
    <span id="aditional_link"></span>
   </div>
 <?php

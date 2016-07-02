@@ -28,18 +28,29 @@ class Extension {
 	public function add_card($card, $rarity='') {
 		if ( $card == null )
 			return false ;
-		$this->cards[] = $card ;
-		$this->cards_nb = count($this->cards) ;
-		if ( $this->get_data('transform', false) 
-			&& property_exists($card->attrs, 'transformed_attrs') )
-			$dest =& $this->cards_tr ;
-		else
-			$dest =& $this->cards_rarity ;
-		if ( $rarity == '' )
-			$rarity = $card->rarity ;
-		if ( ! array_key_exists($rarity, $dest) )
-			$dest[$rarity] = array() ;
-		$dest[$rarity][] = $card ;
+		$nb = 1 ;
+		if ( $card->name === 'Wastes' )
+			$nb = 2 ;
+		for ( $i = 0 ; $i < $nb ; $i++ ) {
+			$this->cards[] = $card ;
+			$this->cards_nb = count($this->cards) ;
+			if ( 
+				(
+					$this->get_data('transform', false) 
+					|| $this->get_data('transform2', false) 
+				)
+				&& property_exists($card->attrs, 'transformed_attrs')
+			) {
+				$dest =& $this->cards_tr ;
+			} else {
+				$dest =& $this->cards_rarity ;
+			}
+			if ( $rarity == '' )
+				$rarity = $card->rarity ;
+			if ( ! array_key_exists($rarity, $dest) )
+				$dest[$rarity] = array() ;
+			$dest[$rarity][] = $card ;
+		}
 	}
 	private function get_cards() { // Import card list from DB and dispatch by rarity/transformability
 		if ( count($this->cards) > 0 )
@@ -70,10 +81,10 @@ class Extension {
 	private function rand_card($from, &$booster, &$upool) {
 		shuffle($from) ;
 		foreach ( $from as $card ) {
-			if ( in_array($card, $booster) )
+			if ( card_in_booster($card, $booster) )
 				continue ;
 			if ( $this->get_data('uniq', false) ) {
-				if ( in_array($card, $upool) )
+				if ( card_in_booster($card, $upool) )
 					continue ;
 				else
 					$upool[] = $card ;
@@ -100,12 +111,12 @@ class Extension {
 			$nb_c += $nb_l ;
 		// foil (break unicity)
 		global $proba_foil ;
-		if ( ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
+		if ( ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
 			$nb_c-- ;
 			$this->rand_card($this->cards, $result, $upool) ;
 		}
 		// timeshifted (for TSP)
-		if ( $this->get_data('timeshift', false) ) {
+		if ( ( $nb_c > 0 ) && $this->get_data('timeshift', false) ) {
 			$ext = Extension::get('TSB') ;
 			$ext->get_cards() ;
 			if ( array_key_exists('S', $ext->cards_rarity) ) {
@@ -115,7 +126,7 @@ class Extension {
 				echo "No timeShift found" ;
 		} 
 		// transformable (for ISD/DKA)
-		if ( $this->get_data('transform', false) ) {
+		if ( ( $nb_c > 0 ) && $this->get_data('transform', false) ) {
 			$r = '' ; // Transform rarity
 			$n = rand(1, 14) ;
 			if ( $n > 13 )		$r = Extension::r_or_m($this->cards_tr) ;
@@ -126,8 +137,21 @@ class Extension {
 				$this->rand_card($this->cards_tr[$r], $result, $upool) ;
 			}
 		}
+		// transformable, 2nd wave (SOI)
+		if ( ( $nb_c > 0 ) && $this->get_data('transform2', false) ) {
+			// 1 common is replaced by 1 transform common or uncommon
+			$nb_c-- ;
+			$tr_c = array_merge($this->cards_tr['C'], $this->cards_tr['U']) ;
+			$this->rand_card($tr_c, $result, $upool) ;
+			// once over 8 boosters 1 uncommon is replaced by 1 transform rare or mythic
+			if ( ( rand(1, 8) == 1 ) && ( $nb_u > 0 ) ) {
+				$nb_u-- ;
+				$tr_r = array_merge($this->cards_tr['R'], $this->cards_tr['R'], $this->cards_tr['M']) ; // Rares appears twice than mythics
+				$this->rand_card($tr_r, $result, $upool) ;
+			}
+		}
 		// rare or mythic
-		if ( array_key_exists('R', $this->cards_rarity) ) {
+		if ( array_key_exists('R', $this->cards_rarity) || array_key_exists('M', $this->cards_rarity) ) {
 			for ( $i = 0 ; $i < $nb_r ; $i++ )
 				$this->rand_card($this->cards_rarity[Extension::r_or_m($this->cards_rarity)]
 					, $result, $upool);
@@ -144,7 +168,8 @@ class Extension {
 			for ( $i = 0 ; $i < $nb_c ; $i++ )
 				$this->rand_card($this->cards_rarity['C'], $result, $upool) ;
 		else
-			echo 'Not enough commons leftin ext '.$ext." ($c/".count($cards['C']).")\n" ;
+			if ( $nb_c > 0 )
+				echo 'Not enough commons leftin ext '.$ext." ($nb_c/".count($cards['C']).")\n" ;
 
 		return $result ;
 	}
@@ -181,10 +206,17 @@ class Extension {
 		return $ext ;
 	}
 	static function fill_cache() {
+		Extension::$cache = array() ;
 		global $db_cards ;
 		$raw = $db_cards->select("SELECT * FROM `extension` ORDER BY release_date DESC, priority DESC") ;
 		foreach ( $raw as $ext )
 			Extension::$cache[] = new Extension($ext) ;
 		return $raw ;
 	}
+}
+function card_in_booster($card, $booster) {
+	foreach ( $booster as $currcard  )
+		if ( $card->name == $currcard->name )
+			return true ;
+	return false ;
 }

@@ -3,18 +3,18 @@
 $importer->init('http://mtgjson.com/json/'.strtoupper($ext_source).'-x.json') ;
 $json = cache_get($importer->url, 'cache/'.$source.'_'.$ext_source, $verbose) ;
 $json = JSON_decode($json) ;
+// Just count cards to initialize importer
 $nbcards = 0 ;
 foreach ( $json->cards as $card )
 	switch ( $card->layout ) {
 		case 'normal' :
 			$nbcards++ ;
 			break ;
-		case 'split' :
+		case 'split' : // 2 lines in source for 1 card in mogg DB
+		case 'double-faced' :
 			$nbcards += 0.5 ;
 			break ;
 		case 'token' :
-			//print_r($card) ;
-			//$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
 			break ;
 		default :
 			d('Unknown layout : '.$card->layout) ;
@@ -26,11 +26,14 @@ $langcode = array(
 	'Russian' => '','Japanese' => '','Chinese Traditional' => '','Chinese Simplified' => '', 'Korean' => '' // Forbidden (charset)
 ) ;
 $splits = array() ;
+$transforms = array() ;
 foreach ( $json->cards as $card ) {
 	// Rarity
 	$rarity = substr($card->rarity, 0, 1) ;
 	if ( $card->rarity == 'Basic Land' )
 		$rarity = 'L' ;
+	if ( isset($card->starter) )
+		$rarity = 'S' ;
 	// Cost
 	if ( property_exists($card, 'manaCost') )
 		$cost = preg_replace('/\{(.)\}/', "$1", $card->manaCost) ;
@@ -56,21 +59,34 @@ foreach ( $json->cards as $card ) {
 	switch ( $card->layout ) {
 		case 'normal' :
 			break ;
+		// Split, transform have 2 cards, not following in card list, not even in right order, delay their parsing
 		case 'split' :
-			// First part will have its card created as usual
-			if ( $card->name != $card->names[0] ) { // This is not a first part
+			if ( $card->name == $card->names[1] ) { // Second part
 				$card->cost = $cost ;
 				$card->type = $type ;
 				$card->text = $text ;
 				$splits[] = $card ; // Manage it after having added all cards
-				continue 2 ;
+			}
+			break ;
+		case 'double-faced':
+			if ( $card->name == $card->names[1] ) { // Second part
+				$color = '' ;
+				foreach ( $card->colors as $c ) $color .= ( $c == 'Blue' ) ? 'U' : substr($c, 0, 1) ; 
+				if ( $color == '' ) $color = 'X' ;
+				$card->color = $color ;
+				$card->type = $type ;
+				$card->text = $text ;
+				$transforms[] = $card ; // Manage it after having added all cards
 			}
 			break ;
 		case 'token' :
-			continue 2 ;
+			//$importer->addtoken($url, $name, $pow, $tou, card_image_url($mv_ext_name.'/'.$mv_card_id)) ;
+			continue 2 ; // Don't parse as only interest is img ans MTGJSON does'nt prodide it
 		default :
-			d('Unknown layout : '.$card->layout) ;
+			echo 'Unknown layout : '.$card->layout."\n" ;
 	}
+	if ( ( isset($card->names) ) && ( $card->name != $card->names[0] ) ) // Not first part
+		continue ; // Card has been managed first time, don't re-add it
 	// All
 	$lastcard = $importer->addcard(
 		$importer->url,
@@ -102,4 +118,22 @@ foreach ( $splits as $card ) {
 					$split->addlang($langcode[$fname->language], $fname->name) ;
 	}
 }
+
+foreach ( $transforms as $card ) {
+	$transform = $importer->search($card->names[0]) ;
+	if ( $transform == null )
+		echo "Transform can't find {$card->names[0]}\n" ;
+	else {
+		$transform->transform($card->names[1], $card->color, $card->type, $card->text, 'http://mtgimage.com/set/'.strtoupper($ext_source).'/'.$card->imageName.'.jpg') ;
+		if ( property_exists($card, 'foreignNames') )
+			foreach ( $card->foreignNames as $fname )
+				if ( ! array_key_exists($fname->language, $langcode) )
+					echo "{$fname->language} not found" ;
+				else if ( $langcode[$fname->language] != '' )
+					$transform->addlang($langcode[$fname->language], $fname->name) ;
+	}
+}
+
+
+
 

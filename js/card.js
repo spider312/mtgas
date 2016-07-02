@@ -19,16 +19,20 @@
 function Card(id, extension, name, zone, attributes, exts) {
 	this.type = 'card' ; // Used in right DND
 	this.init('c_' + id, extension, name, zone, attributes, exts) ;
+	this.image_url = card_image_url(this.ext, this.name, this.attrs.nb) ;
 	this.bordercolor = 'black' ;
 	this.setzone(zone) ; // Initial zone initialisation
 	game.cards.push(this) ; // Auto referencing as a card
-	// Preload image if option is checked and card is not in sideboard
-	if ( ( zone.type == 'library' ) && game.options.get('check_preload_image') ) {
-		game.image_cache.load(this.imgurl('initial')) ;
-		if ( this.attrs.base_has('transform') )
-			game.image_cache.load(this.imgurl('transform')) ;
-		if ( this.attrs.base_has('morph') )
-			game.image_cache.load(this.imgurl('morph')) ;
+	if ( ( zone.type == 'library' ) && game.options.get('check_preload_image') ) { // If option checked and not sideboard card
+		this.attrs.visible = true ;
+		this.load_image() ;
+		if ( this.transformed_attrs && iss(this.transformed_attrs.name) ) { // And transformed one if needed
+			this.attrs.transformed = true ;
+			this.load_image() ;
+			this.attrs.transformed = false ;
+		}
+		this.attrs.visible = null ;
+		this.load_image() ; // Load BG
 	}
 }
 function card_prototype() {
@@ -246,8 +250,12 @@ function card_prototype() {
 	this.coords_set = function(x, y) {
 		if ( ! isn(x) )
 			x = 0 ;
+		else
+			x = Math.floor(x) ;
 		if ( ! isn(y) )
 			y = 0 ;
+		else
+			y = Math.floor(y) ;
 		this.x = x ;
 		this.y = y ;
 		this.set_coords(this.x, this.y, this.w, this.h) ;
@@ -639,7 +647,10 @@ function card_prototype() {
 				var boost = powtoucond[pt] ;
 			else
 				var boost = 1 ;
-			var from_str = powtoucond.from ;
+			var from_str = 'battlefield' ;
+			if ( iss(this.attrs.powtoucond.from)) {
+				from_str = this.attrs.powtoucond.from ;
+			}
 			var player = this.zone.player ;
 			if ( from_str[0] == '!' ) {
 				from_str = from_str.substr(1) ;

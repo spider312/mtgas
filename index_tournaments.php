@@ -70,11 +70,11 @@
 	  </legend>
       <label title="<?=__('index.tournaments.create.round_number.title');?>">
 	   <?=__('index.tournaments.create.round_number');?>
-       <input type="text" name="rounds_number" value="0">
+       <input type="text" id="rounds_number" name="rounds_number" value="0">
       </label>
       <label title="<?=__('index.tournaments.create.round_duration.title');?>">
 	   <?=__('index.tournaments.create.round_duration');?>
-       <input type="text" name="rounds_duration" value="<?php echo round($round_duration/60) ?>">
+       <input type="text" id="rounds_duration" name="rounds_duration" value="<?php echo round($round_duration/60) ?>">
       </label>
       <label title="<?=__('index.tournaments.create.clone.title');?>">
 	   <?=__('index.tournaments.create.clone');?>

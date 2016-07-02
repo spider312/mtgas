@@ -45,6 +45,11 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 }
 ?>
 
+<?php
+	if ( is_file($dir.'/header.php') )
+		include $dir.'/header.php' ;
+?>
+
   <div id="left_col"><!-- - - - - - - LEFT COLUMN - - - - - - -->
 
   <div id="shoutbox" class="section">
@@ -61,7 +66,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 
 <?php
 include 'index_tournaments.php' ;
-include 'index_ts.php' ;
+//include 'index_ts.php' ;
 ?>
 
   </div><!-- id="left_col" --><!-- - - - - - - - - - - / LEFT COLUMN - - - - - - - - - - -->
@@ -76,6 +81,6 @@ include 'index_decks.php' ;
 
   </div><!-- id="right_col" --><!-- - - - - - - - - - - / RIGHT COLUMN - - - - - -  - - - - -->
 
-  <div id="footer" class="section"><a href="https://github.com/spider312/mtgas">MTGAS developpement version</a>, hosted by <a href="mailto:mtg@spiderou.net">SpideR</a></div>
+  <div id="footer" class="section"><a href="https://github.com/spider312/mtgas">MTGAS developpement version</a>, hosted by <a href="mailto:spider@mogg.fr">SpideR</a></div>
 <?php
 html_foot() ;

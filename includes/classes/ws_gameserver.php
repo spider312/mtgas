@@ -7,6 +7,7 @@ require_once 'includes/card.php' ;
 require_once 'includes/ranking.php' ;
 require_once 'includes/ts3.php' ;
 // Websocket objects
+require_once 'includes/classes/ws_ban.php' ;
 require_once 'includes/classes/ws_game.php' ;
 require_once 'includes/classes/ws_tournament.php' ;
 require_once 'includes/classes/ws_registration.php' ;
@@ -37,6 +38,8 @@ class GameServer {
 	public $build = null ;
 	public $tournament = null ;
 	public $game = null ;
+	// Parameters
+	public $ts3 = false ;
 	// MTG data
 	public $tokens = array() ;
 	// MOGG data
@@ -59,7 +62,8 @@ class GameServer {
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
 		//$this->logger->addWriter($writer2);
 			// Filter log messages not showing debug
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
+		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
 		$writer->addFilter($filter);
 		//$writer2->addFilter($filter);
 		// WebSocket server
@@ -73,7 +77,7 @@ class GameServer {
 		$this->build = new BuildHandler($this->logger, $this, 'build') ;
 		$this->game = new GameHandler($this->logger, $this, 'game') ;
 		$this->admin = new AdminHandler($this->logger, $this, 'admin') ;
-		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game') ;
+		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game', 'admin') ;
 		// Routes
 		$router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);
 		$router->addRoute('#^/index#i', $this->index);
@@ -82,32 +86,51 @@ class GameServer {
 		$router->addRoute('#^/draft#i', $this->draft);
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
-		$this->warn('Server created') ;
+		// Params
+		global $ts3 ;
+		$this->ts3 = $ts3 ;
+		$this->say('Server created') ;
 	}
 	public function import() {
-		// MTG Data
+		$this->import_mtg() ;
+		$this->import_mogg() ;
+	}
+	public function import_mtg() {
+		$this->say("\tBegin MTG import") ;
 		Extension::fill_cache() ;
-		$this->warn("\t".count(Extension::$cache).' extensions imported') ;
+		$this->say("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
-		$this->warn("\t".count(Card::$cache).' cards, '.$links.' links imported');
+		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
+		$this->import_tokens() ;
+	}
+	public function import_tokens() {
 		// Token images
 		$exts = array_reverse(Extension::$cache) ;
 		// Files (for tokens existence)
-		$base = '/home/hosted/mogg/img/MIDRES/TK/' ;
+		$base = '/home/mogg/img/MIDRES/TK/' ;
 		$tokendirs = scan($base) ;
 		// Processing (list all existing tokens ordered by database)
+		$nbtoken = 0 ;
 		$orderedtokens = array() ;
 		foreach ( $exts as $obj )
 			if ( isset($tokendirs[$obj->se]) ) {
 				$orderedtokens[$obj->se] = $tokendirs[$obj->se] ;
+				$nbtoken += count($tokendirs[$obj->se]) ;
 				unset($tokendirs[$obj->se]) ;
 			}
 		if ( isset($tokendirs['EXT']) ) { // Fallback tokens without specific extension
 			$orderedtokens['EXT'] = $tokendirs['EXT'] ;
+			$nbtoken += count($tokendirs[$obj->se]) ;
 			unset($tokendirs['EXT']) ;
 		}
 		$this->tokens = $orderedtokens ;
-		// MOGG Data
+		$this->say("\t\t$nbtoken tokens listed") ;
+		$this->say("\tEnd MTG import") ;
+	}
+	public function import_mogg() {
+		$this->say("\tBegin MOGG import") ;
+		$this->bans = new Bans($this) ;
+		$this->say("\t\t".count($this->bans->list).' bans imported') ;
 		global $db ;
 			// Running games
 		$this->joined_duels = array() ;
@@ -122,7 +145,7 @@ class GameServer {
 				$this->joined_duels[] = $g ;
 			}
 		}
-		$this->warn("\t".count($this->joined_duels).' running duels imported') ; 
+		$this->say("\t\t".count($this->joined_duels).' running duels imported') ; 
 			// Running tournaments
 		foreach ( $db->select("SELECT `id` FROM `tournament`
 			WHERE `status` > '1' AND `status` < '6'	ORDER BY `id` ASC") as $tournament ) {
@@ -130,13 +153,18 @@ class GameServer {
 			if ( $t )
 				$this->running_tournaments[] = $t ;
 		}
-		$this->warn("\t".count($this->running_tournaments).' running tournaments imported') ;
+		$this->say("\t\t".count($this->running_tournaments).' running tournaments imported') ;
+		$this->say("\tEnd MOGG import") ;
+	}
+	public function export() { // Not called anymore, week & month are generated on tournament end and year and all are generated via crontab
+		$this->say("\tBegin export") ;
 		// Export
 		ranking_to_file('ranking/week.json', 'WEEK') ;
 		ranking_to_file('ranking/month.json', 'MONTH') ;
 		ranking_to_file('ranking/year.json', 'YEAR') ;
 		ranking_to_file('ranking/all.json', 'YEAR', 10) ;
-		$this->warn("\t".'Ranking exported') ;
+		$this->say("\t\t".'Ranking exported') ;
+		$this->say("\tEnd export") ;
 	}
 	public function start() {
 		$this->check() ;
@@ -144,7 +172,7 @@ class GameServer {
 		// Bind the server
 		$this->server->bind();
 		// Start the event loop
-		$this->warn('Starting server') ;
+		$this->say('Starting server') ;
 		$this->loop->run();
 	}
 	// Checks
@@ -209,6 +237,15 @@ class GameServer {
 				array_splice($this->pending_duels, array_search($duel, $this->pending_duels), 1) ;
 			}
 		return $result ;
+	}
+	public function clean_duel($duel) {
+		$i = array_search($duel, $this->joined_duels) ;
+		if ( $i > -1 ) {
+			$duels = array_splice($this->joined_duels, $i, 1) ;
+			foreach ( $duels as $spliceduel )
+				unset($spliceduel) ;
+		} else
+			$this->say('Joined duel not found : '.$duel->name) ;
 	}
 		// Tournament
 	public function move_tournament($tournament, $from, $to) {

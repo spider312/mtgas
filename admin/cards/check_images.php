@@ -8,7 +8,7 @@ html_head(
 	), 
 	array('html.js')
 ) ;
-$baseimagedir = '/home/hosted/mogg/img/' ;
+$baseimagedir = '/home/mogg/img/' ;
 $dir = param($_GET, 'dir', 'HIRES') ;
 $url = $baseimagedir.$dir.'/' ;
 $base = intval(param($_GET, 'base', '0')) ; // Only display base editions and extentions, usefull for language img, as other extentions aren't translated

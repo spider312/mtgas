@@ -133,6 +133,7 @@ class Card {
 		return $card_obj->extend($ext, $pic_num) ;
 	}
 	static function fill_cache() {
+		Card::$cache = array() ;
 		global $db_cards ;
 		$raw = $db_cards->select("SELECT * FROM `card` ORDER BY `id` DESC") ;
 		$links = 0 ;

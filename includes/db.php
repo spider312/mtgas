@@ -39,18 +39,6 @@ function query_as_array($query, $name='Query', $conn=null) {
 		$array[] = $row ;
 	return $array ;
 }
-function get2where($get, $comp, $prefix, $suffix, $table='') {
-	$where = 'WHERE 1 ' ;
-	foreach ( $get as $i => $val ) {
-		if ( ( $i != 'submit' ) && ( $val != '' ) ) {
-			$where .= 'AND ' ;
-			if ( $table != '' )
-				$where .= '`'.$table.'`.' ;
-			$where .= '`'.$i . '` '.$comp.' \''.$prefix . mysql_real_escape_string($val) . $suffix . '\' ' ;
-		}
-	}
-	return $where ;
-}
 function card_connect() {
 	global $mysql_login, $card_login, $card_password, $card_db ;
 	$card_connection = mysql_connect('', $card_login, $card_password, ( $card_login == $mysql_login )) ; // in case $card_login == $mysql_login, must open a new connexion

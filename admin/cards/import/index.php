@@ -21,11 +21,11 @@ html_head(
  <body>
 
 <style type=text/css>
-	#import_cards, #import_tokens, #imported_cards {
-		display: none ;
+	td > li {
+		list-style-type: none ;
 	}
-	#import_cards.shown, #import_tokens.shown, #imported_cards.shown {
-		display: table-row-group ;
+	.hidden {
+		display: none ;
 	}
 	caption {
 		min-width: 500px ;
@@ -45,7 +45,9 @@ html_menu() ;
      <label>Source : <select name="source">
       <?=html_option('mtgjson', 'MTGJSON', $source) ; ?>
       <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
-      <?=html_option('mv', 'Magic Ville', $source) ; ?>
+      <?/*=html_option('mv', 'Magic Ville', $source) ; */?>
+      <?=html_option('mv_dom', 'Magic Ville DOM', $source) ; ?>
+      <?=html_option('mtgsalvation', 'MTGSalvation', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
@@ -54,7 +56,7 @@ html_menu() ;
      <label>Ext code (in DB) : <input type="text" name="ext_local" value="<?=$ext_local?>"></label>
      <label><?=html_checkbox('apply', $apply) ; ?>Apply<label>
     </fieldset>
-    <button type="sublit">Refresh</button>
+    <button type="submit">Refresh</button>
    </form>
   </div>
 
@@ -93,8 +95,8 @@ if ( count($importer->cards) != $nbimages )
       <th>Name</th>
       <th>Cost</th>
       <th>Types</th>
+      <th>Nb</th>
       <th>Images</th>
-      <th>URL</th>
       <th>MultiverseID</th>
       <th>Langs</th>
      </tr>
@@ -104,25 +106,28 @@ foreach ( $importer->cards as $i => $card ) {
       <td>'.($i+1).'</td>
       <td>'.$card->rarity.'</td>
       <td>'."\n      " ;
-	if ( count($card->urls) > 1 ) {
-		echo '      <ul>' ;
-		foreach ( $card->urls as $url )
-			echo '      <li><a href="'.$url.'" target="_blank">'.$card->name.'</a></li>' ;
-		echo '</ul>'."\n" ;
-	} else
-		echo '      <a href="'.$card->urls[0].'" target="_blank">'.$card->name.'</a>'."\n" ;
+	foreach ( $card->urls as $i => $card_url ) {
+		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
+		echo '      <li><a href="'.$card_url.'" target="_blank">'.$name.'</a></li>'."\n" ;
+	}
 	echo '</td>
-      <td>'.$card->cost.'</td>
+      <td>'.manacost2html($card->cost).'</td>
       <td>'.$card->types.'</td>
-      <td>'.$card->nbimages.'</td>
-      <td>' ;
-	foreach ( $card->images as $image)
-		echo '<li><a href="'.$image.'" target="_blank">'.$image.'</a></li>' ;
-	echo '</td>
-      <td>'.$card->multiverseid.'</td>
-      <td>'.count($card->langs).' : '.implode(', ', array_keys($card->langs)).'</td>
-     </tr>
-' ;
+      <td>'.$card->nbimages.'</td>';
+	echo '      <td>' ;
+	foreach ( $card->images as $i => $image)
+		echo '<li><a href="'.$image.'" target="_blank">['.($i+1).']</a></li>' ;
+	echo '      </td>'."\n" ;
+	echo '      <td>'.$card->multiverseid.'</td>'."\n" ;
+	// One column for each lang
+	foreach ( $card->langs as $code => $lang ) {
+		echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
+		foreach ( $lang['images'] as $i =>$image ) {
+			echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
+		}
+		echo '      </td>'."\n" ;
+	}
+	echo '     </tr>'."\n" ;
 }
 ?>
     </tbody>
@@ -174,28 +179,53 @@ $updates = 0 ;
 $found = array() ;
 $notfound = array() ;
 $actions = array() ;
+$translations = array() ;
 foreach ( $import_log as $i => $log ) {
 	$card = $log['card'] ;
+	$updated = false ;
+	foreach ( $log['langs'] as $code => $lang ) {
+		$action = $lang['action'] ;
+		if ( ! isset($translations[$action]) )
+			$translations[$action] = 1 ;
+		else
+			$translations[$action]++ ;
+		if ( isset($lang['from']) )
+			$updated = true ;
+	}
 	if ( count($log['updates']) > 0 ) {
 		$updates++ ;
-		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
-			continue ;
-		echo '     <tr>
-      <td>'.$i.' : '.$card->name.'</td>
-      <td><img src="'.$card->images[0].'"></td>
-      <td>' ;
-		foreach ( $log['updates'] as $field => $upd ) {
-			$diff = new HtmlDiff($upd,  $card->{$field}) ;
-			echo '<strong>'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>' ;
-		}
-		echo '</td>
-     </tr>
-' ;
+		$updated = true ;
 	} else {
 		if ( $log['found'] )
 			$found[] = $card->name ;
 		else
 			$notfound[] = $card->name ;
+	}
+	if ( $updated ) {
+		echo '     <tr>'."\n" ;
+		echo '      <td>'."\n" ;
+		echo '       <li>#'.$i."</li>\n" ;
+		echo '       <li>'.$card->name."</li>\n" ;
+		echo '       <li><a href="'.$card->urls[0].'" target="_blank">source ('.$source.')</a></li>'."\n" ;
+		echo '       <li><a href="../card.php?id='.$log['id'].'" target="_blank">destination</a></li>'."\n" ;
+		echo '      </td>'."\n" ;
+		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
+			echo '      <td>only multiverseID</td>'."\n" ;
+		else
+			echo '      <td><img src="'.$card->images[0].'"></td>'."\n" ;
+		echo '      <td>'."\n" ;
+		foreach ( $log['updates'] as $field => $upd ) {
+			$diff = new HtmlDiff($upd,  $card->{$field}) ;
+			echo '       <strong title="'.$card->{$field}.'">'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
+		}
+		foreach ( $log['langs'] as $code => $lang ) {
+			if ( ! isset($lang['from']) ) continue ;
+			$diff = new HtmlDiff($lang['from'], $lang['to']) ;
+			echo '       <strong>'.$code.' name : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
+			echo strdebug($lang['from']).strdebug($lang['to']) ;
+		}
+		echo '      </td>'."\n" ;
+		echo '     </tr>'."\n" ;
 	}
 	if ( isset($actions[$log['action']]) )
 		$actions[$log['action']][] = $card ;
@@ -204,14 +234,15 @@ foreach ( $import_log as $i => $log ) {
 }
 ?>
     </tbody>
-    <caption><?php echo $updates ; ?> cards to update <button id="imported_cards_button">Show / Hide</button></caption>
+    <caption><?php echo $updates ; ?> cards <?php echo isset($translations['update']) ? '+ '.$translations['update'].' translations' : '' ; ?> to update<button id="imported_cards_button">Show / Hide</button></caption>
    </table>
 <?php
 if ( count($found) > 0 )
 	echo '<p title="'.implode(', ', $found).'">'.count($found).' cards found but not updated</p>' ;
 if ( count($notfound) > 0 )
 	echo '<p class="warn" title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
-echo 'Actions on links : ' ;
+// Links
+echo '<p>Actions on links : <ul>' ;
 foreach ( $actions as $i => $action ) {
 	$names = array() ;
 	foreach ( $action as $card )
@@ -220,8 +251,14 @@ foreach ( $actions as $i => $action ) {
 		$class = 'class="warn" ' ;
 	else
 		$class = '' ;
-	echo '<p '.$class.'title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</p>' ;
+	echo '<li '.$class.'title="'.implode($names, ', ').'">'.$i.' : '.count($action).'</li>' ;
 }
+echo '</ul></p>' ;
+// Translations
+echo '<p>Actions on translations : <ul>' ;
+foreach ( $translations as $action => $nb )
+	echo '<li>'.$action.' : '.$nb.'</li>' ;
+echo '</ul></p>' ;
 ?>
   </div>
 
@@ -231,26 +268,21 @@ foreach ( $actions as $i => $action ) {
 $_SESSION['importer'] = $importer ; // May need to comment 'session_name()' in /lib.php
 ?></pre>
    <a href="images.php" target="img_dl">Download</a><br>
-   <iframe name="img_dl" class="fullwidth">
+   <iframe name="img_dl" class="fullwidth" height="800">
    </iframe>
   </div>
 
 <script type="text/javascript">
-	document.getElementById('import_cards_button').addEventListener('click', function(ev) {
-		tbody = document.getElementById('import_cards') ;
-		tbody.classList.toggle('shown') ;
-	}, false) ;
-	var e = document.getElementById('import_tokens_button')
-	if ( e ) 
-		e.addEventListener('click', function(ev) {
-			tbody = document.getElementById('import_tokens') ;
-			tbody.classList.toggle('shown') ;
-		}, false) ;
-	document.getElementById('imported_cards_button').addEventListener('click', function(ev) {
-		tbody = document.getElementById('imported_cards') ;
-		tbody.classList.toggle('shown') ;
-	}, false) ;
-
+	var buttons = ['import_cards', 'import_tokens', 'imported_cards'] ;
+	for ( var i = 0 ; i < buttons.length ; i++ ) {
+		var button = buttons[i] ; // ID
+		var but = document.getElementById(button+'_button'); // Button
+		if ( ! but ) continue ;
+		but.target = document.getElementById(button) ; // TBody to toggle
+		if ( ! but.target ) continue ;
+		but.target.classList.add('hidden') ; // Hide by default
+		but.addEventListener('click', function(ev) { this.target.classList.toggle('hidden') ; }, false) ; // Toggle on button click
+	}
 </script>
 
  </body>

@@ -183,8 +183,7 @@ fclose($fh);
 
 // Lib
 function update_score($card, $opened=1, $played=0, $score=0) {
-	if ( $card->rarity == 'L' )
-		return false ;
+	//if ( $card->rarity == 'L' ) { return false ; }
 	global $cards ;
 	if ( ! array_key_exists($card->id, $cards) ) {
 		$cards[$card->id] = new stdClass() ;

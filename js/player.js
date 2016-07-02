@@ -104,6 +104,11 @@ function Game(id, start_date, options, player_id, player_nick, player_avatar, pl
 			game.turn.steps[i].refresh() ;
 		resize_window() ;
 	}) ;
+	this.options.add_trigger('zone_card_number', function() {
+		for ( var i = 0 ; i < game.widgets.length ; i++ )
+			if ( isf(game.widgets[i].refresh) )
+				game.widgets[i].refresh() ;
+	}) ;
 	this.stonehewer = true ;
 	this.nokiou = false ;
 	this.lastwinner = null ; // Used in "refresh while siding"

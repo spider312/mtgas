@@ -37,7 +37,7 @@ function notification_send(title, txt, tag) {
 		if ( notification_granted() ) {
 			options = {} ;
 			options.body = txt ;
-			options.icon = '/themes/jay_kay/Mogg Maniac.crop.png' ;
+			options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
 			if ( iss(tag) )
 				options.tag = tag
 			var n = new Notification(title, options) ;
@@ -201,6 +201,8 @@ function create_img(src, alt, title) {
 }
 function create_a(text, href, onclick, title) {
 	var a = document.createElement('a') ;
+	if ( text == null )
+		text = 'null' ;
 	if ( issn(text) )
 		a.appendChild(document.createTextNode(text)) ;
 	else
@@ -445,11 +447,16 @@ function create_tr(table) {
 	return row ;
 }
 function create_td(row, text, colspan) {
-	var cell = row.insertCell(-1) ;
+	if ( row ) {
+		var cell = row.insertCell(-1) ;
+	} else {
+		var cell = document.createElement('td') ;
+	}
 	var child = null ;
 	switch ( typeof text ) {
 		case 'undefined' :
 			text = 'undef' ;
+			break ;
 		case 'number' :
 		case 'string' :
 			child = document.createTextNode(text)
@@ -461,7 +468,9 @@ function create_td(row, text, colspan) {
 		default : 
 			alert(typeof text) ;
 	}
-	cell.appendChild(child) ;
+	if ( child !== null ) {
+		cell.appendChild(child) ;
+	}
 	if ( colspan )
 		cell.colSpan = colspan ;
 	return cell ;

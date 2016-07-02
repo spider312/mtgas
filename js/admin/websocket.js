@@ -1,34 +1,71 @@
-$(function() { // On page load
+function start(ev) { // On page load
+	var connected_users = document.getElementById('connected_users') ;
+	var bans = document.getElementById('bans') ;
 	var pending_duels = document.getElementById('pending_duels') ;
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
-	var connected_users = document.getElementById('connected_users') ;
 	var mtg_data = document.getElementById('mtg_data') ;
+	var refresh_mtg_data = document.getElementById('refresh_mtg_data') ;
+	refresh_mtg_data.addEventListener('click', function(ev) {
+		game.connection.send({'type': 'refresh_mtg_data'}) ;
+	}, false) ;
 	game = {} ;
 	game.options = new Options(true) ;
 	// Websockets
 	game.connection = new Connexion('admin', function(data, ev) { // OnMessage
 		switch ( data.type  ) {
 			case 'overall' :
-				for ( var i = 0 ; i < data.handlers.index.users.length ; i++ )
-					connected_users.appendChild(player_li(data.handlers.index.users[i], 'index')) ;
-				fill_duel(pending_duels, data.pending_duels) ;
-				fill_duel(joined_duels, data.joined_duels) ;
-				fill_tournament(pending_tournaments, data.pending_tournaments) ;
-				fill_tournament(running_tournaments, data.running_tournaments) ;
+				clear() ;
+				for ( var i in data.handlers )
+					handler_li(i, data.handlers[i], connected_users) ;
+				for ( var i = 0 ; i < data.bans.length ; i++ )
+					bans.appendChild(ban_li(data.bans[i])) ;
+				//fill_duel(pending_duels, data.pending_duels) ;
+				//fill_duel(joined_duels, data.joined_duels) ;
+				//fill_tournament(pending_tournaments, data.pending_tournaments) ;
+				//fill_tournament(running_tournaments, data.running_tournaments) ;
+				player_number(data, 'pending_duels') ;
+				player_number(data, 'joined_duels') ;
+				player_number(data, 'pending_tournaments') ;
+				player_number(data, 'running_tournaments') ;
+				player_number(data, 'ended_tournaments') ;
 				mtg_data.appendChild(create_li('Extensions : '+data.extensions)) ;
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
+				mtg_data.appendChild(create_li('Games : '+data.cache_games)) ;
+				mtg_data.appendChild(create_li('Tournaments : '+data.cache_tournament)) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
 				debug(data) ;
 		}
-	}, function(ev) { // OnClose/OnConnect
-		node_empty(connected_users, pending_duels, joined_duels,
-			pending_tournaments, running_tournaments, mtg_data) ;
-	}) ;
-})
+	}, clear);// OnClose/OnConnect
+}
+function clear() {
+	node_empty(
+		connected_users, bans,
+		pending_duels, joined_duels,
+		pending_tournaments, running_tournaments,
+		mtg_data) ;
+}
+function ban_li(data) {
+	var li = create_li(data.id+' : '+data.player_id+' : '+data.reason) ;
+	var button = create_button('Unban', function(ev) {
+		game.connection.send('{"type": "unban", "id": "'+data.id+'"}') ;
+	}, 'Unban player') ;
+	li.appendChild(button) ;
+	return li ;
+}
+function handler_li(name, handler, node) {
+	// User list
+	var ul = create_ul() ;
+	for ( var i = 0 ; i < handler.users.length ; i++ )
+		ul.appendChild(player_li(handler.users[i], name)) ;
+	// Handler LI
+	var li = create_li(name) ;
+	li.appendChild(ul) ;
+	node.appendChild(li) ;
+}
 function player_li(user, handler) {
 	var li = create_li(user.nick) ;
 	li.title = user.player_id ;
@@ -37,7 +74,17 @@ function player_li(user, handler) {
 		game.connection.send(data) ;
 	}, 'Disconnect user') ;
 	li.appendChild(button) ;
+	var button = create_button('Ban ID', function(ev) {
+		var reason = prompt('Reason for banning '+user.nick) ;
+		if ( ( reason != null ) && ( reason != '' ) )
+			game.connection.send('{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}') ;
+	}, 'Ban player by ID ('+user.player_id+')') ;
+	li.appendChild(button) ;
 	return li ;
+}
+function player_number(data, fieldname) {
+	var field = document.getElementById(fieldname+'_input') ;
+	field.value = data[fieldname] ;
 }
 function fill_duel(node, datas) {
 	if ( datas.length < 1 )

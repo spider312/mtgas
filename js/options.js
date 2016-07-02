@@ -430,6 +430,7 @@ function Options(check_id) {
 	this.add('Appearence', 'transparency', 'Transparency', 'Activate transparency, nicer but slower', true) ;
 	this.add('Appearence', 'helpers', 'Helpers', 'Display right click\'s drag\'n\'drop helper', true) ;
 	this.add('Appearence', 'smallres', 'Small resolution', 'Display card images in small size (builder)', window.innerWidth < smallres_width) ;
+	this.add('Appearence', 'zone_card_number', 'Zone card number', 'Where to display zone card number', 'follow', {'none': 'Nowhere', 'follow': 'Following mouse', 'selzone': 'All but battlefield', 'all': 'Everywhere'}) ;
 			// Behaviour
 	var positions = {'top':'Top', 'middle':'Middle', 'bottom':'Bottom'} // Positions for placing
 	this.add('Behaviour', 'library_doubleclick_action', 'Library double-click', 'Choose what happend when you doubleclick on library', 'look_top_n', {'look_top_n': 'Look top N cards', 'edit': 'Search in library', 'draw': 'Draw a card'}) ;
@@ -479,12 +480,17 @@ function Options(check_id) {
 	}
 }
 function gallery() {
-	window.open('/avatars.php') ;
+	window.open('avatars.php') ;
 }
 // Code copied from index.js, TODO : include it in new management
 // Other saved fields (not displayed in options, mostly index fields save)
 function save_restore(field, onsave, onrestore) {
-	var myfield = document.getElementById(field) ;
+	if ( typeof field === 'string' ) {
+		var myfield = document.getElementById(field) ;
+	} else {
+		var myfield = field ;
+		field = field.name ;
+	}
 	if ( myfield != null ) {
 		// Prepare save trigger
 		switch ( myfield.type ) { // Depending on type
@@ -548,7 +554,13 @@ function store(key, value) {
 	*/
 }
 function save(myfield) {
-	var field = myfield.id ;
+	if ( myfield.id ) {
+		var field = myfield.id ;
+	} else if ( myfield.name ) {
+		var field = myfield.name ;
+	} else {
+		return false ;
+	}
 	if ( myfield.type == 'checkbox' )
 		var value = myfield.checked ;
 	else
