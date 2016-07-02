@@ -23,6 +23,7 @@ require_once 'includes/classes/ws_draft_handler.php' ;
 require_once 'includes/classes/ws_build_handler.php' ;
 require_once 'includes/classes/ws_game_handler.php' ;
 require_once 'includes/classes/ws_admin_handler.php' ;
+require_once 'includes/classes/ws_import_handler.php' ;
 // External
 require_once 'includes/classes/class.algoritm1.php' ; // Generate rounds
 
@@ -70,26 +71,24 @@ class GameServer {
 		$this->loop = \React\EventLoop\Factory::create();
 		$this->server = new \Devristo\Phpws\Server\WebSocketServer("tcp://0.0.0.0:$wsport",
 			$this->loop, $this->logger);
-		// Handlers
-		$this->index = new IndexHandler($this->logger, $this, 'index') ;
-		$this->tournament = new TournamentIndexHandler($this->logger, $this, 'tournament') ;
-		$this->draft = new DraftHandler($this->logger, $this, 'draft') ;
-		$this->build = new BuildHandler($this->logger, $this, 'build') ;
-		$this->game = new GameHandler($this->logger, $this, 'game') ;
-		$this->admin = new AdminHandler($this->logger, $this, 'admin') ;
-		$this->handlers = array('index', 'tournament', 'draft', 'build', 'game', 'admin') ;
 		// Routes
-		$router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);
-		$router->addRoute('#^/index#i', $this->index);
-		$router->addRoute('#^/game#i', $this->game);
-		$router->addRoute('#^/tournament#i', $this->tournament);
-		$router->addRoute('#^/draft#i', $this->draft);
-		$router->addRoute('#^/build#i', $this->build);
-		$router->addRoute('#^/admin#i', $this->admin);
+		$this->router = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->server,$this->logger);
+		// Handlers
+		$this->add_handler('index', IndexHandler) ;
+		$this->add_handler('game', GameHandler) ;
+		$this->add_handler('tournament', TournamentIndexHandler) ;
+		$this->add_handler('draft', DraftHandler) ;
+		$this->add_handler('build', BuildHandler) ;
+		$this->add_handler('admin', AdminHandler) ;
+		$this->add_handler('import', ImportHandler) ;
 		// Params
 		global $ts3 ;
 		$this->ts3 = $ts3 ;
 		$this->say('Server created') ;
+	}
+	private function add_handler($name, $handler) {
+		$this->{$name} = new $handler($this->logger, $this, $name) ;
+		$this->router->addRoute('#^/'.$name.'#i', $this->{$name});
 	}
 	public function import() {
 		$this->import_mtg() ;

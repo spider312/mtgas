@@ -61,7 +61,7 @@ class Db {
 		$this->db = $db_ ;
 	}
 	public function dierr($msg) {
-		die($msg) ;
+		die($this->db . ' - ' . $msg) ;
 	}
 	public function escape($string) {
 		$this->check() ;
@@ -106,6 +106,13 @@ class Db {
 	}
 	public function delete($query) {
 		return $this->update($query) ;
+	}
+	public function exists($query, $strict = false) {
+		$results = $this->select($query) ;
+		if ( $strict ) {
+			return ( count($results) === 1 ) ;
+		}
+		return ( count($results) >= 1 ) ;
 	}
 }
 $db = new Db('', $mysql_login, $mysql_password, $mysql_db) ;
