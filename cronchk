@@ -1,4 +1,0 @@
-#!/bin/sh
-CMD="php daemon.php"
-cd `dirname $0`
-pgrep -u `whoami` -f "$CMD" > /dev/null || $CMD
