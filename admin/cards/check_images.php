@@ -56,7 +56,7 @@ foreach ( scandir($baseimagedir) as $rep )
      <th>Mean size</th>
      <th>Variance</th>
     </tr>
-<?
+<?php
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
 while ( $arr = mysql_fetch_array($query) ) {
 	if ( $base && intval($arr['bloc']) < 0 ) {
