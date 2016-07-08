@@ -1,7 +1,5 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
-$homedir = substr(`bash -c "echo ~"`, 0, -1) ;
-$base_image_dir = $homedir.'/img/' ;
 // Cache management
 function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;

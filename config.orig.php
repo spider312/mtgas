@@ -1,6 +1,7 @@
 <?php
 // MUST CHANGE
 $dir = '/path/to/folder/containing/this/' ; // Required for cron inclusions, can be relative to ~
+$base_image_dir = '/path/to/images/dir/' ; // For import and comparision operations
 $wshost = 'mogg.fr' ;
 $url = 'http://'.$wshost.'/' ;
 // Database
