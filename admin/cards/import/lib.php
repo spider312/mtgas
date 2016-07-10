@@ -90,11 +90,11 @@ function rmkdir($dir) { // mkdir recursively without umask bug
 }
 // Common between MagicVille and MythicSpoiler
 function mv2txt($tmp) {
+	// $tmp was reformated by DOM parser + C14N()
 	//echo htmlentities($tmp)."\n<hr>\n";
-	// Costs parsing before strip_tags
-	// Hybrid mana management was commented for an import, then importer (and/or mv) changed, it has to be done again for new importer when needed
-	//$tmp = preg_replace('#<img style="vertical-align:-20%;height:13px;" src="graph/manas_c/(.)\.gif" alt="%\1">#', '{$1}', $tmp) ; // In source
-	$tmp = preg_replace('#<img alt="%(.)" src="graph/manas_c/\1\.(gif|png)" style="vertical-align:-20%;height:13px;">#', '{$1}', $tmp) ; // Reformated by DOM parser + C14N()
+	// HTML (costs, CR) parsing before strip_tags
+	$tmp = preg_replace('#<img .*?alt="%(.+?)".*?'.'>#', '{$1}', $tmp) ; // Images are mana icons
+	$tmp = preg_replace('#<div style="height:5px;"></div>#', "\n", $tmp) ; // Div are cariage returns
 	$tmp = preg_replace('@<br></br>(\S)@', "\n".'\1', $tmp) ; // 2 br not followed by a CR : add a CR
 	$tmp = str_replace('&#xD;', '', $tmp) ; // \r cleanup
 	$tmp = str_replace("\n\n", "\n", $tmp) ; // No need for 2 consecutive \n
