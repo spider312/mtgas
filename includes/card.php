@@ -85,6 +85,7 @@ function card_name_sanitize($name) {
 	//$name =  normalizer_normalize($name, Normalizer::FORM_D) ;
 	// MV
 	$name = str_replace(chr(146), "'", $name) ; // Strange apostrophe
+	$name = str_replace(chr(194), "", $name) ; // Added before an apostrophe
 	$name = str_replace(chr(198), 'AE', $name) ;
 	$name = str_replace(chr(246), 'o', $name) ;
 	$name = str_replace(chr(251), 'u', $name) ; // û from Lim-Dul's Vault
