@@ -471,6 +471,11 @@ class ImportExtension {
 					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
+					if ( $matches[1] == $card->name ) {
+						$found = true ;
+						$name = 'Emblem.'.$attrs->subtypes[0] ;
+						break ;
+					}
 					// Check card subtype
 					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($matches[1]) ) ) {
 						$found = true ;
