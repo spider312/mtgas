@@ -2,11 +2,40 @@
 include 'lib.php' ;
 include 'includes/db.php' ;
 include 'includes/card.php' ;
+// Filter values
+$default_types = array (
+	'land' => 'Land',
+	'artifact' => 'Artifact',
+	'enchantment' => 'Enchant',
+	'creature' => 'Creature',
+	'planeswalker' => 'Planeswalker',
+	'sorcery' => 'Sorcery',
+	'instant' => 'Instant',
+	'tribal' => 'Tribal'
+) ;
+$default_colors = array (
+	'X' => 'Colorless',
+	'W' => 'White',
+	'U' => 'Blue',
+	'B' => 'Black',
+	'R' => 'Red',
+	'G' => 'Green'
+) ;
+$default_rarities = array (
+	'M' => 'Mythics',
+	'R' => 'Rares',
+	'U' => 'Uncos',
+	'C' => 'Commons',
+	'L' => 'Lands',
+	'S' => 'Specials'
+) ;
+
 $order = param($_GET, 'order', 'score_ratio') ;
 $report = param($_GET, 'report', '') ;
-$type = param($_GET, 'type', '') ;
-$color = param($_GET, 'color', '') ;
-$rarity = param($_GET, 'rarity', '') ;
+$type = param($_GET, 'type', array_keys($default_types)) ;
+$color = param($_GET, 'color', array_keys($default_colors)) ;
+$rarity = param($_GET, 'rarity', array_keys($default_rarities)) ;
+
 html_head(
 	'Inclusion and performance statistics',
 	array('style.css', 'options.css', 'mtg.css', 'sealed_top.css'),
@@ -18,6 +47,60 @@ html_head(
 function start() { // On page load
 	game = {} ;
 	game.options = new Options(true) ;
+}
+function select(ev) { // Double click on a select : selects only clicked option
+	var option = ev.target ;
+	var select = option.parentElement ;
+	for ( var i = 0 ; i < select.options.length ; i++ ) {
+		var myOption = select.options[i] ;
+		myOption.selected = ( myOption === option ) ;
+	}
+}
+function filter(ev) { // HTML Filter mousedown or mouseover : selects or unselects option
+	var value = ! ev.target.selected ; // Value to apply until drop : opposite to clicked element's
+	switch ( ev.type ) { // Store or get
+		case 'mousedown' : 
+			this.lastFilterValue = value ;
+			break ;
+		case 'mouseover' :
+			value = this.lastFilterValue ;
+			break ;
+		default :
+			console.log('Unknown event type '+ev.type) ;
+	}
+	switch ( ev.buttons ) { // Apply
+		case 0 :
+			break ;
+		case 1 : // Left click
+		case 2 : // Right click
+			ev.target.selected = value ;
+			break ;
+		default :
+			console.log('Event '+ev.type+' with unknown button '+ev.buttons) ;
+	}
+	return eventStop(ev) ;
+}
+function filter_reset(ev) { // Reset button : Reset's all multiple selects' options in target's form to true
+	var form = ev.target.form ;
+	for ( var i = 0 ; i < form.elements.length ; i++ ) {
+		var el = form.elements[i] ;
+		if ( ( el.nodeName === 'SELECT' ) && el.multiple ) {
+			for ( var j = 0 ; j < el.options.length ; j++ ) {
+				el.options[j].selected = true ;
+			}
+		}
+	}
+	form.submit() ;
+}
+function form_submit(ev) { // On form submit, adds anchor to action depending on clicked button
+	switch (ev.target.value) {
+		case 'Select' :
+			ev.target.form.action += '#display';
+			break ;
+		case 'Apply' :
+			ev.target.form.action += '#list' ;
+			break ;
+	}
 }
   </script>
 <?php
@@ -39,7 +122,7 @@ foreach ( $reports as $r )
 	}
 ?>
     </select>
-    <input type="submit" value="Select">
+    <input type="submit" value="Select" onclick="form_submit(event)">
 
 <?php
 if ( $report == '' )
@@ -58,6 +141,14 @@ if ( isset($report->imask) )
    </ul>
 
    <h2>Display</h2>
+   <a name="display"></a>
+    Filter : <br>
+<?php
+html_filter('type', $default_types, $type) ;
+html_filter('color', $default_colors, $color) ;
+html_filter('rarity', $default_rarities, $rarity) ;
+?>
+    <br>
     Sort : 
     <select name="order">
      <option <?php option_value("opened", $order) ; ?>>Opened</option>
@@ -68,37 +159,8 @@ if ( isset($report->imask) )
      <option <?php option_value("play_score_ratio", $order) ; ?>>Score ratio (played)</option>
     </select>
     <br>
-    Filter : 
-    <select name="type">
-     <option <?php option_value("", $type) ; ?>>All types</option>
-     <option <?php option_value("land", $type) ; ?>>Land</option>
-     <option <?php option_value("artifact", $type) ; ?>>Artifact</option>
-     <option <?php option_value("enchantment", $type) ; ?>>Enchant</option>
-     <option <?php option_value("creature", $type) ; ?>>Creature</option>
-     <option <?php option_value("planeswalker", $type) ; ?>>Planeswalker</option>
-     <option <?php option_value("sorcery", $type) ; ?>>Sorcery</option>
-     <option <?php option_value("instant", $type) ; ?>>Instant</option>
-     <option <?php option_value("tribal", $type) ; ?>>Tribal</option>
-    </select>
-    <select name="color">
-     <option <?php option_value("", $color) ; ?>>All colors</option>
-     <option <?php option_value("X", $color) ; ?>>None</option>
-     <option <?php option_value("W", $color) ; ?>>White</option>
-     <option <?php option_value("U", $color) ; ?>>Blue</option>
-     <option <?php option_value("B", $color) ; ?>>Black</option>
-     <option <?php option_value("R", $color) ; ?>>Red</option>
-     <option <?php option_value("G", $color) ; ?>>Green</option>
-    </select>
-    <select name="rarity">
-     <option <?php option_value("", $rarity) ; ?>>All rarities</option>
-     <option <?php option_value("M", $rarity) ; ?>>Mythics</option>
-     <option <?php option_value("R", $rarity) ; ?>>Rares</option>
-     <option <?php option_value("U", $rarity) ; ?>>Uncos</option>
-     <option <?php option_value("C", $rarity) ; ?>>Commons</option>
-     <option <?php option_value("S", $rarity) ; ?>>Specials</option>
-    </select>
-    <br>
-    <input type="submit" value="Apply">
+    <input type="button" value="Reset" onclick="filter_reset(event);">
+    <input type="submit" value="Apply" onclick="form_submit(event)">
    </form>
 
 <?php
@@ -133,6 +195,7 @@ $winpct = $report->starter_won / $totalgames ;
    </ul>
 
    <h2>List</h2>
+   <a name="list"></a>
    <table>
     <tr>
      <th title="Ranking in selection / absolutely">#</th>
@@ -153,7 +216,7 @@ foreach ( $p as $i => $c ) {
 	$crarity = 'S' ;
 	$nrarity = 0 ;
 	$rdisp = '' ;
-	foreach ( $c->rarity as $r => $rnb ) {
+	foreach ( $c->rarity as $r => $rnb ) { // Search most present rarities in rarities
 		$rdisp .= $r.' : '.$rnb.' ' ;
 		if ( $rnb > $nrarity ) {
 			$crarity = $r ;
@@ -161,13 +224,16 @@ foreach ( $p as $i => $c ) {
 		}
 	}
 	// Filters
-	if ( ( $rarity != '' ) && ( $crarity != $rarity ) )
+	if ( array_search($crarity, $rarity) === false ) {
 		continue ;
+	}
 	$d = json_decode($c->attrs) ;
-	if ( ( $color != '' ) && is_string($d->color) && ( strpos($d->color, $color) === false ) )
+	if ( count(array_intersect(str_split($d->color), $color)) === 0 ) {
 		continue ;
-	if ( ( $type != '' ) && is_array($d->types) && ( array_search($type, $d->types) === false ) )
+	}
+	if ( count(array_intersect($d->types, $type)) === 0 ) {
 		continue ;
+	}
 	echo '    <tr title="'.htmlentities((count($d->manas)>0 ? implode($d->manas)."\n" : '').$c->text).'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
@@ -182,14 +248,7 @@ foreach ( $p as $i => $c ) {
     </tr>'."\n" ;
 }
 // Caption
-$caption = count($p).' cards' ;
-$crit = array() ;
-if ( $type != '' ) $crit[] = 'type="'.$type.'"' ;
-if ( $color != '' ) $crit[] = 'color="'.$color.'"' ;
-if ( $rarity != '' ) $crit[] = 'rarity="'.$rarity.'"' ;
-if ( count($crit) > 0 )
-	$caption = $nb.' / '.$caption.' with '.implode(', ', $crit) ;
-echo '    <caption>'.$caption.'</caption>' ;
+echo '    <caption>'.$nb.' / '.count($p).' cards</caption>' ;
 ?>
    </table>
   </div>
@@ -222,7 +281,26 @@ function sort_play_score_ratio($a, $b) {
 }
 function option_value($value, $default) {
 	echo 'value="'.$value.'"' ;
-	if ( $value == $default )
+	if ( ! is_array($default) ) {
+		$default = array($default) ;
+	}
+	if ( array_search($value, $default) > -1  )  {
 		echo ' selected' ;
+	}
+}
+function html_filter($name, $values, $selected) {
+	echo '    <select
+	  name="'.$name.'[]" multiple="true" size="'.count($values).'" 
+	  onmousedown="filter(event);"
+	  onmouseover="filter(event);"
+	  ondblclick="select(event);"
+	  oncontextmenu="eventStop(event)"
+	>'."\n" ;
+	foreach ( $values as $key => $value ) {
+		echo '     <option ' ;
+		option_value($key, $selected) ;
+		echo '>'.$value.'</option>'."\n" ;
+	}
+	echo '    </select>'."\n";
 }
 ?>
