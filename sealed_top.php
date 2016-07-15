@@ -144,9 +144,10 @@ if ( isset($report->imask) )
    <a name="display"></a>
     Filter : <br>
 <?php
-html_filter('type', $default_types, $type) ;
-html_filter('color', $default_colors, $color) ;
-html_filter('rarity', $default_rarities, $rarity) ;
+$filter_size = 8 ;
+html_filter('type', $default_types, $type, $filter_size) ;
+html_filter('color', $default_colors, $color, $filter_size) ;
+html_filter('rarity', $default_rarities, $rarity, $filter_size) ;
 ?>
     <br>
     Sort : 
@@ -288,9 +289,12 @@ function option_value($value, $default) {
 		echo ' selected' ;
 	}
 }
-function html_filter($name, $values, $selected) {
+function html_filter($name, $values, $selected, $size=0) {
+	if ( $size < 1 ) {
+		$size = count($values) ;
+	}
 	echo '    <select
-	  name="'.$name.'[]" multiple="true" size="'.count($values).'" 
+	  name="'.$name.'[]" multiple="true" size="'.$size.'"
 	  onmousedown="filter(event);"
 	  onmouseover="filter(event);"
 	  ondblclick="select(event);"
