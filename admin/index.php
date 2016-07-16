@@ -54,8 +54,8 @@ html_menu() ;
     <li><a href="tournament/recompute.php">Recompute tournament's scores</a></li>
    </ul>
 
-   <h2>Inclusion and performance reports</h2>
-   <form id="stats_create" action="tournament/sealed_parse.php">
+   <h2>Metagame cards analysis</h2>
+   <form id="stats_create" action="tournament/metagame.php">
     <input type="text" name="name" placeholder="Name">
     <select name="format">
      <optgroup label="<?=__('index.tournaments.create.limited');?>">
@@ -115,7 +115,7 @@ if ( count($reports) > 0 ) {
 <?php
 }
 ?>
-   <li><a href="/sealed_top.php">See result</a> (public)</li>
+   <li><a href="../metagame.php">See result</a> (public)</li>
   </div>
 <?php // === [ Cards ] ========================================================= ?>
   <div class="section">
