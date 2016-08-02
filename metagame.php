@@ -68,7 +68,7 @@ $winpct = $report->starter_won / $totalgames ;
 // Display
 html_head(
 	'Metagame cards analysis',
-	array('style.css', 'options.css', 'mtg.css', 'sealed_top.css'),
+	array('style.css', 'options.css', 'mtg.css', 'metagame.css'),
 	array('../variables.js.php', 'html.js', 'math.js', 'image.js', 'options.js', 'metagame.js')
 ) ;
 ?>
