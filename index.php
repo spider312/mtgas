@@ -60,7 +60,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 	<span id="shout_info" title="Number of players connected to shout / tournaments / duels">0 / 0 / 0</span>
    </div>
    <form id="shout" action="json/shout.php" autocomplete="off">
-    <input type="text" name="text" placeholder="Shout something"><input type="submit" value="Send">
+    <input type="text" name="text" placeholder="Shout something (PLEASE don't ask for a game, create it ...)"><input type="submit" value="Send">
    </form>
   </div>
 
