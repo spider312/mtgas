@@ -706,16 +706,19 @@ class Tournament {
 		foreach ( $this->players as $player )
 			$player->get_score() ;
 		foreach ( $this->players as $player ) {
-			if ( isset($player->player_id) ) {
+			if ( ( $player != null ) && isset($player->player_id) ) {
 				$score->{$player->player_id} = $player->get_omw() ;
 			} else {
-				echo "Player has no playerID" ;
+				echo "includes/classes/ws_tournament.php score_games() : Player has no player_id or get_omw\n" ;
 			}
 		}
 		usort($this->players, array('Tournament', 'players_end_compare')) ;
 		// Update rank cache
-		foreach ( $this->players as $i => $player )
-			$score->{$player->player_id}->rank = $i+1 ;
+		foreach ( $this->players as $i => $player ) {
+			if ( ( $player != null ) && isset($player->player_id) ) {
+				$score->{$player->player_id}->rank = $i+1 ;
+			}
+		}
 		$this->data->score = $score ;
 		$this->commit('data') ;
 	}

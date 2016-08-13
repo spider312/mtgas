@@ -107,8 +107,11 @@ class GameHandler extends ParentHandler {
 				$this->broadcast(json_encode($action), $user->game) ;
 				break ;
 			default :
-				$action = $user->game->addAction($user->player_id, $data->type,
-					$data->param, $data->local_index) ;
+				$action = null ;
+				if ( $user->game !== null ) {
+					$action = $user->game->addAction($user->player_id, $data->type,
+						$data->param, $data->local_index) ;
+				}
 				if ( $action == null )
 					$user->sendString('{"type": "msg", "sender": "", "param": {"text": "You can\'t send '.$data->type.'"}}') ;
 				else {
@@ -164,7 +167,10 @@ class GameHandler extends ParentHandler {
 			// Send disconnection to game
 			$this->broadcast('{"type": "unregister", "sender": "'.$user->player_id.'"}', $user->game) ;
 			// Update player status
-			$field = $user->game->which($user->player_id) ;
+			$field = '' ;
+			if ( $user->game !== null ) {
+				$field = $user->game->which($user->player_id) ;
+			}
 			if ( $field != '' ) {
 				$field .= '_status' ;
 				if ( $user->game->{$field} > 0 )
