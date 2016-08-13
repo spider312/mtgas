@@ -19,6 +19,7 @@ function start(ev) { // On page load
 				clear() ;
 				for ( var i in data.handlers )
 					handler_li(i, data.handlers[i], connected_users) ;
+				bans.appendChild(offline_ban_li(data.bans[i])) ;
 				for ( var i = 0 ; i < data.bans.length ; i++ )
 					bans.appendChild(ban_li(data.bans[i])) ;
 				//fill_duel(pending_duels, data.pending_duels) ;
@@ -47,6 +48,19 @@ function clear() {
 		pending_duels, joined_duels,
 		pending_tournaments, running_tournaments,
 		mtg_data) ;
+}
+function offline_ban_li() {
+	return create_li(create_button('Ban offline ID', function(ev) {
+		var player_id = prompt('ID to ban') ;
+		if ( ( player_id === null ) || ( player_id === '' ) ) {
+			return false;
+		}
+		var reason = prompt('Reason for banning') ;
+		if ( ( reason === null ) || ( reason === '' ) ) {
+			return false;
+		}
+		game.connection.send('{"type": "ban", "id": "'+player_id+'", "reason": "'+reason+'"}') ;
+	}, 'Ban offline player by ID')) ;
 }
 function ban_li(data) {
 	var li = create_li(data.id+' : '+data.player_id+' : '+data.reason) ;
