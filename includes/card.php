@@ -886,6 +886,7 @@ function manage_text($name, $text, $target) {
 			$target->tokens[] = $token ;
 		}
 	}
+	// Investigate / Clues
 	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
 		$token = new stdClass() ;
 		$token->nb = 1 ;
@@ -894,6 +895,16 @@ function manage_text($name, $text, $target) {
 		$token->name = "Clue" ;
 		$target->tokens[] = $token ;
 	}
+	// The Monarch
+	if ( preg_match('/the monarch/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "conspiracy" ;
+		$token->name = "The Monarch" ;
+		$target->tokens[] = $token ;
+	}
+
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
