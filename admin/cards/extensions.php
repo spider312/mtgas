@@ -46,7 +46,7 @@ if ( $ext != 0 ) {
      <th>Actions</th>
     </tr>
 <?php
-$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.' '.$order) ;
+$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.', se '.$order) ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$nbcards = 0 ;
 	$nbimgs = 0 ;
