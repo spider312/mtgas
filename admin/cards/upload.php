@@ -54,7 +54,7 @@ if ( $res = mysql_fetch_object($query) ) {
 	}
 } else {
 	if ( $apply)
-		$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".$cards[0]."')") ;
+		$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '$ext')") ;
 	$ext_id = mysql_insert_id() ;
 }
 
