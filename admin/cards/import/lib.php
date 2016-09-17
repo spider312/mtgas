@@ -583,12 +583,21 @@ class ImportCard {
 			$this->setlang($code, $name, $url) ;
 	}
 	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
-		if ( ! isset($this->langs[$code]['images']) )
-			$this->langs[$code]['images'] = array() ;
-		if ( ( $url == null ) || ( $url == '' ) )
+		if ( ( $url == null ) || ( $url == '' ) ) {
 			return false ;
-		if ( $code == 'en' ) // Some splits on MCI
+		}
+		if ( $code == 'en' ) { // Some splits on MCI
 			return $this->addimage($url) ;
+		}
+		if ( isset($this->langs[$code]['images']) ) {
+			$langimages = $this->langs[$code]['images'] ;
+		} else {
+			$langimages =array() ;
+			$this->langs[$code]['images'] = $langimages ;
+		}
+		foreach ( $langimages as $img_url )
+			if ( $url == $img_url )
+				return $this->ext->adderror('Language image already added', $this) ;
 		$this->langs[$code]['images'][] = $url ;
 	}
 	function attrs() {
