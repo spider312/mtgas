@@ -38,7 +38,7 @@ $(function() { // On page load
 	// Display cards
 	update_list() ;
 }) ;
-function update_list(obj) {
+function update_list(obj, callback) {
 	if ( !iso(obj) )
 		obj = {} ;
 	obj['ext'] = ext ;
@@ -59,9 +59,11 @@ function update_list(obj) {
 			create_td(row, create_button('Remove', remove_from_ext)) ;
 			var form = create_form('/admin/cards/json/ext_update_card.php') ;
 			var j = create_input('nbpics', card.nbpics) ;
+			j.id = 'p'+i;
 			j.size = 2 ;
 			form.appendChild(j) ;
 			j = create_input('rarity', card.rarity) ;
+			j.id = 'r'+i;
 			j.size = 2 ;
 			form.appendChild(j) ;
 			form.appendChild(create_submit('', 'Set')) ;
@@ -78,6 +80,9 @@ function update_list(obj) {
 			r.appendChild(create_li(i+' : '+rarities[i])) ;
 		cards = data ;
 		update_stats() ;
+		if ( isf(callback) ) {
+			callback() ;
+		}
 	}) ;
 }
 function update_stats() {
@@ -104,6 +109,7 @@ function remove_from_ext(ev) {
 	}) ;
 }
 function card_ext_update(ev) {
+	var currfocus = document.activeElement.id ;
 	var form = ev.target ;
 	var row = ev.target.parentNode.parentNode ;
 	form.classList.add('updating') ;
@@ -111,7 +117,20 @@ function card_ext_update(ev) {
 		form.classList.remove('updating') ;
 		if ( ( data.nb != 0 ) && ( data.nb != 1 ) )
 			alert(data.nb) ;
-		update_list() ;
+		update_list(null, function() {
+			console.log(currfocus) ;
+			if ( iss(currfocus) ) {
+				var col = currfocus.substr(0, 1) ;
+				var nb = parseInt(currfocus.substr(1));
+				currfocus = col + (nb+1) ;
+				var el = document.getElementById(currfocus) ;
+				if ( el === null ) {
+					currfocus = col + nb ;
+					var el = document.getElementById(currfocus) ;
+				}
+				el.select() ;
+			}
+		}) ;
 	}) ;
 	return eventStop(ev) ;
 }
