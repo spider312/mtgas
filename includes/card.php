@@ -904,6 +904,16 @@ function manage_text($name, $text, $target) {
 		$token->name = "The Monarch" ;
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('/[Yy]ou get (?<energy>({E})*)?/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "conspiracy" ;
+		$token->attrs->counter = intval((strlen($matches["energy"]))/3); // Energy reserve comes with the number of energy couters this card provides
+		$token->name = "Energy Reserve" ;
+		$target->tokens[] = $token ;
+
+	}
 
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
