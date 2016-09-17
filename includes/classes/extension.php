@@ -109,11 +109,24 @@ class Extension {
 				$this->rand_card($this->cards_rarity['L'], $result, $upool) ;
 		else
 			$nb_c += $nb_l ;
-		// foil (break unicity)
-		global $proba_foil ;
-		if ( ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
-			$nb_c-- ;
-			$this->rand_card($this->cards, $result, $upool) ;
+		// Masterpiece
+		$mps = $this->get_data('mps', '') ;
+		global $proba_masterpiece ;
+		if ( ( $mps !== '' ) && ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_masterpiece) == 1 ) ) {
+			$ext = Extension::get($mps) ;
+			$ext->get_cards() ;
+			if ( array_key_exists('S', $ext->cards_rarity) ) {
+				$nb_c-- ;
+				$this->rand_card($ext->cards_rarity['S'], $result, $upool) ;
+			} else
+				echo "No masterpiece found" ;
+		} else { // Impossible to have a masterpiece + a foil
+			// foil (break unicity)
+			global $proba_foil ;
+			if ( ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
+				$nb_c-- ;
+				$this->rand_card($this->cards, $result, $upool) ;
+			}
 		}
 		// timeshifted (for TSP)
 		if ( ( $nb_c > 0 ) && $this->get_data('timeshift', false) ) {
@@ -208,7 +221,7 @@ class Extension {
 	static function fill_cache() {
 		Extension::$cache = array() ;
 		global $db_cards ;
-		$raw = $db_cards->select("SELECT * FROM `extension` ORDER BY release_date DESC, priority DESC") ;
+		$raw = $db_cards->select("SELECT * FROM `extension` ORDER BY release_date DESC, name ASC") ;
 		foreach ( $raw as $ext )
 			Extension::$cache[] = new Extension($ext) ;
 		return $raw ;
