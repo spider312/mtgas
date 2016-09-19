@@ -904,7 +904,8 @@ function manage_text($name, $text, $target) {
 		$token->name = "The Monarch" ;
 		$target->tokens[] = $token ;
 	}
-	if ( preg_match('/[Yy]ou get (?<energy>({E})*)?/', $text, $matches) ) {
+	if ( preg_match('/ get( that many)? (?<energy>(\{E\})+)/', $text, $matches) ) { // "You get", "you get", "[...] and get"
+		echo strlen($matches["energy"])."\n";
 		$token = new stdClass() ;
 		$token->nb = 1 ;
 		$token->attrs = new stdClass() ;
@@ -912,9 +913,7 @@ function manage_text($name, $text, $target) {
 		$token->attrs->counter = intval((strlen($matches["energy"]))/3); // Energy reserve comes with the number of energy couters this card provides
 		$token->name = "Energy Reserve" ;
 		$target->tokens[] = $token ;
-
 	}
-
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
@@ -1028,6 +1027,7 @@ function manage_text($name, $text, $target) {
 		}// else // Figure of destiny (is already a creature)
 			//echo '['.$rest.']<br>' ;
 	}
+
 }
 function string_cut($string, $cut) {
 	$i = strpos($string, $cut) ;
