@@ -905,7 +905,6 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 	}
 	if ( preg_match('/ get( that many)? (?<energy>(\{E\})+)/', $text, $matches) ) { // "You get", "you get", "[...] and get"
-		echo strlen($matches["energy"])."\n";
 		$token = new stdClass() ;
 		$token->nb = 1 ;
 		$token->attrs = new stdClass() ;
