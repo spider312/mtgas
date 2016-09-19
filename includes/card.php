@@ -484,10 +484,12 @@ function manage_all_text($name, $text, $target) {
 		$text_lines = parse_creature($name, $text_lines, $target) ;
 	if ( array_search('planeswalker', $target->types) !== false )
 		$text_lines = parse_planeswalker($name, $text_lines, $target) ;
+	$target->text = $text_lines ; // Save text while parsing for lines requiring access to other lines (lines are parsed individually)
 	foreach ( $text_lines as $text_line ) {
 		$text_line = trim($text_line, ' .') ;
 		manage_text($name, $text_line, $target) ;
 	}
+	unset($target->text);
 }
 // Reads 1 "line" of text and adds to target attributes parsed inside
 function manage_text($name, $text, $target) { 
@@ -1026,7 +1028,19 @@ function manage_text($name, $text, $target) {
 		}// else // Figure of destiny (is already a creature)
 			//echo '['.$rest.']<br>' ;
 	}
-
+	if ( preg_match('/Crew \d/', $text, $matches) ) {
+		$pt = "\d+" ;
+		if ( preg_match('/^(?<pow>'.$pt.')\/(?<tou>'.$pt.')$/', $target->text[0], $matches) ) {
+			$animated = new stdClass() ;
+			$animated->cost = $text ;
+			$animated->eot = true ;
+			$animated->pow = intval($matches['pow']) ;
+			$animated->tou = intval($matches['tou']) ;
+			$target->animate[] = $animated ;
+		} else {
+			msg('powthou error for "Crew" '.$name.' : ['.$target->text[0].']') ;
+		}
+	}
 }
 function string_cut($string, $cut) {
 	$i = strpos($string, $cut) ;
