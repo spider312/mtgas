@@ -130,6 +130,7 @@ html_filter('rarity', $default_rarities, $rarity, $filter_size) ;
     <br>
     Sort : 
     <select name="order">
+     <option <?php option_value("name", $order) ; ?>>Name</option>
      <option <?php option_value("opened", $order) ; ?>>Opened</option>
      <option <?php option_value("played", $order) ; ?>>Played</option>
      <option <?php option_value("scored", $order) ; ?>>Scored</option>
@@ -210,6 +211,14 @@ function sort_by($field, $a, $b) {
 	if ( $res == 0 )
 		return 0 ;
 	return $res / abs($res) ;
+}
+function sort_name($a, $b) {
+	if ( $a->name === $b->name ) 
+		return 0 ;
+	else if ( $a->name < $b->name )
+		return -1 ;
+	else
+		return 1 ;
 }
 function sort_opened($a, $b) {
 	return sort_by('opened', $a, $b) ;
