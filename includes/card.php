@@ -134,7 +134,8 @@ function msg($var) {
 		echo $var ;
 	else
 		echo '<pre>'.print_r($var, true).'</pre>' ;
-	echo "<br>\n" ;
+	//echo '<br>' ; // Why ?
+	echo "\n" ;
 }
 function variable($var) {
 	$result = gettype($var).' : ' ;
@@ -604,21 +605,27 @@ function manage_text($name, $text, $target) {
 						//echo 'Unknown step : '.$name.' : '.implode(' ', $words)."\n" ;
 				}
 				if ( $step == '' ) {
-					if ( count($words) == 1 )
+					if ( $words[0] == 'first' ) {
+						continue ;
+					}
+					if ( count($words) == 1 ) {
 						$step = $words[0] ;
-					else
-						echo 'Multiple words left : '.$name.' : '.
-							implode(' ', $words).' / '.$matches['step']."\n" ;
+					} else {
+						msg('"At the begining of each" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+					}
 				}
 				break ;
 			case 'your' :
 				$player = 1 ;
 				array_shift($words) ;
-				if ( count($words) == 1 )
+				if ( $words[0] == 'first' ) {
+					continue ;
+				}
+				if ( count($words) == 1 ) {
 					$step = $words[0] ;
-				else
-					echo 'Multiple words left : '.$name.' : '.
-						implode(' ', $words).' / '.$matches['step']."\n" ;
+				} else {
+					msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+				}
 				break ;
 			case 'the' :
 				array_shift($words) ;
@@ -803,31 +810,51 @@ function manage_text($name, $text, $target) {
 			}
 		}
 		// Conditionnal mono boost (+1/+2 as long as ...)
-		if ( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) { // Single
+		if (
+			( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) 
+			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'/', $text, $matches ) )
+		) { // Single
 			$what = strtolower($matches['what']) ;
-			if ( $what == 'seven or more cards are in your graveyard' ) {
-			} elseif ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
+			if ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
 				switch ( $m['who'] ) {
-					case 'you' : // Kird ape
-						$target->powtoucond = new stdClass() ;
-						$target->powtoucond->what = 'card' ;
-						$target->powtoucond->pow = intval($matches['pow']) ;
-						$target->powtoucond->thou = intval($matches['tou']) ;
-						$target->powtoucond->from = 'battlefield' ;
-						if ( preg_match('/an? (.*)/', $m['what'], $mm) ) {
-							if ( array_search($mm[1], $cardtypes)!= false  )
-								$target->powtoucond->cond = 'type='.$mm[1] ;
-							else
-								$target->powtoucond->cond = 'ctype='.$mm[1] ;
+					case 'you' :
+						$powtoucond = new stdClass() ;
+						$powtoucond->what = 'card' ;
+						$powtoucond->pow = intval($matches['pow']) ;
+						$powtoucond->thou = intval($matches['tou']) ;
+						$powtoucond->from = 'battlefield' ;
+						switch ( true ) {
+							// Very standard case
+							case preg_match('/(?<who>an?) (?<what>.*)/', $m['what'], $mm) :
+							case preg_match('/(?<who>another) (?<what>.*)/', $m['what'], $mm) :
+								if ( array_search($mm['what'], $cardtypes)!== false  )
+									$powtoucond->cond = 'type='.$mm['what'] ;
+								else
+									$powtoucond->cond = 'ctype='.$mm['what'] ;
+								$powtoucond->other = ($mm['who'] === 'another');
+								break ;
+							// Unmanageable
+							case ( $m['what'] === 'three or more artifacts' ): // Impossible to detect the number of cards satisfying condition
+							case ( $m['what'] === 'eight or more lands' ):
+							case ( $m['what'] === 'no untapped lands' ): // Impossible to detect tapped lands nor their absence
+							case ( $m['what'] === 'your commander' ): // Impossible to detect a commander card nor wether it's on the battlefield (it's stored there by many users)
+								$powtoucond = null ;
+								break;
+							default :
+								$powtoucond = null ;
+								msg("No pow/tou condition found for $name : $text") ;
 						}
 						break ;
-					case 'an opponent' :
+					case 'an opponent' : // Unmanaged, just there to avoid error message
 					case 'no opponent' :
+						$powtoucond = null ;
 						break ;
 					default:
-						//msg($name.' : '.$m['who'].' -> '.$m['what']) ;
+						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
 				}
-			//} elseif ( preg_match('/(?<who>.*) [has|have] (?<what>.*)/', $what, $m) ) {
+				if ( $powtoucond !== null ) {
+					$target->powtoucond = $powtoucond ;
+				}
 			} /*else
 				msg(' * '.$name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;*/
 		}
