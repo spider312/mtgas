@@ -819,12 +819,10 @@ function battlefield(player) {
 			if ( game.drag != null ) {
 				var p = this.grid_at(ev.clientX - game.dragxoffset, ev.clientY - game.dragyoffset) ;
 				if ( game.selected.zone != this ) {// From another zone
-					var base = null ;
-					if ( ev.ctrlKey )
-						base = 'back' ;
-					game.selected.changezone(this, base, null, p.x, p.y) ;
-				} else
+					game.selected.changezone(this, !ev.ctrlKey, null, p.x, p.y) ;
+				} else {
 					game.selected.place(p.x, p.y) ;
+				}
 			}
 		}
 	}
