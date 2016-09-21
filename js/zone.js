@@ -23,7 +23,7 @@ function Zone(player, type) {
 		var sel = new Selection(cards) ;
 		sel.moveinzone(to) ;
 	}
-	this.changezone = function(dest_zone, nb, to, from) {
+	this.changezone = function(dest_zone, nb, to, from, visible) {
 		if ( ! isn(nb) )
 			nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type, this.cards.length) ;
 		if ( ! isn(from) )
@@ -32,7 +32,9 @@ function Zone(player, type) {
 			from = this.cards.length ;
 		if ( from < 0 )
 			from = 0 ;
-		(new Selection(this.cards.slice(from-nb, from).reverse())).changezone(dest_zone, null, to) ;
+		if ( ! isb(visible) )
+			visible = null ;
+		(new Selection(this.cards.slice(from-nb, from).reverse())).changezone(dest_zone, visible, to) ;
 	}
 	this.rand_selection = function(cards, nb) { // Returns a selection containing nb cards crom cards
 		if ( ! isn(nb) || ( nb < 1 ) )
@@ -406,6 +408,7 @@ function library(player) {
 				menu.addline() ;
 				menu.addline('To hand ...',		mylib.changezone,	mylib.player.hand) ;
 				menu.addline('To battlefield ...',	mylib.changezone,	mylib.player.battlefield) ;
+				menu.addline('To battlefield face down ...',	mylib.changezone,	mylib.player.battlefield, null, null, null, false) ;
 				menu.addline('To bottom deck ...',	mylib.moveinzone) ;
 				menu.addline('To graveyard ...',	mylib.changezone,	mylib.player.graveyard) ;
 				menu.addline('To exile ...',		mylib.changezone,	mylib.player.exile) ;
