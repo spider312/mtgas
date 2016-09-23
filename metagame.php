@@ -154,7 +154,7 @@ html_filter('rarity', $default_rarities, $rarity, $filter_size) ;
      <th title="Card's cost">Cost</th>
      <th title="Number of times card was opened">Opened</th>
      <th title="Number of times card have been inserted in a deck">Played</th>
-     <th title="Number of games won with this card in deck">Scored</th>
+     <th title="Number of games won with this card in deck / 2">Scored</th>
      <th title="Played / Opened">Play ratio</th>
      <th title="Scored / Opened">Score ratio</th>
      <th title="Scored / Played">Score ratio (played)</th>
@@ -191,7 +191,7 @@ foreach ( $p as $i => $c ) {
      <td>'.manas2html($d->manas).'</td>
      <td>'.$c->opened.'</td>
      <td>'.$c->played.'</td>
-     <td>'.$c->scored.'</td>
+     <td>'.($c->scored/2).'</td>
      <td>'.round($c->play_ratio*100, 2).'%</td>
      <td>'.round($c->score_ratio*100, 2).'%</td>
      <td>'.round($c->play_score_ratio*100, 2).'%</td>
@@ -203,9 +203,9 @@ echo '    <caption>'.$nb.' / '.count($p).' cards</caption>' ;
    </table>
    </div>
   </div>
- </body>
-</html>
 <?php
+html_foot() ;
+
 function sort_by($field, $a, $b) {
 	$res = $b->$field - $a->$field ;
 	if ( $res == 0 )
