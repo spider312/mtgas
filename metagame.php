@@ -48,15 +48,16 @@ foreach ( $report->cards as $i => $card ) {
 	$card->name = $c->name ;
 	$card->attrs = $c->attrs ;
 	$card->text = $c->text ;
+	$card->scored = $card->scored / 2 ; // Scored is generally > played, which makes formulas and results hard to catch, let's make it a faked number of *matches* won
 	if ( $card->opened != 0 ) {
 		$card->play_ratio = $card->played / $card->opened ;
-		$card->score_ratio = $card->scored / $card->opened / 2 ;
+		$card->score_ratio = $card->scored / $card->opened ;
 	} else {
 		$card->play_ratio = 0 ;
 		$card->score_ratio = 0 ;
 	}
 	if ( $card->played != 0 )
-		$card->play_score_ratio = $card->scored / $card->played / 2 ;
+		$card->play_score_ratio = $card->scored / $card->played ;
 	else
 		$card->play_score_ratio = 0 ;
 	$p[] = $card ;
@@ -154,7 +155,7 @@ html_filter('rarity', $default_rarities, $rarity, $filter_size) ;
      <th title="Card's cost">Cost</th>
      <th title="Number of times card was opened">Opened</th>
      <th title="Number of times card have been inserted in a deck">Played</th>
-     <th title="Number of games won with this card in deck / 2">Scored</th>
+     <th title="Number of *games* won with this card in deck / 2 => faked number of *matches* won">Scored</th>
      <th title="Played / Opened">Play ratio</th>
      <th title="Scored / Opened">Score ratio</th>
      <th title="Scored / Played">Score ratio (played)</th>
@@ -191,7 +192,7 @@ foreach ( $p as $i => $c ) {
      <td>'.manas2html($d->manas).'</td>
      <td>'.$c->opened.'</td>
      <td>'.$c->played.'</td>
-     <td>'.($c->scored/2).'</td>
+     <td>'.$c->scored.'</td>
      <td>'.round($c->play_ratio*100, 2).'%</td>
      <td>'.round($c->score_ratio*100, 2).'%</td>
      <td>'.round($c->play_score_ratio*100, 2).'%</td>
