@@ -554,7 +554,7 @@ class ImportCard {
 	function addurl($url) {
 		foreach ( $this->urls as $card_url )
 			if ( $url == $card_url )
-				return $this->ext->adderror('URL already added (normal for coloured artifacts on MV)', $this) ;
+				return $this->ext->adderror('URL already added', $this) ;
 		$this->urls[] = $url ;
 		return true ;
 

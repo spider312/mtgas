@@ -121,11 +121,15 @@ foreach ( $importer->cards as $i => $card ) {
 	echo '      <td>'.$card->multiverseid.'</td>'."\n" ;
 	// One column for each lang
 	foreach ( $card->langs as $code => $lang ) {
-		echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
-		foreach ( $lang['images'] as $i =>$image ) {
-			echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
+		if ( isset($lang['images']) && is_array($lang['images']) ) {
+			echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
+			foreach ( $lang['images'] as $i =>$image ) {
+				echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
+			}
+			echo '      </td>'."\n" ;
+		} else {
+			echo '<td><i>n/a</i></td>' ;
 		}
-		echo '      </td>'."\n" ;
 	}
 	echo '     </tr>'."\n" ;
 }
