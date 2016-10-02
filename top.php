@@ -7,6 +7,7 @@ html_head('Top players ',
 		'top.css'
 	), 
 	array(
+		'lib/jquery.js',
 		'../variables.js.php'
 		, 'options.js'
 		, 'html.js' 
@@ -16,7 +17,7 @@ html_head('Top players ',
 	)
 ) ;
 ?>
- <body>
+ <body onload="init(event)">
 <?php
 html_menu(true) ;
 ?>
@@ -34,22 +35,13 @@ html_menu(true) ;
 	  <td id="ratio" class="sortable">Ratio</td>
 	 </tr>
 	</thead>
+	<tbody id="loading">
+	 <tr>
+	  <td colspan="6">Loading...</td>
+	 </tr>
+	</tbody>
 	<tbody id="table"></tbody>
    </table>
   </div>
-  <script type="text/javascript">
 <?php
-	$folder = 'ranking' ;
-	$d = dir($folder) ;
-	while ( false !== ( $entry = $d->read() ) )
-		if ( ( $entry != '.' ) && ( $entry != '..' ) ) {
-			$period = substr($entry, 0, strlen($entry)-5) ;
-			$path = $folder.'/'.$entry ;
-			//date("F d Y H:i:s.",) ;
-			echo 'ranking_import("'.$period.'", '.file_get_contents($path).', '.filemtime($path).') ;'."\n" ;
-		}
-?>
-	init() ;
-  </script>
-<?
 html_foot() ;
