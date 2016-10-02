@@ -70,7 +70,7 @@ class Db {
 	}
 	private function connect() {
 		$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
-		$this->link->set_charset($this->charset) ;
+		//$this->link->set_charset($this->charset) ;
 	}
 	public function check() {
 		if ( ! $this->link ) {
