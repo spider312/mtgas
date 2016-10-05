@@ -80,6 +80,7 @@ function start() { // On page load
 				break ;
 			case 'joineduel' :
 				if ( data.redirect && ( ( player_id == data.creator_id ) || ( player_id == data.joiner_id ) ) ) {
+					notification_send('Mogg Duel', 'Joined duel : '+data.name, 'duel') ;
 					window.focus() ;
 					document.location = 'play.php?id='+data.id ;
 				} else {
