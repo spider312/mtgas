@@ -134,12 +134,11 @@ function deck_xml_to_mw(str) {
 	// Parse XML
 	var parser = new DOMParser();  
 	var xml = parser.parseFromString(str, "application/xml") ;
-	with ( xml.documentElement ) // Test weel-formedness
-		if (
-			( tagName == "parseerror" )
-			|| ( namespaceURI == "http://www.mozilla.org/newlayout/xml/parsererror.xml" )
-		)
-			return str ; // Not well-formed, return original string
+	// Test well-formedness
+	var parsererrors = xml.getElementsByTagName("parsererror") ;
+	if ( ( parsererrors.length > 0 ) && ( parsererrors[0].namespaceURI === 'http://www.w3.org/1999/xhtml' ) ) {
+		return str ;
+	}
 	// Apply XSL
 	var xhttp = new XMLHttpRequest();
 	xhttp.open('GET', '/xml_to_mw.xsl', false) ;
