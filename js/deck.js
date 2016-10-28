@@ -82,7 +82,7 @@ function deck_set(name, content) {
 	if ( name == null )
 		return false ;
 	name = name.replace(/([,'\s]+)/g, '_') ;
-	// Content checking
+	// Try to convert XML (.cod from Cockatrice) into mwDeck
 	content = deck_xml_to_mw(content) ;
 	// Deck creation
 	var decks = decks_get() ;
@@ -136,7 +136,7 @@ function deck_xml_to_mw(str) {
 	var xml = parser.parseFromString(str, "application/xml") ;
 	// Test well-formedness
 	var parsererrors = xml.getElementsByTagName("parsererror") ;
-	if ( ( parsererrors.length > 0 ) && ( parsererrors[0].namespaceURI === 'http://www.w3.org/1999/xhtml' ) ) {
+	if ( parsererrors.length > 0 ) {
 		return str ;
 	}
 	// Apply XSL
