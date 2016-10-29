@@ -32,6 +32,9 @@ else
 	// Set data
 $importer->setext($code, $title, $nbcards) ;
 
+$nb_token_expected = 0 ;
+$nb_token_found = 0 ;
+
 // Cards
 $card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
 $card_dom = new DOMDocument;
@@ -56,16 +59,21 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$number = intval($number_node->item(0)->getAttribute('value')) ;
 	// Name (+fr translation)
 	$name_nodes =  $card_xpath->query("//div[@class='S16']") ;
-	$fr_idx = 0 ; // French items are before english items
-	if ( $name_nodes->length > 2 ) { // Double face
-		$us_idx = $name_nodes->length - 2 ; // English items are after french sun and moon items
-	} else { // Simple face
-		$us_idx = 1 ; // English items are right after french items
+	$us_idx = 1 ;
+	switch ( $name_nodes->length ) {
+		case 2 : // Normal card
+			$frname = trim($name_nodes->item(0)->nodeValue) ;
+			$name = trim($name_nodes->item(1)->nodeValue) ;
+			break ;
+		case 4 : // Split cards
+			$us_idx = $name_nodes->length - 2 ; // English items are after french sun and moon items
+			$frname = trim($name_nodes->item(0)->nodeValue).' / '.trim($name_nodes->item(0)->nodeValue) ;
+			$name = trim($name_nodes->item(1)->nodeValue) ;
+			break ;
+		default:
+			$importer->adderror('Name nodes : '.$name_nodes->length, $href);
+			continue 2;
 	}
-	$frname = trim($name_nodes->item($fr_idx)->nodeValue) ;
-	//$frname = html_entity_decode($frname, ENT_COMPAT, 'UTF-8') ;
-	//$frname = card_name_sanitize($frname) ;
-	$name = trim($name_nodes->item($us_idx)->nodeValue) ;
 	$name = card_name_sanitize($name) ;
 	if ( $name == '' ) {
 		$importer->adderror('No name', $href) ;
@@ -73,8 +81,11 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}
 	// PT
 	$pt_nodes = $card_xpath->query("//div[@class='G14']") ;
+	$pt = '' ;
 	$trpt = '' ;
 	switch ( $pt_nodes->length) {
+		case 0: // Split
+			break;
 		case 2: // Has 1 PT (normal)
 			$pt = $pt_nodes->item(1)->nodeValue ;
 			break ;
@@ -86,36 +97,95 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$trpt = $pt_nodes->item($pt_nodes->length-1)->nodeValue ;
 			break ;
 		default:
-			echo "Unmanaged PT nodes number : {$pt_nodes->length} $name\n" ;
+			$importer->adderror("Unmanaged PT nodes number : {$pt_nodes->length} $name\n", $href) ;
 	}
 	// Img
 	$img_node = $card_xpath->query("//td[@width=325]/img") ;
-	$img = $base_url.$img_node->item(0)->getAttribute('src') ;
-	if ( strpos($img, 'FR') ) {
-		$frimg = $img ;
-		$img = str_replace('FR', '', $img) ;
+	if ( $img_node->length === 0 ) {
+		$img_node = $card_xpath->query("//td[@width=314]/img") ; // Split card
+		if ( $img_node->length === 0 ) {
+			$importer->adderror('No Image', $href) ;
+			continue;
+		}
+		$src = $img_node->item(0)->getAttribute('src') ;
+		$src = str_replace('pfou', 'big', $src) ;
+		$src = str_replace('s.jpg', '.jpg', $src) ;
+		$img = $base_url.$src ;
+		$frimg = str_replace($code, $code.'FR', $img) ;
+	} else {
+		$img = $base_url.$img_node->item(0)->getAttribute('src') ;
+		if ( strpos($img, 'FR') ) {
+			$frimg = $img ;
+			$img = str_replace('FR', '', $img) ;
+		}
 	}
 // Token
-	$token_number_node = $card_xpath->query("//tr[@height=460]/td[@width='37%']/div") ;
-	if ( ( $number > $importer->nbcards ) || ( $token_number_node->length == 4 ) || ( $token_number_node->length == 7 ) ) {
-		$pow = '' ; $tou = '' ;
-		if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
-			$pow = intval($matches['pow']) ;
-			$tou = intval($matches['tou']) ;
+	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::*") ; // HTML Element following table containing card navigator
+	$myel = $form_node->item(0);
+	if ( ( $myel != null ) && ( $myel->nodeName === 'div' ) ) {
+		$extratxt = $myel->nodeValue;
+		if ( preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches) ) { // Extract counters from extratxt
+			$extratxt = trim($matches['txt']) ;
+			$nbt = intval($matches['tot']) ;
+		} else {
+			$nbt = -1 ;
 		}
-		$importer->addtoken($href, $name, $pow, $tou, $img) ;
-		continue ;
+		switch ( $extratxt ) {
+			case '' : // extratxt is only a counter, card is a token
+				$nb_token_found++ ;
+				if ( $nb_token_expected === 0 ) { // First time
+					$nb_token_expected = $nbt ;
+				}
+				if ( $nbt != $nb_token_expected ) {
+					$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt) ;
+				}
+				$pow = '' ; $tou = '' ;
+				if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
+					$pow = intval($matches['pow']) ;
+					$tou = intval($matches['tou']) ;
+				}
+				$importer->addtoken($href, $name, $pow, $tou, $img) ;
+				continue 2 ;
+
+			case 'Story Spotlight': // Normal cards included in extension
+				$importer->adderror('Additionnal text (imported anyway) : '.$extratxt, $href) ;
+				break;
+
+			default:
+				$importer->adderror('Additionnal text (NOT imported) : '.$extratxt, $href) ;
+				$importer->nbcards-- ; // Card read and counted in total, but not imported
+				continue 2 ;
+		}
+	} else {
+		//echo "$name {$token_number_node->length}\n" ;
 	}
 // Required for cards
 	// Cost
-	$cost_nodes = $card_xpath->query("//img[contains(@src, '$mana_url')]") ;
-	$cost = '' ;
-	for ( $j = 0 ; $j < $cost_nodes->length ; $j++ ) {
-		$cost .= preg_replace("#$mana_url|(\..*)#", '', $cost_nodes->item($j)->getAttribute('src')) ;
+	$second_cost = '';
+	$cost_container_nodes = $card_xpath->query("//img[contains(@src, '$mana_url')]/..") ;
+	if ( $cost_container_nodes->length === 0 ) {
+		$cost = '' ;
+	} else {
+		if ( $cost_container_nodes->length > 1 ) {
+			$second_cost = mv_dom_node2cost($cost_container_nodes[1]);
+		}
+		$cost = mv_dom_node2cost($cost_container_nodes[0]);
 	}
 	// Types
 	$type_nodes = $card_xpath->query("//div[@class='G12']") ;
-	$types = $type_nodes->item($us_idx)->nodeValue ;
+	$second_types = '' ;
+	switch ( $type_nodes->length ) {
+		case 2 :
+			$types = $type_nodes->item(1)->nodeValue ;
+			break ;
+		case 4 :
+			$types = $type_nodes->item(1)->nodeValue ;
+			$second_types = $type_nodes->item(3)->nodeValue ;
+			break ;
+		default : 
+			$importer->adderror('Types nodes '.$type_nodes->length, $href) ;
+			continue 2 ;
+	}
 	$types = trim($types) ;
 	$types = str_replace(chr(194).chr(151), '-', $types) ;
 	// Text
@@ -123,13 +193,14 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
 	// Workaround for missing french transformed data
 	$text_nodes_length = $text_nodes->length ;
-	if ( $text_nodes->length == 5 ) { // Instead of 6
+	/*if ( $text_nodes->length == 5 ) { // Instead of 6
 		$types_arr = explode(' - ', $types) ;
 		if ( $types_arr[0] !== 'Planeswalker' ) {
 			echo "Workarounded $name - $text_nodes_length\n" ;
 			$text_nodes_length = 6 ;
 		}
-	}
+	}*/
+	$second_text = '' ;
 	switch ( $text_nodes_length ) {
 		case 6 : // Transform
 			$trtext = $text_nodes->item($text_nodes->length-2)->C14N() ;
@@ -143,7 +214,13 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				$text = $pt."\n".$text ;
 			break ;
 		case 5 : // Planeswalker
-			$text = mv_planeswalker($text_nodes, 3) ;
+			echo "$name : $second_types\n" ;
+			if ( $second_types !== '' ) {
+				$text = mv2txt($text_nodes->item(2)->C14N()) ;
+				$second_text = mv2txt($text_nodes->item(4)->C14N());
+			} else {
+				$text = mv_planeswalker($text_nodes, 3) ;
+			}
 			break ;
 		case 8 : // Double face, moon is a planeswalker
 			if ( $pt == '' ) { // Sun is a planeswalker (ISD Garruk, SOI Arlinn Kord)
@@ -177,7 +254,20 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
+	// Second part
+	switch ( $name_nodes->length ) {
+		case '4' : // Split
+			$text = '' ; // mv2txt($matches[1]['text'])
+			$card->split(
+				card_name_sanitize($name_nodes->item(3)->nodeValue),
+				$second_cost,
+				$second_types,
+				$second_text
+			) ;
+			break ;
+	}
 	// Moon
+	/*
 	if ( $name_nodes->length > 2 ) {
 		$idx = $name_nodes->length - 1 ;
 		// Name
@@ -219,7 +309,14 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		if ( $frtrimg != null )
 			$card->addlangimg('fr', $base_url.$frtrimg) ;
 	}
+	*/
 }
+
+//$importer->nbcards -= $nb_token_found ;
+if ( $nb_token_expected !== $nb_token_found ) {
+	echo "$nb_token_found tokens found despide $nb_token_expected expected\n" ;
+}
+
 function mv_planeswalker($text_nodes, $text_idx) {
 	$text = $text_nodes->item($text_idx)->C14N() ;
 	$text = mv2txt($text)."\n" ;
@@ -235,6 +332,17 @@ function mv_planeswalker($text_nodes, $text_idx) {
 	}
 	return $text ;
 }
+function mv_dom_node2cost($node) {
+	global $card_xpath, $mana_url ;
+	$cost_nodes = $card_xpath->query("img[contains(@src, '$mana_url')]", $node, false) ;
+	$cost = '' ;
+	for ( $j = 0 ; $j < $cost_nodes->length ; $j++ ) {
+		$item = $cost_nodes->item($j) ;
+		$cost .= preg_replace("#$mana_url|(\..*)#", '', $item->getAttribute('src')) ;
+	}
+	return $cost;
+}
+
 /*
 // Init
 $reg_flip = '#<div class=S16>(?<name>[^<>]*?)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<type>[^<>]*?)</div><div style="display:block;" class=S12 align=justify>(?<text>.*?)</div>#s' ;
@@ -247,13 +355,6 @@ foreach ( $matches_list as $match ) { //
 
 	// Second part
 	if ( $card != null ) { // Card is not a token
-		// Split
-		if ( $nb == 2 )
-			$card->split(
-				card_name_sanitize($matches[1]['name']),
-				mv2cost($matches[1]['cost']),
-				$type, mv2txt($matches[1]['text'])
-			) ;
 		// Flip
 		if ( preg_match_all($reg_flip, $html, $matches_flip, PREG_SET_ORDER) > 0 ) {
 			$match_flip = $matches_flip[1] ; // 0 is french version
