@@ -888,7 +888,7 @@ function manage_text($name, $text, $target) {
 		$target->living_weapon = true ;
 	// Token creation
 	$colreg = implode('|', $colors) ;
-	if ( preg_match_all('/(?<number>\w+) ((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 	// Godsire, Hazezon Tamar
 	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
 		foreach ( $all_matches as $matches ) {
@@ -912,6 +912,9 @@ function manage_text($name, $text, $target) {
 			$token->attrs->pow = text2number($matches['pow'], 0) ; // 0 for image
 			$token->attrs->thou = text2number($matches['tou'], 0) ;
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
+			if ( $matches['tapped'] !== '' ) {
+				$token->attrs->tapped = true ;
+			}
 			$target->tokens[] = $token ;
 		}
 	}
