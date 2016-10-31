@@ -214,7 +214,6 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				$text = $pt."\n".$text ;
 			break ;
 		case 5 : // Planeswalker
-			echo "$name : $second_types\n" ;
 			if ( $second_types !== '' ) {
 				$text = mv2txt($text_nodes->item(2)->C14N()) ;
 				$second_text = mv2txt($text_nodes->item(4)->C14N());
@@ -338,7 +337,18 @@ function mv_dom_node2cost($node) {
 	$cost = '' ;
 	for ( $j = 0 ; $j < $cost_nodes->length ; $j++ ) {
 		$item = $cost_nodes->item($j) ;
-		$cost .= preg_replace("#$mana_url|(\..*)#", '', $item->getAttribute('src')) ;
+		$mana = preg_replace("#$mana_url|(\..*)#", '', $item->getAttribute('src')) ;
+		if (
+			( $mana[0] === 'P' ) // Repair phyrexian mana
+			|| ( $mana === 'WG' ) // And some other colors
+			|| ( $mana === 'UG' )
+		) { 
+			$mana = substr($mana, 1) . $mana[0] ; 
+		}
+		if ( strlen($mana) > 1 ) { // Group multiple mana symbols (hybrid, phyrexian)
+			$mana = '{'.$mana.'}' ;
+		}
+		$cost .= $mana ;
 	}
 	return $cost;
 }
