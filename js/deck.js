@@ -84,6 +84,8 @@ function deck_set(name, content) {
 	name = name.replace(/([,'\s]+)/g, '_') ;
 	// Try to convert XML (.cod from Cockatrice) into mwDeck
 	content = deck_xml_to_mw(content) ;
+	// Convert from MTGO (.dec)
+	content = mtgo2mwdeck(content) ;
 	// Deck creation
 	var decks = decks_get() ;
 	if ( decks.indexOf(name) == -1 ) {
@@ -148,4 +150,22 @@ function deck_xml_to_mw(str) {
 	resultDocument = xsltProcessor.transformToFragment(xml, document) ;
 	var div = create_div(resultDocument) ; // Add to document to get content
 	return div.textContent ; // Return parsed string
+}
+// Converts MTGO (.dec) into mwDeck by adding "SB:" in front of lines following an empty line or containging only "Sideboard"
+function mtgo2mwdeck(str) {
+	if ( typeof str !== 'string' ) {
+		return str ;
+	}
+	var lines = str.trim().split('\n') ; // trim removes empty lines at the end, that would trigger addsb
+	var addsb = false ;
+	for ( var i = 0 ; i < lines.length ; i++ ) {
+		var line = lines[i].trim() ; // trim required, i don't know why
+		if ( ( line === 'Sideboard' ) || ( line === '' ) ) {
+			addsb = true ;
+			lines[i] = '// Sideboard' ;
+		} else if ( addsb ) {
+			lines[i] = 'SB: '+line;
+		}
+	}
+	return lines.join('\n') ;
 }
