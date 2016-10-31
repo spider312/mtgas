@@ -71,6 +71,10 @@ function Connexion(path, onmessage, onclose, registration_data) {
 			connexion.connexion = null ;
 		}, false) ;
 		this.connexion.addEventListener('message', function (ev) {
+			if ( ev.data === '' ) {
+				console.info('Recieved empty data');
+				return false ;
+			}
 			var data = null ;
 			try {
 				data = JSON.parse(ev.data) ;
