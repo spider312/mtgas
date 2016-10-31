@@ -321,9 +321,8 @@ function theme_image($name) {
 	return $url.'/themes/'.$theme.'/'.$name ;
 }
 function manas2html($manas) { // Returns HTML code for icons representing array 'manas'
-	$colors = '' ;
 	foreach ( $manas as $mana )
-		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'" width="16" height="16">' ;
+		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'" width="16" height="16" alt="{'.$mana.'}">' ;
 	return $colors ;
 }
 function manacost2html($cost) { // Returns HTML code for icons representing string 'cost'
@@ -331,18 +330,31 @@ function manacost2html($cost) { // Returns HTML code for icons representing stri
 		return '' ;
 	else if ( is_numeric($cost) ) // Manage '10'
 		$manas = array($cost) ;
-	else
-		$manas = str_split($cost) ;
+	else {
+		$manas = array();
+		$in_multiple = false ;
+		$multiple = '' ;
+		for ( $i = 0 ; $i < strlen($cost) ; $i++ ) {
+			$char = $cost[$i] ;
+			switch ( $char ) {
+				case '{' :
+					$in_multiple = true ;
+					break ;
+				case '}' :
+					$manas[] = $multiple ;
+					$in_multiple = false ;
+					$multiple = '' ;
+					break ;
+				default :
+					if ( $in_multiple ) {
+						$multiple .= $char ;
+					} else {
+						$manas[] = $char ;
+					}
+			}
+		}
+	}
 	return manas2html($manas) ;
 }
-function manas2color($manas) { // Returns HTML code for icons representing card color for manas in param
-	$mymanas = array() ;
-	foreach ( $manas as $mana ) {
-		if ( is_numeric($mana) || (  $mana == 'X' ))
-			continue ;
-		if ( array_search($mana, $mymanas) === false )
-			$mymanas[] = $mana ;
-	}
-	return manas2html($mymanas) ;
-}
+
 ?>
