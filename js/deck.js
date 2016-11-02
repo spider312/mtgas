@@ -119,11 +119,21 @@ function deck_get(name) {
 	else
 		return null ;
 }
+function deck_name_sanitize(name) {
+	// Don't save spaces
+	name.replace(' ', '_');
+	// Remove extension
+	var formats = ['mwdeck', 'dec', 'txt', 'cod']
+	var formatRE = new RegExp('\.('+formats.join('|')+')$', 'gi')
+	console.log(formatRE);
+	name = name.replace(formatRE, '') ;
+	return name ;
+}
 function deck_file_load(files) {
 	for ( var i = 0 ; i < files.length ; i++ ) {
 		var file = files.item(i) ;
 		var reader = new FileReader();
-		reader.name = file.name.replace(/\.mwdeck$/gi, '') ;
+		reader.name = deck_name_sanitize(file.name);
 		reader.addEventListener('load', function(ev) {
 			deck_set(ev.target.name, ev.target.result) ;
 			decks_list() ;

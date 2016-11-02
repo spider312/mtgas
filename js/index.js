@@ -325,9 +325,8 @@ function start() { // On page load
 						name = url.substring(url.lastIndexOf('/')+1) ;
 					}
 				}
-				name = name.replace(/\.mwdeck$/gi, '') ;
-				name = name.replace(/\.dec$/gi, '') ;
-				name = name.replace(/\.txt$/gi, '') ;
+				// Remove file extension
+				name = deck_name_sanitize(name);
 				// Save deck and refresh
 				deck_set(name, content) ;
 				decks_list() ;
