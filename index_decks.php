@@ -61,7 +61,7 @@
        </td>
        <th>
         <form id="download">
-		 <input type="submit" value="<?=__('index.decks.download.download');?>" class="fullwidth">
+		 <input id="deck_download" type="submit" value="<?=__('index.decks.download.download');?>" class="fullwidth">
         </form>
        </th>
       </tr>

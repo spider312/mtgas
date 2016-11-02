@@ -300,21 +300,39 @@ function start() { // On page load
 		}
 	}, false) ;
 	document.getElementById('download').addEventListener('submit', function(ev) { // Use proxy to DL user-url (as AJAX can't DL from another DNS)
-		var url = ev.target.deck_url.value ;
+		var input = ev.target.deck_url ;
+		var url = input.value ;
 		if ( url == '' ) {
 			alert('Please enter an URL') ;
-			ev.target.deck_url.focus() ;
+			input.focus() ;
 		} else {
-			var result = $.get('proxy.php', {'url': url}, function(content, response) {
-				var name = deck_guessname(content) ;
+			// Empty and disable form controls
+			var submit = ev.target.deck_download;
+			input.disabled = submit.disabled = true ;
+			input.value = '' ;
+			var result = $.get('proxy.php', {'url': url}, function(content, response, request) {
+				// Try to guess name from content
+				var name = deck_guessname(content) ; 
 				if ( name == '' ) {
-					url = decodeURIComponent(url) ;
-					name = url.substring(url.lastIndexOf('/')+1) ;
-					name = name.replace(/\.mwdeck$/gi, '') ;
+					// Try to guess name from headers
+					var cd = request.getResponseHeader('Content-Disposition');
+					var needle = 'attachment; filename=' ;
+					if ( cd.indexOf(needle) === 0 ) {
+						name = cd.substr(needle.length).replace(/"/g, '') ;
+					} else {
+						// Fallback to guessing name from URL
+						url = decodeURIComponent(url) ;
+						name = url.substring(url.lastIndexOf('/')+1) ;
+					}
 				}
+				name = name.replace(/\.mwdeck$/gi, '') ;
+				name = name.replace(/\.dec$/gi, '') ;
+				name = name.replace(/\.txt$/gi, '') ;
+				// Save deck and refresh
 				deck_set(name, content) ;
 				decks_list() ;
-				document.getElementById('deck_url').value = '' ;
+				// Re-enable form controls
+				input.disabled = submit.disabled = false ;
 			}, 'html') ;
 			if ( result.addEventListener ) // Under opera, this method does not exist
 				result.addEventListener("error", function(ev) {
