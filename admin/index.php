@@ -148,7 +148,6 @@ if ( count($reports) > 0 ) {
    <ul>
     <li><a href="cards/compile.php">Compile cards (adds attributes specific to MTGAS in database)</a></li>
     <li><a href="cards/import/mci_extra.php">Import token images from MCI</a></li>
-    <li><a href="cards/cube.php">Dispatch cards from CUB to CUBL / CUBS depending on rarity</a>
    </ul>
    <h3>Checks</h3>
    <ul>
