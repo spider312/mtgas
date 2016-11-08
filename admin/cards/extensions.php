@@ -66,7 +66,12 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
 	echo '     <td>'.$arr['priority'].'</td>' ;
-	echo '     <td><a href="?ext_del='.$arr['id'].'">del</a></td>'."\n" ;
+	echo '     <td>' ;
+	echo '<a href="?ext_del='.$arr['id'].'">del</a>' ;
+	echo ' - ' ;
+	echo '<a href="cards/extension_export.php?ext='.$arr['se'].'">export</a>' ;
+	echo '</td>' ;
+	echo "\n" ;
 	echo '    </tr>'."\n" ;
 }
 ?>
