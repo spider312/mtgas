@@ -154,7 +154,6 @@ if ( count($reports) > 0 ) {
     <li><a href="cards/import/mcis.php">Compare extensions from MCI with DB</a></li>
     <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
     <li><a href="cards/check_integrity.php">Check database integrity</a></li>
-    <li><a href="cards/cub_csv.php">Download CUB list as a spreadsheet</a></li>
     <li><a href="cards/check_langs.php">Check Languages</a></li>
    </ul>
   </div><!-- Cards -->
