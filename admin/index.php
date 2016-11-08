@@ -136,10 +136,6 @@ if ( count($reports) > 0 ) {
 
    <h2>Import</h2>
    <a href="cards/import/">Import cards</a>
-   <form action="cards/import/mtgo_cube.php">
-    Download a MTGO Cube list from a DailyMTG article : 
-    <input type="text" name="url" placeholder="URL of article">
-   </form>
    <form action="cards/upload.php" enctype="multipart/form-data" method="post">
     Create/update a (<abbr title="No new card will be created, listed cards will be added to extension if already existing">virtual</Abbr>) extension from a list
     <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">
