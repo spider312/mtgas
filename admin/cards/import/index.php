@@ -15,6 +15,7 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
+		, 'mtg.css'
 	)
 ) ;
 ?>
@@ -104,7 +105,7 @@ if ( count($importer->cards) != $nbimages )
 foreach ( $importer->cards as $i => $card ) {
 	echo '     <tr title="'.htmlentities($card->text).'">
       <td>'.($i+1).'</td>
-      <td>'.$card->rarity.'</td>
+      <td class="bg_r_'.$card->rarity.'">'.$card->rarity.'</td>
       <td>'."\n      " ;
 	foreach ( $card->urls as $i => $card_url ) {
 		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
