@@ -185,7 +185,26 @@ foreach ( $p as $i => $c ) {
 	if ( count(array_intersect($d->types, $type)) === 0 ) {
 		continue ;
 	}
-	echo '    <tr title="'.htmlentities((count($d->manas)>0 ? implode($d->manas)."\n" : '').$c->text).'">
+	// Line hover text
+	$title = '' ;
+		// Card cost
+	if ( count($d->manas) > 0) {
+		$title = implode($d->manas)."\n" ;
+	}
+		// Card types
+	$nbt = count($d->types) ;
+	$nbst = count($d->subtypes) ;
+	if ( $nbt + $nbst > 0 ) {
+		$title .= implode($d->types, ' ') ;
+		if ( ( $nbt > 0 ) && ( $nbst > 0 ) ) {
+			$title .= ' - ' ;
+		}
+		$title .= implode($d->subtypes, ' ') ;
+		$title .= "\n" ;
+	}
+		// Card text
+	$title .= htmlentities($c->text) ;
+	echo '    <tr title="'.$title.'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
      <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
