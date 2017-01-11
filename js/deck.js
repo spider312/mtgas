@@ -9,6 +9,7 @@ function deck_parse(deck) {
 	else
 		var lines = []
 	var result = [] ;
+	var unparsable = [] ;
 	for ( var i = 0 ; i < lines.length ; i++ ) {
 		var line = lines[i]
 		var matches = line.match(reg_comment) ;
@@ -38,6 +39,7 @@ function deck_parse(deck) {
 				} else {
 					if ( ( line != '\n' ) && ( line != '\r' ) ) { // Not valid and not a newline, store for displaying on end (for import of non-mtgdeck file)
 						result.push(line) ; // line.charCodeAt(0)
+						unparsable.push(line) ;
 					}
 					continue ;
 				}
@@ -48,6 +50,9 @@ function deck_parse(deck) {
 				num = tmp[1] ;
 			result.push(new Array(nb, ext, name, num, side)) ;
 		}
+	}
+	if ( unparsable.length > 0 ) {
+		alert('Some lines in deck file were not correctly parsed : \n - '+unparsable.join("\n - ")) ;
 	}
 	return result ;
 }
