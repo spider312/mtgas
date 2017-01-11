@@ -224,6 +224,36 @@ if ( count($langs) > 0 ) {
      <td><textarea name="fixed_attrs" cols="80" rows="7"><?php echo $card_bdd['fixed_attrs'] ; ?></textarea></td>
     </tr>
     <tr>
+     <th>Merged</th>
+	 <td><pre>
+<?php
+if ( $card_bdd['fixed_attrs'] != '' ) {
+// Merge stored and fixed
+$merged = null ;
+$fixed_attrs = json_decode($card_bdd['fixed_attrs']) ;
+if ( $fixed_attrs == null ) {
+	echo "{$card_bdd['name']} has buggy fixed attrs : {$card_bdd['fixed_attrs']}\n" ;
+	echo json_verbose_error()."\n" ;
+} else {
+	$merged = JSON_decode($card_bdd['attrs']) ;
+	foreach($fixed_attrs as $k => $v) {
+		if ( isset($merged->$k) ) {
+			echo " - Replacing stored attr $k with fixed one\n" ;
+		}
+		$merged->$k = $v ; // Overwrites array attrs such as tokens
+	}
+	echo "Result : " ;
+	print_r($merged) ;
+}
+?>
+<?php
+} else {
+    echo "No fixed to merge" ;
+}
+?>
+     </pre></td>
+    </tr>
+    <tr>
      <th>Stored</th>
      <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><pre><?php print_r($json) ; ?></pre></td>
     </tr>
