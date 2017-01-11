@@ -119,6 +119,17 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$img = str_replace('FR', '', $img) ;
 		}
 	}
+	// Rarity (before token detection because it may cause a rarity change)
+	$rarity_node = $card_xpath->query("//img[contains(@src, '$rarity_url')]") ;
+	if ( $rarity_node->length <= 0 ) {
+		$importer->adderror('Rarity icon not found', $href) ;
+		$rarity = 'C' ;
+	} else {
+		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
+		$rarity = $rarities[$rarity_id] ;
+	}
+	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
+		$rarity = 'L' ;
 // Token
 	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::*") ; // HTML Element following table containing card navigator
 	$myel = $form_node->item(0);
@@ -148,13 +159,15 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				continue 2 ;
 
 			case 'Story Spotlight': // Normal cards included in extension
-				$importer->adderror('Additionnal text (imported anyway) : '.$extratxt, $href) ;
+				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 				break;
 
 			default:
-				$importer->adderror('Additionnal text (NOT imported) : '.$extratxt, $href) ;
-				$importer->nbcards-- ; // Card read and counted in total, but not imported
-				continue 2 ;
+				$importer->adderror('Additionnal text (special import) : '.$extratxt, $href) ;
+				$rarity = 'S' ;
+				//$importer->nbcards-- ; // Card read and counted in total, but not imported
+				//continue 2 ;
+				break ;
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
@@ -234,17 +247,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		default :
 			echo "Unmanaged number of texts : {$text_nodes->length} - $name\n" ;
 	}
-	// Rarity
-	$rarity_node = $card_xpath->query("//img[contains(@src, '$rarity_url')]") ;
-	if ( $rarity_node->length <= 0 ) {
-		$importer->adderror('Rarity icon not found', $href) ;
-		$rarity = 'C' ;
-	} else {
-		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
-		$rarity = $rarities[$rarity_id] ;
-	}
-	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
-		$rarity = 'L' ;
+	//--
 	// Card import
 	$card = $importer->addcard($href, $rarity, $name, $cost, $types, $text, $img) ;
 	if ( ! $card ) {
