@@ -8,7 +8,7 @@ function deck_parse(deck) {
 		var lines = deck.split('\n') ;
 	else
 		var lines = []
-	var result = new Array() ;
+	var result = [] ;
 	for ( var i = 0 ; i < lines.length ; i++ ) {
 		var line = lines[i]
 		var matches = line.match(reg_comment) ;
@@ -19,25 +19,26 @@ function deck_parse(deck) {
 			var nb = 0 ;
 			var ext = '' ;
 			var name = '' ;
-			var num = undefined ; // SpideR 2011-01-25 : 0 -> undefined, for deckbuilder to compare parsed lines with existing ones
+			var num = undefined ; // For deckbuilder to compare parsed lines with existing ones
 			// Check if line is a sideboard line
 			var sbidx = line.indexOf(str_side) ;
 			var side = ( sbidx == 0 ) ;
 			if ( side )
 				line = line.substr(sbidx+str_side.length) ;
-					matches = line.match(reg_card_mwd) ;
+			matches = line.match(reg_card_mwd) ;
 			if ( matches != null ) {
 				nb = parseInt(matches[1]) ;
 				ext = matches[2] ;
 				name = matches[3] ;
-			} else {
+			} else { // Not a sideboard one, check if it's valid
 				matches = line.match(reg_card_apr) ;
 				if ( matches != null ) {
 					nb = parseInt(matches[1]) ;
 					name = matches[2] ;
 				} else {
-					if ( ( line != '\n' ) && ( line != '\r' ) )
-						alert('Unparsable line : ['+line+']'+line.charCodeAt(0)) ;
+					if ( ( line != '\n' ) && ( line != '\r' ) ) { // Not valid and not a newline, store for displaying on end (for import of non-mtgdeck file)
+						result.push(line) ; // line.charCodeAt(0)
+					}
 					continue ;
 				}
 			}
