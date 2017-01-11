@@ -1133,6 +1133,22 @@ function card_prototype() {
 			menu.addline('To hand',			sel.changezone, player.hand).override_target = sel ;
 		if ( this.zone.type != 'library' ) {
 			menu.addline('To library top',		sel.changezone, player.library).override_target = sel ;
+			menu.addline('To library beneath cards ...', function(zone) {
+				var i = prompt_int('Beneath how many cards ?', 2);
+				if ( i !== null ) {
+					if ( i > 0 ) { // Given positive, compute from top
+						i = zone.cards.length - i ;
+						if ( i < 0 ) {
+							i = 0 ;
+						}
+					} else if ( i < 0 ) { // Given negative, compute from bottom
+						i = -i ;
+					} else { // 0 = top - default for changezone
+						i = null ;
+					}
+					sel.changezone(zone, null, i) ;
+				}
+			}, player.library).override_target = sel ;
 			menu.addline('To library bottom',		sel.changezone, player.library, null, 0).override_target = sel ;
 		} else {
 			var i = card.IndexInZone() ;
