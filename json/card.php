@@ -4,11 +4,22 @@ if ( array_key_exists('name', $_GET) ) {
 	include '../includes/db.php' ;
 	include '../includes/card.php' ;
 	$connec = card_connect() ;
-	$query = query("SELECT * FROM card WHERE `name`='".mysql_real_escape_string(card_name_sanitize($_GET['name']))."'", 'Card search', $connec) ;
-	if ( $card = mysql_fetch_object($query) )
-		$id = $card->id ;
-	else
-		die('{"name": "'.$_GET['name'].'"}') ;
+	$name = card_name_sanitize($_GET['name']) ;
+	$query = query("SELECT * FROM card WHERE `name`='".mysql_real_escape_string($name)."'", 'Card search', $connec) ;
+	if ( $card = mysql_fetch_object($query) ) {
+	} else {
+		// Transforms stored as "day/moon"
+		$pieces = explode('/', $name) ;
+		if ( count($pieces) > 1 ) {
+			$name = $pieces[0] ;
+			$query = query("SELECT * FROM card WHERE `name`='".mysql_real_escape_string($name)."'", 'Card search', $connec) ;
+			if ( $card = mysql_fetch_object($query) ) {
+			} else {
+				die('{"name": "'.$_GET['name'].'"}') ;
+			}
+		}
+	}
+	$id = $card->id ;
 	if ( array_key_exists('lang', $_GET) && ( $_GET['lang'] != 'en' ) ) {
 		if ( $lang = query_oneshot("SELECT * FROM cardname WHERE `lang` = '".$_GET['lang']."' AND `card_id` = '$id'", 'Card language', $connec) )
 			$card->card_name = $lang->card_name ;
