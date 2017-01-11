@@ -178,11 +178,11 @@ foreach ( $ext as $i => $value ) {
       <input type="submit" value="Add">
      </form>
     </td>
-    <td id="cardimage" rowspan="9" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimage" rowspan="10" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 if ( isset($json->transformed_attrs) ) {
 ?>
-    <td id="cardimageback" rowspan="9" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimageback" rowspan="10" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 }
 ?>
