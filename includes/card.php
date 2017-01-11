@@ -878,7 +878,7 @@ function manage_text($name, $text, $target) {
 			}
 		}
 	}
-	if ( preg_match('/(Equipped|Enchanted) creature doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
+	if ( preg_match('/(Equipped|Enchanted) (creature|permanent) doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
 		if ( ! isset($target->bonus) )
 			$target->bonus = new stdClass() ;
 		$target->bonus->no_untap = true ;
