@@ -155,6 +155,27 @@ function side_create_li(cards) {
 	}, false) ;
 	return myli
 }
+function side_add_card(card) { // Adding a card after initialisation of side, such as adding a land
+	var deck_ul = document.getElementById('deck') ;
+	if ( ! deck_ul ) {
+		alert('no deck ul') ;
+	}
+	var li = null ;
+	var cards = [] ;
+	for ( var i = 0 ; i < deck_ul.childNodes.length ; i++ ) {
+		cards = deck_ul.childNodes[i].cards ;
+		if ( cards[0].name === card.name ) {
+			li = deck_ul.childNodes[i] ;
+			break ;
+		}
+	}
+	if ( li === null ) {
+		deck_ul.appendChild(side_create_li([card])) ;
+	} else {
+		cards.push(card);
+		deck_ul.replaceChild(side_create_li(cards), li) ;
+	}
+}
 // Siding actions
 function side_click_card(ev) {
 	var doc = ev.target.parentNode.parentNode ;
