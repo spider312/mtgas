@@ -115,7 +115,7 @@ function start() { // On page load
 							if (! document.hasFocus() )
 								notification_send('Mogg Tournament starting',
 									'Starting : '+data.format+' '+data.name, 'start') ;
-							//if ( confirm('Tournament starting, redirect ?') )
+							if ( ( data.min_players < 3 ) || confirm('Tournament '+data.name+' starting') )
 								document.location = 'tournament/?id='+data.id ;
 						}
 				}
