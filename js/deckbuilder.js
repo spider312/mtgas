@@ -486,6 +486,7 @@ function select_deck(node) {
 function extension_select(card, orig_ext, orig_attrs) {
 	if ( card.ext.length < 1 ) {
 		console.log('No ext for '+card.name) ;
+		return '' ;
 	}
 	var pics = [] ; // Build a list of pics
 	for ( var j = 0 ; j < card.ext.length ; j++ ) { // For each extension
