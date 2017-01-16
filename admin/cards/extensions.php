@@ -46,7 +46,7 @@ if ( $ext != 0 ) {
      <th>Actions</th>
     </tr>
 <?php
-$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.' '.$order) ;
+$query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY '.$sort.', se '.$order) ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$nbcards = 0 ;
 	$nbimgs = 0 ;
@@ -66,7 +66,12 @@ while ( $arr = mysql_fetch_array($query) ) {
 	else
 		echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
 	echo '     <td>'.$arr['priority'].'</td>' ;
-	echo '     <td><a href="?ext_del='.$arr['id'].'">del</a></td>'."\n" ;
+	echo '     <td>' ;
+	echo '<a href="?ext_del='.$arr['id'].'">del</a>' ;
+	echo ' - ' ;
+	echo '<a href="cards/extension_export.php?ext='.$arr['se'].'">export</a>' ;
+	echo '</td>' ;
+	echo "\n" ;
 	echo '    </tr>'."\n" ;
 }
 ?>

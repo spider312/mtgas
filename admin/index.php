@@ -54,8 +54,8 @@ html_menu() ;
     <li><a href="tournament/recompute.php">Recompute tournament's scores</a></li>
    </ul>
 
-   <h2>Inclusion and performance reports</h2>
-   <form id="stats_create" action="tournament/sealed_parse.php">
+   <h2>Metagame cards analysis</h2>
+   <form id="stats_create" action="tournament/metagame.php">
     <input type="text" name="name" placeholder="Name">
     <select name="format">
      <optgroup label="<?=__('index.tournaments.create.limited');?>">
@@ -115,13 +115,13 @@ if ( count($reports) > 0 ) {
 <?php
 }
 ?>
-   <li><a href="/sealed_top.php">See result</a> (public)</li>
+   <li><a href="../metagame.php">See result</a> (public)</li>
   </div>
 <?php // === [ Cards ] ========================================================= ?>
   <div class="section">
    <h1>Cards</h1>
    <h2>Browse</h2>
-   <p><a href="cards/extensions.php">Extensions list</a> (<a href="http://www.wizards.com/magic/TCG/Article.aspx?x=mtg/tcg/products/allproducts">Official list of all products</a>)</p>
+   <p><a href="cards/extensions.php">Extensions list</a></p>
 
    <h2>Search</h2>
    <form action="cards/cards.php" method="get">
@@ -136,10 +136,6 @@ if ( count($reports) > 0 ) {
 
    <h2>Import</h2>
    <a href="cards/import/">Import cards</a>
-   <form action="cards/import/mtgo_cube.php">
-    Download a MTGO Cube list from a DailyMTG article : 
-    <input type="text" name="url" placeholder="URL of article">
-   </form>
    <form action="cards/upload.php" enctype="multipart/form-data" method="post">
     Create/update a (<abbr title="No new card will be created, listed cards will be added to extension if already existing">virtual</Abbr>) extension from a list
     <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo return_bytes(ini_get('upload_max_filesize')) ; ?>">
@@ -152,14 +148,12 @@ if ( count($reports) > 0 ) {
    <ul>
     <li><a href="cards/compile.php">Compile cards (adds attributes specific to MTGAS in database)</a></li>
     <li><a href="cards/import/mci_extra.php">Import token images from MCI</a></li>
-    <li><a href="cards/cube.php">Dispatch cards from CUB to CUBL / CUBS depending on rarity</a>
    </ul>
    <h3>Checks</h3>
    <ul>
     <li><a href="cards/import/mcis.php">Compare extensions from MCI with DB</a></li>
     <li><a href="cards/check_images.php">Compare images and DB</a> (<a href="http://www.slightlymagic.net/forum/viewtopic.php?f=15&t=453">Slightly Promo topic</a>)</li>
     <li><a href="cards/check_integrity.php">Check database integrity</a></li>
-    <li><a href="cards/cub_csv.php">Download CUB list as a spreadsheet</a></li>
     <li><a href="cards/check_langs.php">Check Languages</a></li>
    </ul>
   </div><!-- Cards -->

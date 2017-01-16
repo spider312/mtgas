@@ -310,9 +310,8 @@ function manage_action(action, active_player) {
 					game.stonehewer = false ;
 				}
 				if ( document.getElementById('side_window') != null ) {
-					deck_ul = document.getElementById('deck') ;
-					side_ul = document.getElementById('side') ;
-					side_lists_fill(active_player, deck_ul, side_ul, 'orig_zone') ;
+					card.watching = true ; // Force visible locally
+					side_add_card(card) ;
 				}
 			}
 			break ;

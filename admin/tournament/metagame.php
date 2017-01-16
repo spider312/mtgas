@@ -130,11 +130,11 @@ foreach ( $t as $d ) {
 	$lparsed = 0 ;
 	foreach ( $g as $r ) {
 		if ( ! property_exists($data->score, $r->player_id) ) {
-			echo "Unparsed : no score for ".$g->nick."\n" ;
+			echo " [ Unparsed : no score for ".$g->nick." ] " ;
 			continue ;
 		}
 		if ( ! property_exists($data->score->{$r->player_id}, 'gamepoints') ) {
-			echo "Unparsed : no gamepoints for ".$r->nick."\n" ;
+			echo " [ Unparsed : no gamepoints for ".$r->nick." ] " ;
 			continue ;
 		}
 		$tournaments[$d->id] = $d->name ;
@@ -146,7 +146,7 @@ foreach ( $t as $d ) {
 			$rounds_number = $data->rounds_number ;
 		$score = $data->score->{$r->player_id}->gamepoints/3 ; // 3 gamepoints per game win
 		foreach ( $deck->main as $id => $card ) // Played cards
-			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
+			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) || ( $card->rarity === 'L' ) )
 				update_score($card, $rounds_number, $rounds_number, $score) ;
 		foreach ( $deck->side as $id => $card ) // Not played cards
 			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )

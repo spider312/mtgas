@@ -54,6 +54,7 @@ class Db {
 	private $pass = '' ;
 	private $db = '' ;
 	private $link = false ;
+	private $charset = 'utf8' ; //'iso-8859-15'
 	public function __construct($host_, $user_, $pass_, $db_) {
 		$this->host = $host_ ;
 		$this->user = $user_ ;
@@ -67,15 +68,19 @@ class Db {
 		$this->check() ;
 		return $this->link->real_escape_string($string) ;
 	}
+	private function connect() {
+		$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+		//$this->link->set_charset($this->charset) ;
+	}
 	public function check() {
 		if ( ! $this->link ) {
-			$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+			$this->connect() ;
 			if ( $this->link->connect_error )
 				$this->dierr('Erreur de connexion - check ('.$this->link->connect_errno.' : '.$this->link->connect_error.')') ;
 		}
 		if ( ! $this->link->ping() ) {
+			$this->connect() ;
 			//$this->dierr('Erreur de reconnexion - ping') ;
-			$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
 			echo "MySQLi reconnected\n" ;
 		}
 		return $this->link ;

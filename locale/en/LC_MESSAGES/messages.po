@@ -195,7 +195,7 @@ msgstr "Lists duels and tournaments you participated, allowing to replay them"
 
 #: ../../.././lib.php:20
 msgid "menu.facebook.title"
-msgstr "Another way to keep yourself informed : Mogg.fr on faceboo"
+msgstr "Another way to keep yourself informed : Mogg.fr on facebook"
 
 #: ../../.././lib.php:21
 msgid "menu.gui"

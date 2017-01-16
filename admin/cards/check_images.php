@@ -8,9 +8,8 @@ html_head(
 	), 
 	array('html.js')
 ) ;
-$baseimagedir = '/home/mogg/img/' ;
 $dir = param($_GET, 'dir', 'HIRES') ;
-$url = $baseimagedir.$dir.'/' ;
+$url = $base_image_dir.$dir.'/' ;
 $base = intval(param($_GET, 'base', '0')) ; // Only display base editions and extentions, usefull for language img, as other extentions aren't translated
 $exts = scan($url) ;
 if ( isset($exts['TK']) )
@@ -28,7 +27,7 @@ html_menu() ;
    <form>
     <select name="dir">
 <?php
-foreach ( scandir($baseimagedir) as $rep )
+foreach ( scandir($base_image_dir) as $rep )
 	if ( ( substr($rep, 0, 1) != '.' ) && ( array_search($rep, array('scrot', 'VOA')) === false ) ) {
 		if ( $dir == $rep )
 			$selected = 'selected="selected" ' ;
@@ -56,7 +55,7 @@ foreach ( scandir($baseimagedir) as $rep )
      <th>Mean size</th>
      <th>Variance</th>
     </tr>
-<?
+<?php
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
 while ( $arr = mysql_fetch_array($query) ) {
 	if ( $base && intval($arr['bloc']) < 0 ) {

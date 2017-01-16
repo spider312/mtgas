@@ -17,6 +17,7 @@ if ( array_key_exists('theme', $_COOKIE) )
 // Default menu entries
 menu_add(__('menu.ranking'), $url.'/top.php', __('menu.ranking.title')) ;
 menu_add(__('menu.data'), $url.'/player.php', __('menu.data.title')) ;
+menu_add('Metagame', $url.'/metagame.php', 'Local limited metagame analysis') ;
 menu_add('<img src='.theme_image("icon-facebook.png").' alt="Facebook">', 'https://www.facebook.com/mogg.fr', __('menu.facebook.title'), true) ;
 menu_add(__('menu.gui'), $url.'/doc/GUI.php', __('menu.gui.title'), true) ;
 menu_add('<img src='.theme_image("youtube.png").' alt="Video tutorials"> Tutorials', 'https://www.youtube.com/playlist?list=PL2cnRVtBdqkVJZNql_RBeUj6MNQJ2y0nS', 'Video tutorials', true) ;

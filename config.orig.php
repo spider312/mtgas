@@ -1,6 +1,7 @@
 <?php
 // MUST CHANGE
 $dir = '/path/to/folder/containing/this/' ; // Required for cron inclusions, can be relative to ~
+$base_image_dir = '/path/to/images/dir/' ; // For import and comparision operations
 $wshost = 'mogg.fr' ;
 $url = 'http://'.$wshost.'/' ;
 // Database
@@ -48,6 +49,7 @@ $draft_time_per_card = 5 ;
 $draft_lastpick_time = 60 ; // 60 seconds to views picks at the end of all boosters except last one
 $proba_m = 8 ; // 1 chance over 8 to get a mythic instead of a rare
 $proba_foil = 3 ; // 1 chance over 3 to get a (foil) card of any rarity instead of a common
+$proba_masterpiece = 144 ; // 1 chance over 144 to get a masterpiece instead of a common
 
 // May change
 $wait_duration = 3 * 60 ; // 3 minutes waiting for players beeing redirected

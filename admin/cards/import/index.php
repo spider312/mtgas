@@ -15,6 +15,7 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
+		, 'mtg.css'
 	)
 ) ;
 ?>
@@ -104,7 +105,7 @@ if ( count($importer->cards) != $nbimages )
 foreach ( $importer->cards as $i => $card ) {
 	echo '     <tr title="'.htmlentities($card->text).'">
       <td>'.($i+1).'</td>
-      <td>'.$card->rarity.'</td>
+      <td class="bg_r_'.$card->rarity.'">'.$card->rarity.'</td>
       <td>'."\n      " ;
 	foreach ( $card->urls as $i => $card_url ) {
 		$name = ( ( $i == 1 ) && ( $card->secondname != '' ) ) ? $name = $card->secondname.'*' : $name = $card->name ; // Second line and card has a second name
@@ -121,11 +122,15 @@ foreach ( $importer->cards as $i => $card ) {
 	echo '      <td>'.$card->multiverseid.'</td>'."\n" ;
 	// One column for each lang
 	foreach ( $card->langs as $code => $lang ) {
-		echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
-		foreach ( $lang['images'] as $i =>$image ) {
-			echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
+		if ( isset($lang['images']) && is_array($lang['images']) ) {
+			echo '      <td title="'.$code.' : '.$lang['name'].' ('.count($lang['images']).')">' ;
+			foreach ( $lang['images'] as $i =>$image ) {
+				echo '<li><a target="_blank" href="'.$image.'"'.$title.'>['.($i+1).']</a></li>' ;
+			}
+			echo '      </td>'."\n" ;
+		} else {
+			echo '<td><i>n/a</i></td>' ;
 		}
-		echo '      </td>'."\n" ;
 	}
 	echo '     </tr>'."\n" ;
 }

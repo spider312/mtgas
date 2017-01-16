@@ -1,6 +1,7 @@
 <?php
 include 'lib.php' ;
 
+$default_data = '{"uniq":true,"c":14}' ; // Default JSON to insert for created extensions
 // File upload/reuse
 $file_input = 'list' ;
 $dir = '/tmp/' ;
@@ -14,8 +15,9 @@ if ( isset($_FILES[$file_input]) ) {
 } else if ( isset($_GET['file']) ) {
 	$file = $_GET['file'] ;
 	$apply = true ;
-} else
+} else {
 	die('No file uploaded') ;
+}
 
 // Extension name
 $ext_parts = explode('.', $file) ;
@@ -54,7 +56,7 @@ if ( $res = mysql_fetch_object($query) ) {
 	}
 } else {
 	if ( $apply)
-		$query = query("INSERT INTO extension (`se`, `name`) VALUES ('$ext', '".$cards[0]."')") ;
+		$query = query("INSERT INTO extension (`se`, `name`, `data`) VALUES ('$ext', '$ext', '$default_data')") ;
 	$ext_id = mysql_insert_id() ;
 }
 

@@ -24,13 +24,24 @@ class Deck {
 				if ( $side = preg_match($reg_side, $value, $matches) )
 					$value = $matches[1] ;
 				// Search
+				$line = null ;
 				$card = null ;
+				$ext = null ;
 				if ( preg_match($reg_card_mwd, $value, $matches) ) { // MWS
 					list($line, $nb, $ext, $name) = $matches ;
-					$card = Card::get(trim($name), $ext) ;
 				} else if ( preg_match($reg_card_apr, $value, $matches) ) { // Aprentice
 					list($line, $nb, $name) = $matches ;
-					$card = Card::get(trim($name)) ;
+				}
+				if ( $line != null ) { // Card found in MWS or Aprentice
+					$card = Card::get(trim($name), $ext) ;
+					if ( $card === null ) {
+						// Transforms stored as "day/moon"
+						$pieces = explode('/', $name) ;
+						if ( count($pieces) > 1 ) {
+							$name = $pieces[0] ;
+							$card = Card::get(trim($name), $ext) ;
+						}
+					}
 				}
 				// (not) Found
 				if ( $card == null ) {

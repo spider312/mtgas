@@ -33,16 +33,6 @@ html_head(
  <body onload="start()">
 <?php
 html_menu() ;
-include 'includes/Browser.php' ;
-$browser = new Browser();
-if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVersion() < 5 ) ) {
-?>
-   <div id="browser" class="section">
-    <div>In order to enjoy every functionnalities of this game, i <strong>really</strong> encourage you to play it under <a href="http://www.mozilla.com/">Firefox 5.0+</a> and you are <strong>not</strong> (<a href="doc/browsers.php">Why ?</a>)</div>
-	<div>If you didn't recieve a notification request and you want to allow them, you can click <button onclick="notification_request('Accepted', 'Granted')">this button</button></div>
-   </div>
-<?php
-}
 ?>
 
 <?php
@@ -60,7 +50,7 @@ if( ( $browser->getBrowser() != Browser::BROWSER_FIREFOX ) || ( $browser->getVer
 	<span id="shout_info" title="Number of players connected to shout / tournaments / duels">0 / 0 / 0</span>
    </div>
    <form id="shout" action="json/shout.php" autocomplete="off">
-    <input type="text" name="text" placeholder="Shout something"><input type="submit" value="Send">
+    <input type="text" name="text" placeholder="Shout something (PLEASE don't ask for a game, create it ...)"><input type="submit" value="Send">
    </form>
   </div>
 

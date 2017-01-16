@@ -2,20 +2,39 @@
 function ranking_to_file($file='ranking/week.json', $period='WEEK', $plength=1) {
 	if ( ! is_dir('ranking') )
 		mkdir('ranking') ;
-	$fh = fopen($file, 'w') or die('can\'t open file') ;
+	global $malformed ;
+	$malformed = array() ;
 	$players = ranking($period, $plength) ;
-	fwrite($fh, json_encode($players));
+	if ( count($malformed) > 0 ) {
+		echo "$file malformed : \n" ;
+		foreach ( $malformed as $nick ) {
+			echo " - $nick\n" ;
+		}
+	}
+	$json = json_encode($players) ;
+	if ( $json === false ) {
+		echo "$file\n".count($players)."\n".json_verbose_error()."\n-\n" ;
+		foreach ( $players as $player ) {
+			$ljson = json_encode($player) ;
+			if ( $ljson === false ) {
+				print_r($player) ;
+			}
+		}
+		return false ;
+	}
+	$fh = fopen($file, 'w') or die('can\'t open file') ;
+	fwrite($fh, $json);
 	fclose($fh);
 }
 function mingames_by_period($period='') {
 	$period = strtoupper($period) ;
 	switch ( $period ) {
 		case 'WEEK' :
-			return 2 ;
+			return 5 ;
 		case 'MONTH' :
-			return 10 ;
+			return 20 ;
 		case 'YEAR' :
-			return 50 ;
+			return 100 ;
 		default :
 			return 0 ;
 	}
@@ -77,8 +96,17 @@ function manage_round(&$players, $aliases, $round, $player) {
 		$p->score = 0 ;
 		$players[$pid] = $p ;
 	}
+	// Check nick JSONability
+	$nick = $round->{$player.'_nick'} ;
+	if ( json_encode($nick) === false ) {
+		global $malformed ;
+		if ( array_search($nick, $malformed) === false ) {
+			array_push($malformed, $nick) ;
+		}
+		return false ;
+	}
 	// Update infos
-	$players[$pid]->nick = $round->{$player.'_nick'} ;
+	$players[$pid]->nick = $nick ;
 	$players[$pid]->avatar = $round->{$player.'_avatar'} ;
 	$players[$pid]->matches++ ;
 	$other = ( $player == 'creator' ) ? 'joiner' : 'creator' ;

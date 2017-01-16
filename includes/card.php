@@ -85,6 +85,7 @@ function card_name_sanitize($name) {
 	//$name =  normalizer_normalize($name, Normalizer::FORM_D) ;
 	// MV
 	$name = str_replace(chr(146), "'", $name) ; // Strange apostrophe
+	$name = str_replace(chr(194), "", $name) ; // Added before an apostrophe
 	$name = str_replace(chr(198), 'AE', $name) ;
 	$name = str_replace(chr(246), 'o', $name) ;
 	$name = str_replace(chr(251), 'u', $name) ; // û from Lim-Dul's Vault
@@ -133,7 +134,8 @@ function msg($var) {
 		echo $var ;
 	else
 		echo '<pre>'.print_r($var, true).'</pre>' ;
-	echo "<br>\n" ;
+	//echo '<br>' ; // Why ?
+	echo "\n" ;
 }
 function variable($var) {
 	$result = gettype($var).' : ' ;
@@ -483,10 +485,12 @@ function manage_all_text($name, $text, $target) {
 		$text_lines = parse_creature($name, $text_lines, $target) ;
 	if ( array_search('planeswalker', $target->types) !== false )
 		$text_lines = parse_planeswalker($name, $text_lines, $target) ;
+	$target->text = $text_lines ; // Save text while parsing for lines requiring access to other lines (lines are parsed individually)
 	foreach ( $text_lines as $text_line ) {
 		$text_line = trim($text_line, ' .') ;
 		manage_text($name, $text_line, $target) ;
 	}
+	unset($target->text);
 }
 // Reads 1 "line" of text and adds to target attributes parsed inside
 function manage_text($name, $text, $target) { 
@@ -601,21 +605,27 @@ function manage_text($name, $text, $target) {
 						//echo 'Unknown step : '.$name.' : '.implode(' ', $words)."\n" ;
 				}
 				if ( $step == '' ) {
-					if ( count($words) == 1 )
+					if ( $words[0] == 'first' ) {
+						continue ;
+					}
+					if ( count($words) == 1 ) {
 						$step = $words[0] ;
-					else
-						echo 'Multiple words left : '.$name.' : '.
-							implode(' ', $words).' / '.$matches['step']."\n" ;
+					} else {
+						msg('"At the begining of each" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+					}
 				}
 				break ;
 			case 'your' :
 				$player = 1 ;
 				array_shift($words) ;
-				if ( count($words) == 1 )
+				if ( $words[0] == 'first' ) {
+					continue ;
+				}
+				if ( count($words) == 1 ) {
 					$step = $words[0] ;
-				else
-					echo 'Multiple words left : '.$name.' : '.
-						implode(' ', $words).' / '.$matches['step']."\n" ;
+				} else {
+					msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+				}
 				break ;
 			case 'the' :
 				array_shift($words) ;
@@ -800,31 +810,51 @@ function manage_text($name, $text, $target) {
 			}
 		}
 		// Conditionnal mono boost (+1/+2 as long as ...)
-		if ( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) { // Single
+		if (
+			( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) 
+			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'/', $text, $matches ) )
+		) { // Single
 			$what = strtolower($matches['what']) ;
-			if ( $what == 'seven or more cards are in your graveyard' ) {
-			} elseif ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
+			if ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
 				switch ( $m['who'] ) {
-					case 'you' : // Kird ape
-						$target->powtoucond = new stdClass() ;
-						$target->powtoucond->what = 'card' ;
-						$target->powtoucond->pow = intval($matches['pow']) ;
-						$target->powtoucond->thou = intval($matches['tou']) ;
-						$target->powtoucond->from = 'battlefield' ;
-						if ( preg_match('/an? (.*)/', $m['what'], $mm) ) {
-							if ( array_search($mm[1], $cardtypes)!= false  )
-								$target->powtoucond->cond = 'type='.$mm[1] ;
-							else
-								$target->powtoucond->cond = 'ctype='.$mm[1] ;
+					case 'you' :
+						$powtoucond = new stdClass() ;
+						$powtoucond->what = 'card' ;
+						$powtoucond->pow = intval($matches['pow']) ;
+						$powtoucond->thou = intval($matches['tou']) ;
+						$powtoucond->from = 'battlefield' ;
+						switch ( true ) {
+							// Very standard case
+							case preg_match('/(?<who>an?) (?<what>.*)/', $m['what'], $mm) :
+							case preg_match('/(?<who>another) (?<what>.*)/', $m['what'], $mm) :
+								if ( array_search($mm['what'], $cardtypes)!== false  )
+									$powtoucond->cond = 'type='.$mm['what'] ;
+								else
+									$powtoucond->cond = 'ctype='.$mm['what'] ;
+								$powtoucond->other = ($mm['who'] === 'another');
+								break ;
+							// Unmanageable
+							case ( $m['what'] === 'three or more artifacts' ): // Impossible to detect the number of cards satisfying condition
+							case ( $m['what'] === 'eight or more lands' ):
+							case ( $m['what'] === 'no untapped lands' ): // Impossible to detect tapped lands nor their absence
+							case ( $m['what'] === 'your commander' ): // Impossible to detect a commander card nor wether it's on the battlefield (it's stored there by many users)
+								$powtoucond = null ;
+								break;
+							default :
+								$powtoucond = null ;
+								msg("No pow/tou condition found for $name : $text") ;
 						}
 						break ;
-					case 'an opponent' :
+					case 'an opponent' : // Unmanaged, just there to avoid error message
 					case 'no opponent' :
+						$powtoucond = null ;
 						break ;
 					default:
-						//msg($name.' : '.$m['who'].' -> '.$m['what']) ;
+						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
 				}
-			//} elseif ( preg_match('/(?<who>.*) [has|have] (?<what>.*)/', $what, $m) ) {
+				if ( $powtoucond !== null ) {
+					$target->powtoucond = $powtoucond ;
+				}
 			} /*else
 				msg(' * '.$name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;*/
 		}
@@ -848,7 +878,7 @@ function manage_text($name, $text, $target) {
 			}
 		}
 	}
-	if ( preg_match('/(Equipped|Enchanted) creature doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
+	if ( preg_match('/(Equipped|Enchanted) (creature|permanent) doesn\'t untap during its controller\'s untap step/', $text, $matches) ) {
 		if ( ! isset($target->bonus) )
 			$target->bonus = new stdClass() ;
 		$target->bonus->no_untap = true ;
@@ -858,7 +888,7 @@ function manage_text($name, $text, $target) {
 		$target->living_weapon = true ;
 	// Token creation
 	$colreg = implode('|', $colors) ;
-	if ( preg_match_all('/(?<number>\w+) ((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) token/', $text, $all_matches, PREG_SET_ORDER) ) {
 	// Godsire, Hazezon Tamar
 	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
 		foreach ( $all_matches as $matches ) {
@@ -882,15 +912,37 @@ function manage_text($name, $text, $target) {
 			$token->attrs->pow = text2number($matches['pow'], 0) ; // 0 for image
 			$token->attrs->thou = text2number($matches['tou'], 0) ;
 			$token->attrs->color = array_search($matches['color'], $colors) . array_search($matches['color2'], $colors) ;
+			if ( $matches['tapped'] !== '' ) {
+				$token->attrs->tapped = true ;
+			}
 			$target->tokens[] = $token ;
 		}
 	}
+	// Investigate / Clues
 	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
 		$token = new stdClass() ;
 		$token->nb = 1 ;
 		$token->attrs = new stdClass() ;
 		$token->attrs->types[] = "artifact" ;
 		$token->name = "Clue" ;
+		$target->tokens[] = $token ;
+	}
+	// The Monarch
+	if ( preg_match('/the monarch/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "conspiracy" ;
+		$token->name = "The Monarch" ;
+		$target->tokens[] = $token ;
+	}
+	if ( preg_match('/ get( that many)? (?<energy>(\{E\})+)/', $text, $matches) ) { // "You get", "you get", "[...] and get"
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "conspiracy" ;
+		$token->attrs->counter = intval((strlen($matches["energy"]))/3); // Energy reserve comes with the number of energy couters this card provides
+		$token->name = "Energy Reserve" ;
 		$target->tokens[] = $token ;
 	}
 	// Distinct activated from static abilities
@@ -1005,6 +1057,19 @@ function manage_text($name, $text, $target) {
 			$target->animate[] = $animated ;
 		}// else // Figure of destiny (is already a creature)
 			//echo '['.$rest.']<br>' ;
+	}
+	if ( preg_match('/Crew \d/', $text, $matches) ) {
+		$pt = "\d+" ;
+		if ( preg_match('/^(?<pow>'.$pt.')\/(?<tou>'.$pt.')$/', $target->text[0], $matches) ) {
+			$animated = new stdClass() ;
+			$animated->cost = $text ;
+			$animated->eot = true ;
+			$animated->pow = intval($matches['pow']) ;
+			$animated->tou = intval($matches['tou']) ;
+			$target->animate[] = $animated ;
+		} else {
+			msg('powthou error for "Crew" '.$name.' : ['.$target->text[0].']') ;
+		}
 	}
 }
 function string_cut($string, $cut) {

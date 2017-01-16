@@ -1,7 +1,5 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
-$homedir = substr(`bash -c "echo ~"`, 0, -1) ;
-$base_image_dir = $homedir.'/img/' ;
 // Cache management
 function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
@@ -92,11 +90,11 @@ function rmkdir($dir) { // mkdir recursively without umask bug
 }
 // Common between MagicVille and MythicSpoiler
 function mv2txt($tmp) {
+	// $tmp was reformated by DOM parser + C14N()
 	//echo htmlentities($tmp)."\n<hr>\n";
-	// Costs parsing before strip_tags
-	// Hybrid mana management was commented for an import, then importer (and/or mv) changed, it has to be done again for new importer when needed
-	//$tmp = preg_replace('#<img style="vertical-align:-20%;height:13px;" src="graph/manas_c/(.)\.gif" alt="%\1">#', '{$1}', $tmp) ; // In source
-	$tmp = preg_replace('#<img alt="%(.)" src="graph/manas_c/\1\.(gif|png)" style="vertical-align:-20%;height:13px;">#', '{$1}', $tmp) ; // Reformated by DOM parser + C14N()
+	// HTML (costs, CR) parsing before strip_tags
+	$tmp = preg_replace('#<img .*?alt="%(.+?)".*?'.'>#', '{$1}', $tmp) ; // Images are mana icons
+	$tmp = preg_replace('#<div style="height:5px;"></div>#', "\n", $tmp) ; // Div are cariage returns
 	$tmp = preg_replace('@<br></br>(\S)@', "\n".'\1', $tmp) ; // 2 br not followed by a CR : add a CR
 	$tmp = str_replace('&#xD;', '', $tmp) ; // \r cleanup
 	$tmp = str_replace("\n\n", "\n", $tmp) ; // No need for 2 consecutive \n
@@ -473,6 +471,11 @@ class ImportExtension {
 					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
+					if ( $matches[1] == $card->name ) {
+						$found = true ;
+						$name = 'Emblem.'.$attrs->subtypes[0] ;
+						break ;
+					}
 					// Check card subtype
 					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($matches[1]) ) ) {
 						$found = true ;
@@ -551,7 +554,7 @@ class ImportCard {
 	function addurl($url) {
 		foreach ( $this->urls as $card_url )
 			if ( $url == $card_url )
-				return $this->ext->adderror('URL already added (normal for coloured artifacts on MV)', $this) ;
+				return $this->ext->adderror('URL already added', $this) ;
 		$this->urls[] = $url ;
 		return true ;
 
@@ -580,12 +583,21 @@ class ImportCard {
 			$this->setlang($code, $name, $url) ;
 	}
 	function addlangimg($code, $url=null) { // Add language image for current card, overwriting all data for that card/lang
-		if ( ! isset($this->langs[$code]['images']) )
-			$this->langs[$code]['images'] = array() ;
-		if ( ( $url == null ) || ( $url == '' ) )
+		if ( ( $url == null ) || ( $url == '' ) ) {
 			return false ;
-		if ( $code == 'en' ) // Some splits on MCI
+		}
+		if ( $code == 'en' ) { // Some splits on MCI
 			return $this->addimage($url) ;
+		}
+		if ( isset($this->langs[$code]['images']) ) {
+			$langimages = $this->langs[$code]['images'] ;
+		} else {
+			$langimages =array() ;
+			$this->langs[$code]['images'] = $langimages ;
+		}
+		foreach ( $langimages as $img_url )
+			if ( $url == $img_url )
+				return $this->ext->adderror('Language image already added', $this) ;
 		$this->langs[$code]['images'][] = $url ;
 	}
 	function attrs() {

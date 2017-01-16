@@ -52,5 +52,14 @@
 .self, tbody tr:hover {
 	background-color: #F4ECD2 ;
 }
-
-
+/* By default loading is not displayed */
+#loading {
+	display: none ;
+}
+/* Inverted with table when loading */
+.loading #loading {
+	display: table-row-group ;
+}
+.loading #table {
+	display: none ;
+}
