@@ -163,11 +163,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				break;
 
 			default:
-				$importer->adderror('Additionnal text (special import) : '.$extratxt, $href) ;
+				$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
 				$rarity = 'S' ;
 				//$importer->nbcards-- ; // Card read and counted in total, but not imported
-				//continue 2 ;
-				break ;
+				continue 2 ;
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
