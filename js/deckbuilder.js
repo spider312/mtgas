@@ -316,14 +316,14 @@ function deck_sort(a, b) {
 					break ;
 			}
 			return i - j ;
-			if ( a.card > b.card )
-				score = 1 ;
-			else if ( a.card < b.card )
-				score = -1 ;
-			else
-				score = 0 ;
 		}
 	}
+	if ( a.card > b.card )
+		score = 1 ;
+	else if ( a.card < b.card )
+		score = -1 ;
+	else
+		score = 0 ;
 	return score ;
 }
 function typescore(attrs) {
@@ -484,6 +484,9 @@ function select_deck(node) {
 	return node ;
 }
 function extension_select(card, orig_ext, orig_attrs) {
+	if ( card.ext.length < 1 ) {
+		console.log('No ext for '+card.name) ;
+	}
 	var pics = [] ; // Build a list of pics
 	for ( var j = 0 ; j < card.ext.length ; j++ ) { // For each extension
 		for ( var l = 0 ; l < card.ext[j].nbpics ; l++ ) { // For each pic in that extension
@@ -495,7 +498,8 @@ function extension_select(card, orig_ext, orig_attrs) {
 	}
 	switch ( pics.length ) { // Finding ext to display
 		case 0 :
-			alert('Got 0 pics on ext request for '+card) ;
+			console.log('Got 0 pics on ext request for '+card.name) ;
+			console.log(card.ext) ;
 			break ;
 		case 1 : // 1 ext, just display it
 			var ext = card.ext[0].se ;
