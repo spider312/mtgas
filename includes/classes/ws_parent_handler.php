@@ -29,6 +29,8 @@ class ParentHandler extends WebSocketUriHandler {
 			$obj = new stdClass() ;
 			foreach ( $this->users_fields as $field )
 				$obj->{$field} = $cnx->{$field} ;
+			// Evaluations average
+			list($obj->rating, $obj->rating_nb) = Evaluation::get_average($cnx->player_id) ;
 			$result->users[] = $obj ;
 		}
 		return $result ;
@@ -80,6 +82,11 @@ class ParentHandler extends WebSocketUriHandler {
 				} else {
 					$this->say('Incomplete registration : '.$data->player_id.' / '.$data->nick) ;
 					$user->close();
+				}
+				break ;
+			case 'evaluation' :
+				if ( isset($data->opponent_id) && isset($data->rating) ) {
+					Evaluation::set($user->player_id, $data->opponent_id, $data->rating) ;
 				}
 				break ;
 			default :

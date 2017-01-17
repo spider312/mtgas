@@ -53,10 +53,14 @@ function network_loop() { // Things to do regulary
 					break ;
 				case 'roundend' :
 					if ( tournament > 0 ) {
-						// Remove page closure confirmation
-						window.removeEventListener('beforeunload', onBeforeUnload, false) ;
-						alert('Round ended, going to tournament page') ;
-						document.location = 'tournament/?id='+tournament ;
+						game.ended = true ; // Game ended by tournament, won't start siding
+						var param = JSON.parse(data.param) ;
+						if ( isn(param[player_id]) ) {
+							evaluate(param[player_id], function() {
+								window.removeEventListener('beforeunload', onBeforeUnload, false) ;
+								document.location = 'tournament/?id='+tournament ;
+							}) ;
+						}
 					} else
 						log('roundend on a game not in a tournament')
 					break ;

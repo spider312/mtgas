@@ -6,6 +6,7 @@ require_once 'includes/mojosto.php' ;
 require_once 'includes/card.php' ;
 require_once 'includes/ranking.php' ;
 require_once 'includes/ts3.php' ;
+require_once 'includes/classes/evaluation.php' ;
 // Websocket objects
 require_once 'includes/classes/ws_ban.php' ;
 require_once 'includes/classes/ws_game.php' ;
@@ -62,8 +63,8 @@ class GameServer {
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
 		//$this->logger->addWriter($writer2);
 			// Filter log messages not showing debug
-		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
+		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::DEBUG);
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
 		$writer->addFilter($filter);
 		//$writer2->addFilter($filter);
 		// WebSocket server
@@ -120,7 +121,7 @@ class GameServer {
 			}
 		if ( isset($tokendirs['EXT']) ) { // Fallback tokens without specific extension
 			$orderedtokens['EXT'] = $tokendirs['EXT'] ;
-			$nbtoken += count($tokendirs[$obj->se]) ;
+			$nbtoken += count($tokendirs['EXT']) ;
 			unset($tokendirs['EXT']) ;
 		}
 		$this->tokens = $orderedtokens ;
@@ -154,6 +155,9 @@ class GameServer {
 				$this->running_tournaments[] = $t ;
 		}
 		$this->say("\t\t".count($this->running_tournaments).' running tournaments imported') ;
+			// Evaluations
+		Evaluation::fill() ;
+		$this->say("\t\t".count(Evaluation::$cache).' evaluations imported') ;
 		$this->say("\tEnd MOGG import") ;
 	}
 	public function export() { // Not called anymore, week & month are generated on tournament end and year and all are generated via crontab

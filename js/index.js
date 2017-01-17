@@ -45,13 +45,22 @@ function start() { // On page load
 				break ;
 			case 'userlist' :
 				node_empty(shouters) ;
+				// Compute rating averages
 				for ( var i = 0 ; i < data.users.length ; i++ ) {
 					var user = data.users[i] ;
+					user.avg = ( user.rating_nb === 0 ) ? 0 : user.rating / user.rating_nb ;
+				}
+				// Sort by averages
+				var users = data.users.sort(function(a, b) { return b.avg - a.avg ; });
+				// Create list
+				for ( var i = 0 ; i < users.length ; i++ ) {
+					var user = users[i] ;
 					var shouter = create_li(user.nick) ;
 					if ( user.inactive )
 						shouter.classList.add('inactive') ;
 					if ( user.typing )
 						shouter.classList.add('typing') ;
+					shouter.title = user.nick+' rating : '+round(user.avg, 2)+' ('+user.rating_nb+' evaluations)' ;
 					shouters.appendChild(shouter) ;
 				}
 				update_connected() ;
