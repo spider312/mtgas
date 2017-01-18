@@ -167,7 +167,7 @@ function deck_xml_to_mw(str) {
 	var div = create_div(resultDocument) ; // Add to document to get content
 	return div.textContent ; // Return parsed string
 }
-// Converts MTGO (.dec) into mwDeck by adding "SB:" in front of lines following an empty line or containging only "Sideboard"
+// Converts MTGO (.dec) into mwDeck by adding "SB:" in front of lines following a line containging only "Sideboard"
 function mtgo2mwdeck(str) {
 	if ( typeof str !== 'string' ) {
 		return str ;
@@ -176,7 +176,7 @@ function mtgo2mwdeck(str) {
 	var addsb = false ;
 	for ( var i = 0 ; i < lines.length ; i++ ) {
 		var line = lines[i].trim() ; // trim required, i don't know why
-		if ( ( line === 'Sideboard' ) || ( line === '' ) ) {
+		if ( line === 'Sideboard' ) {
 			addsb = true ;
 			lines[i] = '// Sideboard' ;
 		} else if ( addsb ) {
