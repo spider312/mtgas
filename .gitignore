@@ -10,7 +10,6 @@ composer.phar
 vendor/
 
 js/lib/Flotr2/examples/*
-css
 
 ranking/*
 stats/*
