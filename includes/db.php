@@ -72,23 +72,22 @@ class Db {
 	}
 	private function connect() {
 		$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+		if ( $this->link->connect_error )
+			$this->dierr('Erreur de connexion ('.$this->link->connect_errno.' : '.$this->link->connect_error.')') ;
 		//echo "MySQL character set is ".$this->link->character_set_name()."\n";
 		//$this->link->set_charset($this->charset) ;
 	}
-	public function check() {
+	private function check() {
 		if ( ! $this->link ) {
 			$this->connect() ;
-			if ( $this->link->connect_error )
-				$this->dierr('Erreur de connexion - check ('.$this->link->connect_errno.' : '.$this->link->connect_error.')') ;
 		}
 		if ( ! $this->link->ping() ) {
 			$this->connect() ;
-			//$this->dierr('Erreur de reconnexion - ping') ;
 			echo "MySQLi reconnected\n" ;
 		}
 		return $this->link ;
 	}
-	public function query($query, $resultmode) {
+	private function query($query, $resultmode) {
 		$this->check() ;
 		$start = microtime(true) ;
 		$result = $this->link->query($query, $resultmode) ;
