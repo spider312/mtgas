@@ -87,7 +87,7 @@ class Db {
 		}
 		return $this->link ;
 	}
-	private function query($query, $resultmode) {
+	private function query($query, $resultmode = MYSQLI_STORE_RESULT) {
 		$this->check() ;
 		$start = microtime(true) ;
 		$result = $this->link->query($query, $resultmode) ;
