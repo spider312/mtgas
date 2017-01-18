@@ -326,7 +326,7 @@ function start() { // On page load
 					// Try to guess name from headers
 					var cd = request.getResponseHeader('Content-Disposition');
 					var needle = 'attachment; filename=' ;
-					if ( cd.indexOf(needle) === 0 ) {
+					if ( ( cd !== null ) && ( cd.indexOf(needle) === 0 ) ) {
 						name = cd.substr(needle.length).replace(/"/g, '') ;
 					} else {
 						// Fallback to guessing name from URL
