@@ -105,17 +105,6 @@ class Tournament {
 		}
 		return null ;
 	}
-	private function get_exts() {
-		$exts = array() ;
-		if ( ( property_exists($this->data, 'boosters') ) && count($this->data->boosters) > 0 ) {
-			global $db_cards ;
-			$in = implode("', '", array_unique($this->data->boosters)) ;
-			foreach ( $db_cards->select("SELECT * FROM `extension`
-				WHERE `se` in ('$in')") as $ext )
-				$exts[$ext->se] = $ext ;
-		}
-		return $exts ;
-	}
 	// DB Interactions
 	private function commit() { // Update all DB fields in param with this object's data
 		if ( func_num_args() < 1 )
