@@ -59,13 +59,16 @@ class GameServer {
 			// Writes to stdout
 		$writer = new \Zend\Log\Writer\Stream("php://output");
 		$this->logger->addWriter($writer);
+			// Filter log messages
+		/*
+		Possible values : EMERG, ALERT, CRIT, ERR, WARN, NOTICE, INFO, DEBUG
+		Errors are displayed in a normal use case in WARN and ERR levels, that's why CRIT is the chosen one
+		*/
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
+		$writer->addFilter($filter);
 			// Also log to a file
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
 		//$this->logger->addWriter($writer2);
-			// Filter log messages not showing debug
-		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::DEBUG);
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
-		$writer->addFilter($filter);
 		//$writer2->addFilter($filter);
 		// WebSocket server
 		$this->loop = \React\EventLoop\Factory::create();
