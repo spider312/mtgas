@@ -88,10 +88,10 @@ class Db {
 		}
 		return $this->link ;
 	}
-	public function query($query) {
+	public function query($query, $resultmode) {
 		$this->check() ;
 		$start = microtime(true) ;
-		$result = $this->link->query($query) ;
+		$result = $this->link->query($query, $resultmode) ;
 		if ( $this->debug ) {
 			$end = microtime(true) ;
 			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
@@ -103,11 +103,14 @@ class Db {
 			 $this->dierr("Erreur de requête : \n$query\n{$this->link->error}") ;
 		return $result ;
 	}
-	public function insert($query) {
-		$this->query($query) ;
+	public function insert($query, $resultmode) { // Insert is sync by default, as it returns insert id
+		$this->query($query, $resultmode) ;
 		return $this->link->insert_id ;
 	}
-	public function select($query) {
+	public function async_insert($query) { // Runs an async insert
+		$this->insert($query, MYSQLI_ASYNC) ;
+	}
+	public function select($query) { // Select is sync as it returns data
 		$result = $this->query($query) ;
 		if (method_exists('mysqli_result', 'fetch_all')) # Compatibility layer with PHP < 5.3
 			$res = $result->fetch_all(MYSQLI_ASSOC);
@@ -116,12 +119,19 @@ class Db {
 				$res[] = $tmp;
 		return $res;
 	}
-	public function update($query) {
+	public function update($query) { // Update is by default async, as its result is rarely needed
+		$this->query($query, MYSQLI_ASYNC) ;
+	}
+	public function sync_update($query) { // Runs a sync update, returning affected rows
 		$this->query($query) ;
 		return $this->link->affected_rows ;
 	}
-	public function delete($query) {
-		return $this->update($query) ;
+	public function delete($query) { // Delete is by default async, as its result is rarely needed
+		$this->query($query, MYSQLI_ASYNC) ;
+	}
+	public function sync_delete($query) { // Runs a sync delete, returning affected rows
+		$this->query($query) ;
+		return $this->link->affected_rows ;
 	}
 }
 $db = new Db('', $mysql_login, $mysql_password, $mysql_db, true) ;
