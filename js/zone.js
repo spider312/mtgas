@@ -719,8 +719,15 @@ function hand(player) {
 		if ( this.img != null )
 			context.drawImage(this.img, this.x + (this.w-this.img.width)/2 , this.y +(this.h-this.img.height)/2) ;
 		// Cards
-		for ( var i = this.cards.length ; i > 0 ; i-- )
-			this.cards[i-1].draw(context) ;
+		for ( var i = this.cards.length ; i > 0 ; i-- ) {
+			var card = this.cards[i-1] ;
+			if ( isf(card.draw) ) {
+				card.draw(context) ;
+			} else {
+				console.log('No draw for '+typeof card) ;
+				console.log(card) ;
+			}
+		}
 		// Data : card number
 		var opt = game.options.get('zone_card_number') ;
 		if ( ( opt == 'all' ) || ( opt == 'selzone' ) ) 
