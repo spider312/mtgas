@@ -125,7 +125,7 @@ class Tournament {
 					$update .= "`$field` = '{$this->$field}'" ;
 			} else
 				return $this->debug('cannot commit '.$field) ;
-		$db->query("UPDATE `tournament` SET $update WHERE `id` = '{$this->id}' ; ") ;
+		$db->update("UPDATE `tournament` SET $update WHERE `id` = '{$this->id}' ; ") ;
 	}
 	// Log
 	public function log($player_id, $type, $value) {

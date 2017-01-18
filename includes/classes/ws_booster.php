@@ -107,16 +107,13 @@ class Booster { // Only used in draft, interface with "booster" db table
 			AND `player` = '{$this->cur_player}'
 			AND `number` = '{$this->tournament->round}'
 		; ") ;
-		if ( $upd != 1 )
-			$this->tournament->say('Error : '.$upd.' boosters commited, fields : '.
-				implode(', ', func_get_args())) ;
 		if ( in_array('player', func_get_args()) )
 			$this->cur_player = $this->player ;
 	}
 	public function insert() {
 		// Insert
 		global $db ;
-		$db->query("INSERT INTO `booster` (
+		$db->async_insert("INSERT INTO `booster` (
 			 `content`,
 			`tournament`,
 			`player`,
@@ -143,8 +140,6 @@ class Booster { // Only used in draft, interface with "booster" db table
 					AND `player` = '{$this->player}'
 					AND `number` = '{$this->tournament->round}'
 				; ") ;
-				if ( $upd != 1 )
-					$this->tournament->say('Error : '.$upd.' boosters deleted') ;
 				return true ;
 			}
 		$this->tournament->say("Booster not found t {$this->tournament->id} p {$this->player} n {$this->tournament->round}") ;

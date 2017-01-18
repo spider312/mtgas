@@ -52,7 +52,7 @@ class IndexHandler extends ParentHandler {
 				global $db ;
 				$nick = $db->escape($user->nick) ;
 				$message = $db->escape($data->message) ;
-				$db->query("INSERT
+				$db->async_insert("INSERT
 					INTO `shout` (`sender_id`, `sender_nick`, `message`)
 					VALUES ('{$user->player_id}', '$nick', '$message')") ;
 				$data->player_id = $user->player_id ;

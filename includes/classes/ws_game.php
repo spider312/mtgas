@@ -169,7 +169,7 @@ class Game {
 				$update .= "`$field` = '".$db->escape($value)."'" ;
 			} else
 				return debug('cannot commit '.$field) ;
-		$db->query("UPDATE `round` SET $update WHERE `id` = '{$this->id}' ; ") ;
+		$db->update("UPDATE `round` SET $update WHERE `id` = '{$this->id}' ; ") ;
 	}
 	private function create() {
 		global $db ;
@@ -270,7 +270,7 @@ class Action {
 	}
 	public function recieve() {
 		global $db ;
-		$db->query("UPDATE `action` SET `recieved` = `recieved`+1 WHERE `id`='{$this->id}' ;") ;
+		$db->update("UPDATE `action` SET `recieved` = `recieved`+1 WHERE `id`='{$this->id}' ;") ;
 		$this->recieved++ ;
 	}
 }

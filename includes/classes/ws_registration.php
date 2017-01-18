@@ -221,7 +221,7 @@ class Registration {
 	public function insert($i) {
 		$this->order = $i ;
 		global $db ;
-		$db->query("INSERT INTO `registration` (
+		$db->async_insert("INSERT INTO `registration` (
 			`tournament_id`,
 			`player_id`,
 			`nick`,
@@ -257,7 +257,7 @@ class Registration {
 						$db->escape($this->$field)."'" ;
 			} else
 				return false ;
-		$db->query("UPDATE `registration` SET $update
+		$db->update("UPDATE `registration` SET $update
 		WHERE `tournament_id` = '{$this->tournament->id}'
 		AND `player_id` = '{$this->player_id}' ; ") ;
 	}
