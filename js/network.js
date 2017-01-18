@@ -55,14 +55,18 @@ function network_loop() { // Things to do regulary
 					if ( tournament > 0 ) {
 						game.ended = true ; // Game ended by tournament, won't start siding
 						var param = JSON.parse(data.param) ;
-						if ( isn(param[player_id]) ) {
-							evaluate(param[player_id], function() {
-								window.removeEventListener('beforeunload', onBeforeUnload, false) ;
-								document.location = 'tournament/?id='+tournament ;
-							}) ;
+						var func_redirect = function() {
+							window.removeEventListener('beforeunload', onBeforeUnload, false) ;
+							document.location = 'tournament/?id='+tournament ;
 						}
-					} else
+						if ( isn(param[player_id]) ) {
+							evaluate(param[player_id], func_redirect) ;
+						} else {
+							func_redirect();
+						}
+					} else {
 						log('roundend on a game not in a tournament')
+					}
 					break ;
 				default :
 					// Recieving actions while tab has not focus : inform user
