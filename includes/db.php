@@ -55,11 +55,13 @@ class Db {
 	private $db = '' ;
 	private $link = false ;
 	private $charset = 'utf8' ; //'iso-8859-15'
-	public function __construct($host_, $user_, $pass_, $db_) {
+	public $debug = false ;
+	public function __construct($host_, $user_, $pass_, $db_, $debug = false) {
 		$this->host = $host_ ;
 		$this->user = $user_ ;
 		$this->pass = $pass_ ;
 		$this->db = $db_ ;
+		$this->debug = $debug ;
 	}
 	public function dierr($msg) {
 		die($msg) ;
@@ -70,6 +72,7 @@ class Db {
 	}
 	private function connect() {
 		$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
+		//echo "MySQL character set is ".$this->link->character_set_name()."\n";
 		//$this->link->set_charset($this->charset) ;
 	}
 	public function check() {
@@ -87,7 +90,15 @@ class Db {
 	}
 	public function query($query) {
 		$this->check() ;
+		$start = microtime(true) ;
 		$result = $this->link->query($query) ;
+		if ( $this->debug ) {
+			$end = microtime(true) ;
+			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
+			if ( $duration > 100 ) {
+				echo "SQL Query $duration ms : ".$query."\n" ;
+			}
+		}
 		if ( $result === false )
 			 $this->dierr("Erreur de requête : \n$query\n{$this->link->error}") ;
 		return $result ;
@@ -113,6 +124,6 @@ class Db {
 		return $this->update($query) ;
 	}
 }
-$db = new Db('', $mysql_login, $mysql_password, $mysql_db) ;
+$db = new Db('', $mysql_login, $mysql_password, $mysql_db, true) ;
 $db_cards = new Db('', $card_login, $card_password, $card_db) ;
 ?>
