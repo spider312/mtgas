@@ -69,7 +69,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	echo '     <td>' ;
 	echo '<a href="?ext_del='.$arr['id'].'">del</a>' ;
 	echo ' - ' ;
-	echo '<a href="cards/extension_export.php?ext='.$arr['se'].'">export</a>' ;
+	echo '<a href="extension_export.php?ext='.$arr['se'].'">export</a>' ;
 	echo '</td>' ;
 	echo "\n" ;
 	echo '    </tr>'."\n" ;
