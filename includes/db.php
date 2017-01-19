@@ -90,7 +90,7 @@ class Db {
 	private function query($query, $resultmode = MYSQLI_STORE_RESULT) {
 		$this->check() ;
 		$start = microtime(true) ;
-		$result = $this->link->query($query, $resultmode) ;
+		$result = $this->link->query($query/*, $resultmode*/) ;
 		if ( $this->debug ) {
 			$end = microtime(true) ;
 			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
