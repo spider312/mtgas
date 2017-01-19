@@ -40,12 +40,12 @@ html_head('Drafting #'.$id,
 
   <div class="section central">
    <h1>Deck</h1>
-   <div id="drafted_cards"></div>
+   <div id="main"></div>
   </div>
 
   <div class="section central">
    <h1>Side</h1>
-   <div id="sided_cards"></div>
+   <div id="side"></div>
   </div>
 
 

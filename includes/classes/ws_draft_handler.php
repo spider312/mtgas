@@ -42,6 +42,17 @@ class DraftHandler extends LimitedHandler {
 					$this->observer->build->broadcast_following($user->player) ;
 				}
 				break ;
+			case 'reorder' :
+				$user->player->reorder($data->pool, $data->from, $data->to) ;
+				break ;
+			case 'toggle' :
+				if ( $user->player->toggle($data->card, $data->from, $data->to) ) {
+					$user->sendString(json_encode($user->player->get_deck())) ;
+					$user->tournament->send('tournament', 'build', 'draft') ;
+					$this->observer->build->broadcast_following($user->player) ;
+				} else
+					$user->sendString('{"msg": "'.$data->cardname.' not found in '.$data->from.'"}') ;
+				break ;
 			default :
 				$this->say('Unknown type : '.$data->type) ;
 				print_r($data) ;

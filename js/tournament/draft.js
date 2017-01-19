@@ -1,7 +1,7 @@
 function start(id) {
 	booster_cards = document.getElementById('booster_cards') ;
-	drafted_cards = document.getElementById('drafted_cards') ;
-	sided_cards = document.getElementById('sided_cards') ;
+	drafted_cards = document.getElementById('main') ;
+	sided_cards = document.getElementById('side') ;
 	timeleft = document.getElementById('timeleft') ;
 	ready = document.getElementById('ready') ;
 	tournament_info = document.getElementById('tournament_info') ;
@@ -47,13 +47,18 @@ function start(id) {
 				draft_update(data)
 				break ;
 			case 'deck' : // Initial deck sending
+				var scry = window.scrollY ;
 				var me = game.tournament.me ;
 				me.deck_obj = data ;
 				pool_update(drafted_cards, me.deck_obj.main) ;
 				pool_update(sided_cards, me.deck_obj.side) ;
 				deck_stats_cc(me.deck_obj.main) ;
+				window.setTimeout(function(ev) {
+					window.scroll(window.scrollX, scry) ; // Scroll back to where user was before recieving pick
+				}, 10) ;
 				break ;
 			case 'pick' : // deck updates
+				var scry = window.scrollY ;
 				var zone = null ;
 				switch ( data.dest ) {
 					case 'side' :
@@ -73,6 +78,9 @@ function start(id) {
 					if ( data.dest == 'main' )
 						deck_stats_cc(game.tournament.me.deck_obj.main) ;
 				}
+				window.setTimeout(function(ev) {
+					window.scroll(window.scrollX, scry) ; // Scroll back to where user was before recieving pick
+				}, 10) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
@@ -249,74 +257,81 @@ function pool_update(place, zone) {
 				place.appendChild(h2) ;
 				break ;
 			case 'object' :
-				switch ( place ) {
-					case drafted_cards :
-						var classname = 'drafted' ;
-						break ;
-					case sided_cards : 
-						var classname = 'sided' ;
-						break ;
-					default :
-						alert('Unknown place '+place) ;
-				}
-				var img = Img(place, line.ext_img, line.name, line.attrs.nb)
-				img.id = classname+i ;
-				img.classList.add(classname) ;
-				img.addEventListener('dragstart', eventStop, false) ; // No DND
-				// https://developer.mozilla.org/fr/docs/Glisser_et_d%C3%A9poser
-				/*
-				img.addEventListener('dragstart', function(ev) {
-					ev.dataTransfer.setData('drag', ev.target.id) ;
-					ev.target.classList.add('drag') ;
-				}, false) ;
-				img.addEventListener('dragend', function(ev) {
-					ev.target.classList.remove('drag') ;
-					//var player = game.tournament.get_player(player_id) ;
-					//if ( player == null )
-					//	return false ;
-					//deck_stats_cc(drafted_cards) ;
-				}, false) ;
-				img.addEventListener('dragenter', function(ev) {
-					var cardid = ev.dataTransfer.getData('drag') ;
-					var drag = document.getElementById(cardid) ;
-					if ( drag == null )
-						return true ;
-					if ( drag != ev.target ) {
-						if ( ev.target == null )
-							alert('null') ;
-						// Dragged image
-						var pf = drag.parentNode ;
-						var from = pf.childNodes.indexOf(drag) ;
-						// Image after which Dragged will be inserted
-						var after = ev.target ;
-						var pt = after.parentNode ;
-						var to = pt.childNodes.indexOf(after) ;
-						// Correct left to right in same parent
-						if ( ( pf == pt ) && ( from < to ) )
-							after = after.nextElementSibling ;
-						pt.insertBefore(drag, after) ;
-					}
-					return eventStop(ev) ;
-				}, false) ;
+				var img = Img(place, line.ext_img, line.name, line.attrs.nb) ;
+				dragimage(img, place, i);
+				img.addEventListener('dragstart', pool_card_dragstart, false) ;
+				img.addEventListener('dragenter', pool_card_dragenter, false) ;
 				img.addEventListener('dragover', eventStop, false) ; // Confirm drop
-				img.addEventListener('drop', eventStop, false) ; // No redirect to img
-				*/
+				img.addEventListener('drop', pool_drop, false) ;
+				img.addEventListener('dragend', pool_card_dragend, false) ;
 				break ;
 			default : 
 				alert(typeof line) ;
 		}
 	}
 }
-NodeList.prototype['indexOf'] = Array.prototype['indexOf'];
 function initpooldnd(pool) {
 	pool.addEventListener('dragenter', function(ev) {
 		var cardid = ev.dataTransfer.getData('drag') ;
 		var drag = document.getElementById(cardid) ;
-		if ( drag == null )
-			return true ;
+		if ( drag == null ) { return true ; }
 		ev.target.appendChild(drag) ;
 		return eventStop(ev) ;
 	}, false) ;
 	pool.addEventListener('dragover', eventStop, false) ; // Confirm drop
-	pool.addEventListener('drop', eventStop, false) ; // No redirect to img
+	pool.addEventListener('drop', pool_drop, false) ;
 }
+// Card DND functions
+function dragimage(img, place, i) { // Adds/update data of a card image to make it dragable
+	img.idxFrom = i ;
+	img.zoneFrom = place ;
+	img.id = place.id + i ;
+}
+function pool_drop(ev) { // Drop on pool or card
+	var cardid = ev.dataTransfer.getData('drag') ;
+	var drag = document.getElementById(cardid) ;
+	if ( drag == null ) { return true ; }
+	var zoneTo = drag.parentNode.id ;
+	var zoneFrom = drag.zoneFrom.id ;
+	var zone = drag.parentNode.childNodes ;
+	var idxTo = zone.indexOf(drag) ;
+	if ( zoneTo === zoneFrom ) { // Same zone, just change index
+		if ( drag.idxFrom != idxTo ) { // If it changed
+			game.connection.send({"type": "reorder", "pool": zoneTo, "from": drag.idxFrom, "to": idxTo}) ;
+		}
+	} else { // Zone change, send toggle
+		game.connection.send({"type": "toggle", "card": drag.title, "from": zoneFrom, "to": idxTo}) ;
+	}
+	for ( var i = 0 ; i < zone.length ; i++) {
+		dragimage(zone[i], drag.parentNode, i);
+	}
+	return eventStop(ev) ; // No redirect to img
+}
+function pool_card_dragstart(ev) {
+	ev.dataTransfer.setData('drag', ev.target.id) ;
+	ev.target.classList.add('drag') ;
+}
+function pool_card_dragenter(ev) {
+	var cardid = ev.dataTransfer.getData('drag') ;
+	var drag = document.getElementById(cardid) ;
+	if ( drag == null ) { return true ; }
+	if ( drag != ev.target ) {
+		// Dragged image
+		var pf = drag.parentNode ;
+		// Image after which Dragged will be inserted
+		var after = ev.target ;
+		var pt = after.parentNode ;
+		// Correct left to right in same parent
+		var from = pf.childNodes.indexOf(drag) ;
+		var to = pt.childNodes.indexOf(after) ;
+		if ( from < to ) {
+			after = after.nextElementSibling ;
+		}
+		pt.insertBefore(drag, after) ;
+	}
+	return eventStop(ev) ;
+}
+function pool_card_dragend(ev) {
+	ev.target.classList.remove('drag') ;
+}
+NodeList.prototype['indexOf'] = Array.prototype['indexOf'];
