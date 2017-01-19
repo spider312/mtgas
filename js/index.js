@@ -50,8 +50,23 @@ function start() { // On page load
 					var user = data.users[i] ;
 					user.avg = ( user.rating_nb === 0 ) ? 0 : user.rating / user.rating_nb ;
 				}
-				// Sort by averages
-				var users = data.users.sort(function(a, b) { return b.avg - a.avg ; });
+				// Sort by number of ratings, average, nick
+				var users = data.users.sort(function(a, b) {
+					var result = b.rating_nb - a.rating_nb ;
+					if ( result === 0 ) {
+						result = b.avg - a.avg ;
+					}
+					if ( result === 0 ) {
+						if ( a.nick > b.nick ) {
+							result = 1 ;
+						} else if ( a.nick < b.nick ) {
+							result = -1 ;
+						} else {
+							result = 0 ;
+						}
+					}
+					return result ;
+				});
 				// Create list
 				for ( var i = 0 ; i < users.length ; i++ ) {
 					var user = users[i] ;
