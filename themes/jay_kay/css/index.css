@@ -48,14 +48,14 @@ td.nowrap {
 	overflow-x: hidden ;
 	overflow-y: scroll ;
 }
-#shouts span {
+#shouts .shouttime {
 	float: right ;
 	color: #907C6C ;
 }
 #shouts li:hover {
 	background-color: #F4ECD2 ;
 }
-#shouts li:hover span {
+#shouts li:hover .shouttime {
 	color: black ;
 }
 #shouters {

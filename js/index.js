@@ -73,9 +73,14 @@ function start() { // On page load
 				break ;
 			// Shoutbox
 			case 'shout' :
-				var li = create_li(create_a(data.player_nick, '/player.php?id='+data.player_id))
-				li.appendChild(create_text(': '+data.message)) ;
-				li.appendChild(create_span(' '+timeWithDays(mysql2date(data.time)))) ;
+				var leftspan = create_span(create_a(data.player_nick, '/player.php?id='+data.player_id))
+				leftspan.appendChild(create_text(': '+data.message)) ;
+				leftspan.classList.add('shouttext') ;
+				var rightspan = create_span(' '+timeWithDays(mysql2date(data.time))) ;
+				rightspan.classList.add('shouttime') ;
+				var li = create_li() ;
+				li.appendChild(rightspan) ;
+				li.appendChild(leftspan) ;
 				shouts.appendChild(li) ;
 				shouts.scrollTop = shouts.scrollHeight ;
 				if ( game.send_notifications && ! document.hasFocus() )

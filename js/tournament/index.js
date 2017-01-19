@@ -242,7 +242,7 @@ function LogIndex() {
 		var li = this.generate() ;
 		var span = create_span(timeWithDays(mysql2date(this.timestamp))) ;
 		span.classList.add('linetime') ;
-		li.appendChild(span) ;
+		li.insertBefore(span, li.firstChild) ;
 		this.update_node(li, tournament_log) ;
 	}
 }
