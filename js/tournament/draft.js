@@ -71,9 +71,8 @@ function start(id) {
 					zone.push(data.card) ;
 					pool_update(node, zone) ;
 					if ( data.dest == 'main' )
-						deck_stats_cc(me.deck_obj.main) ;
+						deck_stats_cc(game.tournament.me.deck_obj.main) ;
 				}
-
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
