@@ -301,6 +301,7 @@ function start() { // On page load
 			create_hidden('name', deck+'.mwDeck'),
 			create_hidden('content', deck_get(deck))
 		)
+		form.target = "_blank" ;
 		document.body.appendChild(form) ;
 		form.submit() ;
 		document.body.removeChild(form) ;
