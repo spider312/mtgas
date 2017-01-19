@@ -64,7 +64,8 @@ td.nowrap {
 	height: 90% ;
 	width: 15% ;
 	padding-left: 0 ;
-	overflow: hidden ;
+	overflow-x: hidden ;
+	overflow-y: auto ;
 }
 #shouters li {
 	cursor: pointer ;
