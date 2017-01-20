@@ -2,7 +2,6 @@ function start(id, pid) {
 	booster_cards = document.getElementById('booster_cards') ;
 	drafted_cards = document.getElementById('main') ;
 	sided_cards = document.getElementById('side') ;
-	timeleft = document.getElementById('timeleft') ;
 	ready = document.getElementById('ready') ;
 	tournament_info = document.getElementById('tournament_info') ;
 	initpooldnd(drafted_cards) ;
