@@ -135,6 +135,11 @@ class Game {
 				return '' ;
 		}
 	}
+	public function opponent($player_id) {
+		$p = $this->which($player_id) ;
+		if ( $p === '' ) { return '' ; }
+		return ( $p === 'creator' ) ? 'joiner' : 'creator' ;
+	}
 	public function isPlayer($player_id) {
 		return ( $this->isCreator($player_id) || $this->isJoiner($player_id) ) ;
 	}

@@ -1,11 +1,11 @@
 // evaluation.js : manages evaluation of players
 function evaluate(rating, callback) {
 	var rating_descs = [
-		'Cheater / insulting',
-		'Not fair play',
+		'Cheater, insulting, leaver',
+		'Not fair play, rager',
 		'No comment',
-		'Fairplay, gentle, or a little bit of each',
-		'Fairplay and gentle'
+		'Fairplay, gentle',
+		'SWAAAAAAAAAAAG'
 	] ;
 	// Evaluation window
 	var container = create_div() ;

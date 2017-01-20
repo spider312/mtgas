@@ -6,7 +6,7 @@ class Registration {
 	public $player_id = '' ;
 	public $nick = '' ;
 	public $avatar = '' ;
-	public $status = 1 ;
+	public $status = 1 ; // ['Waiting', 'Redirecting', 'Drafting', 'Building', 'Playing', 'Ended', 'BYE', 'Dropped']
 	public $order = -2 ;
 	public $ready = false ;
 	public $score = null ;
@@ -215,7 +215,7 @@ class Registration {
 		$this->commit('deck') ;
 	}
 	public function set_status($status) {
-		if ( $this->status < 6 ) {
+		if ( $this->status < 8 ) {
 			$this->status = $status ;
 			$this->commit('status') ;
 			$this->set_ready(false) ;
@@ -235,9 +235,17 @@ class Registration {
 	}
 	public function drop($msg='No reason') {
 		$this->tournament->log($this->player_id, 'drop', $msg) ;
+		// Abandon current game
+		$game = $this->tournament->player_match($this->player_id) ;
+		if ( $game !== null ) {
+			$opponent = $game->opponent($this->player_id) ;
+			if ( $opponent !== '' ) {
+				$game->addAction(''/*$this->player_id*/, 'psync', '{"player":"game.'.$opponent.'","attrs":{"score":2}}') ;
+			}
+		}
 		$this->set_status(7) ;
 		if ( count($this->tournament->get_players()) < 2 )	
-			$this->tournament->cancel('Not enough players left') ;
+			$this->tournament->cancel('Only one player left') ;
 		else
 			$this->tournament->send() ;
 	}

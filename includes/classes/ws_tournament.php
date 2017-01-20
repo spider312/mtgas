@@ -770,6 +770,9 @@ class Tournament {
 		return $matches ;
 	}
 	public function end() { // Last round ended normally
+		if ( ( $this->status < 1 ) || ( $this->status > 5 ) ) {
+			return false ;
+		}
 		$this->observer->move_tournament($this, 'running', 'ended') ;
 		$this->set_status(6) ;
 		$this->terminate() ;
@@ -778,6 +781,9 @@ class Tournament {
 		//ranking_to_file('ranking/month.json', 'MONTH') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
+		if ( ( $this->status < 1 ) || ( $this->status > 5 ) ) {
+			return false ;
+		}
 		$from = substr($this->type, 0, strpos($this->type, '_')) ;
 		$this->observer->move_tournament($this, $from, 'ended') ;
 		$this->set_status(0) ;
