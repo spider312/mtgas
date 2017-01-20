@@ -788,6 +788,7 @@ class Tournament {
 	private function terminate() { // Common between end and cancel
 		$this->score_games() ;
 		$this->due_time = now() ;
+		$this->send() ;
 		$this->commit('due_time') ;
 		$this->timer_cancel() ;
 		if ( $this->observer->ts3 ) {
