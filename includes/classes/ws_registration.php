@@ -60,9 +60,27 @@ class Registration {
 		$this->summarize() ;
 		$this->set_ready(false) ;
 	}
+	public function reorder($zone, $from, $to) {
+		switch ( $zone ) {
+			case 'main' :
+			case 'side' :
+				$zone =& $this->deck_obj->{$zone} ;
+				break ;
+			default :
+				return false ;
+		}
+		$nb = count($zone) ;
+		if ( ! is_numeric($from) || ( $from < 0 ) || ( $from > $nb ) ) return false ;
+		if ( ! is_numeric($to) || ( $to < 0 ) || ( $to > $nb ) ) return false ;
+		if ( $from === $to ) { return false ; }
+		$spl = array_splice($zone, $from, 1) ;
+		array_splice($zone, $to, 0, $spl) ;
+		$this->summarize() ;
+		return true ;
+	}
 	// Build
 		// Pool cards
-	public function toggle($name, $from) {
+	public function toggle($name, $from, $position=-1) {
 		if ( ! property_exists($this->deck_obj, $from) )
 			return false ;
 		if ( $from == 'main' ) {
@@ -75,8 +93,11 @@ class Registration {
 		foreach ( $from as $i => $card )
 			if ( $card->name == $name ) {
 				$spl = array_splice($from, $i, 1) ;
-				array_push($to, $spl[0]) ;
-				//$this->deck_obj->sort() ;
+				if ( ( $position < 0 ) || ( $position >= count($to) ) ) {
+					array_push($to, $spl[0]) ;
+				} else {
+					array_splice($to, $position, 0, $spl) ;
+				}
 				$this->card_removed() ;
 				$this->summarize() ;
 				return true ;
