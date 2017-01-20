@@ -863,7 +863,7 @@ function manage_text($name, $text, $target) {
 			conditionnal_poly_boost($target, $matches, $matches['what']) ;
 	}
 	// Attach/Equip-boost
-	if ( preg_match('/(Equipped|Enchanted) creature gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
+	if ( preg_match('/(Equipped|Enchanted) (creature|permanent) gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
 		if ( strpos($matches['after'], 'until end of turn') === FALSE ) { // Umezawa's Jitte
 			if ( preg_match('/for each (?<what>.*)/', $matches['after'], $matches_after) ) {
 				conditionnal_poly_boost($target, $matches, $matches_after['what']) ;
