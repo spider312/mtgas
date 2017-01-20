@@ -14,6 +14,7 @@ function start(id, pid) {
 	Log.prototype = new LogLimited() ;
 	img_width = 200 ;
 	game = {} ;
+	game.draging = null ; // Can't use getData/setData under chrome before drop event Oo ugly workaround
 	game.image_cache = new image_cache() ;
 	game.options = new Options() ;
 	game.spectators = new Spectators(function(msg, span) { // Message display
@@ -274,6 +275,7 @@ function pool_update(place, zone) {
 				break ;
 			case 'object' :
 				var img = Img(place, line.ext_img, line.name, line.attrs.nb) ;
+				img.draggable = true ;
 				dragimage(img, place, i);
 				if ( game.tournament.follow ) {
 					img.addEventListener('dragstart', eventStop, false) ; // No DND
@@ -292,14 +294,19 @@ function pool_update(place, zone) {
 }
 function initpooldnd(pool) {
 	pool.addEventListener('dragenter', function(ev) {
-		var cardid = ev.dataTransfer.getData('drag') ;
-		var drag = document.getElementById(cardid) ;
-		if ( drag == null ) { return true ; }
-		ev.target.appendChild(drag) ;
+		if ( game.draging == null ) { return true ; }
+		var target = ev.target ;
+		if ( target.nodeName === 'H1' ) {
+			target = target.nextElementSibling ;
+		}
+		target.appendChild(game.draging) ;
 		return eventStop(ev) ;
 	}, false) ;
 	pool.addEventListener('dragover', eventStop, false) ; // Confirm drop
 	pool.addEventListener('drop', pool_drop, false) ;
+	if ( pool.previousElementSibling !== null ) {
+		initpooldnd(pool.previousElementSibling) ;
+	}
 }
 // Card DND functions
 function dragimage(img, place, i) { // Adds/update data of a card image to make it dragable
@@ -308,8 +315,7 @@ function dragimage(img, place, i) { // Adds/update data of a card image to make 
 	img.id = place.id + i ;
 }
 function pool_drop(ev) { // Drop on pool or card
-	var cardid = ev.dataTransfer.getData('drag') ;
-	var drag = document.getElementById(cardid) ;
+	var drag = game.draging ;
 	if ( drag == null ) { return true ; }
 	var zoneTo = drag.parentNode.id ;
 	var zoneFrom = drag.zoneFrom.id ;
@@ -328,30 +334,29 @@ function pool_drop(ev) { // Drop on pool or card
 	return eventStop(ev) ; // No redirect to img
 }
 function pool_card_dragstart(ev) {
-	ev.dataTransfer.setData('drag', ev.target.id) ;
 	ev.target.classList.add('drag') ;
+	game.draging = ev.target ;
 }
 function pool_card_dragenter(ev) {
-	var cardid = ev.dataTransfer.getData('drag') ;
-	var drag = document.getElementById(cardid) ;
-	if ( drag == null ) { return true ; }
-	if ( drag != ev.target ) {
-		// Dragged image
-		var pf = drag.parentNode ;
-		// Image after which Dragged will be inserted
-		var after = ev.target ;
-		var pt = after.parentNode ;
-		// Correct left to right in same parent
-		var from = pf.childNodes.indexOf(drag) ;
-		var to = pt.childNodes.indexOf(after) ;
-		if ( from < to ) {
-			after = after.nextElementSibling ;
-		}
-		pt.insertBefore(drag, after) ;
+	var drag = game.draging ;
+	if ( game.draging === null ) { return true ; }
+	if ( game.draging === ev.target ) { return eventStop(ev) ; }
+	// Dragged image
+	var pf = game.draging.parentNode ;
+	// Image after which Dragged will be inserted
+	var after = ev.target ;
+	var pt = after.parentNode ;
+	// Correct left to right in same parent
+	var from = pf.childNodes.indexOf(game.draging) ;
+	var to = pt.childNodes.indexOf(after) ;
+	if ( from < to ) {
+		after = after.nextElementSibling ;
 	}
+	pt.insertBefore(game.draging, after) ;
 	return eventStop(ev) ;
 }
 function pool_card_dragend(ev) {
 	ev.target.classList.remove('drag') ;
+	game.draging = null ;
 }
 NodeList.prototype['indexOf'] = Array.prototype['indexOf'];
