@@ -40,7 +40,9 @@ class Registration {
 		if ( ( $i = array_search($from, $this->connected) ) === false ) {
 			array_push($this->connected, $from) ;
 			$this->tournament->send() ;
+			return true ;
 		}
+		return false ;
 	}
 	public function disconnect($from) {
 		if ( ( $i = array_search($from, $this->connected) ) !== false ) {

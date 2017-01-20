@@ -1,6 +1,7 @@
 <?php
 include '../lib.php' ;
 $id = intval(param_or_die($_GET, 'id')) ;
+$pid = param($_GET, 'pid', '') ;
 html_head('Drafting #'.$id,
 	array(
 		'style.css',
@@ -25,7 +26,7 @@ html_head('Drafting #'.$id,
 	)
 ) ;
 ?>
- <body onload="start(<?php echo $id ; ?>)">
+ <body onload="start(<?=$id;?>, '<?=$pid;?>')">
 
   <div id="info" class="section">
    <input id="timeleft" type="text" value="Initializing" readonly="readonly" title="Time left for picking" size="8"><br>

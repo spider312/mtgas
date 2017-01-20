@@ -7,7 +7,7 @@ class TournamentIndexHandler extends TournamentHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		// Get tournament
 		$tournament = Tournament::get($data->tournament) ;
-		if ( $tournament == null ) {
+		if ( $tournament === null ) {
 			$user->sendString('{"msg": "Tournament not exist"}') ;
 			$this->observer->say('Tournament '.$data->tournament.' not exist') ;
 			return false ;
@@ -15,35 +15,52 @@ class TournamentIndexHandler extends TournamentHandler {
 		$user->tournament = $tournament ;
 		// Get player
 		$i = $tournament->registered($user) ;
-		if ( $i !== false )
+		if ( $i !== false ) {
 			$player = $tournament->players[$i] ;
-		else
+		} else {
 			$player = null ;
-		// Player redirected from index
-		if ( ( $tournament->status == 2 ) && ( $player != null ) )
-			$tournament->players[$i]->set_ready(true) ;
-		$tournament->send() ;
-		if ( $player == null )
-			$tournament->register_spectator($user) ;
-		else {
-			$player->connect($this->type) ;
-			$user->player = $player ;
-			// Redirect
-			if ( ( $tournament->status == 3 )
-				&& ( ! $this->observer->draft->is_connected($tournament, $user->player_id) ) )
-				$user->sendString('{"type": "redirect"}') ;
-			if ( ( $tournament->status == 4 )
-				&& ( ! $this->observer->build->is_connected($tournament, $user->player_id) ) )
-				$user->sendString('{"type": "redirect"}') ;
-			if ( $tournament->status == 5 ) {
-				$game = $tournament->player_match($user->player_id) ;
-				if ( $game == null )
-					$this->observer->say('No game found') ;
-				else if ( $game->joiner_id == '' ) { // Bye
-				} else if ( ! $this->observer->game->connected($user->player_id, $game)
-				&& ( $game->status < 7 ) )
-					$user->sendString('{"type": "redirect", "game": '.$game->id.'}') ;
+		}
+		if ( $player === null ) {
+			// Not a player, register as spectactor
+			if ( ! $tournament->register_spectator($user) ) {
+				$user->sendString(json_encode($tournament)) ; // And send to client unless registration has broadcast
 			}
+			return true ;
+		}
+		$sent = false ; // Try to limit the number of times tournament is sent
+		// Player redirected from index : set status as redirected
+		if ( ( $tournament->status == 2 ) && ( $player->set_ready(true) ) ) {
+			$tournament->send() ; // Player status changed
+			$sent = true ;
+		}
+		// Connection indicator for player
+		$sent = $player->connect($this->type) || $sent ;
+		$user->player = $player ;
+		// Redirect
+		if ( ( $tournament->status == 3 )
+			&& ( ! $this->observer->draft->is_connected($tournament, $user->player_id) ) ) {
+			$user->sendString('{"type": "redirect"}') ;
+			$sent = true ;
+		}
+		if ( ( $tournament->status == 4 )
+			&& ( ! $this->observer->build->is_connected($tournament, $user->player_id) ) ) {
+			$user->sendString('{"type": "redirect"}') ;
+			$sent = true ;
+		}
+		if ( $tournament->status == 5 ) {
+			$game = $tournament->player_match($user->player_id) ;
+			if ( $game == null )
+				$this->observer->say('No game found') ;
+			else if ( $game->joiner_id == '' ) { // Bye
+			} else if ( ! $this->observer->game->connected($user->player_id, $game)
+			&& ( $game->status < 7 ) ) {
+				$user->sendString('{"type": "redirect", "game": '.$game->id.'}') ;
+				$sent = true ;
+			}
+		}
+		// Send tournament data if not already automatically sent and not redirected
+		if ( ! $sent ) {
+			$user->sendString(json_encode($tournament)) ;
 		}
 	}
 	public function recieved(WebSocketTransportInterface $user, $data) {

@@ -38,15 +38,13 @@ function start(id, pid) {
 			case 'running_tournament' :
 			case 'ended_tournament' :
 				game.tournament.recieve(data) ;
+				if ( ( game.tournament.me === null ) && ( pid != '' ) ) {
+					game.tournament.me = game.tournament.get_player(pid) ;
+					game.tournament.me.me = true ; // Spectator overrides "me"
+				}
 				break ;
 			case 'deck' :
-				if ( pid != '' )
-					game.tournament.me = game.tournament.get_player(pid) ;
-				if ( game.tournament.me != null ) {
-					game.tournament.me.me = true ; // Spectator overrides "me"
-					game.tournament.me.recieve({'deck_obj': data}) ;
-				} else
-					debug('player is null') ;
+				game.tournament.me.recieve({'deck_obj': data}) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;

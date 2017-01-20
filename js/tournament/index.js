@@ -218,7 +218,8 @@ function PlayerIndex() {
 		if ( allowed ) {
 			var button_view = create_submit('view', 'View') ;
 			button_view.title = 'View deck while player builds it' ;
-			var view_form = create_form('build.php', 'get'
+			var url = ( parseInt(game.tournament.status) === 3 ) ? 'draft.php' : 'build.php' ;
+			var view_form = create_form(url, 'get'
 				, create_hidden('id', game.tournament.id)
 				, create_hidden('pid', this.player_id)
 				, button_view

@@ -149,6 +149,7 @@ class Tournament {
 		$spectator = $this->spectators->add($user->player_id, $user->nick) ;
 		$this->log($spectator->player_id, 'spectactor', $spectator->nick) ;
 		$this->send('tournament', 'build', 'draft') ;
+		return true ;
 	}
 	// Initialisation
 	public function import($type) { // Called on daemon start on each pending/running tournament
@@ -314,7 +315,7 @@ class Tournament {
 	}
 	// Tournament run
 	private function set_status($status) { // Set status for tournament and its players
-		$this->status = $status ;
+		$this->status = intval($status) ;
 		$this->round = 1 ;
 		$this->commit('status', 'round') ;
 		if ( $status > 0 )
@@ -527,6 +528,7 @@ class Tournament {
 	// Build
 	private function build() {
 		$this->set_status(4) ;
+		$this->send() ;
 		global $build_duration ;
 		$this->timer_goon($build_duration) ;
 		$this->log('', 'build', '') ;

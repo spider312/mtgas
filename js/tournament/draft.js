@@ -1,4 +1,4 @@
-function start(id) {
+function start(id, pid) {
 	booster_cards = document.getElementById('booster_cards') ;
 	drafted_cards = document.getElementById('main') ;
 	sided_cards = document.getElementById('side') ;
@@ -24,6 +24,11 @@ function start(id) {
 		// Nothing appends on a build page when another player allows you
 	}) ;
 	game.tournament = new Tournament(id) ;
+	var wsregistration = {'tournament': id} ;
+	if ( pid != '' ) {
+		game.tournament.follow = pid ;
+		wsregistration.follow = pid ;
+	}
 	game.connection = new Connexion('draft', function(data, ev) { // OnMessage
 		switch ( data.type ) {
 			case 'msg' :
@@ -34,9 +39,15 @@ function start(id) {
 				switch ( parseInt(data.status) ) {
 					case 3 : // Standard case : Drafting
 						game.tournament.recieve(data) ;
+						if ( ( game.tournament.me === null ) && ( pid != '' ) ) {
+							game.tournament.me = game.tournament.get_player(pid) ;
+							game.tournament.me.me = true ; // Spectator overrides "me"
+						}
 						break ;
 					case 4 : // Normal case : Building
-						window.location.replace('build.php?id='+id) ;
+						var url = 'build.php?id=' + id ;
+						if ( pid !== '' ) { url += '&pid='+pid ; }
+						window.location.replace(url) ;
 						break ;
 					default : // All other cases considered anormal
 						// Go to tournament's main page
@@ -89,7 +100,7 @@ function start(id) {
 	}, function(ev) { // OnClose/OnConnect
 		node_empty(tournament_info) ;
 		node_empty(booster_cards) ;
-	}, {'tournament': id}) ;
+	}, wsregistration) ;
 	ready.addEventListener('change', function(ev) { // On click
 		game.connection.send({"type": "pick", "ready": ev.target.checked}) ;
 	}, false) ;
@@ -184,20 +195,25 @@ function Img(container, ext, name, nb) {
 // Draft update
 function draft_update(data) {
 	node_empty(booster_cards) ;
+	var pick = parseInt(data.pick) ;
 	for ( var i = 0 ; i < data.content.length ; i++ ) {
 		var card = data.content[i] ;
 		// Image in div
 		var img = Img(booster_cards, card.ext_img, card.name, card.nb) ;
 		img.classList.add('drafting') ;
-		img.id = i + 1 ;
-		if ( parseInt(img.id) == Math.abs(data.pick) ) {
-			if ( data.destination == 'main' )
-				img.className = 'pick' ;
-			else
-				img.className = 'side' ;
+		if ( i === pick ) {
+			img.classList.add('drafting') ;
+		}
+		var cardId = i + 1 ; // can't use img.id as it's transtyped into string
+		img.id = cardId ;
+		if ( cardId == Math.abs(parseInt(data.pick)) ) {
+			img.classList.add(( data.destination == 'main' ) ? 'pick' : 'side') ;
 		}
 		// Events
 		img.addEventListener('dragstart', eventStop, false) ; // No DND
+		if ( game.tournament.follow ) {
+			continue ;
+		}
 		img.addEventListener('click', function(ev) { // On click
 			for ( var i = 0 ; i < booster_cards.childNodes.length ; i++ ) {
 				var card = booster_cards.childNodes[i] ;
@@ -259,11 +275,15 @@ function pool_update(place, zone) {
 			case 'object' :
 				var img = Img(place, line.ext_img, line.name, line.attrs.nb) ;
 				dragimage(img, place, i);
-				img.addEventListener('dragstart', pool_card_dragstart, false) ;
-				img.addEventListener('dragenter', pool_card_dragenter, false) ;
-				img.addEventListener('dragover', eventStop, false) ; // Confirm drop
-				img.addEventListener('drop', pool_drop, false) ;
-				img.addEventListener('dragend', pool_card_dragend, false) ;
+				if ( game.tournament.follow ) {
+					img.addEventListener('dragstart', eventStop, false) ; // No DND
+				} else {
+					img.addEventListener('dragstart', pool_card_dragstart, false) ;
+					img.addEventListener('dragenter', pool_card_dragenter, false) ;
+					img.addEventListener('dragover', eventStop, false) ; // Confirm drop
+					img.addEventListener('drop', pool_drop, false) ;
+					img.addEventListener('dragend', pool_card_dragend, false) ;
+				}
 				break ;
 			default : 
 				alert(typeof line) ;
