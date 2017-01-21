@@ -91,7 +91,7 @@ function start() { // On page load
 				var leftspan = create_span(create_a(data.player_nick, '/player.php?id='+data.player_id))
 				leftspan.appendChild(create_text(': '+data.message)) ;
 				leftspan.classList.add('shouttext') ;
-				var rightspan = create_span(' '+timeWithDays(mysql2date(data.time))) ;
+				var rightspan = create_span(' '+timeWithDays(mysql2date(data.time, game.connection.offset))) ;
 				rightspan.classList.add('shouttime') ;
 				var li = create_li() ;
 				li.appendChild(rightspan) ;

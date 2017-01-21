@@ -138,7 +138,7 @@ function TournamentIndex() {
 		}
 		if ( inarray('creation_date', fields) ) {
 			var tournament_created = document.getElementById('tournament_created') ;
-			var date = mysql2date(this.creation_date) ;
+			var date = mysql2date(this.creation_date, game.connection.offset) ;
 			tournament_created.appendChild(create_text(date.toLocaleString())) ;
 		}
 		if ( inarray('due_time', fields) )
@@ -241,7 +241,7 @@ function LogIndex() {
 		if ( fields.length == 0 )
 			return false ;
 		var li = this.generate() ;
-		var span = create_span(timeWithDays(mysql2date(this.timestamp))) ;
+		var span = create_span(timeWithDays(mysql2date(this.timestamp, game.connection.offset))) ;
 		span.classList.add('linetime') ;
 		li.insertBefore(span, li.firstChild) ;
 		this.update_node(li, tournament_log) ;

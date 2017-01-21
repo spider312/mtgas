@@ -17,9 +17,14 @@ function Connexion(path, onmessage, onclose, registration_data) {
 	}
 	this.refresh_indicator = function() {
 		var title = this.title ;
-		if ( this.connexion != null ) {
-			title += '('+this.pingmean(1)+'ms' ;
-			title += ' / '+this.pingmean(this.ping_times.length)+'ms)' ;
+		if ( this.connexion === null ) {
+			title += ' (not connected)' ;
+		} else {
+			title += ' (ping last/min/avg : '+this.ping_avg(1)+'/'+this.ping_best ;
+			title += '/'+this.ping_avg(this.ping_times.length)+' ms)' ;
+		}
+		if ( this.extended ) {
+			title += ' Offset : '+this.offset ;
 		}
 		this.indicator.title = 'Connexion : '+title ;
 	}
@@ -48,7 +53,7 @@ function Connexion(path, onmessage, onclose, registration_data) {
 			connexion.indicator_color('green', 'connected before first ping') ;
 			connexion.registration_data.nick = game.options.get('profile_nick') ;
 			connexion.send(JSON.stringify(connexion.registration_data)) ;
-			connexion.ping() ;
+			setTimeout.call(connexion, connexion.ping, connexion.ping_delay) ;
 			if ( isf(connexion.onclose) )
 				connexion.onclose(ev) ;
 		}, false) ;
@@ -91,12 +96,17 @@ function Connexion(path, onmessage, onclose, registration_data) {
 					connexion.send(JSON.stringify(data)) ;
 					break ;
 				case 'pong' : // Server replied to a ping, update indicator
-					connexion.pingtime(new Date() - connexion.ping_sent) ;
+					if ( connexion.pingtime(new Date() - connexion.ping_sent) ) {
+						connexion.offset_update(data.time) ;
+					}
 					setTimeout.call(connexion, connexion.ping, connexion.ping_delay) ;
 					break ;
 				case 'ban' : // Server informed us we're ban, inform and stop connexion loop
 					alert('You are banned : '+data.reason) ;
 					connexion.close(1000, 'Banned : '+data.reason) ;
+					break ;
+				case 'time' : // Synchronize times sent
+					connexion.offset_update(data.time) ;
 					break ;
 				default : // Each other message is sent to websocket connexion initializer
 					if ( isf(connexion.onmessage) )
@@ -111,23 +121,49 @@ function Connexion(path, onmessage, onclose, registration_data) {
 			connexion.indicator_color('violet', 'Error') ;
 		}, false) ;
 	}
+	this.offset_update = function(server_time) { // Recieved a server timestamp, update offset
+		var time = parseInt(server_time, 10) ; // Server timestamp
+		var now = Math.floor(Date.now()/1000) ; // Local timestamp, set on the same scale
+		this.offset = time - now ;
+	}
 	this.ping = function() {
 		this.send('{"type": "ping"}') ;
 		this.ping_sent = new Date() ;
 	}
-	this.pingmean = function(n) {
-		n = min(n, this.ping_times.length) ;
+	this.ping_avg = function(n) { // Returns an average of the last n measures
+		var max = this.ping_times.length ;
+		if ( isn(n) ) {
+			n = min(n, max) ;
+		} else {
+			n = max ;
+		}
+		if ( n === 0 ) {
+			return 0 ;
+		}
 		var result = 0 ;
-		for ( var i = 1 ; i <= n ; i++ )
+		for ( var i = 1 ; i <= n ; i++ ) {
 			result += this.ping_times[this.ping_times.length-i] ;
+		}
 		return Math.ceil(result / n) ;
 	}
-	this.pingtime = function(time) {
-		this.ping_times.push(time) ;
-		if ( time < this.ping_limit )
+	this.pingtime = function(time) { // Recieved a new ping response
+		var is_best = ( ( this.ping_best < 0 ) || ( time < this.ping_best ) ) ; // Returns if it was best
+		this.ping_times.push(time) ; // Store
+		// Don't store too much of them
+		if ( this.ping_times.length > this.ping_max_times ) {
+			this.ping_times.shift() ;
+		}
+		// Best ping
+		if ( is_best ) {
+			this.ping_best = time ;
+		}
+		// Update indicator
+		if ( time < this.ping_limit ) {
 			this.indicator_color('green', 'connected') ;
-		else
+		} else {
 			this.indicator_color('blue', 'laggy') ;
+		}
+		return is_best ;
 	}
 	this.send = function(param) {
 		if ( iss(param) )
@@ -169,13 +205,21 @@ function Connexion(path, onmessage, onclose, registration_data) {
 	}
 	// Init
 		// properties
+	var connex = this ; // Closures
 	this.connexion = null ;
 	this.indicator = document.getElementById('wsci') ;
+	this.indicator.addEventListener('click', function(ev) {
+		connex.extended = ! connex.extended ;
+	}, false) ;
 	this.ping_sent = null ;
-	this.ping_times = [] ;
-	this.ping_delay = 10000 ; // Number of ms between reception and sending of a ping
-	this.ping_limit = 150 ; // Below this ping (in ms) indicator is green, blue otherwise
+	this.ping_times = [] ; // Stored ping measurments
+	this.ping_max_times = 100 ; // Max number of stored pings
+	this.ping_delay = 5000 ; // Number of ms between reception and sending of a ping
+	this.ping_limit = 200 ; // Below this ping (in ms) indicator is green, blue otherwise
+	this.ping_best = -1 ;
+	this.offset = null ; // Offset in dates with daemon
 	this.debug = false ;
+	this.extended = false ; // Extended information about ping in WSCI title
 		// GUI
 	this.indicator_color('violet', 'initializing') ;
 		// params
@@ -196,7 +240,6 @@ function Connexion(path, onmessage, onclose, registration_data) {
 	if ( ! window["WebSocket"] )
 		alert('No support for websockets in browser') ;
 	else {
-		var connex = this ;
 		window.addEventListener('beforeunload', function(ev) {
 			connex.close(1000, 'User closing (or refreshing) window') ;
 		}, false) ;

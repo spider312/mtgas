@@ -88,9 +88,9 @@ function start_timer(node, date, countdown) {
 function update_timer(node, date, countdown) {
 	now = new Date() ;
 	if ( countdown )
-		var duration = mysql2date(date) - now ;
+		var duration = mysql2date(date, game.connection.offset) - now ;
 	else
-		var duration = now - mysql2date(date) ;
+		var duration = now - mysql2date(date, game.connection.offset) ;
 	var disp = time_disp(Math.round(duration/1000)) ;
 	if ( node.nodeName == 'INPUT' ) {
 		node.value = disp ;

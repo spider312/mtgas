@@ -63,6 +63,7 @@ class ParentHandler extends WebSocketUriHandler {
 		switch ( $data->type ) {
 			case 'ping' :
 				$data->type = 'pong' ;
+				$data->time = time() ; // Helps to better synchronize
 				$user->sendString(json_encode($data)) ;
 				break ;
 			case 'pong' :
@@ -75,6 +76,7 @@ class ParentHandler extends WebSocketUriHandler {
 						$this->say('Connexion attempt from banned user '.$data->player_id.' ('.$ban->reason.')') ;
 						$user->sendString('{"type": "ban", "reason": "'.$ban->reason.'"}') ;
 					} else {
+						$user->sendString('{"type": "time", "time": "'.time().'"}'); // Base sync offset
 						$user->player_id = $data->player_id ;
 						$user->nick = $data->nick ;
 						$this->register_user($user, $data) ;
