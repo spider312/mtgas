@@ -678,10 +678,12 @@ class Tournament {
 	}
 	public function nextround() {
 		foreach ( $this->round_matches() as $game ) { // End games
-			// Send back their previous evaluations to players
 			$data = new stdClass() ;
-			$data->{$game->creator_id} = Evaluation::get_rating($game->joiner_id, $game->creator_id) ;
-			$data->{$game->joiner_id} = Evaluation::get_rating($game->creator_id, $game->joiner_id) ;
+			// Send back their previous evaluations to players as roundend data
+			if ( ( $game->creator_id !== '' ) && ( $game->joiner_id !== '' ) ) {
+				$data->{$game->creator_id} = Evaluation::get_rating($game->joiner_id, $game->creator_id) ;
+				$data->{$game->joiner_id} = Evaluation::get_rating($game->creator_id, $game->joiner_id) ;
+			}
 			$action = $game->addAction('', 'roundend', json_encode($data)) ;
 			$this->observer->game->broadcast(json_encode($action), $game) ;
 		}
