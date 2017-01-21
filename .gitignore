@@ -1,6 +1,7 @@
 config.php
 header.php
 footer.php
+mtgas.pid
 
 admin/.ht*
 admin/cards/import/version.json
