@@ -10,8 +10,11 @@ $client->on("connect", function() use ($logger, $client) {
 	$client->send('{"type": "register", "player_id": "a", "nick": "a"}');
 });
 $client->on("message", function($message) use ($client, $logger) {
-	$client->close() ; // No need to stay connected to this handler
 	$json = json_decode($message->getData()) ; // Registering to admin sends an "overall" JSON string
+	if ($json->type !== 'overall') {
+		return false ;
+	}
+	$client->close() ; // No need to stay connected to this handler
 	echo count($json->handlers->index->users)."\n";
 	// Sum handlers dedicated to gaming
 	$players = 0 ;
