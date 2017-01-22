@@ -38,8 +38,6 @@ class TournamentHandler extends ParentHandler {
 				)
 					return false ;
 			$disco->tournament->player_disconnect($disco->player_id, $this->type) ;
-		} else
-			$this->say('Disconection from unregistered user') ;
 	}
 
 }

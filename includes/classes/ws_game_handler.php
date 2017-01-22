@@ -160,7 +160,6 @@ class GameHandler extends ParentHandler {
 	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( ! isset($user->player_id) ) { // Unregistered user
-			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
 		if ( ! $this->connected($user->player_id, $user->game) ) { // Last connexion on this game from that user
