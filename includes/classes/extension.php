@@ -60,7 +60,7 @@ class Extension {
 			$this->cards_rarity['C'] = $this->cards ;
 			//$cards = $db_cards->select("SELECT `card`.`name` FROM `card` ORDER BY `card`.`id` ASC") ;
 		} else {
-			echo 'Cache not fill' ;
+			echo 'booster : Extension->get_cards() : Cache not fill '.$this->se."\n" ;
 			global $db_cards ;
 			$cards = $db_cards->select("SELECT `card`.`name`
 			FROM `card_ext`, `card`
