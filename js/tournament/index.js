@@ -138,7 +138,7 @@ function TournamentIndex() {
 		}
 		if ( inarray('creation_date', fields) ) {
 			var tournament_created = document.getElementById('tournament_created') ;
-			var date = mysql2date(this.creation_date, game.connection.offset) ;
+			var date = mysql2date(this.creation_date) ;
 			tournament_created.appendChild(create_text(date.toLocaleString())) ;
 		}
 		if ( inarray('due_time', fields) )

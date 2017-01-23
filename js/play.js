@@ -31,7 +31,7 @@ function game_start() { // When page is loaded : initialize everything
 	last_recieved_action = -1 ; // Server created actions are 0
 	// Update timer
 	if ( tournament_data != null ) {
-		game.due = mysql2date(tournament_data.due_time, game.connection.offset) ;
+		game.due = mysql2date(tournament_data.due_time) ;
 	}
 	window.setInterval(function() {
 		var node = timeleft.firstChild.nextSibling ;
