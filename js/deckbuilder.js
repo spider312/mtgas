@@ -260,14 +260,16 @@ function sort_deck(deck) {
 	var rows = [] ; // Work on a copy containing only cards
 	for ( var i = 0 ; i < deck.rows.length ; i++ ) {
 		var row = deck.rows[i] ;
-		if ( iso(row.rattrs) )
+		if ( iso(row.rattrs) ) { // A card
 			rows.push(row) ;
+		}
 	}
 	// Sort copy
 	rows.sort(deck_sort) ;
 	// Remove copied elements from source
-	for ( var i = 0 ; i < rows.length ; i++ )
+	for ( var i = 0 ; i < rows.length ; i++ ) {
 		rows[i].parentNode.removeChild(rows[i]) ;
+	}
 	// Append sorted copy
 	var pts = -1 ; // Previous typescore
 	for ( var i = 0 ; i < rows.length ; i++ ) {
@@ -302,29 +304,25 @@ function sort_deck(deck) {
 		deck.appendChild(rows[i]) ;
 	}
 }
-function deck_sort(a, b) {
+function deck_sort(a, b) { // Sort a deck array by type, converted cost, name
+	// Sort by "typescore" (goups of types for deck sorting : lands, creatures, other permanents, spells)
 	var score = typescore(a.rattrs) - typescore(b.rattrs) ; 
-	if ( score == 0 ) {
-		score = a.rattrs.converted_cost - b.rattrs.converted_cost ;
-		if ( score == 0 ) {
-			for ( var i = 0 ; i < a.parentNode.rows.length ; i++ ) {
-				if ( a.parentNode.rows[i] == a )
-					break ;
-			}
-			for ( var j = 0 ; j < b.parentNode.rows.length ; j++ ) {
-				if ( a.parentNode.rows[j] == b )
-					break ;
-			}
-			return i - j ;
-		}
+	if ( score !== 0 ) {
+		return score ;
 	}
-	if ( a.card > b.card )
-		score = 1 ;
-	else if ( a.card < b.card )
-		score = -1 ;
-	else
-		score = 0 ;
-	return score ;
+	// Sort by converted cost
+	score = a.rattrs.converted_cost - b.rattrs.converted_cost ;
+	if ( score !== 0 ) {
+		return score ;
+	}
+	// Sort by name
+	if ( a.card > b.card ) {
+		return 1 ;
+	} else if ( a.card < b.card ) {
+		return -1 ;
+	} else {
+		return 0 ;
+	}
 }
 function typescore(attrs) {
 	var result = 3 ; // Defaults to "other"
