@@ -16,7 +16,7 @@
 	background: darkgreen url('../THS_BackgroundTexture_01.jpg') repeat left top ;
 	background-size: contain ;
 }
-#tournament_info td {
+.playerDraft, .playerDraft a {
 	color: white ;
 }
 td.self {

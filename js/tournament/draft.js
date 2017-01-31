@@ -112,11 +112,13 @@ function TournamentDraft() {
 		var caption = create_element('caption') ;
 		for ( var i = 0 ; i < this.data.boosters.length ; i++ ) {
 			var el = create_text(' '+this.data.boosters[i]+' ') ;
-			if ( i == this.round-1 )
+			if ( i == this.round-1 ) {
 				el = create_element('b', el) ;
+			}
 			caption.appendChild(el) ;
-			if ( i == this.round-1 )
+			if ( i == this.round-1 ) {
 				caption.appendChild(create_text('('+booster_cards.childNodes.length+')'));
+			}
 		}
 		tournament_info.appendChild(caption) ;
 		// Draft Table
@@ -159,12 +161,20 @@ function PlayerDraft() {
 	this.td = function(tr) { // TD for draft table
 		var img = player_avatar(this.avatar_url(), null, null, '../') ;
 		var td = create_td(tr, img) ;
+		td.classList.add('playerDraft') ;
 		var txt = create_text(this.nick) ;
-		if ( this.player_id == player_id )
-			td.classList.add('self')
-			//txt = create_element('b', txt) ;
+		if ( this.player_id == player_id ) {
+			td.classList.add('self') ;
+		}
+		if ( iss(game.tournament.follow) ) { // Current client is a spectator
+			if ( this.player_id === game.tournament.follow ) { // And current player is the one i'm following
+				td.classList.add('self') ;
+				td.title = "You are following "+this.nick+"'s draft" ;
+			} else if ( game.spectators.is_allowed_by(player_id, this.player_id) ) { // And current player allowed me : display a link to view its draft
+				txt = create_a(this.nick, 'draft.php?id='+game.tournament.id+'&pid='+this.player_id, null, "View "+this.nick+"'s draft") ;
+			}
+		}
 		td.appendChild(txt) ;
-		td.title = '#'+this.order ;
 		td.classList.add('player') ;
 	}
 }
