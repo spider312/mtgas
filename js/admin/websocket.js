@@ -63,7 +63,10 @@ function offline_ban_li() {
 	}, 'Ban offline player by ID')) ;
 }
 function ban_li(data) {
-	var li = create_li(data.id+' : '+data.player_id+' : '+data.reason) ;
+	var userHost = ( data.player_id === null ) ? '*' : data.player_id ;
+	userHost += '@' ;
+	userHost += ( data.host === null ) ? '*' : data.host ;
+	var li = create_li(data.id+' : '+userHost+' : '+data.reason) ;
 	var button = create_button('Unban', function(ev) {
 		game.connection.send('{"type": "unban", "id": "'+data.id+'"}') ;
 	}, 'Unban player') ;
@@ -93,6 +96,12 @@ function player_li(user, handler) {
 		if ( ( reason != null ) && ( reason != '' ) )
 			game.connection.send('{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}') ;
 	}, 'Ban player by ID ('+user.player_id+')') ;
+	li.appendChild(button) ;
+	var button = create_button('Ban IP', function(ev) {
+		var reason = prompt('Reason for banning '+user.nick) ;
+		if ( ( reason != null ) && ( reason != '' ) )
+			game.connection.send('{"type": "ban", "host": "'+user.host+'", "reason": "'+reason+'"}') ;
+	}, 'Ban player by IP ('+user.host+')') ;
 	li.appendChild(button) ;
 	return li ;
 }

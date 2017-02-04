@@ -84,10 +84,12 @@ class AdminHandler extends ParentHandler {
 				}
 				break ;
 			case 'ban' :
-				if ( property_exists($data, 'id') && property_exists($data, 'reason') ) {
-					$this->observer->bans->add($data->reason, null, $data->id) ;
-					$this->refresh($user) ;
-				}
+				$host = null ;
+				$id = property_exists($data, 'id') ? $data->id : null ;
+				$host = property_exists($data, 'host') ? $data->host : null ;
+				$reason = property_exists($data, 'reason') ? $data->reason : 'Unknown reason' ;
+				$this->observer->bans->add($reason, $host, $id) ;
+				$this->refresh($user) ;
 				break ;
 			case 'unban' :
 				if ( property_exists($data, 'id') ) {

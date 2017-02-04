@@ -29,6 +29,7 @@ class ParentHandler extends WebSocketUriHandler {
 			$obj = new stdClass() ;
 			foreach ( $this->users_fields as $field )
 				$obj->{$field} = $cnx->{$field} ;
+			$obj->host = $cnx->getIp() ;
 			// Evaluations average
 			list($obj->rating, $obj->rating_nb) = Evaluation::get_average($cnx->player_id) ;
 			$result->users[] = $obj ;
@@ -71,7 +72,7 @@ class ParentHandler extends WebSocketUriHandler {
 				break ;
 			case 'register' :
 				if ( isset($data->player_id) && isset($data->nick) ) {
-					$ban = $this->observer->bans->is(null, $data->player_id) ;
+					$ban = $this->observer->bans->is($user->getIp(), $data->player_id) ;
 					if ( $ban ) {
 						$this->say('Connexion attempt from banned user '.$data->player_id.' ('.$ban->reason.')') ;
 						$user->sendString('{"type": "ban", "reason": "'.$ban->reason.'"}') ;
