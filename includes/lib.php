@@ -321,6 +321,7 @@ function theme_image($name) {
 	return $url.'/themes/'.$theme.'/'.$name ;
 }
 function manas2html($manas) { // Returns HTML code for icons representing array 'manas'
+	$colors = '' ;
 	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'" width="16" height="16" alt="{'.$mana.'}">' ;
 	return $colors ;
