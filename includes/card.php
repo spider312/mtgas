@@ -984,18 +984,26 @@ function manage_text($name, $text, $target) {
 				default:
 					$ci = array_search($cond, $colors) ;
 					// Color selector
-					if ( $ci !== false )
+					if ( $ci !== false ) {
 						$boost_bf->cond = "color=$ci" ;
-					else {
+					} else {
 						// Types selector
 						$types = explode(' and ', $cond) ;
+						$type_cond = array() ;
 						foreach ( $types as $i => $type ) {
-							if ( $type == 'artifact' ) // Hardcoded artifact is a card type, not a creature type
-								$types[$i] = "type=$type" ;
-							else // Defaults to creature type
-								$types[$i] = "ctype=$type" ;
+							switch ( $type ) {
+								case 'artifact' : // Is a card type, not a creature type
+									$type_cond[] = "type=$type" ;
+									break ;
+								case 'all' : // Should not be considered as a creature type, it's a leak of condition
+									break ;
+								default : // Default case : it's a creature type
+									$type_cond[] = "ctype=$type" ;
+							}
 						}
-						$boost_bf->cond = implode('|', $types) ;
+						if ( count($type_cond) > 0 ) {
+							$boost_bf->cond = implode('|', $type_cond) ;
+						}
 					}
 			}
 			$eot = false ;
