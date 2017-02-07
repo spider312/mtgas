@@ -1,5 +1,22 @@
-<pre><?php
+<?php
 include_once 'lib.php' ;
+?>
+<html>
+<head>
+<style>
+td {
+	border: 1px solid black ;
+}
+</style>
+</head>
+<body>
+<table>
+ <tr>
+  <th>Card</th>
+  <th>Removed</th>
+  <th>Added</th>
+ </tr>
+<?php
 // Apply ?
 $apply = param($_GET, 'apply', false) ;
 if ( $apply !== false )
@@ -13,9 +30,10 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$attrs = json_encode($attrs_obj) ;
 	if ( $arr['attrs'] != $attrs ) {
 		$nb++ ;
-		echo '<hr>'.$arr['name'] ;
-		echo '<pre>-'.print_r(obj_diff(json_decode($arr['attrs']), $attrs_obj), true).'</pre>';
-		echo '<pre>+'.print_r(obj_diff($attrs_obj, json_decode($arr['attrs'])), true).'</pre>';
+		echo '<tr>' ;
+		echo '<td><a href="card.php?id='.$arr['id'].'">'.$arr['name'].'</td>' ;
+		echo '<td><pre>'.print_r(obj_diff(json_decode($arr['attrs']), $attrs_obj), true).'</pre></td>';
+		echo '<td><pre>'.print_r(obj_diff($attrs_obj, json_decode($arr['attrs'])), true).'</pre></td>';
 		if ( $apply ) {
 			query("UPDATE
 				card
@@ -26,7 +44,11 @@ while ( $arr = mysql_fetch_array($query) ) {
 				`id` = '".$arr['id']."'
 			; ") ;
 		}
+		echo '</tr>' ;
 	}
 }
-die($nb.' updates <a href="?apply=1">apply</a>') ;
 ?>
+<caption><?php echo $nb ; ?> updates <a href="?apply=1">apply</a></caption>
+</table>
+</body>
+</html>
