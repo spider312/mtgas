@@ -90,7 +90,10 @@ function arr_diff($new, $old) { // Returns $new without values that didn't chang
 			if ( obj_compare($v, $value) )
 				continue 2 ; // Not added to result
 		}
-		$result[$key] = $value ;
+		$diff = obj_diff($value, $v) ;
+		if ( $diff !== null ) {
+			$result[$key] = $diff ;
+		}
 	}
 	return $result ;
 }
