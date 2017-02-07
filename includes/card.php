@@ -538,10 +538,16 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Echo ('.$manacost.')/', $text, $matches) )
 		$target->echo = manacost($matches[1]) ;
 	if ( preg_match('/Modular (\d+)/', $text, $matches) ) {
+		if ( ! property_exists($target, 'counter') ) {
+			$target->counter = 0 ;
+		}
 		$target->counter += intval($matches[1]) ;
 		$target->note = '+1/+1' ;
 	}
 	if ( preg_match('/Graft (\d+)/', $text, $matches) ) {
+		if ( ! property_exists($target, 'counter') ) {
+			$target->counter = 0 ;
+		}
 		$target->counter += intval($matches[1]) ;
 		$target->note = '+1/+1' ;
 	}
@@ -624,7 +630,7 @@ function manage_text($name, $text, $target) {
 				if ( count($words) == 1 ) {
 					$step = $words[0] ;
 				} else {
-					msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+					//msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
 				}
 				break ;
 			case 'the' :
@@ -815,18 +821,23 @@ function manage_text($name, $text, $target) {
 			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'/', $text, $matches ) )
 		) { // Single
 			$what = strtolower($matches['what']) ;
-			if ( preg_match('/(?<who>.*) controls? (?<what>.*)/', $what, $m) ) {
+			if ( preg_match('/(?<who>.*?) controls? (?<what>.*)/', $what, $m) ) {
+				$powtoucond = null ;
+				$pieces = explode(', ', $m['what']);
+				if ( count($pieces) > 1 ) { // Tek : multiple conditions are present in only one sentence, take only first ATM (architecture only manages one pow tou cond at a time)
+					$m['what'] = $pieces[0] ;
+				}
 				switch ( $m['who'] ) {
 					case 'you' :
-						$powtoucond = new stdClass() ;
-						$powtoucond->what = 'card' ;
-						$powtoucond->pow = intval($matches['pow']) ;
-						$powtoucond->thou = intval($matches['tou']) ;
-						$powtoucond->from = 'battlefield' ;
 						switch ( true ) {
 							// Very standard case
 							case preg_match('/(?<who>an?) (?<what>.*)/', $m['what'], $mm) :
 							case preg_match('/(?<who>another) (?<what>.*)/', $m['what'], $mm) :
+								$powtoucond = new stdClass() ;
+								$powtoucond->what = 'card' ;
+								$powtoucond->pow = intval($matches['pow']) ;
+								$powtoucond->thou = intval($matches['tou']) ;
+								$powtoucond->from = 'battlefield' ;
 								if ( array_search($mm['what'], $cardtypes)!== false  )
 									$powtoucond->cond = 'type='.$mm['what'] ;
 								else
@@ -838,16 +849,13 @@ function manage_text($name, $text, $target) {
 							case ( $m['what'] === 'eight or more lands' ):
 							case ( $m['what'] === 'no untapped lands' ): // Impossible to detect tapped lands nor their absence
 							case ( $m['what'] === 'your commander' ): // Impossible to detect a commander card nor wether it's on the battlefield (it's stored there by many users)
-								$powtoucond = null ;
 								break;
 							default :
-								$powtoucond = null ;
 								msg("No pow/tou condition found for $name : $text") ;
 						}
 						break ;
 					case 'an opponent' : // Unmanaged, just there to avoid error message
 					case 'no opponent' :
-						$powtoucond = null ;
 						break ;
 					default:
 						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
@@ -873,8 +881,9 @@ function manage_text($name, $text, $target) {
 				$target->bonus->pow = intval($matches['pow']) ;
 				$target->bonus->tou = intval($matches['tou']) ;
 				global $creat_attrs ;
-				foreach ( $creat_attrs as $creat_attr ) // Also parse keywords such as vigilance, lifelink ...
-					apply_creat_attrs($matches[4], $creat_attr, $target->bonus) ;
+				foreach ( $creat_attrs as $creat_attr ) { // Also parse keywords such as vigilance, lifelink ...
+					apply_creat_attrs($matches['after'], $creat_attr, $target->bonus) ;
+				}
 			}
 		}
 	}
@@ -1048,6 +1057,9 @@ function manage_text($name, $text, $target) {
 				}
 				$i = array_search($cot, $colors) ;
 				if ( $i !== false ) {
+					if ( ! property_exists($animated, 'color') ) {
+						$animated->color = '' ;
+					}
 					$animated->color .= $i ;
 					continue ;
 				}
