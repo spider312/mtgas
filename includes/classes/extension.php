@@ -109,6 +109,13 @@ class Extension {
 				$this->rand_card($this->cards_rarity['L'], $result, $upool) ;
 		else
 			$nb_c += $nb_l ;
+		// Forced foil (Modern Masters)
+		$foil = $this->get_data('foil', 0) ;
+		if ( $foil > 0 ) {
+			for ( $i = 0 ; $i < $foil ; $i++ ) {
+				$this->rand_card($this->cards, $result, $upool) ;
+			}
+		}
 		// Masterpiece
 		$mps = $this->get_data('mps', '') ;
 		global $proba_masterpiece ;
