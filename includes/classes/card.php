@@ -1,5 +1,6 @@
 <?php
-include_once('extension.php') ;
+require_once 'extension.php' ;
+require_once 'includes/card.php' ;
 //
 $cards_cache = array() ;
 class Card {
