@@ -72,125 +72,157 @@ class Extension {
 				$this->add_card(Card::get($card->name, $this->se)) ;
 		}
 	}
-	private function get_data($property, $value) { // Get a property of data object or a default value
-		if ( property_exists($this->data, $property) )
+	// Get a property of data object or a default value
+	private function get_data($property, $value) {
+		if ( property_exists($this->data, $property) ) {
 			return $this->data->$property ;
-		else
+		} else {
 			return $value ;
+		}
 	}
-	private function rand_card($from, &$booster, &$upool) {
-		shuffle($from) ;
+	// Randomly adds on card from $from to $booster, if not already containing it
+	// checks upool unicity if extension data asks for
+	// Don't do checkings for a foil
+	private function rand_card($from, &$booster, &$upool, $foil=false) {
+		shuffle($from) ; // Shuffle instead of random, allowing for easier unicity checkings
 		foreach ( $from as $card ) {
-			if ( card_in_booster($card, $booster) )
+			if ( ( ! $foil ) && card_in_booster($card, $booster) ) { // Booster unicity
 				continue ;
-			if ( $this->get_data('uniq', false) ) {
-				if ( card_in_booster($card, $upool) )
+			}
+			if ( $this->get_data('uniq', false) ) { // Pool unicity
+				if ( card_in_booster($card, $upool) ) {
 					continue ;
-				else
-					$upool[] = $card ;
+				} else {
+					$upool[] = $card ; // Add card to pool unicity cache
+				}
 			}
-			$result = $card->extend($this->se) ;
+			// Passed unicity checkings
+			$result = $card->extend($this->se) ; // Select current extension for card
 			array_unshift($booster, $result) ; // Generated in reverse order
-			return $result ;
+			return true ;
 		}
+		// No card in source passed unicity checkings (or source is empty)
 		echo "No card to add\n" ;
+		return false ;
 	}
-	public function booster(&$upool) {
+	// Generate a booster : returns a list of randomly chosen cards which properties are defined in extension data
+	// Booster is generated in reverse order, as random cards (normal foils, masterpieces) take a common slot
+	public function booster(&$upool) { // upool is current user pool, for unicity
+		// Make sure cache is up2date
 		$this->get_cards() ;
-		$nb_c = $this->get_data('c', 0) ;
-		$nb_u = $this->get_data('u', 0) ;
-		$nb_r = $this->get_data('r', 0) ;
-		$nb_l = $this->get_data('l', 0) ;
-		$result = array() ;
-		// Booster is generated in reverse order, as foils or transform take a common slot
-		// land
-		if ( array_key_exists('L', $this->cards_rarity) )
-			for ( $i = 0 ; $i < $nb_l ; $i++ )
+		// Get booster params from extension
+			// Base cards
+		$nb_c = $this->get_data('c', 0) ; // Commons
+		$nb_u = $this->get_data('u', 0) ; // Uncos
+		$nb_r = $this->get_data('r', 0) ; // Rares / Mythics
+		$nb_l = $this->get_data('l', 0) ; // Base lands
+			// Exception cards
+		$timeshift = $this->get_data('timeshift', false) ; // Timeshifted (for TSP)
+		$transform = $this->get_data('transform', false)  ; // Transformable (for ISD/DKA)
+		$transform2 = $this->get_data('transform2', false) ; // Transformable, 2nd wave (SOI)
+		$foil = $this->get_data('foil', 0) ; // Forced foils (Modern Masters)
+		$mps = $this->get_data('mps', '') ; // Masterpieces
+		// Init
+		$result = array() ; // Generated booster's cards
+		$foil_able = true ; // A booster may only have one foil added (forced foil, masterpiece, normal foil), keep a track of this
+		// Last cards : Lands
+		if ( array_key_exists('L', $this->cards_rarity) ) {
+			for ( $i = 0 ; $i < $nb_l ; $i++ ) {
 				$this->rand_card($this->cards_rarity['L'], $result, $upool) ;
-		else
+			}
+		} else {
 			$nb_c += $nb_l ;
-		// Forced foil (Modern Masters)
-		$foil = $this->get_data('foil', 0) ;
-		if ( $foil > 0 ) {
+		}
+		// Foils
+			// Forced foil (Modern Masters)
+		if ( $foil_able && ( $foil > 0 ) ) {
 			for ( $i = 0 ; $i < $foil ; $i++ ) {
-				$this->rand_card($this->cards, $result, $upool) ;
+				$this->rand_card($this->cards, $result, $upool, true) ;
+			}
+			$foil_able = false ;
+		}
+			// Masterpieces
+		if ( $foil_able && ( $mps !== '' ) && ( $nb_c > 0 ) ) {
+			global $proba_masterpiece ;
+			if ( rand(1, $proba_masterpiece) == 1 ) {
+				$ext = Extension::get($mps) ;
+				$ext->get_cards() ;
+				if ( array_key_exists('S', $ext->cards_rarity) ) {
+					$nb_c-- ;
+					$foil_able = false ;
+					$this->rand_card($ext->cards_rarity['S'], $result, $upool, true) ;
+				}
 			}
 		}
-		// Masterpiece
-		$mps = $this->get_data('mps', '') ;
-		global $proba_masterpiece ;
-		if ( ( $mps !== '' ) && ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_masterpiece) == 1 ) ) {
-			$ext = Extension::get($mps) ;
-			$ext->get_cards() ;
-			if ( array_key_exists('S', $ext->cards_rarity) ) {
-				$nb_c-- ;
-				$this->rand_card($ext->cards_rarity['S'], $result, $upool) ;
-			} else
-				echo "No masterpiece found" ;
-		} else { // Impossible to have a masterpiece + a foil
-			// foil (break unicity)
+			// Normal foil
+		if ( $foil_able && ( $nb_c > 0 ) ) {
 			global $proba_foil ;
-			if ( ( $nb_c > 0 ) && ( ! $this->get_data('uniq', false) ) && ( rand(1, $proba_foil) == 1 ) ) {
+			if ( rand(1, $proba_foil) == 1 ) {
 				$nb_c-- ;
-				$this->rand_card($this->cards, $result, $upool) ;
+				$foil_able = false ;
+				$this->rand_card($this->cards, $result, $upool, true) ;
 			}
 		}
-		// timeshifted (for TSP)
-		if ( ( $nb_c > 0 ) && $this->get_data('timeshift', false) ) {
+		// Exceptions
+		if ( $timeshift ) {
 			$ext = Extension::get('TSB') ;
 			$ext->get_cards() ;
 			if ( array_key_exists('S', $ext->cards_rarity) ) {
-				$nb_c-- ;
 				$this->rand_card($ext->cards_rarity['S'], $result, $upool) ;
-			} else
-				echo "No timeShift found" ;
+			} else {
+				$nb_c++ ;
+			}
 		} 
-		// transformable (for ISD/DKA)
-		if ( ( $nb_c > 0 ) && $this->get_data('transform', false) ) {
+		if ( $transform ) {
 			$r = '' ; // Transform rarity
 			$n = rand(1, 14) ;
 			if ( $n > 13 )		$r = Extension::r_or_m($this->cards_tr) ;
 			elseif ( $n > 10 )	$r = 'U' ;
 			else				$r = 'C' ;
 			if ( array_key_exists($r, $this->cards_tr) ) {
-				$nb_c-- ;
 				$this->rand_card($this->cards_tr[$r], $result, $upool) ;
+			} else {
+				$nb_c++ ;
 			}
 		}
-		// transformable, 2nd wave (SOI)
-		if ( ( $nb_c > 0 ) && $this->get_data('transform2', false) ) {
-			// 1 common is replaced by 1 transform common or uncommon
-			$nb_c-- ;
+		if ( $transform2 ) {
+			// Each booster contains 1 transform, common or uncommon
 			$tr_c = array_merge($this->cards_tr['C'], $this->cards_tr['U']) ;
 			$this->rand_card($tr_c, $result, $upool) ;
-			// once over 8 boosters 1 uncommon is replaced by 1 transform rare or mythic
+			// Once over 8 boosters, 1 uncommon is replaced by 1 transform, rare or mythic
 			if ( ( rand(1, 8) == 1 ) && ( $nb_u > 0 ) ) {
 				$nb_u-- ;
 				$tr_r = array_merge($this->cards_tr['R'], $this->cards_tr['R'], $this->cards_tr['M']) ; // Rares appears twice than mythics
 				$this->rand_card($tr_r, $result, $upool) ;
 			}
 		}
-		// rare or mythic
+		// Normal generation
+			// Rare or Mythic
 		if ( array_key_exists('R', $this->cards_rarity) || array_key_exists('M', $this->cards_rarity) ) {
-			for ( $i = 0 ; $i < $nb_r ; $i++ )
-				$this->rand_card($this->cards_rarity[Extension::r_or_m($this->cards_rarity)]
-					, $result, $upool);
-		} else
+			for ( $i = 0 ; $i < $nb_r ; $i++ ) {
+				$this->rand_card($this->cards_rarity[Extension::r_or_m($this->cards_rarity)], $result, $upool);
+			}
+		} else {
 			$nb_c += $nb_r ;
-		// uncommons
+		}
+			// Uncommons
 		if ( array_key_exists('U', $this->cards_rarity) ) {
-			for ( $i = 0 ; $i < $nb_u ; $i++ )
+			for ( $i = 0 ; $i < $nb_u ; $i++ ) {
 				$this->rand_card($this->cards_rarity['U'], $result, $upool) ;
-		} else
+			}
+		} else {
 			$nb_c += $nb_u ;
-		// commons (after all other exceptions have been managed)
-		if ( array_key_exists('C', $this->cards_rarity) && (count($this->cards_rarity['C']) >= $nb_c) )
-			for ( $i = 0 ; $i < $nb_c ; $i++ )
+		}
+			// Commons (after all other exceptions have been managed)
+		if ( array_key_exists('C', $this->cards_rarity) && (count($this->cards_rarity['C']) >= $nb_c) ) {
+			for ( $i = 0 ; $i < $nb_c ; $i++ ) {
 				$this->rand_card($this->cards_rarity['C'], $result, $upool) ;
-		else
-			if ( $nb_c > 0 )
+			}
+		} else {
+			if ( $nb_c > 0 ) {
 				echo 'Not enough commons leftin ext '.$ext." ($nb_c/".count($cards['C']).")\n" ;
-
+			}
+		}
 		return $result ;
 	}
 	static function r_or_m($cards) {
