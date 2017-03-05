@@ -738,6 +738,7 @@ function deck_checked() { // Returns selected deck's name
 	}
 	return null
 }
+NodeList.prototype['indexOf'] = Array.prototype['indexOf'];
 function decks_list() {
 	var table = document.getElementById('decks_list') ;
 	if ( table == null )
@@ -750,26 +751,55 @@ function decks_list() {
 			var deck_name = decks[i] ;
 			var deck_content = deck_get(deck_name) ;
 			var row = table.insertRow(-1) ;
-			//row.id = deck_name ;
+			row.id = deck_name ;
 			row.title = deck_name ;
 			row.classList.add('deck') ;
-			/*
-			row.toString = function() {
-				return 'Row Card '+this.id ;
-			}
-			row.draggable = true ;
+			// DND
+			row.draggable = true ; // Only make cell dragable
 			row.addEventListener('dragstart', function(ev) {
-				ev.dataTransfer.setData('text/plain', ev.target.id) ;
+				game.draging = this ;
+				game.draging.to = this ; // Just to have a valid value inside "to"
+				game.draging.initialNext = this.nextElementSibling ; // For reinitialisation on refused drop
+				game.draging.classList.add('drag') ;
+				ev.dataTransfer.setData('text/plain', ev.target.id) ; // setData required for triggering DND
+				var dragimg = this.childNodes[0].childNodes[0].childNodes[1] ; // Span containing only deck name
+				ev.dataTransfer.setDragImage(dragimg, -15, 8); // Placed just on pointer's right
 			}, false) ;
 			row.addEventListener('dragenter', function(ev) {
-				//alert(ev.originalTarget.parentNode.parentNode.parentNode.tagName) ;
-				//alert(node_parent_search(ev.originalTarget, 'TR')) ;
-				var from = ev.currentTarget ;
-				var to = node_parent_search(ev.target, 'TR') ;
-				alert(from.id + ' -> ' +to.id) ;
-				log2(ev) ;
+				if ( this.nodeName !== 'TR' ) { return true ; }
+				if ( game.draging === this ) { return true ; }
+				var reference = this ; // Dragging TR will be added before reference
+				if ( game.draging.parentNode !== null ) {
+					var from = game.draging.parentNode.childNodes.indexOf(game.draging) ;
+					var to = this.parentNode.childNodes.indexOf(this) ;
+					if ( to >= from ) {
+						reference = reference.nextElementSibling ;
+					}
+				}
+				this.parentNode.insertBefore(game.draging, reference) ;
+				game.draging.to = reference ;
 				return eventStop(ev) ;
-			}, false) ;*/
+			}, false) ;
+			row.addEventListener('dragover', eventStop, false) ; // Confirm drop
+			row.addEventListener('drop', function(ev) {
+				deck_move(game.draging.id, game.draging.to.id)
+				game.draging.to = null ;
+				return eventStop(ev) ;
+			}, false) ;
+			row.addEventListener('dragend', function(ev) {
+				if ( game.draging == null ) { return true ; }
+				game.draging.classList.remove('drag') ;
+				if ( game.draging.to !== null ) {
+					game.draging.to = null ;
+					if ( confirm('Delete '+game.draging.id+' ?') ) {
+						game.draging.parentNode.removeChild(game.draging) ;
+						deck_del(game.draging.id, true) ;
+					} else {
+						game.draging.parentNode.insertBefore(game.draging, game.draging.initialNext) ;
+					}
+					game.draging = null ;
+				}
+			}, false) ;
 			// Main cell : radio + name
 			var cell = row.insertCell(-1) ;
 			cell.colSpan = 2 ;
@@ -782,7 +812,7 @@ function decks_list() {
 			deck_name_s = deck_name ;
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
-			var label = create_label(null, radio, deck_name_s) ;
+			var label = create_label(null, radio, create_span(deck_name_s)) ;
 			label.addEventListener('dblclick', function(ev) {
 				document.getElementById('deck_edit').click() ;
 			}, false) ;

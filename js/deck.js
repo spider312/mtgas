@@ -104,11 +104,11 @@ function deck_set(name, content) {
 	store('deck', name) ; // Set this deck as selected
 	return true ;
 }
-function deck_del(name) {
+function deck_del(name, force) {
 	var decks = decks_get() ;
 	var index = decks.indexOf(name) ;
 	if ( index != -1 ) {
-		if ( ! confirm('Are you sure you want to remove deck '+name+' ?') )
+		if ( ! force && ! confirm('Are you sure you want to remove deck '+name+' ?') )
 			return null ;
 		decks.splice(index, 1) ;
 		store('decks', decks.join(',')) ;
@@ -117,6 +117,19 @@ function deck_del(name) {
 	}
 	alert('Impossible to remove deck '+name+' : it doesn\'t seem to exist') ;
 	return false ;
+}
+function deck_move(name, next) {
+	if ( name === next ) { return false ; }
+	var decks = decks_get() ;
+	var indexFrom = decks.indexOf(name) ;
+	if ( indexFrom === -1 ) { return false ; }
+	var indexTo = decks.indexOf(next) ;
+	if ( indexTo === -1 ) { return false ; }
+	// Checkings done
+	var deck = decks.splice(indexFrom, 1) ;
+	indexTo = decks.indexOf(next) ; // Recompute indexTo as it may have changed
+	decks.splice(indexTo, 0, deck) ;
+	store('decks', decks.join(',')) ;
 }
 function deck_get(name) {
 	var decks = decks_get() ;
