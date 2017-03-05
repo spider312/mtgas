@@ -153,9 +153,7 @@ class GameServer {
 			// Running tournaments
 		foreach ( $db->select("SELECT `id` FROM `tournament`
 			WHERE `status` > '1' AND `status` < '6'	ORDER BY `id` ASC") as $tournament ) {
-			$t = Tournament::get($tournament->id, 'running_tournament') ;
-			if ( $t )
-				$this->running_tournaments[] = $t ;
+			Tournament::get($tournament->id) ; // Will add it itself to corresponding list
 		}
 		$this->say("\t\t".count($this->running_tournaments).' running tournaments imported') ;
 			// Evaluations

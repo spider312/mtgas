@@ -26,19 +26,27 @@ class IndexHandler extends ParentHandler {
 		// Update clients list on all clients
 		$this->broadcast(json_encode($this->list_users())) ;
 		// Send shouts
-		foreach ( $this->shouts as $shout )
+		foreach ( $this->shouts as $shout ) {
 			$user->sendString(json_encode($shout)) ;
+		}
 		// Send duels
-		foreach ( $this->observer->pending_duels as $duel )
+		foreach ( $this->observer->pending_duels as $duel ) {
 			$user->sendString(json_encode($duel)) ;
-		foreach ( $this->observer->joined_duels as $duel )
-			if ( $this->observer->game->displayed($duel) )
+		}
+		foreach ( $this->observer->joined_duels as $duel ) {
+			if ( $this->observer->game->displayed($duel) ) {
 				$user->sendString(json_encode($duel)) ;
+			}
+		}
 		// Send tournaments
-		foreach ( $this->observer->pending_tournaments as $tournament )
+		foreach ( $this->observer->pending_tournaments as $tournament ) {
 			$user->sendString(json_encode($tournament)) ;
-		foreach ( $this->observer->running_tournaments as $tournament )
-			$user->sendString(json_encode($tournament)) ;
+		}
+		foreach ( $this->observer->running_tournaments as $tournament ) {
+			if ( $tournament->min_players > 1 ) {
+				$user->sendString(json_encode($tournament)) ;
+			}
+		}
 		// Send extensions - keep last step
 		$exts = new stdClass ;
 		$exts->type = 'extensions' ;

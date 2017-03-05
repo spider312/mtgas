@@ -12,7 +12,7 @@ class Tournament {
 	private $timer = null ;
 	public $spectators = null ;
 	static $cache = array() ;
-	static function get($id, $type='ended_tournament') {
+	static function get($id) {
 		foreach (Tournament::$cache as $tournament)
 			if ( $tournament->id == $id )
 				return $tournament ;
@@ -22,10 +22,7 @@ class Tournament {
 			if ( count($tournaments) > 1 ) // bug
 				echo count($tournaments)." tournaments found : $id\n" ;
 			$t = new Tournament($tournaments[0]) ;
-			if ( $t->status > 5 )
-				$t->import('ended_tournament') ;
-			else
-				$t->import('running_tournament') ;
+			$t->import() ;
 			return $t ;
 		}
 		return null ;
@@ -152,8 +149,7 @@ class Tournament {
 		return true ;
 	}
 	// Initialisation
-	public function import($type) { // Called on daemon start on each pending/running tournament
-		$this->type = $type ;
+	public function import() { // Called on daemon start on each pending/running tournament
 		// Players
 		global $db ;
 		$this->players = $db->select("SELECT *
@@ -161,8 +157,12 @@ class Tournament {
 		WHERE
 			`tournament_id` = '".$this->id."'
 		ORDER BY `order` ASC ; ") ;
-		foreach ( $this->players as $i => $player )
+		foreach ( $this->players as $i => $player ) {
+			if ( $this->status < 3 ) { // In an import following a crash, it's dangerous to consider a player ready
+				$player->ready = false ;
+			}
 			$this->players[$i] = new Registration($player, $this) ;
+		}
 		if ( count($this->players) == 0 ) {
 			$this->cancel('No player in import') ;
 			return false ;
@@ -186,8 +186,19 @@ class Tournament {
 			}
 			$this->games[count($this->games)-1][] = new Game($game, 'tournament', $this) ;
 		}
+		// JSON type + Index tournaments list
+		if ( ( $t->status > 5 ) || ( $t->status < 1 ) ) {
+			$status = 'ended_tournament' ;
+		} else if ( $t->status === 1 ) {
+			$status = 'pending_tournament' ;
+		} else {
+			$status = 'running_tournament' ;
+		}
+		$this->type = $status ;
+		$this->observer->{$status}[] = $this ;
 		// Go on
 		$left = strtotime($this->due_time) - time() ;
+		$left += 300 ; // 5 minutes given to players to recover from a crash
 		if ( $left > 0 ) // Some time left in current tournament step
 			$this->timer_goon($left) ;
 		else
@@ -809,15 +820,34 @@ class Tournament {
 	// Websocket communication
 	public function send() {
 		$args = func_get_args() ;
-		$noargs = ( count($args) == 0 ) ;
-		if ( $noargs || in_array('index', $args) )
-			$this->observer->index->broadcast(json_encode($this)) ;
-		if ( $noargs || in_array('tournament', $args) )
+		if ( count($args) < 1 ) {
+			$args = array('index', 'tournament', 'draft', 'build') ;
+		}
+		if ( in_array('index', $args) ) {
+			$msg = json_encode($this) ;
+			if ( $this->min_players > 1 ) {
+				$this->observer->index->broadcast($msg) ;
+			} else {
+				if (
+					(
+						( $this->status === 1 )
+						|| ( $this->status === 2 )
+					)
+					&& ( count($this->players) > 0 )
+				) { // Only send create + redirect to index
+					$this->observer->index->send_first($msg, $this->players[0]->player_id) ;
+				}
+			}
+		}
+		if ( in_array('tournament', $args) ) {
 			$this->observer->tournament->broadcast($this, json_encode($this));
-		if ( $noargs || in_array('draft', $args) )
+		}
+		if ( in_array('draft', $args) ) {
 			$this->observer->draft->broadcast($this, json_encode($this));
-		if ( $noargs || in_array('build', $args) )
+		}
+		if ( in_array('build', $args) ) {
 			$this->observer->build->broadcast($this, json_encode($this));
+		}
 	}
 	// Players connexion management
 	public function player_connect($id, $type) {
