@@ -13,7 +13,7 @@ $imask = param($_GET, 'imask', '') ;
 if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = '' ;
 
-$folder = '../../stats/' ;
+$folder = __dir__ . '/../../stats/' ;
 $file = $folder.$name ;
 
 if ( $exts == '' )

@@ -1,6 +1,6 @@
 <?php
-require_once 'extension.php' ;
-require_once 'includes/card.php' ;
+require_once __dir__ . '/extension.php' ;
+require_once __dir__ . '/../../includes/card.php' ;
 //
 $cards_cache = array() ;
 class Card {

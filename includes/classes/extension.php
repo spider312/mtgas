@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/db.php' ;
-require_once 'includes/classes/card.php' ;
+require_once __dir__ . '/../../includes/db.php' ;
+require_once __dir__ . '/../../includes/classes/card.php' ;
 class Extension {
 	public $id ;
 	public $se ;
