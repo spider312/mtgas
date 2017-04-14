@@ -526,6 +526,8 @@ function manage_text($name, $text, $target) {
 		$target->dredge = intval($matches[1]) ;
 	if ( preg_match('/Scavenge ('.$manacost.')/', $text, $matches) )
 		$target->scavenge = manacost($matches[1]) ;
+	if ( preg_match('/Embalm ('.$manacost.')/', $text, $matches) )
+		$target->embalm = manacost($matches[1]) ;
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
 		$target->vanishing = true ;
@@ -964,7 +966,7 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	if ( preg_match_all('#(?<self>'.strtolower($name).' and )?(?<other>other )?(?<cond>\w*? )?creature(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('#(?<self>'.strtolower($name).' and )?(?<other>other )?(?<cond>\w*? )?(creature)?(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
 			$boost_bf = new stdClass() ;
 			// Main params : amount boosted

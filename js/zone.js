@@ -478,6 +478,7 @@ function graveyard(player) {
 				var dredgesubmenu = new menu_init(this) ;
 				var retracesubmenu = new menu_init(this) ;
 				var scavengesubmenu = new menu_init(this) ;
+				var embalmsubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -505,6 +506,15 @@ function graveyard(player) {
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
+					if ( iss(card.attrs.embalm) ) {
+						var l = embalmsubmenu.addline(card.name+' ('+card.attrs.embalm+')', function(card) {
+							create_token(card.ext, card.name, this.player.battlefield, card.attrs) ;
+							card.changezone(this.player.exile) ;
+						}, card);
+						//var l = cardmenu.addline(txt, create_token, ext, name, zone, attrs, tokens[i].nb) ;
+						//l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
 				}
 				var addline = false ;
 				if ( creatsubmenu.items.length > 0 ) {
@@ -525,6 +535,10 @@ function graveyard(player) {
 				}
 				if ( scavengesubmenu.items.length > 0 ) {
 					menu.addline('Scavenge ('+scavengesubmenu.items[0].length+')', scavengesubmenu) ;
+					addline = true ;
+				}
+				if ( embalmsubmenu.items.length > 0 ) {
+					menu.addline('Embalm ('+embalmsubmenu.items[0].length+')', embalmsubmenu) ;
 					addline = true ;
 				}
 				if ( addline )
