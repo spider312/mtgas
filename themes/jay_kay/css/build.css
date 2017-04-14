@@ -145,17 +145,14 @@ td.th {
 	position: absolute;
 	transition-property: transform ; /* Transition makes mouse hovers zoom and 'leave' main_div
 	and add a laggy effect, use it only for rotate */
-	z-index: 11 ;
-}
-#zoom > img {
-	z-index: 12 ;
+	z-index: 11 ; /* Required for second image */
 }
 #zoom.split {
 	transform: rotate(90deg) translate(-52px, -52px) ;
 }
 #zoom .aftermath {
 	position: relative;
-	left: -203px ;
+	left: -145px ;
 	transform: scale(1.29, 1.29) rotate(-90deg) ;
 	z-index: -1;
 }
@@ -168,7 +165,6 @@ td.th {
 }
 #zoom .flip {
 	transform: rotate(180deg) ;
-
 }
 /* Small image resolution*/
 .smallres .card {
