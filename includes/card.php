@@ -331,10 +331,17 @@ class attrs {
 							$this->split = $split ;
 							manage_all_text($arr['name'], implode("\n", $matches), $this) ;
 							// Apply colors to initial card
-							foreach ( $split->manas as $mana ) // mana symbols
-								if ( ! isint($mana) ) // Is a mana
-									if ( $mana != 'X' ) // X is worth 0 and no color
+							foreach ( $split->manas as $mana ) { // mana symbols
+								if ( ! isint($mana) ) { // Is a mana
+									if ( $mana != 'X' ) { // X is worth 0 and no color
 										$this->add_color($mana) ;
+									}
+								}
+							}
+							// Apply aftermath
+							if ( property_exists($split, 'aftermath') ) {
+								$this->aftermath = $split->aftermath ;
+							}
 						}
 					} else
 						manage_all_text($arr['name'], $arr['text'], $this) ;
@@ -528,6 +535,9 @@ function manage_text($name, $text, $target) {
 		$target->scavenge = manacost($matches[1]) ;
 	if ( preg_match('/Embalm ('.$manacost.')/', $text, $matches) )
 		$target->embalm = manacost($matches[1]) ;
+	if ( preg_match('/Aftermath/', $text, $matches) ) {
+		$target->aftermath = implode($target->split->manas);
+	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
 		$target->vanishing = true ;

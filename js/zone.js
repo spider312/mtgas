@@ -479,6 +479,7 @@ function graveyard(player) {
 				var retracesubmenu = new menu_init(this) ;
 				var scavengesubmenu = new menu_init(this) ;
 				var embalmsubmenu = new menu_init(this) ;
+				var aftermathsubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -511,10 +512,14 @@ function graveyard(player) {
 							create_token(card.ext, card.name, this.player.battlefield, card.attrs) ;
 							card.changezone(this.player.exile) ;
 						}, card);
-						//var l = cardmenu.addline(txt, create_token, ext, name, zone, attrs, tokens[i].nb) ;
-						//l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
+					if ( iss(card.attrs.aftermath) ) {
+						var l = aftermathsubmenu.addline(card.name+' ('+card.attrs.aftermath+')', card.changezone, this.player.battlefield) ;
+						l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
+
 				}
 				var addline = false ;
 				if ( creatsubmenu.items.length > 0 ) {
@@ -539,6 +544,10 @@ function graveyard(player) {
 				}
 				if ( embalmsubmenu.items.length > 0 ) {
 					menu.addline('Embalm ('+embalmsubmenu.items[0].length+')', embalmsubmenu) ;
+					addline = true ;
+				}
+				if ( aftermathsubmenu.items.length > 0 ) {
+					menu.addline('Aftermath ('+aftermathsubmenu.items[0].length+')', aftermathsubmenu) ;
 					addline = true ;
 				}
 				if ( addline )
