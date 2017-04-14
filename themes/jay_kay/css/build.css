@@ -148,18 +148,20 @@ td.th {
 	z-index: 11 ;
 }
 #zoom > img {
-	position: absolute;
 	z-index: 12 ;
 }
 #zoom.split {
 	transform: rotate(90deg) translate(-52px, -52px) ;
 }
 #zoom .aftermath {
-	transform: scale(1.29, 1.29) rotate(-90deg) translate(0px, 82px);
+	position: relative;
+	left: -203px ;
+	transform: scale(1.29, 1.29) rotate(-90deg) ;
 	z-index: -1;
 }
 .smallres #zoom .aftermath {
-	transform: scale(1.29, 1.29) rotate(-90deg) translate(0px, 66px);
+	transform: scale(1.29, 1.29) rotate(-90deg) ;
+	left: -117px ;
 }
 #zoom.split.displaytop { /* When displayed on top of mouse */
 	transform: rotate(90deg) translate(52px, -52px) ;
