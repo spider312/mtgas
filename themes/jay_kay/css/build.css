@@ -150,6 +150,10 @@ td.th {
 #zoom.split {
 	transform: rotate(90deg) translate(-52px, -52px) ;
 }
+#zoom .aftermath {
+	transform: scale(1.3, 1.3) rotate(-90deg) translate(0px, -89px);
+	z-index: -1;
+}
 #zoom.split.displaytop { /* When displayed on top of mouse */
 	transform: rotate(90deg) translate(52px, -52px) ;
 }

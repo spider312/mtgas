@@ -526,8 +526,9 @@ function Card(card) {
 			div.classList.add(card.rarity) ;
 			div.card = this ;
 			div.transformed_url = '' ;
-			if ( iso(card.attrs.split) )
+			if ( iso(card.attrs.split) && ! iss(card.attrs.aftermath) ) {
 				div.classList.add('split') ;
+			}
 			// Image loading
 			var urls = card_images(card_image_url(this.card.ext_img, this.card.name, this.card.attrs.nb)) ;
 			game.image_cache.load(urls, function(img, div) {
@@ -571,9 +572,12 @@ function Card(card) {
 		if ( alt.src != '' )
 			alt.src = '' ;
 		// Split
-		if ( iso(card.attrs.split) )
+		if ( iss(card.attrs.aftermath) ) {
+			alt.src = div.card.img.src ;
+			alt.classList.add('aftermath') ;
+		} else if ( iso(card.attrs.split) ) {
 			zoom.classList.add('split') ;
-		else
+		} else
 			zoom.classList.remove('split') ;
 		// Flip
 		if ( iso(card.attrs.flip_attrs) ) {
