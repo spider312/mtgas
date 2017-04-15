@@ -977,7 +977,7 @@ function manage_text($name, $text, $target) {
 	}*/
 	// All creatures booster (crusade like)
 	$debug = 0;
-	if ( preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?) (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if ( preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?)? get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
 			if ( $debug ) print_r($match) ;
 			$cond = trim($match['cond']) ;
@@ -1013,11 +1013,13 @@ function manage_text($name, $text, $target) {
 			}
 			// Whose creatures are affected
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
-			if ( $match['control'] == 'you control ' ) { // Yours
+			if ( strpos($cond, ' you control') > -1 ) { // Yours
 				$boost_bf->control = 1 ;
+				$cond = str_replace(' you control', '', $cond) ;
 			}
-			if ( $match['control'] == 'your opponents control ' ) { // Your opponent's
+			if ( strpos($cond, ' your opponents control') > -1 ) { // Your opponent's
 				$boost_bf->control = -1 ;
+				$cond = str_replace(' your opponents control', '', $cond) ;
 			}
 			// Conditions (creature type, color ...)
 			$tokens = explode(' ', $cond);
@@ -1049,15 +1051,16 @@ function manage_text($name, $text, $target) {
 									$boost_bf->enabled = false; // Let player manage it manually on permanents
 								}
 								// In this case, only one player may be affected, try to guess it based on power boost
-								if ( 2*$boost_bf->pow + $boost_bf->tou < 0 ) {
-									$boost_bf->control = -1 ;
-								} else {
-									$boost_bf->control = 1 ;
+								if ( $boost_bf->control == 0 ) {
+									if ( 2*$boost_bf->pow + $boost_bf->tou < 0 ) {
+										$boost_bf->control = -1 ;
+									} else {
+										$boost_bf->control = 1 ;
+									}
 								}
 								break;
 							// Words to ignore, too generic or unreproductible clientside
 							case 'you':
-							case 'control':
 							case 'and':
 							case 'all':
 							case 'creature':
