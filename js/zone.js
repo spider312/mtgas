@@ -509,7 +509,9 @@ function graveyard(player) {
 					}
 					if ( iss(card.attrs.embalm) ) {
 						var l = embalmsubmenu.addline(card.name+' ('+card.attrs.embalm+')', function(card) {
-							create_token(card.ext, card.name, this.player.battlefield, card.attrs) ;
+							let attrs = JSON.parse(JSON.stringify(card.attrs));
+							attrs.subtypes.push('zombie') ;
+							create_token(card.ext, card.name, this.player.battlefield, attrs) ;
 							card.changezone(this.player.exile) ;
 						}, card);
 						l.moimg = card.imgurl() ;
