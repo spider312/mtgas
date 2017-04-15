@@ -1139,7 +1139,6 @@ function manage_text($name, $text, $target) {
 					continue;
 				}
 				$eot = ( strpos($match['attrs'], 'until end of turn') !== false ) ;
-				$eot += 0 ; // Transtype to integer for backward compatibility
 				global $creat_attrs ;
 				foreach ( $creat_attrs as $creat_attr )
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
