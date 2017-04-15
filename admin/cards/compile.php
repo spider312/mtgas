@@ -32,8 +32,10 @@ while ( $arr = mysql_fetch_array($query) ) {
 		$nb++ ;
 		echo '<tr>' ;
 		echo '<td><a href="card.php?id='.$arr['id'].'">'.$arr['name'].'</td>' ;
-		echo '<td><pre>'.print_r(obj_diff(json_decode($arr['attrs']), $attrs_obj), true).'</pre></td>';
-		echo '<td><pre>'.print_r(obj_diff($attrs_obj, json_decode($arr['attrs'])), true).'</pre></td>';
+		$diff = obj_diff(json_decode($arr['attrs']), $attrs_obj) ;
+		echo '<td title="'.str_replace('"', "'", JSON_encode($diff)).'"><pre>'.print_r($diff, true).'</pre></td>';
+		$diff = obj_diff($attrs_obj, json_decode($arr['attrs'])) ;
+		echo '<td title="'.str_replace('"', "'", JSON_encode($diff)).'"><pre>'.print_r($diff, true).'</pre></td>';
 		if ( $apply ) {
 			query("UPDATE
 				card
