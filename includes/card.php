@@ -1148,11 +1148,12 @@ function manage_text($name, $text, $target) {
 			}
 			$boost_bf->eot = $eot ;
 			if ( ! isset($boost_bf->enabled) ) { // Not already set
-				if ( !isset($target->permanent) // Not a card type : emblem (Elspeth, Sorin)
-					|| $target->permanent ) // On permanents, boost_bf_eot are activated (ex: Garruk)
-					$boost_bf->enabled = ! $boost_bf->eot ; // then should not been enabled by default
-				else // On spells (ex: Overrun)
-					$boost_bf->enabled = true ; // enabled by default
+				if ( isset($target->permanent) && ( $target->permanent === false ) ) { // Spells (ex: Overrun)
+					$boost_bf->enabled = true; // enabled by default
+				} else {
+					// Not a card type (emblem) or permanent
+					$boost_bf->enabled = ! $boost_bf->eot ; // boost_bf_eot are activated (ex: Garruk), then should not been enabled by default
+				}
 			}
 			$target->boost_bf[] = $boost_bf ;
 		}
