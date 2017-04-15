@@ -40,7 +40,6 @@ $card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
 $card_dom = new DOMDocument;
 for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$frimg = null ;
-	$trtext = 'Uninitialized' ;
 	$trimg = 'void' ;
 	$frtrimg = null ;
 	// Link
@@ -128,8 +127,6 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
 		$rarity = $rarities[$rarity_id] ;
 	}
-	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
-		$rarity = 'L' ;
 // Token
 	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::*") ; // HTML Element following table containing card navigator
 	$myel = $form_node->item(0);
@@ -148,7 +145,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 					$nb_token_expected = $nbt ;
 				}
 				if ( $nbt != $nb_token_expected ) {
-					$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt) ;
+					$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt, $href) ;
 				}
 				$pow = '' ; $tou = '' ;
 				if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
@@ -170,6 +167,12 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
+	}
+	$exceptions = [297, 305] ; // Cards wrongly declared as nontoken on source during "hot" import. Current : AKH
+	if ( array_search($number, $exceptions) !== false ) {
+		$nb_token_found++ ;
+		$importer->addtoken($href, $name, $pow, $tou, $img) ;
+		continue;
 	}
 // Required for cards
 	// Cost
@@ -200,6 +203,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}
 	$types = trim($types) ;
 	$types = str_replace(chr(194).chr(151), '-', $types) ;
+	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
+		$rarity = 'L' ;
 	// Text
 	$text_nodes = $card_xpath->query("//div[@class='S12' or @class='S11']") ; //div[@id='EngShort']
 	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
@@ -214,11 +219,11 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}*/
 	$second_text = '' ;
 	switch ( $text_nodes_length ) {
-		case 6 : // Transform
-			$trtext = $text_nodes->item($text_nodes->length-2)->C14N() ;
-			$trtext = mv2txt($trtext) ;
+		case 6 : // Split / Aftermath + Transform ?
+			$second_text = $text_nodes->item($text_nodes->length-2)->C14N() ;
+			$second_text = mv2txt($second_text) ;
 		case 3 : // Normal case
-			$text = $text_nodes->item($us_idx+1)->C14N() ;
+			$text = $text_nodes->item(2)->C14N() ;
 			$text = mv2txt($text) ;
 			$text = str_replace(chr(194), '', $text) ; // Strange char appearing before - and * in modal and keywords
 			$text = str_replace(chr(160), ' ', $text) ; // Repair bug due to correction above
@@ -236,11 +241,11 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		case 8 : // Double face, moon is a planeswalker
 			if ( $pt == '' ) { // Sun is a planeswalker (ISD Garruk, SOI Arlinn Kord)
 				$text = mv_planeswalker($text_nodes, 4) ;
-				$trtext = mv_planeswalker($text_nodes, 6);
+				$second_text = mv_planeswalker($text_nodes, 6);
 			} else { // Sun is a creature (ORI Planeswalkers)
 				$text = $text_nodes->item(4)->C14N() ;
 				$text = $pt."\n".mv2txt($text) ;
-				$trtext = mv_planeswalker($text_nodes, 5);
+				$second_text = mv_planeswalker($text_nodes, 5);
 			}
 			break ;
 		default :
@@ -291,7 +296,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		}
 		// Text & PT : managed in sun face text & PT managements
 		if ( $trpt != '' )
-			$trtext = $trpt."\n".$trtext ;
+			$second_text = $trpt."\n".$second_text ;
 		// Image
 		if ( preg_match('#if \(bflst==1\) \{document\["BIGflippic"\].src="(.*?)";bflst=2;\}#', $card_html, $matches) )
 			$trimg = $matches[1] ;
@@ -304,7 +309,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			card_name_sanitize($trname)
 			, $trcolor
 			, $trtypes
-			, $trtext
+			, $second_text
 			, $base_url.$trimg
 		) ;
 		if ( $frtrimg != null )
@@ -315,7 +320,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 
 //$importer->nbcards -= $nb_token_found ;
 if ( $nb_token_expected !== $nb_token_found ) {
-	echo "$nb_token_found tokens found despide $nb_token_expected expected\n" ;
+	echo "$nb_token_found tokens found despite $nb_token_expected expected\n" ;
 }
 
 function mv_planeswalker($text_nodes, $text_idx) {
