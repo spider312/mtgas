@@ -403,7 +403,7 @@ function manage_types($type, $target) {
 	foreach ( explode(' ', $type) as $type ) {
 		if ( array_search($type, $cardtypes) !== false ) {
 			$target->types[] = $type ;
-			if ( array_search($type, $permtypes) )
+			if ( array_search($type, $permtypes) !== false )
 				$target->permanent = true ;
 		} else
 			$target->supertypes[] = $type ;
