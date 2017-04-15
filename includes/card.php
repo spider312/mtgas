@@ -976,70 +976,182 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	if ( preg_match_all('#(?<self>'.strtolower($name).' and )?(?<other>other )?(?<cond>\w*? )?(creature)?(?<token> token)?s (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	$debug = 0;
+	if ( preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?) (?<control>(you|your opponents) control )?get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
 		foreach ( $matches as $match ) {
+			if ( $debug ) print_r($match) ;
+			$cond = trim($match['cond']) ;
+			$cond = str_replace('may have ', '', $cond);
+			// Cards / effetcs not manageable
+			$badConds = array('they each', 'you noted') ;
+			foreach ( $badConds as $badCond ) {
+				if ( strpos($cond, $badCond) !== false ) {
+					if ( $debug ) echo "Cond : $badCond\n" ;
+					continue 2;
+				}
+			}
+			$badPreconds = array('you noted', 'target creature');
+			foreach ( $badPreconds as $badPrecond ) {
+				if ( strpos($match['precond'], $badPrecond) !== false ) {
+					if ( $debug ) echo "Precond : $badPrecond\n" ;
+					continue 2;
+				}
+			}
 			$boost_bf = new stdClass() ;
-			// Main params : amount boosted
+			// Amount boosted
 			$boost_bf->pow = intval($match['pow']) ;
 			$boost_bf->tou = intval($match['tou']) ;
-			// Secondary params :boost self, boost only creatures controled by its controler
-			$boost_bf->self = ( $match['self'] != '' ) || ( $match['other'] != 'other ' );
+			// Shall it affect self (invert "other")
+			$boost_bf->self = true ;
+			if ( strpos($cond, 'other ') > -1 ) {
+				$boost_bf->self = false ;
+				$cond = str_replace('other ', '', $cond) ;
+			}
+			if ( strpos($cond, strtolower($name)) > -1 ) {
+				$boost_bf->self = true;
+				$cond = str_replace(strtolower($name).' ', '', $cond) ;
+			}
+			// Whose creatures are affected
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
-			if ( $match['control'] == 'you control ' ) // Only creatures you control
+			if ( $match['control'] == 'you control ' ) { // Yours
 				$boost_bf->control = 1 ;
-			if ( $match['control'] == 'your opponents control ' ) // Just opponent's ones
+			}
+			if ( $match['control'] == 'your opponents control ' ) { // Your opponent's
 				$boost_bf->control = -1 ;
+			}
 			// Conditions (creature type, color ...)
-			$cond = trim($match['cond']) ;
-			switch ( $cond ) {
-				// Sipmply parsable condition
-				case '': // No "base" condition (example : "creature tokens you control get +1/+1")
-					if ( $match['token'] === ' token' ) { // 'creature(?<token> token)?s' : token detected
-						$boost_bf->cond = 'class=token' ;
-					}
-					break ;
-				case 'nontoken': // Hardcoded non token object
-					$boost_bf->cond = 'class=card' ;
-					break ;
-				// Complex condition, parse it
-				default:
-					$ci = array_search($cond, $colors) ;
+			$tokens = explode(' ', $cond);
+			if ( $debug ) print_r($tokens);
+			$type_cond = array() ;
+			foreach ( $tokens as $i => $token ) {
+					$ci = array_search($token, $colors) ;
 					// Color selector
 					if ( $ci !== false ) {
 						$boost_bf->cond = "color=$ci" ;
 					} else {
-						// Types selector
-						$types = explode(' and ', $cond) ;
-						$type_cond = array() ;
-						foreach ( $types as $i => $type ) {
-							switch ( $type ) {
-								case 'artifact' : // Is a card type, not a creature type
-									$type_cond[] = "type=$type" ;
-									break ;
-								case 'all' : // Should not be considered as a creature type, it's a leak of condition
-									break ;
-								default : // Default case : it's a creature type
-									$type_cond[] = "ctype=$type" ;
-							}
-						}
-						if ( count($type_cond) > 0 ) {
-							$boost_bf->cond = implode('|', $type_cond) ;
+						switch ( $token ) {
+							// Class
+							case 'tokens':
+								$type_cond[] = "class=token" ;
+								break ;
+							case 'nontoken':
+								$type_cond[] = "class=card" ;
+								break ;
+							// Card type, not creature type
+							case 'artifact' :
+							case 'land' :
+								$type_cond[] = "type=$token" ;
+								break ;
+							// Special case for attacking and blocking
+							case 'attacking':
+							case 'blocking':
+								if ( $target->permanent ) { // Instants/sorceries should still be enabled by default
+									$boost_bf->enabled = false; // Let player manage it manually on permanents
+								}
+								// In this case, only one player may be affected, try to guess it based on power boost
+								if ( 2*$boost_bf->pow + $boost_bf->tou < 0 ) {
+									$boost_bf->control = -1 ;
+								} else {
+									$boost_bf->control = 1 ;
+								}
+								break;
+							// Words to ignore, too generic or unreproductible clientside
+							case 'you':
+							case 'control':
+							case 'and':
+							case 'all':
+							case 'creature':
+							case 'creatures':
+							case 'those': // A condition was probably specified before this boost
+							case 'they':
+							case 'gets':
+							case '+2/+2':
+							case 'instead':
+							case '*': // Bug in modal spells
+								break ;
+							// Words that indicate a condition too specific to be managed, a generic boost_bf will be added
+							case 'counters':
+								$type_cond = array() ; // Also cancels previous conditions
+								break 2 ;
+							case 'defending':
+								$boost_bf->control = -1;
+								$type_cond = array() ; // Also cancels previous conditions
+								break 2 ;
+							case 'enchanted':
+								if ( ( $i+1 < count($tokens)) && ( $tokens[$i+1] === 'player' ) ) { // If the spell target a player, consider self
+									$boost_bf->control = 1;
+									$type_cond = array() ; // Also cancels previous conditions
+									break 2 ;
+								} else {
+									break 3 ;
+								}
+							// Words that indicate no boost_bf shall be created
+							case 'target':
+								if ( $tokens[$i+1] === 'player' ) { // If the spell target a player, consider self
+									$type_cond = array() ; // Also cancels previous conditions
+									break 2 ;
+								} else { // This probably catched a trigger, we're in a state based rule management
+									break 3 ;
+								}
+							case 'with': // Maybe a little bit strong
+							case 'without':
+							/*
+							case 'flying': // Conditions unmanageable client side and too specific for a boost_bf
+							case 'flanking':
+							case 'shadow':
+							case 'infect':
+							case 'greater':
+							*/
+							case 'named':
+							case 'face-down':
+							case 'type':
+							case 'chosen': // Depending on a choice, can't be managed by boost_bf
+							case 'choice':
+							case 'chose':
+								break 3 ;
+							// Default case : it's a creature type
+							default :
+								// Non-
+								if ( substr($token, 0, 4) === 'non-') {
+									$token = substr($token, 4);
+									break 3; // For now, those cards are managed by manually adding 2 boost BF
+								}
+								// Plurals - Specific
+								switch ( $token ) {
+									case 'dwarves': 
+										$token = 'dwarf';
+										break ;
+								}
+								// Plurals - Generic
+								if ( substr($token, -1) === 's' ) {
+									$token = substr($token, 0, -1) ;
+								}
+								$type_cond[] = "ctype=$token" ;
 						}
 					}
 			}
+			if ( count($type_cond) > 0 ) {
+				$boost_bf->cond = implode('|', $type_cond) ;
+			}
 			$eot = false ;
 			if ( array_key_exists('attrs', $match) ) {
-				$eot = preg_match('/ until end of turn/', $match['attrs']) ;
+				if ( strpos($match['attrs'], 'for each') ) {
+					continue;
+				}
+				$eot = ( strpos($match['attrs'], 'until end of turn') !== false ) ;
+				$eot += 0 ; // Transtype to integer for backward compatibility
 				global $creat_attrs ;
 				foreach ( $creat_attrs as $creat_attr )
 					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
 			}
 			$boost_bf->eot = $eot ;
-			if ( !isset($target->permanent) // Not a card type : emblem (Elspeth, Sorin)
-				|| $target->permanent ) // On permanents, boost_bf_eot are activated (ex: Garruk)
-				$boost_bf->enabled = ! $boost_bf->eot ; // then should not been enabled by default
-			else // On spells (ex: Overrun)
-				$boost_bf->enabled = true ; // enabled by default
+			if ( ! isset($boost_bf->enabled) ) { // Not already set
+				if ( !isset($target->permanent) // Not a card type : emblem (Elspeth, Sorin)
+					|| $target->permanent ) // On permanents, boost_bf_eot are activated (ex: Garruk)
+					$boost_bf->enabled = ! $boost_bf->eot ; // then should not been enabled by default
+				else // On spells (ex: Overrun)
+					$boost_bf->enabled = true ; // enabled by default
+			}
 			$target->boost_bf[] = $boost_bf ;
 		}
 	}
