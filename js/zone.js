@@ -509,7 +509,7 @@ function graveyard(player) {
 					}
 					if ( iss(card.attrs.embalm) ) {
 						var l = embalmsubmenu.addline(card.name+' ('+card.attrs.embalm+')', function(card) {
-							let attrs = JSON.parse(JSON.stringify(card.attrs));
+							var attrs = JSON.parse(JSON.stringify(card.attrs));
 							attrs.subtypes.push('zombie') ;
 							create_token(card.ext, card.name, this.player.battlefield, attrs) ;
 							card.changezone(this.player.exile) ;
