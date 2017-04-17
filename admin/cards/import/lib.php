@@ -466,24 +466,25 @@ class ImportExtension {
 			}
 			// Token is an emblem
 			if ( preg_match('/Emblem (.*)/', $name, $matches) ) {
+				$emblemname = trim($matches[1]) ; // May be just the type or the full name
 				$found = false ;
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
 					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
-					if ( $matches[1] == $card->name ) {
+					if ( $emblemname === $card->name ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
 					}
 					// Check card subtype
-					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($matches[1]) ) ) {
+					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($emblemname) ) ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
 					}
 					// Check transform subtype
-					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($matches[1]) ) ) {
+					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($emblemname) ) ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->transformed_attrs->subtypes[0] ;
 						break ;
