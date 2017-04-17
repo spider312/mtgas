@@ -578,120 +578,6 @@ function manage_text($name, $text, $target) {
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
 		$target->no_untap = true ;
-		// Upkeep trigger
-	if ( preg_match('/^(?<keyword>.*? - )?At the beginning of (?<step>.*?)( or (?<alt>.*?))?, (?<action>.*)/', $text, $matches) ) {
-		//if ( $matches['alt'] != '' )
-		//	echo 'Alternative : '.$matches['alt']."\n" ;
-		$words = explode(' ', $matches['step']) ;
-		// Filter words useless for parsing
-		$words = array_filter($words, function($k) {
-			$filter = array('step', 'phase', 'precombat', 'next') ;
-			return ! in_array($k, $filter) ;
-		}) ;
-		$player = null ; // Self, opponent, both
-		$step = '' ;
-		switch ( $words[0] ) { // Read first word and try to guess player
-			case 'each' :
-				array_shift($words) ;
-				switch ( $words[0] ) {
-					case "opponent's" :
-						$player = -1 ;
-						array_shift($words) ;
-						break ;
-					case "player's" :
-						$player = 0 ;
-						array_shift($words) ;
-						break ;
-					case "other" :
-						$player = -1 ;
-						array_shift($words) ;
-						if ( $words[0] == "player's" )
-							array_shift($words) ;
-						break ;
-					case "of" :
-						array_shift($words) ;
-						$sent = implode(' ', $words) ;
-						if ( $sent == 'that player\'s upkeeps' ) {
-							$player = -1 ;
-							$step = 'upkeep' ;
-						} else if ( $sent == 'your main phases' ) {
-							$player = 1 ;
-							$step = 'main' ;
-						}
-					default : 
-						$player = 0 ;
-						//echo 'Unknown step : '.$name.' : '.implode(' ', $words)."\n" ;
-				}
-				if ( $step == '' ) {
-					if ( $words[0] == 'first' ) {
-						continue ;
-					}
-					if ( count($words) == 1 ) {
-						$step = $words[0] ;
-					} else {
-						msg('"At the begining of each" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
-					}
-				}
-				break ;
-			case 'your' :
-				$player = 1 ;
-				array_shift($words) ;
-				if ( $words[0] == 'first' ) {
-					continue ;
-				}
-				if ( count($words) == 1 ) {
-					$step = $words[0] ;
-				} else {
-					//msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
-				}
-				break ;
-			case 'the' :
-				array_shift($words) ;
-				if ( $words[0] == 'first' )
-					continue ;
-				else if ( $matches['step'] == 'the chosen player\'s upkeep' ) {
-					$player = -1 ;
-					$step = 'upkeep' ;
-				} else if ( count($words) == 1 ) {
-					$step = $words[0] ;
-					$player = 1 ;
-				} else if ( $words[1] == 'of' ) {
-					$step = $words[0] ;
-					$player = 2 ;
-				} else 
-					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
-				break ;
-			case 'combat' :
-				$step = 'combat' ;
-				switch ( $matches['step'] ) {
-					case 'combat on your turn':
-						$player = 1 ;
-						break ;
-					case 'combat on each opponent\'s turn':
-						$player = 0 ;
-						break ;
-					default:
-						echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
-				}
-				break ;
-			case 'enchanted' :
-				$player = -1 ;
-				$step = 'upkeep' ;
-				break ;
-			default : 
-				echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
-		}
-		if ( ! in_array($step, array('upkeep', 'draw', 'main', 'combat', 'end', '')) )
-			echo "Unknown step : $name - $step $player\n" ;
-	} /*else if ( preg_match('/At the beginning of (?<step>.*?), (?<action>.*)/', $text, $matches) )
-		echo "[$text]\n" ;*/
-	if ( preg_match('/At the beginning of your( next)? upkeep, (.*)/', $text, $matches) )
-		$target->trigger_upkeep = stripslashes($matches[2]) ;
-	if ( preg_match('/At the beginning of the upkeep of (\w*) (\w*)\'s controller, (.*)/', $text, $matches) ) {
-		if ( ! isset($target->bonus) )
-			$target->bonus = new stdClass() ;
-		$target->bonus->trigger_upkeep = stripslashes($matches[3]) ;
-	}
 	// Add mana
 	global $basic_lands ;
 	if ( property_exists($target, 'subtypes') ) // Basic land types in subtypes
@@ -767,10 +653,6 @@ function manage_text($name, $text, $target) {
 			}
 		}
 	}
-	// Creature attributes (permanent attributes for exalt)
-	global $creat_attrs ;
-	foreach ( $creat_attrs as $creat_attr )
-		apply_creat_attrs($text, $creat_attr, $target) ;
 	// Type-specific
 		// Planeswalkers are managed in "all lines"
 		// Creatures : pow, thou, lifelink ...
@@ -830,7 +712,7 @@ function manage_text($name, $text, $target) {
 		// Conditionnal mono boost (+1/+2 as long as ...)
 		if (
 			( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) 
-			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'/', $text, $matches ) )
+			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'( and (?<attrs>.*)?)/', $text, $matches ) )
 		) { // Single
 			$what = strtolower($matches['what']) ;
 			if ( preg_match('/(?<who>.*?) controls? (?<what>.*)/', $what, $m) ) {
@@ -873,7 +755,11 @@ function manage_text($name, $text, $target) {
 						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
 				}
 				if ( $powtoucond !== null ) {
+					if ( isset($matches['attrs']) ) {
+						apply_all_creat_attrs($powtoucond, $matches['attrs']) ;
+					}
 					$target->powtoucond = $powtoucond ;
+					return;
 				}
 			} /*else
 				msg(' * '.$name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;*/
@@ -892,10 +778,8 @@ function manage_text($name, $text, $target) {
 					$target->bonus = new stdClass() ;
 				$target->bonus->pow = intval($matches['pow']) ;
 				$target->bonus->tou = intval($matches['tou']) ;
-				global $creat_attrs ;
-				foreach ( $creat_attrs as $creat_attr ) { // Also parse keywords such as vigilance, lifelink ...
-					apply_creat_attrs($matches['after'], $creat_attr, $target->bonus) ;
-				}
+				apply_all_creat_attrs($target->bonus, $matches['after']) ;
+				return;
 			}
 		}
 	}
@@ -937,12 +821,10 @@ function manage_text($name, $text, $target) {
 				$token->attrs->tapped = true ;
 			}
 			if ( isset($matches['attrs']) ) {
-				global $creat_attrs ;
-				foreach ( $creat_attrs as $creat_attr ) {
-					apply_creat_attrs($matches['attrs'], $creat_attr, $token->attrs) ;
-				}
+				apply_all_creat_attrs($token->attrs, $matches['attrs']) ;
 			}
 			$target->tokens[] = $token ;
+			return;
 		}
 	}
 	// Investigate / Clues
@@ -1148,9 +1030,7 @@ function manage_text($name, $text, $target) {
 					continue;
 				}
 				$eot = ( strpos($match['attrs'], 'until end of turn') !== false ) ;
-				global $creat_attrs ;
-				foreach ( $creat_attrs as $creat_attr )
-					apply_creat_attrs($match['attrs'], $creat_attr, $boost_bf) ;
+				apply_all_creat_attrs($boost_bf, $match['attrs']) ;
 			}
 			$boost_bf->eot = $eot ;
 			if ( ! isset($boost_bf->enabled) ) { // Not already set
@@ -1162,6 +1042,7 @@ function manage_text($name, $text, $target) {
 				}
 			}
 			$target->boost_bf[] = $boost_bf ;
+			return;
 		}
 	}
 	// Animate
@@ -1204,10 +1085,9 @@ function manage_text($name, $text, $target) {
 				$animated->changeling = true ;
 				$rest = $ch['before'].$ch['after'] ;
 			}
-			global $creat_attrs ;
-			foreach ( $creat_attrs as $creat_attr )
-				apply_creat_attrs($m['after'], $creat_attr, $animated) ;
+			apply_all_creat_attrs($animated, $m['after']) ;
 			$target->animate[] = $animated ;
+			return;
 		}// else // Figure of destiny (is already a creature)
 			//echo '['.$rest.']<br>' ;
 	}
@@ -1224,6 +1104,123 @@ function manage_text($name, $text, $target) {
 			msg('powthou error for "Crew" '.$name.' : ['.$target->text[0].']') ;
 		}
 	}
+	// After all rules that may detect those keywords are managed and have cut this function's execution
+		// Upkeep trigger - TODO : apply this on a target such as creat attrs, in order this work via bonus/token/powtoucond/whatever
+	if ( preg_match('/^(?<keyword>.*? - )?At the beginning of (?<step>.*?)( or (?<alt>.*?))?, (?<action>.*)/', $text, $matches) ) {
+		$words = explode(' ', $matches['step']) ;
+		// Filter words useless for parsing
+		$words = array_filter($words, function($k) {
+			$filter = array('step', 'phase', 'precombat', 'next') ;
+			return ! in_array($k, $filter) ;
+		}) ;
+		$player = null ; // Self, opponent, both
+		$step = '' ;
+		switch ( $words[0] ) { // Read first word and try to guess player
+			case 'each' :
+				array_shift($words) ;
+				switch ( $words[0] ) {
+					case "opponent's" :
+						$player = -1 ;
+						array_shift($words) ;
+						break ;
+					case "player's" :
+						$player = 0 ;
+						array_shift($words) ;
+						break ;
+					case "other" :
+						$player = -1 ;
+						array_shift($words) ;
+						if ( $words[0] == "player's" )
+							array_shift($words) ;
+						break ;
+					case "of" :
+						array_shift($words) ;
+						$sent = implode(' ', $words) ;
+						if ( $sent == 'that player\'s upkeeps' ) {
+							$player = -1 ;
+							$step = 'upkeep' ;
+						} else if ( $sent == 'your main phases' ) {
+							$player = 1 ;
+							$step = 'main' ;
+						}
+					default : 
+						$player = 0 ;
+						//echo 'Unknown step : '.$name.' : '.implode(' ', $words)."\n" ;
+				}
+				if ( $step == '' ) {
+					if ( $words[0] == 'first' ) {
+						continue ;
+					}
+					if ( count($words) == 1 ) {
+						$step = $words[0] ;
+					} else {
+						msg('"At the begining of each" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+					}
+				}
+				break ;
+			case 'your' :
+				$player = 1 ;
+				array_shift($words) ;
+				if ( $words[0] == 'first' ) {
+					continue ;
+				}
+				if ( count($words) == 1 ) {
+					$step = $words[0] ;
+				} else {
+					//msg('"At the begining of your" multiple words left : '.$name.' : '.implode(' ', $words).' / '.$matches['step']) ;
+				}
+				break ;
+			case 'the' :
+				array_shift($words) ;
+				if ( $words[0] == 'first' )
+					continue ;
+				else if ( $matches['step'] == 'the chosen player\'s upkeep' ) {
+					$player = -1 ;
+					$step = 'upkeep' ;
+				} else if ( count($words) == 1 ) {
+					$step = $words[0] ;
+					$player = 1 ;
+				} else if ( $words[1] == 'of' ) {
+					$step = $words[0] ;
+					$player = 2 ;
+				} else 
+					echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				break ;
+			case 'combat' :
+				$step = 'combat' ;
+				switch ( $matches['step'] ) {
+					case 'combat on your turn':
+						$player = 1 ;
+						break ;
+					case 'combat on each opponent\'s turn':
+						$player = 0 ;
+						break ;
+					default:
+						echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+				}
+				break ;
+			case 'enchanted' :
+				$player = -1 ;
+				$step = 'upkeep' ;
+				break ;
+			default : 
+				echo 'Unknown step : '.$name.' : '.$matches['step']."\n" ;
+		}
+		if ( ! in_array($step, array('upkeep', 'draw', 'main', 'combat', 'end', '')) )
+			echo "Unknown step : $name - $step $player\n" ;
+	}
+	if ( preg_match('/At the beginning of your( next)? upkeep, (.*)/', $text, $matches) ) {
+		$target->trigger_upkeep = stripslashes($matches[2]) ;
+		return;
+	}
+	if ( preg_match('/At the beginning of the upkeep of (\w*) (\w*)\'s controller, (.*)/', $text, $matches) ) {
+		if ( ! isset($target->bonus) )
+			$target->bonus = new stdClass() ;
+		$target->bonus->trigger_upkeep = stripslashes($matches[3]) ;
+		return;
+	}
+		// Creature attributes after trigger as a trigger may contain one of those keyword that should not been added to card
+	apply_all_creat_attrs($target, $text) ;
 }
 function string_cut($string, $cut) {
 	$i = strpos($string, $cut) ;
@@ -1238,6 +1235,16 @@ function apply_creat_attrs($text, $attr, $target) {
 		return true ;
 	}
 	return false ;
+}
+function apply_all_creat_attrs($target, $text) {
+	global $creat_attrs ;
+	$result = 0 ;
+	foreach ( $creat_attrs as $creat_attr ) {
+		if ( apply_creat_attrs($text, $creat_attr, $target) ) {
+			$result++ ;
+		}
+	}
+	return $result;
 }
 function conditionnal_poly_boost($target, $matches, $text) { // Parses text after 'foreach'
 	global $conds, $cardtypes ;
