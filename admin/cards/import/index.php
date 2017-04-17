@@ -16,6 +16,7 @@ html_head(
 		'style.css'
 		, 'admin.css'
 		, 'mtg.css'
+		, 'diff.css'
 	)
 ) ;
 ?>

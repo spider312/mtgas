@@ -152,4 +152,6 @@ img.avatar.big {
 .duno, .duno * {
 	background-color: lightgray !important ;
 }
-
+.pre {
+	white-space: pre;
+}

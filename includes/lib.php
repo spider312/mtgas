@@ -98,6 +98,19 @@ function arr_diff($new, $old) { // Returns $new without values that didn't chang
 	return $result ;
 }
 function obj_diff($new, $old) { // Returns only properties that changed between new and old value
+	// Not the same type : consider all changed
+	if ( gettype($new) !== gettype($old) ) {
+		return $new;
+	}
+	// Cases "not enumerable"
+	if ( is_string($new) || is_numeric($old) ) {
+		if ( $new !== $old ) {
+			return $new;
+		} else {
+			return null;
+		}
+	}
+	// Compare 2 enumerables : build a result obj
 	$result = new stdClass() ;	
 	foreach ( $new as $key => $value ) { // Each value in new
 		if ( isset($old->$key) ) {  // Key is present in old
@@ -318,6 +331,21 @@ function json_verbose_error($i=-1) {
 			return 'Erreur inconnue : '.$i ;
 	}
 }
+function jsonpp($obj) { // Returns a JSON pretty print string compatible with HTML
+	if ( is_string($obj) ) {
+		if ( $obj === '' ) {
+			return $obj ;
+		}
+		$obj = json_decode($obj) ;
+	}
+	$result = JSON_encode($obj, JSON_PRETTY_PRINT) ;
+	return $result ;
+	//return str_replace('"', "'", $result) ; // for inclusion in a HTML tag such as a title
+}
+function print_json($obj) { // Equivalent to print_r, but prints as JSON
+	echo jsonpp($obj) ;
+}
+
 // Theme
 function theme_image($name) {
 	global $theme, $url ;

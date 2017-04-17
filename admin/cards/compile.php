@@ -1,11 +1,17 @@
 <?php
 include_once 'lib.php' ;
+include 'import/HtmlDiff.php' ;
 ?>
 <html>
 <head>
+<link type="text/css" rel="stylesheet" href="../../themes/jay_kay/css/diff.css">
 <style>
+table {
+	width: 100%;
+}
 td {
 	border: 1px solid black ;
+	white-space: pre;
 }
 </style>
 </head>
@@ -13,8 +19,7 @@ td {
 <table>
  <tr>
   <th>Card</th>
-  <th>Removed</th>
-  <th>Added</th>
+  <th>Diff</th>
  </tr>
 <?php
 // Apply ?
@@ -29,13 +34,11 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$attrs_obj = new attrs($arr) ;
 	$attrs = json_encode($attrs_obj) ;
 	if ( $arr['attrs'] != $attrs ) {
+		$diff = new HtmlDiff(jsonpp($arr['attrs']), jsonpp($attrs)) ;
 		$nb++ ;
 		echo '<tr>' ;
-		echo '<td><a href="card.php?id='.$arr['id'].'">'.$arr['name'].'</td>' ;
-		$diff = obj_diff(json_decode($arr['attrs']), $attrs_obj) ;
-		echo '<td title="'.str_replace('"', "'", JSON_encode($diff)).'"><pre>'.print_r($diff, true).'</pre></td>';
-		$diff = obj_diff($attrs_obj, json_decode($arr['attrs'])) ;
-		echo '<td title="'.str_replace('"', "'", JSON_encode($diff)).'"><pre>'.print_r($diff, true).'</pre></td>';
+		echo '<td><a href="card.php?id='.$arr['id'].'">'.$arr['name'].'</a></td>' ;
+		echo '<td>'.$diff->build().'</td>';
 		if ( $apply ) {
 			query("UPDATE
 				card
