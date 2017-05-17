@@ -2,7 +2,7 @@
 // Data
 deadKeys = [ // Keys which default action should be canceled
 	'control_d', 'control_i', 'control_n', 'control_o', 'control_p', 'control_s', 'control_u' // Basics
-	, 'f9', 'f10', 'f11', 'f12', 'alt_a', 'alt_d'
+	, 'f9', 'f10', /*'f11', 'f12',*/ 'alt_a', 'alt_d'
 	, 'control_+', 'control_-' // Zoom
 	, 'control_pageup', 'control_pagedown' // Tabs navigation
 //	, '+', '-' // Opera zoom
@@ -18,8 +18,8 @@ keyActions = { // Key <=> action association
 	'f3' : function(ev) { card_list_edit(game.player.library) ; },
 	'f9' : function(ev) { game.opponent.life.changelife(-1) ; draw() ; },
 	'f10' : function(ev) { game.opponent.life.changelife(1) ; draw() ; },
-	'f11' : function(ev) { game.player.life.changelife(-1) ; draw() ; },
-	'f12' : function(ev) { game.player.life.changelife(1) ; draw() ; },
+	//'f11' : function(ev) { game.player.life.changelife(-1) ; draw() ; },
+	//'f12' : function(ev) { game.player.life.changelife(1) ; draw() ; },
 	'up' : function(ev) {
 		if ( chat_pointer == null )
 			chat_pending = sendbox.value ;
