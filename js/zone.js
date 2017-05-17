@@ -424,6 +424,12 @@ function library(player) {
 		return menu.start(ev) ;
 	}
 	// Accessors
+	mylib.card_under_mouse = function(ev) {
+		if ( this.cards.length > 0 ) {
+			return this.cards[this.cards.length-1] ;
+		}
+		return null ;
+	}
 	mylib.reveal = function() {
 		if ( this.reveal_recieve() )
 			this.player.sync() ;
