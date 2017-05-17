@@ -280,10 +280,10 @@ echo $diff->build() ;
 ?></td>
     </tr>
     <tr title="Same compiled data, but compared with merged, used to check if fixed is still needed">
-     <th>Compiled - merged</th>
+     <th>Merged - Compiled</th>
      <td class="pre"><?php
 if ( $merged !== null ) {
-	$diff = new HtmlDiff(jsonpp($merged), jsonpp($attrs)) ;
+	$diff = new HtmlDiff(jsonpp($attrs), jsonpp($merged)) ;
 	echo $diff->build() ;
 } else {
 	echo "No merged" ;
