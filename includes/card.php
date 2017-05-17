@@ -693,6 +693,9 @@ function manage_text($name, $text, $target) {
 						case 'sorcery cards' :
 							$target->powtoucond->cond = 'type='.substr($matches['type'], 0, -6) ;
 							break ;
+						case 'instant and sorcery cards' :
+							$target->powtoucond->cond = 'type=instant|type=sorcery';
+							break ;
 						// zombies on the battlefield plus the number of zombie card
 						// red creatures
 						// green mana symbols in the mana costs of permanent
@@ -865,7 +868,10 @@ function manage_text($name, $text, $target) {
 	}*/
 	// All creatures booster (crusade like)
 	$debug = 0;
-	if ( preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?)? get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER) ) {
+	if (
+		preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?)? get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER)
+		|| preg_match_all('#(?<cond>.*? you control) have (?<attrs>.*)#', strtolower($text), $matches, PREG_SET_ORDER) 
+	) {
 		foreach ( $matches as $match ) {
 			if ( $debug ) print_r($match) ;
 			$cond = trim($match['cond']) ;
@@ -879,37 +885,46 @@ function manage_text($name, $text, $target) {
 				}
 			}
 			$badPreconds = array('you noted', 'target creature');
-			foreach ( $badPreconds as $badPrecond ) {
-				if ( strpos($match['precond'], $badPrecond) !== false ) {
-					if ( $debug ) echo "Precond : $badPrecond\n" ;
-					continue 2;
+			if ( isset($match['precond']) ) {
+				foreach ( $badPreconds as $badPrecond ) {
+					if ( strpos($match['precond'], $badPrecond) !== false ) {
+						if ( $debug ) echo "Precond : $badPrecond\n" ;
+						continue 2;
+					}
 				}
 			}
 			$boost_bf = new stdClass() ;
 			// Amount boosted
-			$boost_bf->pow = intval($match['pow']) ;
-			$boost_bf->tou = intval($match['tou']) ;
+			$boost_bf->pow = 0 ;
+			$boost_bf->tou = 0 ;
+			if ( isset($match['pow']) ) {
+				$boost_bf->pow = intval($match['pow']) ;
+			}
+			if ( isset($match['tou']) ) {
+				$boost_bf->tou = intval($match['tou']) ;
+			}
 			// Shall it affect self (invert "other")
 			$boost_bf->self = true ;
-			if ( strpos($cond, 'other ') > -1 ) {
+			if ( strpos($cond, 'other') > -1 ) {
 				$boost_bf->self = false ;
-				$cond = str_replace('other ', '', $cond) ;
+				$cond = str_replace('other', '', $cond) ;
 			}
 			if ( strpos($cond, strtolower($name)) > -1 ) {
 				$boost_bf->self = true;
-				$cond = str_replace(strtolower($name).' ', '', $cond) ;
+				$cond = str_replace(strtolower($name), '', $cond) ;
 			}
 			// Whose creatures are affected
 			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
-			if ( strpos($cond, ' you control') > -1 ) { // Yours
+			if ( strpos($cond, 'you control') > -1 ) { // Yours
 				$boost_bf->control = 1 ;
-				$cond = str_replace(' you control', '', $cond) ;
+				$cond = str_replace('you control', '', $cond) ;
 			}
-			if ( strpos($cond, ' your opponents control') > -1 ) { // Your opponent's
+			if ( strpos($cond, 'your opponents control') > -1 ) { // Your opponent's
 				$boost_bf->control = -1 ;
-				$cond = str_replace(' your opponents control', '', $cond) ;
+				$cond = str_replace('your opponents control', '', $cond) ;
 			}
 			// Conditions (creature type, color ...)
+			$cond = trim($cond); // In case it's needed because of previous actions
 			$tokens = explode(' ', $cond);
 			if ( $debug ) print_r($tokens);
 			$type_cond = array() ;
@@ -920,6 +935,8 @@ function manage_text($name, $text, $target) {
 						$boost_bf->cond = "color=$ci" ;
 					} else {
 						switch ( $token ) {
+							case '':
+								break;
 							// Class
 							case 'tokens':
 								$type_cond[] = "class=token" ;
@@ -928,6 +945,8 @@ function manage_text($name, $text, $target) {
 								$type_cond[] = "class=card" ;
 								break ;
 							// Card type, not creature type
+							case 'instant' : // Soulfire Grand Master
+							case 'sorcery' :
 							case 'artifact' :
 							case 'land' :
 								$type_cond[] = "type=$token" ;
@@ -958,6 +977,7 @@ function manage_text($name, $text, $target) {
 							case 'gets':
 							case '+2/+2':
 							case 'instead':
+							case 'spells':
 							case '*': // Bug in modal spells
 								break ;
 							// Words that indicate a condition too specific to be managed, a generic boost_bf will be added
@@ -999,6 +1019,9 @@ function manage_text($name, $text, $target) {
 							case 'chosen': // Depending on a choice, can't be managed by boost_bf
 							case 'choice':
 							case 'chose':
+							case '-': // Line is a keyword, it probably contains many words and complex conditions
+							case 'multicolored': // Impossible to detect
+							case 'long': // "As long as" = probably a bad cond
 								break 3 ;
 							// Default case : it's a creature type
 							default :
@@ -1030,7 +1053,7 @@ function manage_text($name, $text, $target) {
 					continue;
 				}
 				$eot = ( strpos($match['attrs'], 'until end of turn') !== false ) ;
-				apply_all_creat_attrs($boost_bf, $match['attrs']) ;
+				$applied_attrs = apply_all_creat_attrs($boost_bf, $match['attrs']) ;
 			}
 			$boost_bf->eot = $eot ;
 			if ( ! isset($boost_bf->enabled) ) { // Not already set
@@ -1041,8 +1064,10 @@ function manage_text($name, $text, $target) {
 					$boost_bf->enabled = ! $boost_bf->eot ; // boost_bf_eot are activated (ex: Garruk), then should not been enabled by default
 				}
 			}
-			$target->boost_bf[] = $boost_bf ;
-			return;
+			if ( ( $boost_bf->pow !== 0 ) || ( $boost_bf->tou !== 0 ) || ( $applied_attrs > 0 ) ) { // Avoids boost_bf that only adds an unmanaged attrs such as haste
+				$target->boost_bf[] = $boost_bf ;
+				return;
+			}
 		}
 	}
 	// Animate
