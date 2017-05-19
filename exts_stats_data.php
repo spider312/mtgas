@@ -71,9 +71,9 @@ for ( $i = 0 ; $i < $nbTop ; $i++ ) {
 $otherNames = array();
 $otherData = array();
 foreach ( $exts as $ext => $data ) {
-	if ( count($otherNames) < 5 ) {
+	//if ( count($otherNames) < 5 ) {
 		array_push($otherNames, $ext) ;
-	}
+	//}
 	foreach ( $data as $age => $value ) {
 		if ( isset($otherData[$age]) ) {
 			$otherData[$age] += $value ;
@@ -82,6 +82,12 @@ foreach ( $exts as $ext => $data ) {
 		}
 	}
 }
-array_push($result, getData('Other', $otherData));
+$str = implode(', ', $otherNames) ;
+/*
+if ( count($exts) > count($otherNames) ) {
+	$str .= ', ...' ;
+}
+*/
+array_push($result, getData('Other (' . $str . ')', $otherData));
 
 die(json_encode($result)) ;
