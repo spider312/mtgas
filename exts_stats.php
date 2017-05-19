@@ -2,8 +2,32 @@
  <head>
   <script type="text/javascript" src="js/lib/Flotr2/flotr2.min.js"></script>
   <script type="text/javascript">
+"use strict"
 function start(ev) {
-	document.getElementById('form').addEventListener('submit', function(ev) {
+	let flottrData = {
+		legend: {
+			backgroundColor: '#D2E8FF' // Light blue
+		},
+		bars: {
+			show: true,
+			stacked: true,
+			horizontal: false,
+			barWidth: 0.8,
+			lineWidth: 1,
+			shadowSize: 0
+		},
+		xaxis: {
+		},
+		yaxis: {
+			autoScale: true,
+		},
+		grid: {
+			verticalLines: false,
+			horizontalLines: true
+		},
+	 }
+	let form = document.getElementById('form')
+	form.addEventListener('submit', function(ev) {
 		ev.preventDefault() ;
 		let xhr = new XMLHttpRequest();
 		let url = 'exts_stats_data.php' ;
@@ -31,22 +55,13 @@ function start(ev) {
 					let data = JSON.parse(this.responseText) ;
 					let container = document.getElementById('graph') ;
 					container.style.width = '100%' ;
-					container.style.height = '500px' ;
-					Flotr.draw(container, data, {
-						bars: {
-							show: true,
-							stacked: true,
-							horizontal: false,
-							barWidth: 0.6,
-							lineWidth: 1,
-							shadowSize: 0
-						},
-					}) ;
+					container.style.height = '90%' ;
+					Flotr.draw(container, data, flottrData) ;
 				}
 			}
 		};
 		xhr.send();
-	}, false)
+	}, false) ;
 }
   </script>
  </head>
