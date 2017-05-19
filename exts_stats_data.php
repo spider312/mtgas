@@ -6,6 +6,7 @@ require_once 'includes/lib.php';
 $period = intval(param($_GET, 'period', 100)) ;
 $period = min($period, 365) ;
 $nb = intval(param($_GET, 'nb', 5)) - 1 ;
+$nbOther = 5 ; // intval(param($_GET, 'nbother', 5)) ;
 
 // Get raw data
 $db->debug = false;
@@ -71,9 +72,9 @@ for ( $i = 0 ; $i < $nbTop ; $i++ ) {
 $otherNames = array();
 $otherData = array();
 foreach ( $exts as $ext => $data ) {
-	//if ( count($otherNames) < 5 ) {
+	if ( count($otherNames) < $nbOther ) {
 		array_push($otherNames, $ext) ;
-	//}
+	}
 	foreach ( $data as $age => $value ) {
 		if ( isset($otherData[$age]) ) {
 			$otherData[$age] += $value ;
@@ -82,12 +83,10 @@ foreach ( $exts as $ext => $data ) {
 		}
 	}
 }
-$str = implode(', ', $otherNames) ;
-/*
 if ( count($exts) > count($otherNames) ) {
-	$str .= ', ...' ;
+	array_push($otherNames, '...') ;
 }
-*/
+$str = implode(', ', $otherNames) ;
 array_push($result, getData('Other (' . $str . ')', $otherData));
 
 die(json_encode($result)) ;
