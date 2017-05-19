@@ -4,7 +4,10 @@ require_once 'includes/db.php';
 require_once 'includes/lib.php';
 
 $period = intval(param($_GET, 'period', 100)) ;
+$nb = intval(param($_GET, 'nb', 5)) - 1 ;
 
+// Get raw data
+$db->debug = false;
 $tournaments = $db->select('
 SELECT
 	DATEDIFF(CURDATE(), `creation_date`) AS `age`,
@@ -17,37 +20,67 @@ ORDER BY
 	`age`
 ');
 
+// Order data by ext and by date
 $exts = array() ;
-$total_boosters = 0 ;
+$allExts = array() ;
 foreach( $tournaments as $tournament ) {
 	$json = json_decode($tournament->data);
 	if ( isset($json->boosters) ) {
-		$age = intval($tournament->age) ;
+		$age = $period - intval($tournament->age) ;
 		foreach ( $json->boosters as $ext ) {
 			if ( ! isset($exts[$ext]) ) {
-				$obj = new stdClass() ;
-				$obj->label = $ext ;
-				$obj->data = array() ; //_fill(0, $period, 0) ;
-				$exts[$ext] = $obj ;
+				$exts[$ext] = array() ;
 			}
-			$myExt =& $exts[$ext]->data ;
+			$myExt =& $exts[$ext] ;
 			if ( ! isset($myExt[$age]) ) {
 				$myExt[$age] = 0 ;
 			}
 			$myExt[$age]++ ;
-			$total_boosters++ ;
+			if ( !isset($allExts[$ext]) ) {
+				$allExts[$ext] = 0 ;
+			}
+			$allExts[$ext]++ ;
 		}
 	}
 }
-foreach( $exts as $ext ) {
-	$oldArr = $ext->data ;
-	$newArr = array() ;
-	foreach ( $oldArr as $day => $value ) {
-		if ( $value !== 0 ) {
-			array_push($newArr, array($day, $value)) ;
-		}
+// Get top extensions
+asort($allExts) ;
+$topExts = array_keys(array_reverse($allExts));
+
+function getData($label, $data) {
+	$obj = new stdClass() ;
+	$obj->label = $label;
+	$obj->data = array();
+	foreach( $data as $age => $value ) {
+		array_push($obj->data, array($age, $value));
 	}
-	$ext->data = $newArr ;
+	return $obj ;
 }
 
-die(json_encode(array_values($exts))) ;
+// Create results for top extensions
+$result = array() ;
+$nbTop = min(count($topExts), $nb);
+for ( $i = 0 ; $i < $nb ; $i++ ) {
+	$label = $topExts[$i] ;
+	array_push($result, getData($label, $exts[$label]));
+	unset($exts[$label]) ;
+}
+
+// Merge extensions left
+$otherNames = array();
+$otherData = array();
+foreach ( $exts as $ext => $data ) {
+	if ( count($otherNames) < 5 ) {
+		array_push($otherNames, $ext) ;
+	}
+	foreach ( $data as $age => $value ) {
+		if ( isset($otherData[$age]) ) {
+			$otherData[$age] += $value ;
+		} else {
+			$otherData[$age] = $value ;
+		}
+	}
+}
+array_push($result, getData('Other', $otherData));
+
+die(json_encode($result)) ;

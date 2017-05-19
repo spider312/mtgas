@@ -7,9 +7,20 @@ function start(ev) {
 		ev.preventDefault() ;
 		let xhr = new XMLHttpRequest();
 		let url = 'exts_stats_data.php' ;
+		let urlGet = '' ;
 		let period = parseInt(this.period.value, 10);
 		if ( ( ! isNaN(period) ) && ( period !== 0 ) ) {
-			url += '?period=' + period ;
+			urlGet += 'period=' + period ;
+		}
+		let nb = parseInt(this.nb.value, 10);
+		if ( ( ! isNaN(nb) ) && ( nb !== 0 ) ) {
+			if ( urlGet !== '' ) {
+				urlGet += '&'
+			}
+			urlGet += 'nb=' + nb ;
+		}
+		if ( urlGet !== '' ) {
+			url += '?' + urlGet ;
 		}
 		xhr.open('GET', url, true);
 		xhr.onreadystatechange = function (ev) {
@@ -42,7 +53,8 @@ function start(ev) {
 
  <body onload="start(event)">
   <form id="form">
-   <input type="text" name="period" placeholder="period">
+   <input type="text" name="period" placeholder="Days">
+   <input type="text" name="nb" placeholder="Extensions">
    <input type="submit">
   </form>
 
