@@ -4,6 +4,7 @@ require_once 'includes/db.php';
 require_once 'includes/lib.php';
 
 $period = intval(param($_GET, 'period', 100)) ;
+$period = min($period, 365) ;
 $nb = intval(param($_GET, 'nb', 5)) - 1 ;
 
 // Get raw data
@@ -26,7 +27,7 @@ $allExts = array() ;
 foreach( $tournaments as $tournament ) {
 	$json = json_decode($tournament->data);
 	if ( isset($json->boosters) ) {
-		$age = $period - intval($tournament->age) ;
+		$age = - intval($tournament->age) ;
 		foreach ( $json->boosters as $ext ) {
 			if ( ! isset($exts[$ext]) ) {
 				$exts[$ext] = array() ;
@@ -59,8 +60,8 @@ function getData($label, $data) {
 
 // Create results for top extensions
 $result = array() ;
-$nbTop = min(count($topExts), $nb);
-for ( $i = 0 ; $i < $nb ; $i++ ) {
+$nbTop = min(count($topExts)-1, $nb);
+for ( $i = 0 ; $i < $nbTop ; $i++ ) {
 	$label = $topExts[$i] ;
 	array_push($result, getData($label, $exts[$label]));
 	unset($exts[$label]) ;
