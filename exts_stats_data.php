@@ -1,12 +1,19 @@
 <?php
 ini_set('memory_limit', '1024M');
-require_once 'includes/db.php';
+require_once '../mogg/includes/db.php';
 require_once 'includes/lib.php';
 
 $period = intval(param($_GET, 'period', 100)) ;
-$period = min($period, 365) ;
+$period = min($period, 1000) ;
 $nb = intval(param($_GET, 'nb', 5)) - 1 ;
-$nbOther = 5 ; // intval(param($_GET, 'nbother', 5)) ;
+$nbOther = 5 ; // Number of "others" to display in others's label
+$nbOther = intval(param($_GET, 'nbother', $nbOther)) ;
+
+$cache_file = 'exts_stats/'.$period.'_'.$nb.'.json' ;
+
+if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= 86400 /* 1 day */ ) ) {
+	die(@file_get_contents($cache_file)) ;
+}
 
 // Get raw data
 $db->debug = false;
@@ -23,12 +30,13 @@ ORDER BY
 ');
 
 // Order data by ext and by date
+$defaultAge = intval(time() / 86400) ;
 $exts = array() ;
 $allExts = array() ;
 foreach( $tournaments as $tournament ) {
 	$json = json_decode($tournament->data);
 	if ( isset($json->boosters) ) {
-		$age = - intval($tournament->age) ;
+		$age = $defaultAge - intval($tournament->age) ;
 		foreach ( $json->boosters as $ext ) {
 			if ( ! isset($exts[$ext]) ) {
 				$exts[$ext] = array() ;
@@ -64,6 +72,8 @@ $result = array() ;
 $nbTop = min(count($topExts)-1, $nb);
 for ( $i = 0 ; $i < $nbTop ; $i++ ) {
 	$label = $topExts[$i] ;
+	$fullLabel = $label ;
+	//$fullLabel .= ' (' . $allExts[$label] . ')' ;
 	array_push($result, getData($label, $exts[$label]));
 	unset($exts[$label]) ;
 }
@@ -89,4 +99,6 @@ if ( count($exts) > count($otherNames) ) {
 $str = implode(', ', $otherNames) ;
 array_push($result, getData('Other (' . $str . ')', $otherData));
 
-die(json_encode($result)) ;
+$json = json_encode($result) ;
+file_put_contents($cache_file, $json) ;
+die($json);
