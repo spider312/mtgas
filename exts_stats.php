@@ -63,6 +63,12 @@ function getData(form) {
 		}
 		urlGet += 'nb=' + nb ;
 	}
+	if ( form.percent.checked ) {
+		if ( urlGet !== '' ) {
+			urlGet += '&'
+		}
+		urlGet += 'percent=true' ;
+	}
 	if ( urlGet !== '' ) {
 		url += '?' + urlGet ;
 	}
@@ -88,6 +94,7 @@ function getData(form) {
   <form id="form">
    <input type="text" name="period" placeholder="Days" value="100" size="4">
    <input type="text" name="nb" placeholder="Extensions" value="5" size="2">
+   <label>percent <input type="checkbox" name="percent"></label>
    <input type="submit">
   </form>
 
