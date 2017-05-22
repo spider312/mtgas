@@ -26,7 +26,9 @@ SELECT
 FROM
 	`tournament`
 WHERE
-	DATE_SUB(CURDATE(), INTERVAL '.$period.' DAY) <= `creation_date`
+	DATE(`creation_date`) < CURDATE() /* Dont select todays tournament as day is not finished thus not comparable with others */
+	AND
+	DATEDIFF(CURDATE(), `creation_date`) <= '.$period.'
 ORDER BY
 	`age`
 ');
