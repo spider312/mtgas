@@ -10,28 +10,29 @@ $nbOther = 5 ; // Number of "others" to display in others's label
 $nbOther = intval(param($_GET, 'nbother', $nbOther)) ;
 $percent = param($_GET, 'percent', false) ;
 
-$cache_file = 'exts_stats/'.$period.'_'.$nb.($percent?'_percent':'').'.json' ;
+$cache_file = 'exts_stats/'.$period./*'_'.$nb.($percent?'_percent':'').*/'.json' ;
 $use_cache = true ;
 
 if ( $use_cache && file_exists($cache_file) && ( time() - filemtime($cache_file) <= 86400 /* 1 day */ ) ) {
-	die(@file_get_contents($cache_file)) ;
+	$tournaments = json_decode(@file_get_contents($cache_file)) ;
+} else {	
+	// Get raw data
+	$db->debug = false;
+	$tournaments = $db->select('
+	SELECT
+		DATEDIFF(CURDATE(), `creation_date`) AS `age`,
+		`data`
+	FROM
+		`tournament`
+	WHERE
+		DATE(`creation_date`) < CURDATE() /* Dont select todays tournament as day is not finished thus not comparable with others */
+		AND
+		DATEDIFF(CURDATE(), `creation_date`) <= '.$period.'
+	ORDER BY
+		`age`
+	');
+	@file_put_contents($cache_file, json_encode($tournaments)) ;
 }
-
-// Get raw data
-$db->debug = false;
-$tournaments = $db->select('
-SELECT
-	DATEDIFF(CURDATE(), `creation_date`) AS `age`,
-	`data`
-FROM
-	`tournament`
-WHERE
-	DATE(`creation_date`) < CURDATE() /* Dont select todays tournament as day is not finished thus not comparable with others */
-	AND
-	DATEDIFF(CURDATE(), `creation_date`) <= '.$period.'
-ORDER BY
-	`age`
-');
 
 // Order data by ext and by date
 $defaultAge = intval(time() / 86400) ;
@@ -113,8 +114,6 @@ if ( count($exts) > count($otherNames) ) {
 	array_push($otherNames, '...') ;
 }
 $str = implode(', ', $otherNames) ;
-array_push($result, getData('Other (' . $str . ')', $otherData));
+array_push($result, getData('Other (' . $str . ')', $otherData)) ;
 
-$json = json_encode($result) ;
-@file_put_contents($cache_file, $json) ;
-die($json);
+die(json_encode($result)) ;
