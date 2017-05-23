@@ -44,44 +44,50 @@ function start(ev) {
 	getData(form) ;
 }
 function getData(form) {
+	// Query unicity
+	if ( form.submit.disabled ) {
+		return;
+	}
+	form.submit.disabled = true ;
+	// Cleanup
 	let container = document.getElementById('graph') ;
-	while ( container.hasChildNodes() )
+	while ( container.hasChildNodes() ) {
 		container.removeChild(container.firstChild) ;
-	let xhr = new XMLHttpRequest();
+	}
+	// Query preparation
 	let url = 'exts_stats_data.php' ;
-	let urlGet = '' ;
+	let urlParams = new URLSearchParams() ;
 	let period = parseInt(form.period.value, 10);
-	if ( ( ! isNaN(period) ) && ( period !== 0 ) ) {
-		urlGet += 'period=' + period ;
-	} else {
-		period = 100 ;
+	if( ( ! isNaN(period) ) && ( period !== 0 ) ) {
+		urlParams.append('period', period);
 	}
 	let nb = parseInt(form.nb.value, 10);
 	if ( ( ! isNaN(nb) ) && ( nb !== 0 ) ) {
-		if ( urlGet !== '' ) {
-			urlGet += '&'
-		}
-		urlGet += 'nb=' + nb ;
+		urlParams.append('nb', nb);
 	}
 	if ( form.percent.checked ) {
-		if ( urlGet !== '' ) {
-			urlGet += '&'
-		}
-		urlGet += 'percent=true' ;
+		urlParams.append('percent', true);
 	}
-	if ( urlGet !== '' ) {
-		url += '?' + urlGet ;
-	}
+	url += '?' + urlParams ;
+	// Query sending
+	let xhr = new XMLHttpRequest();
 	xhr.open('GET', url, true);
+	let sent = new Date() ;
 	xhr.onreadystatechange = function (ev) {
 		if (this.readyState == 4) {
+			form.submit.disabled = false ;
+			form.submit.title = ( new Date() - sent ) + 'ms' ;
 			if ( this.status !== 200 ) {
 				alert(this.status) ;
 			} else {
-				let data = JSON.parse(this.responseText) ;
-				container.style.width = '100%' ;
-				container.style.height = '90%' ;
-				Flotr.draw(container, data, flottrData) ;
+				try {
+					let data = JSON.parse(this.responseText) ;
+					container.style.width = '100%' ;
+					container.style.height = '90%' ;
+					Flotr.draw(container, data, flottrData) ;
+				} catch ( e ) {
+					alert(e + "\n" + this.responseText) ;
+				}
 			}
 		}
 	};
@@ -95,7 +101,7 @@ function getData(form) {
    <input type="text" name="period" placeholder="Days" value="100" size="4">
    <input type="text" name="nb" placeholder="Extensions" value="5" size="2">
    <label>percent <input type="checkbox" name="percent"></label>
-   <input type="submit">
+   <input type="submit" name="submit">
   </form>
 
   <div id="graph"></div>
