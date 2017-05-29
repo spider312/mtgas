@@ -15,7 +15,7 @@ const flottrData = {
 		barWidth: 0.8,
 		lineWidth: 1,
 		shadowSize: 0,
-		topPadding: 0.01,
+		topPadding: 0,
 	},
 	xaxis: {
 		mode: 'time',
@@ -94,13 +94,21 @@ function getData(form) {
 	xhr.send();
 }
   </script>
+  <style>
+.number_2 {
+	width: 4em;
+}
+.number_3 {
+	width: 6em;
+}
+  </style>
  </head>
 
  <body onload="start(event)">
   <form id="form">
-   <input type="text" name="period" placeholder="Days" value="100" size="4">
-   <input type="text" name="nb" placeholder="Extensions" value="5" size="2">
-   <label>percent <input type="checkbox" name="percent"></label>
+   <label>Days : <input type="number" name="period" placeholder="Days" value="100" size="4" min="1" class="number_3"></label>
+   <label>Extensions : <input type="number" name="nb" placeholder="Extensions" value="5" size="2" min="1" class="number_2"></label>
+   <label><input type="checkbox" name="percent">Percent</label>
    <input type="submit" name="submit">
   </form>
 
