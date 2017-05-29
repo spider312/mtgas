@@ -10,11 +10,28 @@ $nbOther = 5 ; // Number of "others" to display in others's label
 $nbOther = intval(param($_GET, 'nbother', $nbOther)) ;
 $percent = param($_GET, 'percent', false) ;
 
-$cache_file = 'exts_stats/'.$period./*'_'.$nb.($percent?'_percent':'').*/'.json' ;
+function needUpdate($file) {
+	global $use_cache ;
+	if ( ! $use_cache ) {
+		return true ;
+	}
+	if ( ! file_exists($file) ) {
+		return true ;
+	}
+	$format = 'Y-m-d' ; // Format used to compare date param and today's date (e.g. Y-m-d to detect day change)
+	return ( date($format, filemtime($file)) !== date($format) ) ;
+}
+
+$raw_cache_file = 'exts_stats/'.$period.'.json' ;
+$cache_file = 'exts_stats/'.$period.'_'.$nb.($percent?'_percent':'').'.json' ;
 $use_cache = true ;
 
-if ( $use_cache && file_exists($cache_file) && ( time() - filemtime($cache_file) <= 86400 /* 1 day */ ) ) {
-	$tournaments = json_decode(@file_get_contents($cache_file)) ;
+if ( ! needUpdate($cache_file) ) {
+	die(@file_get_contents($cache_file));
+}
+
+if ( ! needUpdate($raw_cache_file) ) {
+	$tournaments = json_decode(@file_get_contents($raw_cache_file)) ;
 } else {	
 	// Get raw data
 	$db->debug = false;
@@ -31,7 +48,7 @@ if ( $use_cache && file_exists($cache_file) && ( time() - filemtime($cache_file)
 	ORDER BY
 		`age`
 	');
-	@file_put_contents($cache_file, json_encode($tournaments)) ;
+	@file_put_contents($raw_cache_file, json_encode($tournaments)) ;
 }
 
 // Order data by ext and by date
@@ -115,5 +132,7 @@ if ( count($exts) > count($otherNames) ) {
 }
 $str = implode(', ', $otherNames) ;
 array_push($result, getData('Other (' . $str . ')', $otherData)) ;
+
+@file_put_contents($cache_file, json_encode($result)) ;
 
 die(json_encode($result)) ;
