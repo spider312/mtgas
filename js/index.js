@@ -71,15 +71,19 @@ function start() { // On page load
 				for ( var i = 0 ; i < users.length ; i++ ) {
 					var user = users[i] ;
 					var shouter = create_li(user.nick) ;
-					if ( user.inactive )
-						shouter.classList.add('inactive') ;
-					if ( user.typing )
-						shouter.classList.add('typing') ;
-					let stars = "" ;
-					let j = 0
-					for ( ; j < Math.round(user.avg) + 3 ; j++ ) { stars += '★' ; }
-					for ( ; j < 5 ; j++ ) { stars += '☆' ; }
-					shouter.title = user.nick+' '+stars+' ('+user.rating_nb+' evaluations)' ;
+					if ( user.rating_nb < 1 ) {
+						shouter.title = user.nick + ' (not evaluated yet)' ;
+					} else {
+						if ( user.inactive )
+							shouter.classList.add('inactive') ;
+						if ( user.typing )
+							shouter.classList.add('typing') ;
+						let stars = "" ;
+						let j = 0
+						for ( ; j < Math.round(user.avg) + 3 ; j++ ) { stars += '★' ; }
+						for ( ; j < 5 ; j++ ) { stars += '☆' ; }
+						shouter.title = user.nick + ' ' + stars + ' (' + user.rating_nb + ' evaluations)' ;
+					}
 					shouters.appendChild(shouter) ;
 				}
 				update_connected() ;
