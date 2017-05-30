@@ -75,7 +75,11 @@ function start() { // On page load
 						shouter.classList.add('inactive') ;
 					if ( user.typing )
 						shouter.classList.add('typing') ;
-					shouter.title = user.nick+' rating : '+round(user.avg, 2)+' ('+user.rating_nb+' evaluations)' ;
+					let stars = "" ;
+					let j = 0
+					for ( ; j < Math.round(user.avg) + 3 ; j++ ) { stars += '★' ; }
+					for ( ; j < 5 ; j++ ) { stars += '☆' ; }
+					shouter.title = user.nick+' '+stars+' ('+user.rating_nb+' evaluations)' ;
 					shouters.appendChild(shouter) ;
 				}
 				update_connected() ;
