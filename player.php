@@ -60,9 +60,9 @@ html_head(
      <option value="">All</option>
      <option value="YEAR">Year</option>
      <option value="MONTH">Month</option>
-     <option value="WEEK" selected="selected">Week</option>
+     <option value="WEEK">Week</option>
      <option value="DAY">Day</option>
-     <option value="HOUR">Hour</option>
+     <option value="HOUR" selected="selected">Hour</option>
     </select>
    </h2>
    <table id="evaluations_list">
@@ -90,9 +90,9 @@ html_head(
      <option value="">All</option>
      <option value="YEAR">Year</option>
      <option value="MONTH">Month</option>
-     <option value="WEEK" selected="selected">Week</option>
+     <option value="WEEK">Week</option>
      <option value="DAY">Day</option>
-     <option value="HOUR">Hour</option>
+     <option value="HOUR" selected="selected">Hour</option>
     </select>
    </h2>
    <table id="past_games_list">
@@ -122,9 +122,9 @@ html_head(
      <option value="">All</option>
      <option value="YEAR">Year</option>
      <option value="MONTH">Month</option>
-     <option value="WEEK" selected="selected">Week</option>
+     <option value="WEEK">Week</option>
      <option value="DAY">Day</option>
-     <option value="HOUR">Hour</option>
+     <option value="HOUR" selected="selected">Hour</option>
     </select>
    </h2>
    <table id="past_tournament_list">

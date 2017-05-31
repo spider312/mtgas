@@ -7,8 +7,8 @@ function start(pid) {
 	game.options = new Options(true) ;
 	if ( iss(pid) )
 		player_id = pid ;
-	save_restore('past_games_delay') ;
-	save_restore('past_tournaments_delay') ;
+	//save_restore('past_games_delay') ;
+	//save_restore('past_tournaments_delay') ;
 	get_evaluations();
 	get_past_games() ;
 	get_past_tournaments() ;
@@ -55,7 +55,6 @@ function get_evaluations() {
 			var tr = create_tr(evaluations, 'Average', '') ;
 			var precision = 100 ;
 			var avg = Math.round(precision*total/nb)/precision ;
-			console.log(avg);
 			get_stars(avg, tr.cells[1]) ;
 			caption.nodeValue = nb + ' evaluations' ;
 			no_evaluations.style.display = 'none' ; 
