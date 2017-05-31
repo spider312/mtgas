@@ -1,7 +1,7 @@
 <?php
 ini_set('memory_limit', '1024M');
-require_once '../mogg/includes/db.php';
-require_once 'includes/lib.php';
+require_once '../../mogg/includes/db.php';
+require_once '../includes/lib.php';
 
 $period = intval(param($_GET, 'period', 100)) ;
 $period = min($period, 1000) ;

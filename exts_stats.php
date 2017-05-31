@@ -55,7 +55,7 @@ function getData(form) {
 		container.removeChild(container.firstChild) ;
 	}
 	// Query preparation
-	let url = 'exts_stats_data.php' ;
+	let url = 'json/exts_stats.php' ;
 	let urlParams = new URLSearchParams() ;
 	let period = parseInt(form.period.value, 10);
 	if( ( ! isNaN(period) ) && ( period !== 0 ) ) {
