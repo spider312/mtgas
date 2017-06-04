@@ -12,48 +12,29 @@ function cookie_set(name, value, days) {
 	var cookie = name+"="+value+"; Expires="+expire+"; Path=/";
 	document.cookie = cookie ;
 }
-// Notification granted, denied, default
-// 		https://developer.mozilla.org/en-US/docs/WebAPI/Using_Web_Notifications
-// 		https://developer.mozilla.org/en-US/docs/Web/API/Notification
-function notification_granted() {
-	return ( Notification && Notification.permission === "granted" ) ;
-}
-function notification_request(title, txt, tag) {
-	if ( window.Notification ) {
-		if ( ! notification_granted() ) {
-			Notification.requestPermission(function (status) {
-				if (Notification.permission !== status) {
-					Notification.permission = status;
-					if ( iss(title) )
-						notification_send(title, txt, tag) ;
-				}
-			});
-		}
-	} else
-		debug('Notification not supported') ;
-}
+// Notifications
 function notification_send(title, txt, tag) {
-	if ( Notification ) {
-		if ( notification_granted() ) {
-			options = {} ;
-			options.body = txt ;
-			options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
-			if ( iss(tag) )
-				options.tag = tag
-			var n = new Notification(title, options) ;
-			// All browsers (chrome) don't clean notifications, add ways to close
-			n.addEventListener('show', function(ev) {
-				n.addEventListener('click', function(ev) { ev.target.close() ; }, false) ;
-				window.setTimeout(function(n) { n.close() ;	}, notification_duration, ev.target) ;
-				// On window close (as it cancels timeout)
-				window.addEventListener('beforeunload', function(ev) { n.close() ; }, false) ;
-			}, false) ;
-			return n ;
-		} else
-			return notification_request(title, txt, tag)
-	}
-	alert(txt) ;
-	return false ;
+	new Promise((resolve, reject) => {
+		Notification.requestPermission((resp) => {
+			resolve(resp) ;
+		}) ;
+	}).then((resp) => {
+		switch ( resp ) {
+			case 'granted' : {
+				options = { "body": txt } ;
+				//options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ; // Prevents notifications under FF
+				if ( iss(tag) ) { options.tag = tag ; }
+				return new Notification(title, options) ;
+			} break ;
+			case 'denied' : {
+				console.info('Notification : ['+tag+'] '+title+' - '+txt) ;
+			} break ;
+			default: 
+				console.error('notification_send : Unknown response '+resp) ;
+		}
+	}).catch((msg) => {
+		console.error('notification_send : '+msg)
+	}) ;
 }
 // Ajaj
 function ajax_error_management() {

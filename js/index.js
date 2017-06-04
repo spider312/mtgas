@@ -3,7 +3,7 @@ function start() { // On page load
 	workarounds() ;
 	document.getElementById('shout')[0].focus() ;
 	ajax_error_management() ;
-	notification_request() ;
+	Notification.requestPermission() ;
 	game = {}
 	game.options = new Options(true) ;
 	game.options.add_trigger('profile_nick', function(option) {
