@@ -12,8 +12,10 @@ function start() { // On page load
 	}
 	game.options = new Options(true) ;
 	game.options.add_trigger('profile_nick', function(option) {
-		game.connection.close(1000, 'reconnecting for nick change') ;
-		game.connection.connect() ;
+		if ( option.get() !== game.connection.registration_data.nick ) {
+			game.connection.close(1000, 'reconnecting for nick change') ;
+			game.connection.connect() ;
+		}
 	}) ;
 	// Non-options fields to save
 	save_restore('game_name') ;
