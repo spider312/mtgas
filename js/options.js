@@ -319,6 +319,28 @@ function Options(check_id) {
 			container.appendChild(fieldset) ;
 		}
 	}
+		// Notifications
+	this.tab_notifications = function(container) {
+		var group = this.groups['Notifications'] ;
+		var fieldset = create_fieldset('Notifications') ;
+		// Each option
+		for ( var j in group ) {
+			fieldset.appendChild(group[j].render()) ;
+		}
+		// Status field
+		var status_input = create_input('notification_status', Notification.permission)
+		status_input.disabled = true ;
+		status_input.size = 7 ; // value = default | denied | granted = length 7
+		var current_status = create_label(null, 'Current status : ', status_input) ;
+		fieldset.appendChild(current_status) ;
+		// Guide about enabling
+		if ( Notification.permission !== 'granted' ) {
+			var a = create_a('Learn about how to enable it', 'http://blog.mogg.fr/post/2017/06/05/Notifications');
+			a.target = '_blank';
+			fieldset.appendChild(a) ;
+		}
+		container.appendChild(fieldset) ;
+	}
 		// Spectators
 	this.tab_spectators = function(container) {
 		var fieldset = create_fieldset('Allowed forever') ;
@@ -383,6 +405,7 @@ function Options(check_id) {
 	this.tabs = {
 		'Identity': this.tab_identity,
 		'Options': this.tab_options,
+		'Notifications': this.tab_notifications,
 		'Spectators': this.tab_spectators,
 		'Profile': this.tab_profile
 	} ;
@@ -443,6 +466,13 @@ function Options(check_id) {
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
+		// Notifications
+	this.add('Notifications', 'notification_shout', 'Shouts', 'A new shout is recieved', true) ;
+	this.add('Notifications', 'notification_duel_new', 'New duel', 'A new duel is created', true) ;
+	this.add('Notifications', 'notification_duel_start', 'Duel started', 'A duel you created started', true) ;
+	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', true) ;
+	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you created started', true) ;
+	this.add('Notifications', 'notification_autoclose', 'Auto close', 'Notification closes automatically', true) ;
 		// Hidden (Only retrieved, or set by other means)
 		//player_id
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;

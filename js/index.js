@@ -5,6 +5,11 @@ function start() { // On page load
 	ajax_error_management() ;
 	Notification.requestPermission() ;
 	game = {}
+	game.notify = function(type, title, text) {
+		if ( this.send_notifications && this.options.get('notification_'+type) && ! document.hasFocus() ) {
+			notification_send(title, text, type) ;
+		}
+	}
 	game.options = new Options(true) ;
 	game.options.add_trigger('profile_nick', function(option) {
 		game.connection.close(1000, 'reconnecting for nick change') ;
@@ -106,18 +111,16 @@ function start() { // On page load
 				li.appendChild(leftspan) ;
 				shouts.appendChild(li) ;
 				shouts.scrollTop = shouts.scrollHeight ;
-				if ( game.send_notifications && ! document.hasFocus() )
-					notification_send('Mogg Shout', data.player_nick+' : '+data.message, 'shout') ;
+				game.notify('shout', 'Mogg Shout', data.player_nick+' : '+data.message) ;
 				break ;
 			// Duels
 			case 'pendingduel' :
-				if ( game.send_notifications && ! document.hasFocus() )
-					notification_send('Mogg Duel', 'New duel : '+data.name, 'duel') ;
+				game.notify('duel_new', 'Mogg Duel', 'New duel : '+data.name) ;
 				pending_duel_add(data) ;
 				break ;
 			case 'joineduel' :
 				if ( data.redirect && ( ( player_id == data.creator_id ) || ( player_id == data.joiner_id ) ) ) {
-					notification_send('Mogg Duel', 'Joined duel : '+data.name, 'duel') ;
+					game.notify('duel_start', 'Mogg Duel', 'Duel starting : '+data.name) ;
 					window.focus() ;
 					document.location = 'play.php?id='+data.id ;
 				} else {
@@ -133,28 +136,28 @@ function start() { // On page load
 			// Tournaments
 			case 'pending_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
-				if ( tr == null )
+				if ( tr == null ) {
 					running_tournament_remove(data.id) ;
-				if ( pending_tournament_add(data)
+				}
+				if (
+					pending_tournament_add(data)
 					&& ( tr == null )
 					&& ( data.min_players > 1 )
-					&& game.send_notifications
-					&& ! document.hasFocus() )
-					notification_send('Mogg Tournament',
-						'New tournament : '+data.format+' '+data.name, 'tournament');
+				) {
+					game.notify('tournament_new', 'Mogg Tournament', 'New tournament : '+data.format+' '+data.name) ;
+				}
 				break ;
 			case 'running_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
 				if ( tr != null ) { // Found in pending : tournament starting, redirect
-					for ( var i = 0 ; i < data.players.length ; i++ )
+					for ( var i = 0 ; i < data.players.length ; i++ ) {
 						if ( data.players[i].player_id == player_id ) {
-							window.focus() ;
-							if (! document.hasFocus() )
-								notification_send('Mogg Tournament starting',
-									'Starting : '+data.format+' '+data.name, 'start') ;
-							if ( ( data.min_players < 3 ) || confirm('Tournament '+data.name+' starting') )
+							game.notify('tournament_start', 'Mogg Tournament', 'Starting : '+data.format+' '+data.name) ;
+							if ( ( data.min_players < 3 ) || confirm('Tournament '+data.name+' starting') ) {
 								document.location = 'tournament/?id='+data.id ;
+							}
 						}
+					}
 				}
 				running_tournament_add(data) ;
 				break ;

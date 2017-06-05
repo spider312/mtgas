@@ -21,7 +21,7 @@ function notification_send(title, txt, tag) {
 	}).then((resp) => {
 		switch ( resp ) {
 			case 'granted' : {
-				options = { "body": txt } ;
+				options = { "body": txt, "requireInteraction": ! game.options.get('notification_autoclose') } ;
 				options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ; // Prevents notifications under FF
 				if ( iss(tag) ) { options.tag = tag ; }
 				return new Notification(title, options) ;
