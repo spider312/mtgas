@@ -22,7 +22,7 @@ function notification_send(title, txt, tag) {
 		switch ( resp ) {
 			case 'granted' : {
 				options = { "body": txt } ;
-				//options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ; // Prevents notifications under FF
+				options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ; // Prevents notifications under FF
 				if ( iss(tag) ) { options.tag = tag ; }
 				return new Notification(title, options) ;
 			} break ;
