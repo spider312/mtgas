@@ -14,7 +14,6 @@ function query($query, $name='Query', $conn=null) {
 			if ( ! mysql_select_db($mysql_db, $mysql_connection) ) {
 				die('Selection failed : '.mysql_error()) ;
 			}
-			//mysql_set_charset ('utf8', $mysql_connection) ;
 		}
 		$conn = $mysql_connection ;
 	}
@@ -51,7 +50,6 @@ function card_connect() {
 	if ( ! mysql_select_db($card_db, $card_connection) ) {
 		die('Card selection failed : '.mysql_error()) ;
 	}
-	//mysql_set_charset ('utf8', $card_connection) ;
 	return $card_connection ;
 }
 class Db {
