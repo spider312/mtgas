@@ -8,6 +8,7 @@ class Game {
 	public $creator_status = 0 ;
 	public $joiner_status = 0 ;
 	private $actions = array() ;
+	private $action_id = 0 ;
 	public $spectators = null ;
 	private $tournament_obj = null ;
 	static $cache = array() ;
@@ -49,6 +50,9 @@ class Game {
 		$this->tournament_obj = Tournament::get($this->tournament, 'tournament') ;
 	}
 	// Actions
+	public function nextActionId() {
+		return $this->action_id++ ;
+	}
 	public function getActions($from = null) {
 		if ( count($this->actions) == 0 ) {
 			global $db ;
@@ -56,9 +60,12 @@ class Game {
 				$db->select("SELECT * FROM `action` WHERE `game` = '{$this->id}' ORDER BY `id`")
 				as $data
 			) {
-				$action = new Action($this, $data->sender, $data->type, $data->param,
-					$data->local_index) ;
+				$action = new Action($this, $data->sender, $data->type, $data->param, $data->local_index) ;
 				$action->import($data->id, $data->recieved) ;
+				$id = intval($data->id) ;
+				if ( $id >= $this->action_id ) {
+					$this->action_id = $id + 1 ;
+				}
 				$this->actions[] = $action ;
 				if ( $action->type == 'spectactor' ) {
 					$json = json_decode($action->param) ;
@@ -244,7 +251,7 @@ class Action {
 	public $recieved = 0 ;
 	public $type = null ;
 	public $param = null ;
-	public function __construct($game, $sender, $type, $param, $local_index = null) {
+	public function __construct($game, $sender, $type, $param, $local_index = null) { // Common between new action and import
 		if ( $local_index == null )
 			$local_index = time() ;
 		$this->game = $game ;
@@ -255,27 +262,33 @@ class Action {
 	}
 	public function import($id, $recieved) {
 		$this->id = $id ;
-		$this->recieved = $recieved ;
+		$this->recieved = intval($recieved) ;
 	}
-	public function insert() {
+	public function insert() { // Adds this instance to insertion buffer, will be commited later by main loop
 		global $db ;
-		$param = $this->param ;
-		if ( is_object($param) )
-			$param = json_encode($param) ;
-		$this->id = $db->insert("INSERT INTO `action`
-			(`game`, `sender`, `local_index`, `type`, `param`, `recieved`)
-		VALUES (
-			'{$this->game->id}',
-			'{$this->sender}',
-			'{$this->local_index}',
-			'{$this->type}',
-			'".$db->escape($param)."',
-			'{$this->recieved}'
-		);") ;
+		$this->id = $this->game->nextActionId() ;
+		Action::$buffer[] = $this ;
 	}
 	public function recieve() {
 		global $db ;
-		$db->update("UPDATE `action` SET `recieved` = `recieved`+1 WHERE `id`='{$this->id}' ;") ;
 		$this->recieved++ ;
+		$db->update("UPDATE `action` SET `recieved` = '{$this->recieved}' WHERE `id` = '{$this->id}' AND `game` = '{$this->game->id}';") ;
+	}
+	// Action insertion buffer
+	static $buffer = array() ;
+	static function commit() {
+		if ( count(Action::$buffer) > 0 ) {
+			global $db ;
+			$values = array() ;
+			foreach ( Action::$buffer as $action ) {
+				$param = $action->param ;
+				if ( is_object($param) )
+					$param = json_encode($param) ;
+				$values[] = "('{$action->id}', '{$action->game->id}', '{$action->sender}', '{$action->local_index}', '{$action->type}', '".$db->escape($param)."', '{$action->recieved}')" ;
+			}
+			$nb = $db->update("INSERT INTO `action` (`id`, `game`, `sender`, `local_index`, `type`, `param`, `recieved`) VALUES ".implode(', ', $values).';') ; // update to get affected rows, insert returns an id, nonsense here
+			echo $nb.'/'.count($values).'/'.count(Action::$buffer).' actions commited'."\n" ;
+			Action::$buffer = array() ;
+		}
 	}
 }

@@ -187,6 +187,7 @@ class GameServer {
 		$this->loop->addTimer($index_timeout, function() use($observer) {
 			$observer->index->check_users() ;
 			$observer->game->check_users() ;
+			Action::commit();
 			$observer->check() ;
 		}) ;
 	}
