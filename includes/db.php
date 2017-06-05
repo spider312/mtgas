@@ -8,10 +8,13 @@ function query($query, $name='Query', $conn=null) {
 			global $mysql_login, $mysql_password, $mysql_db ;
 			// MySQL
 			$mysql_connection = mysql_connect('', $mysql_login, $mysql_password) ;
-			if ( ! $mysql_connection )
+			if ( ! $mysql_connection ) {
 				die('Connection failed : '.mysql_error()) ;
-			if ( ! mysql_select_db($mysql_db, $mysql_connection) )
+			}
+			if ( ! mysql_select_db($mysql_db, $mysql_connection) ) {
 				die('Selection failed : '.mysql_error()) ;
+			}
+			//mysql_set_charset ('utf8', $mysql_connection) ;
 		}
 		$conn = $mysql_connection ;
 	}
@@ -42,10 +45,13 @@ function query_as_array($query, $name='Query', $conn=null) {
 function card_connect() {
 	global $mysql_login, $card_login, $card_password, $card_db ;
 	$card_connection = mysql_connect('', $card_login, $card_password, ( $card_login == $mysql_login )) ; // in case $card_login == $mysql_login, must open a new connexion
-	if ( ! $card_connection )
+	if ( ! $card_connection ) {
 		die('Card connection failed : '.mysql_error()) ;
-	if ( ! mysql_select_db($card_db, $card_connection) )
+	}
+	if ( ! mysql_select_db($card_db, $card_connection) ) {
 		die('Card selection failed : '.mysql_error()) ;
+	}
+	//mysql_set_charset ('utf8', $card_connection) ;
 	return $card_connection ;
 }
 class Db {
@@ -54,7 +60,7 @@ class Db {
 	private $pass = '' ;
 	private $db = '' ;
 	private $link = false ;
-	private $charset = 'utf8' ; //'iso-8859-15'
+	private $charset = 'utf8' ;
 	public $debug = false ;
 	public function __construct($host_, $user_, $pass_, $db_, $debug = false) {
 		$this->host = $host_ ;
@@ -62,6 +68,9 @@ class Db {
 		$this->pass = $pass_ ;
 		$this->db = $db_ ;
 		$this->debug = $debug ;
+	}
+	private function say($msg) {
+		echo $msg."\n" ;
 	}
 	public function dierr($msg) {
 		die($msg) ;
@@ -72,10 +81,24 @@ class Db {
 	}
 	private function connect() {
 		$this->link = new mysqli($this->host, $this->user, $this->pass, $this->db) ;
-		if ( $this->link->connect_error )
+		if ( $this->link->connect_error ) {
 			$this->dierr('Erreur de connexion ('.$this->link->connect_errno.' : '.$this->link->connect_error.')') ;
-		//echo "MySQL character set is ".$this->link->character_set_name()."\n";
-		//$this->link->set_charset($this->charset) ;
+		}
+		if ( $this->debug ) {
+			//$this->say("MySQL character set is ".$this->link->character_set_name());
+		}
+		//$this->set_charset() ;
+	}
+	public function set_charset($charset=null) {
+		if ( $charset === null ) {
+			$charset = $this->charset ;
+		}
+		$this->check() ;
+		$curr = $this->link->character_set_name() ;
+		if ( $curr !== $charset ) {
+			$this->link->set_charset($charset) ;
+			//$this->say("MySQL character set changed to ".$this->link->character_set_name());
+		}
 	}
 	private function check() {
 		if ( ! $this->link ) {
@@ -83,7 +106,7 @@ class Db {
 		}
 		if ( ! $this->link->ping() ) {
 			$this->connect() ;
-			echo "MySQLi reconnected\n" ;
+			$this->say("MySQLi reconnected") ;
 		}
 		return $this->link ;
 	}
@@ -95,7 +118,7 @@ class Db {
 			$end = microtime(true) ;
 			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
 			if ( $duration > 250 ) {
-				echo "SQL Query $duration ms : ".$query."\n" ;
+				$this->say("SQL Query $duration ms : ".$query) ;
 			}
 		}
 		if ( $result === false )
