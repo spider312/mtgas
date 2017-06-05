@@ -280,7 +280,11 @@ function Options(check_id) {
 			// Input + link to demo
 		var avatar = this.options['profile_avatar'].render() ;
 		avatar.childNodes[1].addEventListener('change', function (ev) {
-			document.getElementById('avatar_demo').src = ev.target.value ;
+			if ( ev.target.value === '' ) {
+				ev.target.value = document.getElementById('avatar_demo').src ;
+			} else {
+				document.getElementById('avatar_demo').src = ev.target.value ;
+			}
 		}, false) ;
 		fieldset.appendChild(avatar) ;
 			// Demo
@@ -297,11 +301,8 @@ function Options(check_id) {
 		}, false) ;
 		avatar_demo.addEventListener('error', function (ev) {
 			ev.target.classList.add('errored') ;
-			if ( ev.target.src == last_working_avatar ) {
-				game.options.resize() ; // Last working
-				alert('err') ;
-			} else
-				ev.target.src = last_working_avatar ;
+			ev.target.src = last_working_avatar ;
+			game.options.set('profile_avatar', last_working_avatar) ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
 		var a = create_a('Unexpectedly reset and using CCleaner ?',
