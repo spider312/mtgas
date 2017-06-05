@@ -106,9 +106,6 @@ class Db {
 		$this->query($query, $resultmode) ;
 		return $this->link->insert_id ;
 	}
-	public function async_insert($query) { // Runs an async insert
-		$this->insert($query, MYSQLI_ASYNC) ;
-	}
 	public function select($query) { // Select is sync as it returns data
 		$result = $this->query($query) ;
 		if (method_exists('mysqli_result', 'fetch_all')) # Compatibility layer with PHP < 5.3
@@ -118,17 +115,11 @@ class Db {
 				$res[] = $tmp;
 		return $res;
 	}
-	public function update($query) { // Update is by default async, as its result is rarely needed
-		$this->query($query, MYSQLI_ASYNC) ;
-	}
-	public function sync_update($query) { // Runs a sync update, returning affected rows
+	public function update($query) { // Runs a sync update, returning affected rows
 		$this->query($query) ;
 		return $this->link->affected_rows ;
 	}
-	public function delete($query) { // Delete is by default async, as its result is rarely needed
-		$this->query($query, MYSQLI_ASYNC) ;
-	}
-	public function sync_delete($query) { // Runs a sync delete, returning affected rows
+	public function delete($query) { // Runs a sync delete, returning affected rows
 		$this->query($query) ;
 		return $this->link->affected_rows ;
 	}

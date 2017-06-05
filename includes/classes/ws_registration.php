@@ -252,7 +252,7 @@ class Registration {
 	public function insert($i) {
 		$this->order = $i ;
 		global $db ;
-		$db->async_insert("INSERT INTO `registration` (
+		$db->insert("INSERT INTO `registration` (
 			`tournament_id`,
 			`player_id`,
 			`nick`,

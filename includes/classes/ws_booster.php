@@ -113,7 +113,7 @@ class Booster { // Only used in draft, interface with "booster" db table
 	public function insert() {
 		// Insert
 		global $db ;
-		$db->async_insert("INSERT INTO `booster` (
+		$db->insert("INSERT INTO `booster` (
 			 `content`,
 			`tournament`,
 			`player`,
