@@ -76,10 +76,12 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 						ev.target.option.onChange(myoption) ;
 				}, false) ;
 			} else {
-
 				this.input = create_input(name, this.get()) ;
 				this.input.placeholder = desc ;
 				this.input.addEventListener('change', function (ev) {
+					if ( ! ev.target.checkValidity() ) {
+						return eventStop(ev) ;
+					}
 					ev.target.option.set(ev.target.value) ;
 					if ( isf(ev.target.option.onChange) )
 						ev.target.option.onChange(myoption) ;
@@ -161,12 +163,11 @@ function Options(check_id) {
 		// Nick checking
 		var nick = this.get('profile_nick') ;
 		if ( nick == '' ) {
-			var nickfield = document.getElementById('profile_nick') ;
+			var nickfield = document.getElementById('option_profile_nick') ;
 			if ( nickfield == null ) { // Options opened on another tab
 				this.select_tab('Identity') ;
-				nickfield = document.getElementById('profile_nick') ;
+				nickfield = document.getElementById('option_profile_nick') ;
 			}
-			nickfield.classList.add('errored') ;
 			nickfield.select() ;
 			return false ;
 		}
@@ -238,7 +239,6 @@ function Options(check_id) {
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
 	}
-
 	this.select_tab = function(tab) {
 		if ( ! iss(tab) || ! this.tabs[tab] )
 			tab = 'Options' ;
@@ -274,6 +274,7 @@ function Options(check_id) {
 			return eventStop(ev) ;
 		}, false) ;
 		fieldset.appendChild(nick) ;
+		inick.required = true ;
 		inick.select() ;
 		// Avatar
 			// Input + link to demo
