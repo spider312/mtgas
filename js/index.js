@@ -111,8 +111,7 @@ function start() { // On page load
 				var li = create_li() ;
 				li.appendChild(rightspan) ;
 				li.appendChild(leftspan) ;
-				shouts.appendChild(li) ;
-				shouts.scrollTop = shouts.scrollHeight ;
+				addAndScroll(shouts, li) ;
 				game.notify('shout', 'Mogg Shout', data.player_nick+' : '+data.message) ;
 				break ;
 			// Duels

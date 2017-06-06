@@ -104,6 +104,13 @@ function document_add_css(doc, url) {
 	doc.documentElement.firstChild.appendChild(mycss)
 }
 // Basic node management
+function addAndScroll(container, toAdd) { // Adds a node to a container, then scroll bottom if it was scrolled
+	var scrbot = container.scrollHeight - ( container.scrollTop + container.clientHeight ) ;
+	container.appendChild(toAdd) ;
+	if ( scrbot === 0 ) {
+		container.scrollTop = container.scrollHeight ;
+	}
+}
 function node_empty() {
 	for ( var i = 0 ; i < arguments.length ; i++) {
 		var node = arguments[i] ;
