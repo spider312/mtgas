@@ -81,6 +81,11 @@ class Registration {
 		return true ;
 	}
 	// Build
+		// Initial pool set
+	public function set_pool($pool) {
+		$this->deck_obj->side = $pool ;
+		$this->summarize(true) ;
+	}
 		// Pool cards
 	public function toggle($name, $from, $position=-1) {
 		if ( ! property_exists($this->deck_obj, $from) )

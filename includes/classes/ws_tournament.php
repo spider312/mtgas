@@ -470,22 +470,30 @@ class Tournament {
 				$this->log('', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				foreach ( $this->data->boosters as $ext ) {
-					$ext_obj = Extension::get($ext) ;
-					if ( $ext_obj == null ) {
-						$this->say("Extension $ext not found in sealed generation") ;
-						continue ;
+				$pool = null ; // First pool, for clone sealed
+				foreach ( $this->players as $player ) {
+					// Create new pool if needed (clone sealed only create 1 pool)
+					if (
+						( $pool === null ) // First pool
+						||
+						! $this->data->clone_sealed // NOT clone_sealed
+					) {
+						$pool = array() ;
+						foreach ( $this->data->boosters as $ext ) {
+							$ext_obj = Extension::get($ext) ;
+							if ( $ext_obj === null ) {
+								$this->say("Extension $ext not found in sealed generation") ;
+								continue ;
+							}
+							$booster = $ext_obj->booster($upool) ;
+							foreach ( $booster as $card ) {
+								$pool[] = $card ;
+							}
+						}
 					}
-					$booster = null ;
-					foreach ( $this->players as $player ) {
-						if ( ( $booster == null ) || ! $this->data->clone_sealed )
-							$booster = $ext_obj->booster($upool) ; // Only need object in memory for sealed
-						foreach ( $booster as $card )
-							$player->pick($card) ;
-					}
+					// Apply pool to player
+					$player->set_pool($pool) ;
 				}
-				foreach ( $this->players as $player )
-					$player->summarize(true) ;
 				$this->build() ;
 				break ;
 			default :
