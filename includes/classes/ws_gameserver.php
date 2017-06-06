@@ -160,6 +160,8 @@ class GameServer {
 		Evaluation::fill() ;
 		$this->say("\t\t".count(Evaluation::$cache).' evaluations imported') ;
 		$this->say("\tEnd MOGG import") ;
+		// Once all "fat" queries are finished, enable debug on DB
+		$db->debug = true ;
 	}
 	public function export() { // Not called anymore, week & month are generated on tournament end and year and all are generated via crontab
 		$this->say("\tBegin export") ;

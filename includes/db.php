@@ -58,14 +58,13 @@ class Db {
 	private $pass = '' ;
 	private $db = '' ;
 	private $link = false ;
-	private $charset = 'utf8' ;
+	private $charset = 'utf8' ; // Unused ATM
 	public $debug = false ;
-	public function __construct($host_, $user_, $pass_, $db_, $debug = false) {
+	public function __construct($host_, $user_, $pass_, $db_) {
 		$this->host = $host_ ;
 		$this->user = $user_ ;
 		$this->pass = $pass_ ;
 		$this->db = $db_ ;
-		$this->debug = $debug ;
 	}
 	private function say($msg) {
 		echo $msg."\n" ;
@@ -108,10 +107,10 @@ class Db {
 		}
 		return $this->link ;
 	}
-	private function query($query, $resultmode = MYSQLI_STORE_RESULT) {
+	private function query($query) {
 		$this->check() ;
 		$start = microtime(true) ;
-		$result = $this->link->query($query/*, $resultmode*/) ;
+		$result = $this->link->query($query) ;
 		if ( $this->debug ) {
 			$end = microtime(true) ;
 			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
@@ -123,11 +122,11 @@ class Db {
 			 $this->dierr("Erreur de requête : \n$query\n{$this->link->error}") ;
 		return $result ;
 	}
-	public function insert($query, $resultmode) { // Insert is sync by default, as it returns insert id
-		$this->query($query, $resultmode) ;
+	public function insert($query) { // Runs sync insert efault, returning insert ID
+		$this->query($query) ;
 		return $this->link->insert_id ;
 	}
-	public function select($query) { // Select is sync as it returns data
+	public function select($query) { // Runs a sync select, returning selected data
 		$result = $this->query($query) ;
 		if (method_exists('mysqli_result', 'fetch_all')) # Compatibility layer with PHP < 5.3
 			$res = $result->fetch_all(MYSQLI_ASSOC);
@@ -145,6 +144,6 @@ class Db {
 		return $this->link->affected_rows ;
 	}
 }
-$db = new Db('', $mysql_login, $mysql_password, $mysql_db, true) ;
+$db = new Db('', $mysql_login, $mysql_password, $mysql_db) ;
 $db_cards = new Db('', $card_login, $card_password, $card_db) ;
 ?>
