@@ -287,7 +287,11 @@ class Action {
 				$values[] = "('{$action->id}', '{$action->game->id}', '{$action->sender}', '{$action->local_index}', '{$action->type}', '".$db->escape($param)."', '{$action->recieved}')" ;
 			}
 			$nb = $db->update("INSERT INTO `action` (`id`, `game`, `sender`, `local_index`, `type`, `param`, `recieved`) VALUES ".implode(', ', $values).';') ; // update to get affected rows, insert returns an id, nonsense here
-			echo $nb.'/'.count($values).'/'.count(Action::$buffer).' actions commited'."\n" ;
+			$nbv = count($values) ;
+			$nba = count(Action::$buffer) ;
+			if ( ( $nb !== $nbv ) || ( $nb !== $nba ) ) {
+				echo $nb.'/'.count($values).'/'.count(Action::$buffer).' actions commited'."\n" ;
+			}
 			Action::$buffer = array() ;
 		}
 	}
