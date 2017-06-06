@@ -475,7 +475,7 @@ function Options(check_id) {
 	this.add('Notifications', 'notification_duel_new', 'New duel', 'A new duel is created', true) ;
 	this.add('Notifications', 'notification_duel_start', 'Duel started', 'A duel you created started', true) ;
 	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', true) ;
-	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you created started', true) ;
+	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you joined started', true) ;
 	this.add('Notifications', 'notification_autoclose', 'Auto close', 'Notification closes automatically', true) ;
 		// Hidden (Only retrieved, or set by other means)
 		//player_id
