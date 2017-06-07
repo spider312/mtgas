@@ -22,7 +22,9 @@ function notification_send(title, txt, tag) {
 		switch ( resp ) {
 			case 'granted' : {
 				options = { "body": txt, "requireInteraction": ! game.options.get('notification_autoclose') } ;
-				options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ; // Prevents notifications under FF
+				if ( game.options.get('notification_icon') ) {
+					options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
+				}
 				if ( iss(tag) ) { options.tag = tag ; }
 				return new Notification(title, options) ;
 			} break ;

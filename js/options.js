@@ -477,6 +477,7 @@ function Options(check_id) {
 	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', true) ;
 	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you joined started', true) ;
 	this.add('Notifications', 'notification_autoclose', 'Auto close', 'Notification closes automatically', true) ;
+	this.add('Notifications', 'notification_icon', 'Display mogg icon', 'Solves notifications not working under older Firefox versions', true) ;
 		// Hidden (Only retrieved, or set by other means)
 		//player_id
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
