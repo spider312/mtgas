@@ -114,8 +114,9 @@ class Db {
 		if ( $this->debug ) {
 			$end = microtime(true) ;
 			$duration = ( $end - $start ) * 1000 ; // microtime returns seconds as float
+			$duration = intval($duration) ;
 			if ( $duration > 250 ) {
-				$this->say("SQL Query $duration ms : ".$query) ;
+				$this->say('SQL Query '.$duration.'ms : '.substr($query, 0, 100)) ;
 			}
 		}
 		if ( $result === false )
