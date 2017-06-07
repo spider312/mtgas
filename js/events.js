@@ -98,7 +98,6 @@ keyActions = { // Key <=> action association
 // Main lib
 function events() { // Handlers for events for all connexion type (player, spectator)
 	window.addEventListener('focus',	onFocus,	false) ;
-	document.addEventListener('selectstart', eventStop, false) ;
 }
 function player_events() {
 	window.addEventListener('beforeunload',	onBeforeUnload,	false) ; // Confirm page closure

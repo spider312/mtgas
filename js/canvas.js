@@ -549,6 +549,7 @@ function canvas_add_events(canvas) {
 	game.drag = null ;
 	game.dragover = null ;
 	game.current_targeting = null ;
+	canvas.addEventListener('selectstart', canvasEventStop, false) ;
 	canvas.addEventListener('mousedown', canvasMouseDown, false) ;
 	//canvas.addEventListener('mouseout', canvasMouseDown, false) ;
 	canvas.addEventListener('mousemove', canvasMouseMove, false) ;
