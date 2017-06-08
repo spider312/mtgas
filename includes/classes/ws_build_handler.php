@@ -6,6 +6,10 @@ class BuildHandler extends LimitedHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		if ( $this->limited_register($user, $data) ) {
 			$user->sendString(json_encode($user->player->get_deck())) ;
+			$keywords = new stdClass() ;
+			$keywords->type = 'keywords' ;
+			$keywords->keywords = $user->tournament->keywords() ;
+			$user->sendString(json_encode($keywords)) ;
 		}
 	}
 	public function recieved(WebSocketTransportInterface $user, $data) {

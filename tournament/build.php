@@ -35,6 +35,11 @@ html_head('Building #'.$id,
   </div>
 
   <div id="stats" class="section">
+   <h2>Filter</h2>
+   <select id="filter_suggestions"></select>
+   <form id="filter_form">
+    <input id="filter_input" name="filter_input" type="text" size="10">
+   </form>
    <h2>Stats</h2>
    <label><input id="stats_side" type="checkbox">Stats side</label>
    <div id="stats_graphs"></div>

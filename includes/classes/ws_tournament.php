@@ -439,6 +439,33 @@ class Tournament {
 				$this->observer->build->broadcast($this, '{"type": "redirect"}') ;
 		}
 	}
+	public function keywords() {
+		$result = array() ;
+		if ( ! is_array($this->data->boosters) ) {
+			return $result ;
+		}
+		$exts = array() ;
+		foreach ( $this->data->boosters as $ext ) {
+			if ( array_search($ext, $exts) === false ) {
+				$exts[] = $ext ;
+			}
+		}
+		foreach ( $exts as $ext ) {
+			$ext_obj = Extension::get($ext) ;
+			if ( $ext_obj === null ) {
+				$this->say("Extension $ext not found in keywords") ;
+				continue ;
+			}
+			if ( is_array($ext_obj->data->keywords) ) {
+				foreach( $ext_obj->data->keywords as $keyword ) {
+					if ( array_search($keyword, $result) === false ) {
+						$result[] = $keyword ;
+					}
+				}
+			}
+		}
+		return $result ;
+	}
 	public function begin() { // Launch first step for tournament (draft, build ...)
 		// DB
 		shuffle($this->players) ; // Give random numbers to players

@@ -10,12 +10,14 @@ class Card {
 	public $attrs = null ;
 	public $ext = '' ; // Higher priority image (or given) extension
 	public $rarity = '' ; // Rarity in selected extension
+	public $text = '' ;
 	public $exts = array() ; // Extension list
 	private $extensions = array() ; // Full data for extensions
 	public function __construct($card) {
 		$this->occurence = ++Card::$occurences ;
 		$this->id = $card->id ;
 		$this->name = $card->name ;
+		$this->text = $card->text ;
 		$this->attrs = json_decode($card->attrs) ;
 		// Merge attrs and fixed_attrs
 		if ( $card->fixed_attrs != '' ) {

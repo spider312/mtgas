@@ -187,3 +187,9 @@ td.th {
 .smallres #selectors {
 	right: 130px ;
 }
+#filter_form {
+	display: inline ;
+}
+#filter_suggestions {
+	width: 20px ;
+}

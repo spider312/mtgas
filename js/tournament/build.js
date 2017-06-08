@@ -4,6 +4,8 @@ function start(id, pid) {
 	land = document.getElementById('land') ;
 	zoom = document.getElementById('zoom') ;
 	ready = document.getElementById('ready') ;
+	filter_input = document.getElementById('filter_input') ;
+	filter_suggestions = document.getElementById('filter_suggestions') ;
 	TournamentBuild.prototype = new TournamentLimited() ;
 	Tournament.prototype = new TournamentBuild() ;
 	PlayerBuild.prototype = new PlayerLimited() ;
@@ -45,6 +47,28 @@ function start(id, pid) {
 				break ;
 			case 'deck' :
 				game.tournament.me.recieve({'deck_obj': data}) ;
+				break ;
+			case 'keywords' :
+				node_empty(filter_suggestions) ;
+				// Clear
+				filter_option('', filter_suggestions) ;
+				// Extension keywords
+				if ( data.keywords.length > 0 ) {
+					var optgroup = create_element('optgroup') ;
+					optgroup.label = 'Extension' ;
+					optgroup.title = 'Extension keywords' ;
+					data.keywords.forEach((suggestion) => {
+						filter_option(suggestion, optgroup)
+					}) ;
+					filter_suggestions.appendChild(optgroup) ;
+				}
+				// Base
+				var optgroup = create_element('optgroup') ;
+				optgroup.label = 'Basic' ;
+				optgroup.title = 'Generic filter suggestions' ;
+				filter_option('Creature', optgroup) ;
+				filter_option('Destroy', optgroup) ;
+				filter_suggestions.appendChild(optgroup) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
@@ -89,6 +113,19 @@ function start(id, pid) {
 			}, false) ;
 		}
 	}
+	// Filter form
+	document.getElementById('filter_form').addEventListener('submit', function(ev) {
+		game.tournament.me.pool.side.set_text_filter(this.filter_input.value) ;
+		return eventStop(ev) ;
+	}, false) ;
+	filter_input.addEventListener('keyup', function(ev) {
+		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+	}, false) ;
+	filter_suggestions.addEventListener('change', function(ev) {
+		filter_input.value = this.value ;
+		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+		filter_input.select() ;
+	}, false) ;
 	// Recompute columns number on resize
 	window.addEventListener('resize', function(ev) {
 		pool = game.tournament.me.pool ;
@@ -105,6 +142,17 @@ function start(id, pid) {
 	zoom.addEventListener('mouseenter', function(ev) {
 		zoom.classList.add('hidden') ;
 	}, false) ;
+}
+function filter_option(suggestion, select) {
+	var opt = create_option(suggestion, suggestion)
+	opt.addEventListener('click', function filter_click(ev) {
+		if ( this.disabled ) { return eventStop(ev) ; }
+		filter_input.value = this.value ;
+		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+		filter_input.select() ;
+	}, false) ;
+	select.appendChild(opt) ;
+	return opt ;
 }
 function TournamentBuild() {}
 function PlayerBuild() {
@@ -285,6 +333,7 @@ function Zone(pool, node, name, sort) {
 	this.node = node ;
 	this.name = name ;
 	this.cards = [] ;
+	this.text_filter = '' ;
 	this.color_filter = {'X': true, 'W': true, 'U': true, 'B': true, 'R': true, 'G': true} ;
 	this.field = sort ;
 	this.fields = {
@@ -364,6 +413,10 @@ function Zone(pool, node, name, sort) {
 		me.menu(ev) ;
 	}, false) ;
 	// Methods
+	this.set_text_filter = function(txt) {
+		this.text_filter = txt ;
+		this.display() ;
+	}
 		// Filter
 	this.set_filter = function(color, val) {
 		this.color_filter[color] = val ;
@@ -402,14 +455,31 @@ function Zone(pool, node, name, sort) {
 		if ( sort_side != null )
 			sort_side.value = field ;
 	}
+	this.contains = (type) => { return ( type.toLowerCase().indexOf(this.text_filter.toLowerCase()) > -1 ) ; }
 	this.filtered = function() {
 		var result = [] ;
-		for ( var i = 0 ; i < this.cards.length ; i++ )
-			for ( var j in this.color_filter )
-				if ( this.color_filter[j] && inarray(j, this.cards[i].attrs.color) ) {
-					result.push(this.cards[i]) ;
+		for ( var i = 0 ; i < this.cards.length ; i++ ) {
+			var card = this.cards[i] ;
+			// Filter by text
+			if ( this.text_filter !== '' ) {
+				if (
+					! card.attrs.types.some(this.contains)
+					&&
+					! card.attrs.subtypes.some(this.contains)
+					&&
+					! this.contains(card.text)
+				) {
+					continue ;
+				}
+			}
+			// Filter by color
+			for ( var j in this.color_filter ) {
+				if ( this.color_filter[j] && inarray(j, card.attrs.color) ) {
+					result.push(card) ;
 					break ;
 				}
+			}
+		}
 		return result ;
 	}
 	this.sorted = function(field) { // Return an array of "columns" sorted by field
@@ -629,6 +699,7 @@ function Card(card) {
 	this.name = card.name ;
 	this.attrs = card.attrs ;
 	this.rarity = card.rarity ;
+	this.text = card.text ;
 }
 function generate_base_land() {
 	base_lands = document.getElementById('base_lands') ;
