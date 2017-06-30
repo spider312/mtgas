@@ -486,6 +486,7 @@ function graveyard(player) {
 				var scavengesubmenu = new menu_init(this) ;
 				var embalmsubmenu = new menu_init(this) ;
 				var aftermathsubmenu = new menu_init(this) ;
+				var eternalizesubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -527,6 +528,21 @@ function graveyard(player) {
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
+					if ( iss(card.attrs.eternalize) ) {
+						var l = eternalizesubmenu.addline(card.name+' ('+card.attrs.eternalize+')', function(card) {
+							var attrs = JSON.parse(JSON.stringify(card.attrs));
+							attrs.subtypes.push('zombie') ;
+							attrs.pow = 4 ;
+							attrs.thou = 4 ;
+							attrs.manas = '' ;
+							attrs.converted_cost = 0
+							attrs.color = 'B'
+							create_token(card.ext, card.name, this.player.battlefield, attrs) ;
+							card.changezone(this.player.exile) ;
+
+						}, card);
+						l.moimg = card.imgurl() ;
+					}
 
 				}
 				var addline = false ;
@@ -556,6 +572,10 @@ function graveyard(player) {
 				}
 				if ( aftermathsubmenu.items.length > 0 ) {
 					menu.addline('Aftermath ('+aftermathsubmenu.items[0].length+')', aftermathsubmenu) ;
+					addline = true ;
+				}
+				if ( eternalizesubmenu.items.length > 0 ) {
+					menu.addline('Eternalize ('+eternalizesubmenu.items[0].length+')', eternalizesubmenu) ;
 					addline = true ;
 				}
 				if ( addline )

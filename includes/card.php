@@ -538,6 +538,9 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Aftermath/', $text, $matches) ) {
 		$target->aftermath = implode($target->split->manas);
 	}
+	if ( preg_match('/Eternalize ('.$manacost.')/', $text, $matches) ) {
+		$target->eternalize = manacost($matches[1]) ;
+	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
 		$target->vanishing = true ;
