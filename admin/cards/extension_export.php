@@ -19,7 +19,7 @@ if ( $e = mysql_fetch_object($equery) ) {
 		echo '";"' ;
 		if ( property_exists($j, 'subtypes') )
 			echo implode(' ', $j->subtypes) ;
-		echo '";"' . $c->text;
+		echo '";"' . str_replace('"', "'", $c->text) ;
 		echo '"'."\n" ;
 	}
 } else 
