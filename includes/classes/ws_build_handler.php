@@ -5,7 +5,17 @@ use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class BuildHandler extends LimitedHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
 		if ( $this->limited_register($user, $data) ) {
-			$user->sendString(json_encode($user->player->get_deck())) ;
+			$deck = $user->player->get_deck() ;
+			$deck_json = json_encode($deck) ;
+			if ( $deck_json === false ) {
+				foreach ( $deck->side as $card ) {
+					$json = json_encode($card) ;
+					if ( $json === false ) {
+						 $this->say("Card text of [".$card->name."] can't be JSONized : ".json_last_error_msg()) ;
+					}
+				}
+			}
+			$user->sendString($deck_json) ;
 			$keywords = new stdClass() ;
 			$keywords->type = 'keywords' ;
 			$keywords->keywords = $user->tournament->keywords() ;
