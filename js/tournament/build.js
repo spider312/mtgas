@@ -125,6 +125,7 @@ function start(id, pid) {
 		filter_input.value = this.value ;
 		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
 		filter_input.select() ;
+		filter_suggestions.selectedIndex = -1 ;
 	}, false) ;
 	// Recompute columns number on resize
 	window.addEventListener('resize', function(ev) {
@@ -145,12 +146,6 @@ function start(id, pid) {
 }
 function filter_option(suggestion, select) {
 	var opt = create_option(suggestion, suggestion)
-	opt.addEventListener('click', function filter_click(ev) {
-		if ( this.disabled ) { return eventStop(ev) ; }
-		filter_input.value = this.value ;
-		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
-		filter_input.select() ;
-	}, false) ;
 	select.appendChild(opt) ;
 	return opt ;
 }
