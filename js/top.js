@@ -150,6 +150,12 @@ function Player(id, data) {
 	this.matches = data.matches ;
 	this.score = data.score ;
 	this.ratio = this.score / this.matches ;
+	this.eval_sum = data.eval_sum ;
+	this.eval_nb = data.eval_nb ;
+	this.eval_avg = 0 ;
+	if ( this.eval_nb > 0 ) {
+		this.eval_avg = this.eval_sum / this.eval_nb ;
+	}
 }
 // Displays a player line
 Player.prototype.display = function player(table) {
@@ -160,10 +166,23 @@ Player.prototype.display = function player(table) {
 	tr.insertCell().appendChild(create_text(this.matches)) ;
 	tr.insertCell().appendChild(create_text(this.score)) ;
 	tr.insertCell().appendChild(create_text(round(this.ratio, 2))) ;
+	tr.insertCell().appendChild(this.evaluation()) ;
 	if ( // Mark line as self
 		( this.player_id == player_id ) // Client is current line's player
 		|| ( this.alias.indexOf(player_id) > -1 ) // Client is an alias of current line's player
 	) {
 		tr.classList.add('self') ;
 	}
+}
+// Evaluation display
+Player.prototype.evaluation = function() {
+	let container = create_span() ;
+	container.title = round(this.eval_avg, 2)+' in '+this.eval_nb+' evaluations' ;
+	for ( let j = -2 ; j < 3 ; j++ ) {
+		let img_url = ( this.eval_avg < j ) ? 'evaluation/star_disabled.png' : 'evaluation/star.png' ;
+		let img = create_img(theme_image(img_url)[0])
+		img.classList.add('evaluation_star');
+		container.appendChild(img) ;
+	}
+	return container ;
 }
