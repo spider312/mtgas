@@ -12,4 +12,6 @@ $cluster = $target[0]->cluster ;
 $db->update("UPDATE `config` SET `position` = '$position' WHERE `position` = '$to' AND `cluster` = '$cluster'") ; // Swap if needed
 $result = $db->update("UPDATE `config` SET `position` = '$to' WHERE `id` = '$id'") ;
 
+reorder_cluster($cluster) ;
+
 die("'$result'") ;

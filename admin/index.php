@@ -28,54 +28,7 @@ html_menu() ;
 
   <div class="section">
    <h1>General configuration</h1>
-   <h2>Suggestions</h2>
-   <h3>Sealed</h3>
-   <table>
-    <thead>
-     <tr>
-	  <td>Name</td>
-	  <td>Value</td>
-	  <td>Action</td>
-  	 </tr>
-	</thead>
-	<tbody id="suggest_sealed">
-	</tbody>
-	<tfoot>
-	 <tr>
-	  <td colspan="3">
-       <form id="suggest_sealed_add">
-        <input type="text" name="name" placeholder="name">
-        <input type="text" name="value" placeholder="value">
-        <input type="submit" value="add">
-       </form>
-	  </td>
-     </tr>
-	</tfoot>
-   </table>
-   <h3>Draft</h3>
-   <table>
-    <thead>
-     <tr>
-	  <td>Name</td>
-	  <td>Value</td>
-	  <td>Action</td>
-  	 </tr>
-	</thead>
-	<tbody id="suggest_draft">
-	</tbody>
-	<tfoot>
-	 <tr>
-	  <td colspan="3">
-       <form id="suggest_draft_add">
-        <input type="text" name="name" placeholder="name">
-        <input type="text" name="value" placeholder="value">
-        <input type="submit" value="add">
-       </form>
-	  </td>
-     </tr>
-	</tfoot>
-
-   </table>
+   <a href="suggestions.php"><h2>Suggestions</h2></a>
   </div>
 
   <div class="section">
