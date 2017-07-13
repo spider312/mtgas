@@ -108,6 +108,7 @@ class GameServer {
 		$links = Card::fill_cache() ;
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
 		$this->import_tokens() ;
+		$this->import_suggestions() ;
 	}
 	public function import_tokens() {
 		// Token images
@@ -168,7 +169,6 @@ class GameServer {
 			// Evaluations
 		Evaluation::fill() ;
 		$this->say("\t\t".count(Evaluation::$cache).' evaluations imported') ;
-		$this->import_suggestions() ;
 		$this->say("\tEnd MOGG import") ;
 		// Once all "fat" queries are finished, enable debug on DB
 		$db->debug = true ;
