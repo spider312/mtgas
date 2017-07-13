@@ -47,6 +47,11 @@ class IndexHandler extends ParentHandler {
 				$user->sendString(json_encode($tournament)) ;
 			}
 		}
+		$suggest = new stdClass ;
+		$suggest->type = 'suggest' ;
+		$suggest->draft = $this->observer->suggest_draft ;
+		$suggest->sealed = $this->observer->suggest_sealed ;
+		$user->sendString(json_encode($suggest)) ;
 		// Send extensions - keep last step
 		$exts = new stdClass ;
 		$exts->type = 'extensions' ;

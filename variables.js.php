@@ -67,10 +67,6 @@ foreach ( scandir($localedir) as $dir )
 else*/
 	applang = 'en' ;
 
-// Index
-draft_formats = <?php echo JSON_encode($suggest_draft) ; ?> ;
-sealed_formats = <?php echo JSON_encode($suggest_sealed) ; ?> ;
-
 // Game params
 restricted_access = false ;
 deckname_maxlength = 32 ; // Displayed length in deck list

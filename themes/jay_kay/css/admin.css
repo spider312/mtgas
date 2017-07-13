@@ -10,3 +10,11 @@ div.section {
 .warn {
 	color: red ;
 }
+.up_down {
+	list-style-type: none ;
+	padding: 0 ;
+	float: right ;
+}
+.up_down button {
+	padding: 0 ;
+}

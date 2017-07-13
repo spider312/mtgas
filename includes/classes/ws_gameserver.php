@@ -44,6 +44,8 @@ class GameServer {
 	// MTG data
 	public $tokens = array() ;
 	// MOGG data
+	public $suggest_draft = array() ;
+	public $suggest_sealed = array() ;
 	public $pending_duels = array() ;
 	public $joined_duels = array() ;
 	public $pending_tournaments = array() ;
@@ -131,6 +133,13 @@ class GameServer {
 		$this->say("\t\t$nbtoken tokens listed") ;
 		$this->say("\tEnd MTG import") ;
 	}
+	public function import_suggestions() {
+		global $db ;
+		$this->suggest_draft = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_draft'") ;
+		$this->say("\t\t".count($this->suggest_draft).' draft suggestions imported') ;
+		$this->suggest_sealed = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_sealed'") ;
+		$this->say("\t\t".count($this->suggest_sealed).' sealed suggestions imported') ;
+	}
 	public function import_mogg() {
 		$this->say("\tBegin MOGG import") ;
 		$this->bans = new Bans($this) ;
@@ -159,6 +168,7 @@ class GameServer {
 			// Evaluations
 		Evaluation::fill() ;
 		$this->say("\t\t".count(Evaluation::$cache).' evaluations imported') ;
+		$this->import_suggestions() ;
 		$this->say("\tEnd MOGG import") ;
 		// Once all "fat" queries are finished, enable debug on DB
 		$db->debug = true ;

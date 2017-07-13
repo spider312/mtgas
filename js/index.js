@@ -17,6 +17,9 @@ function start() { // On page load
 			game.connection.connect() ;
 		}
 	}) ;
+	// Init suggestions before trying to restore saved value
+	draft_formats = [] ;
+	sealed_formats = [] ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
@@ -94,6 +97,11 @@ function start() { // On page load
 					shouters.appendChild(shouter) ;
 				}
 				update_connected() ;
+				break ;
+			case 'suggest' :
+				draft_formats = data.draft ;
+				sealed_formats = data.sealed ;
+				tournament_boosters(document.getElementById('tournament_type').selectedIndex) ;
 				break ;
 			case 'extensions' :
 				get_extensions(data.data) ;
@@ -721,19 +729,16 @@ function tournament_boosters(type) {
 	}
 	// Fill boosters suggestions list
 	var set = false ;
-		// Empty
-	while ( suggestions.options.length > 0 )
-		suggestions.options.remove(0) ;
-		// Fill with hard schemes
-	for ( var i in content ) {
-		var option = create_option(i, content[i]);
+	node_empty(suggestions);
+	content.forEach( suggest => {
+		let option = create_option(suggest.name, suggest.value);
 		suggestions.options.add(option) ;
-		if ( boosters.value == content[i] ) {
+		if ( boosters.value === suggest.value ) {
 			option.selected = true ;
 			set = true ;
 		}
-	}
-		// Add empty "Custom" booster scheme
+	}) ;
+	// Add empty "Custom" booster scheme
 	var option = create_option('Custom', '')
 	suggestions.options.add(option) ;
 		// If no scheme was set as selected in filling, select "Custom"
