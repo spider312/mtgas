@@ -135,9 +135,9 @@ class GameServer {
 	}
 	public function import_suggestions() {
 		global $db ;
-		$this->suggest_draft = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_draft'") ;
+		$this->suggest_draft = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_draft' ORDER BY `position`") ;
 		$this->say("\t\t".count($this->suggest_draft).' draft suggestions imported') ;
-		$this->suggest_sealed = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_sealed'") ;
+		$this->suggest_sealed = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_sealed' ORDER BY `position`") ;
 		$this->say("\t\t".count($this->suggest_sealed).' sealed suggestions imported') ;
 	}
 	public function import_mogg() {
