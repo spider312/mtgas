@@ -68,6 +68,8 @@ function start(id, pid) {
 				optgroup.title = 'Generic filter suggestions' ;
 				filter_option('Creature', optgroup) ;
 				filter_option('Destroy', optgroup) ;
+				filter_option('Damage', optgroup) ;
+				filter_option('Search', optgroup) ;
 				filter_suggestions.appendChild(optgroup) ;
 				break ;
 			default : 
