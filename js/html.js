@@ -248,14 +248,18 @@ function create_form(action, method) {
 function create_submit(name, value, id, classname) {
 	var submit = document.createElement('input') ;
 	submit.type = 'submit' ;
-	if ( issn(id) )
+	if ( iss(id) ) {
 		submit.id = id ;
-	if ( issn(name) )
+	}
+	if ( iss(name) ) {
 		submit.name = name ;
-	if ( issn(value) )
+	}
+	if ( iss(value) ) {
 		submit.value = value ;
-	if ( issn(classname) )
+	}
+	if ( iss(classname) ) {
 		submit.className = classname ;
+	}
 	return submit ;
 }
 function create_checkbox(name, checked, id, value) {
@@ -271,14 +275,21 @@ function create_checkbox(name, checked, id, value) {
 	return checkbox ;
 
 }
-function create_input(name, value, id) {
+function create_input(name, value, id, placeholder) {
 	var text = document.createElement('input') ;
 	text.type = 'text' ;
-	if ( issn(name) )
+	if ( iss(name) ) {
 		text.name = name ;
-	text.value = ''+value ;
-	if ( issn(id) )
+	}
+	if ( iss(value) ) {
+		text.value = value ;
+	}
+	if ( iss(id) ) {
 		text.id = id ;
+	}
+	if ( iss(placeholder) ) {
+		text.placeholder = placeholder ;
+	}
 	return text ;
 }
 function create_password(name, value, id) {
