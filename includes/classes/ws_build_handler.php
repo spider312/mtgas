@@ -19,6 +19,7 @@ class BuildHandler extends LimitedHandler {
 			$keywords = new stdClass() ;
 			$keywords->type = 'keywords' ;
 			$keywords->keywords = $user->tournament->keywords() ;
+			$keywords->base = $this->observer->keywords ;
 			$user->sendString(json_encode($keywords)) ;
 		}
 	}

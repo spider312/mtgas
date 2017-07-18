@@ -109,6 +109,7 @@ class GameServer {
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
 		$this->import_tokens() ;
 		$this->import_suggestions() ;
+		$this->import_keywords() ;
 	}
 	public function import_tokens() {
 		// Token images
@@ -140,6 +141,15 @@ class GameServer {
 		$this->say("\t\t".count($this->suggest_draft).' draft suggestions imported') ;
 		$this->suggest_sealed = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_sealed' ORDER BY `position`") ;
 		$this->say("\t\t".count($this->suggest_sealed).' sealed suggestions imported') ;
+	}
+	public function import_keywords() {
+		global $db ;
+		$keywords = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'keyword' ORDER BY `position`") ;
+		$this->keywords = new stdClass ;
+		foreach ( $keywords as $keyword ) {
+			$this->keywords->{$keyword->name} = $keyword->value ;
+		}
+		$this->say("\t\t".count($keywords).' keywords imported') ;
 	}
 	public function import_mogg() {
 		$this->say("\tBegin MOGG import") ;

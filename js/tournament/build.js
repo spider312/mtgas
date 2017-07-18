@@ -51,25 +51,24 @@ function start(id, pid) {
 			case 'keywords' :
 				node_empty(filter_suggestions) ;
 				// Clear
-				filter_option('', filter_suggestions) ;
+				filter_option('', '', filter_suggestions) ;
 				// Extension keywords
-				if ( data.keywords.length > 0 ) {
-					var optgroup = create_element('optgroup') ;
-					optgroup.label = 'Extension' ;
-					optgroup.title = 'Extension keywords' ;
-					data.keywords.forEach((suggestion) => {
-						filter_option(suggestion, optgroup)
-					}) ;
+				var optgroup = create_element('optgroup') ;
+				optgroup.label = 'Extension' ;
+				optgroup.title = 'Extension keywords' ;
+				Object.keys(data.keywords).sort().forEach((currentValue, currentIndex, listObj) => {
+					filter_option(currentValue, data.keywords[currentValue], optgroup) ;
+				}, true) ;
+				if ( optgroup.childNodes.length > 0 ) {
 					filter_suggestions.appendChild(optgroup) ;
 				}
 				// Base
 				var optgroup = create_element('optgroup') ;
 				optgroup.label = 'Basic' ;
 				optgroup.title = 'Generic filter suggestions' ;
-				filter_option('Creature', optgroup) ;
-				filter_option('Destroy', optgroup) ;
-				filter_option('Damage', optgroup) ;
-				filter_option('Search', optgroup) ;
+				Object.keys(data.base).forEach((currentValue, currentIndex, listObj) => {
+					filter_option(currentValue, data.base[currentValue], optgroup) ;
+				}) ;
 				filter_suggestions.appendChild(optgroup) ;
 				break ;
 			default : 
@@ -146,8 +145,8 @@ function start(id, pid) {
 		zoom.classList.add('hidden') ;
 	}, false) ;
 }
-function filter_option(suggestion, select) {
-	var opt = create_option(suggestion, suggestion)
+function filter_option(suggestion_name, suggestion_value, select) {
+	var opt = create_option(suggestion_name, suggestion_value) ;
 	select.appendChild(opt) ;
 	return opt ;
 }

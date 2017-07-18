@@ -60,6 +60,7 @@ class Registration {
 		else
 			$this->deck_obj->main[] = $card ;
 		$this->summarize() ;
+		$this->commit('deck') ;
 		$this->set_ready(false) ;
 	}
 	public function reorder($zone, $from, $to) {
@@ -78,6 +79,7 @@ class Registration {
 		$spl = array_splice($zone, $from, 1) ;
 		array_splice($zone, $to, 0, $spl) ;
 		$this->summarize() ;
+		//$this->commit('deck') ; // Why ? Why not ?
 		return true ;
 	}
 	// Build
@@ -85,6 +87,7 @@ class Registration {
 	public function set_pool($pool) {
 		$this->deck_obj->side = $pool ;
 		$this->summarize(true) ;
+		$this->commit('deck') ;
 	}
 		// Pool cards
 	public function toggle($name, $from, $position=-1) {
@@ -211,13 +214,13 @@ class Registration {
 	public function get_deck() {
 		return $this->deck_obj ;
 	}
-	public function summarize($sort=false) {
+	private function summarize($sort=false) {
 		$this->deck = $this->deck_obj->summarize() ;
 		if ( $sort )
 			$this->deck_obj->sort() ;
 		$this->deck_cards = count($this->deck_obj->main) ;
 		$this->side_cards = count($this->deck_obj->side) ;
-		$this->commit('deck') ;
+		//$this->commit('deck') ;
 	}
 	public function set_status($status) {
 		if ( $this->status < 8 ) {
@@ -297,4 +300,9 @@ class Registration {
 		WHERE `tournament_id` = '{$this->tournament->id}'
 		AND `player_id` = '{$this->player_id}' ; ") ;
 	}
+/*
+	static $buffer = array() ;
+	static function commit() {
+	}
+*/
 }

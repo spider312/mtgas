@@ -440,7 +440,7 @@ class Tournament {
 		}
 	}
 	public function keywords() {
-		$result = array() ;
+		$result = new stdClass ;
 		if ( ! is_array($this->data->boosters) ) {
 			return $result ;
 		}
@@ -456,11 +456,9 @@ class Tournament {
 				$this->say("Extension $ext not found in keywords") ;
 				continue ;
 			}
-			if ( is_array($ext_obj->data->keywords) ) {
-				foreach( $ext_obj->data->keywords as $keyword ) {
-					if ( array_search($keyword, $result) === false ) {
-						$result[] = $keyword ;
-					}
+			if ( is_object($ext_obj->data->keywords) ) {
+				foreach( $ext_obj->data->keywords as $name => $value ) {
+					$result->{$name} = $value ;
 				}
 			}
 		}
