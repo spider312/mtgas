@@ -28,7 +28,8 @@ html_menu() ;
 
   <div class="section">
    <h1>General configuration</h1>
-   <a href="suggestions.php"><h2>Suggestions</h2></a>
+   <h2><a href="suggestions.php">Suggestions</a></h2>
+   <h2><a href="keywords.php">Keywords</a></h2>
   </div>
 
   <div class="section">
