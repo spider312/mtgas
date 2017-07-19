@@ -482,7 +482,8 @@ function duel_remove(tbody, div, id) {
 }
 function player_cell(cell, nick, avatar) {
 	node_empty(cell) ;
-	var img =  player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
+	var img = player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
+	cell.classList.add("player_cell") ;
 	cell.appendChild(img) ;
 	cell.appendChild(create_text(nick)) ;
 }

@@ -209,6 +209,9 @@ table button {
 #tournament_options.shrinked * {
 	display: none ;
 }
+.player_cell {
+	white-space: nowrap ;
+}
 .score {
 	text-align: center ;
 }
