@@ -420,6 +420,7 @@ function pending_duel_add(round) {
 		''
 	) ;
 	player_cell(tr.cells[1], round.creator_nick, round.creator_avatar) ;
+	tr.cells[2].classList.add('nowrap') ;
 	tr.timer = start_timer(tr.cells[2], round.creation_date) ;
 	tr.round = round ;
 	tr.addEventListener('click', function(ev) {
@@ -454,6 +455,7 @@ function running_duel_add(round) {
 	tr.cells[1].firstElementChild.appendChild(connected(round.creator_status)) ;
 	player_cell(tr.cells[4].firstElementChild, round.joiner_nick, round.joiner_avatar) ;
 	tr.cells[4].firstElementChild.appendChild(connected(round.joiner_status)) ;
+	tr.cells[5].classList.add('nowrap') ;
 	tr.timer = start_timer(tr.cells[5].firstElementChild, round.creation_date) ;
 	tr.round = round ;
 	tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
@@ -483,7 +485,7 @@ function duel_remove(tbody, div, id) {
 function player_cell(cell, nick, avatar) {
 	node_empty(cell) ;
 	var img = player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
-	cell.classList.add("player_cell") ;
+	cell.classList.add("nowrap") ;
 	cell.appendChild(img) ;
 	cell.appendChild(create_text(nick)) ;
 }
