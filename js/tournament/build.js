@@ -51,7 +51,8 @@ function start(id, pid) {
 			case 'keywords' :
 				node_empty(filter_suggestions) ;
 				// Clear
-				filter_option('', '', filter_suggestions) ;
+				let opt = filter_option('', '', filter_suggestions) ;
+				opt.title = 'Clear filter' ;
 				// Extension keywords
 				var optgroup = create_element('optgroup') ;
 				optgroup.label = 'Extension' ;
@@ -122,12 +123,6 @@ function start(id, pid) {
 	filter_input.addEventListener('keyup', function(ev) {
 		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
 	}, false) ;
-	filter_suggestions.addEventListener('change', function(ev) {
-		filter_input.value = this.value ;
-		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
-		filter_input.select() ;
-		filter_suggestions.selectedIndex = -1 ;
-	}, false) ;
 	// Recompute columns number on resize
 	window.addEventListener('resize', function(ev) {
 		pool = game.tournament.me.pool ;
@@ -146,7 +141,16 @@ function start(id, pid) {
 	}, false) ;
 }
 function filter_option(suggestion_name, suggestion_value, select) {
-	var opt = create_option(suggestion_name, suggestion_value) ;
+	var opt = create_option(suggestion_name, suggestion_value, 'Search for "'+suggestion_value+'" in types and text\nCtrl/Shift to modify current filter with a AND/OR operator') ;
+	opt.addEventListener('click', function(ev) {
+		let value = this.value ;
+		if      ( ( value !== ''  ) && ev.ctrlKey )  { value = filter_input.value + '&' + value ; }
+		else if ( ( value !== ''  ) && ev.shiftKey ) { value = filter_input.value + '|' + value ; }
+		filter_input.value = value ;
+		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+		filter_input.select() ;
+		filter_suggestions.selectedIndex = -1 ;
+	}, false);
 	select.appendChild(opt) ;
 	return opt ;
 }
@@ -451,20 +455,28 @@ function Zone(pool, node, name, sort) {
 		if ( sort_side != null )
 			sort_side.value = field ;
 	}
-	this.contains = (type) => { return ( type.toLowerCase().indexOf(this.text_filter.toLowerCase()) > -1 ) ; }
+	this.match = (txt) => {
+		let filter = this.text_filter.toLowerCase() ;
+		let tokens_or = filter.split('|') ;
+		txt = txt.toLowerCase() ;
+		return tokens_or.some((token_or) => {
+			let tokens_and = token_or.split('&') ;
+			return tokens_and.every((token_and) => {
+				token_and = token_and.trim() ;
+				let result = ( txt.indexOf(token_and) > -1 ) ;
+				return result ;
+			}) ;
+		}) ;
+	}
 	this.filtered = function() {
 		var result = [] ;
 		for ( var i = 0 ; i < this.cards.length ; i++ ) {
 			var card = this.cards[i] ;
 			// Filter by text
 			if ( this.text_filter !== '' ) {
-				if (
-					! card.attrs.types.some(this.contains)
-					&&
-					! card.attrs.subtypes.some(this.contains)
-					&&
-					! this.contains(card.text)
-				) {
+				// Match over a join of all parts of search text in order to allow matches to append between fields (for exemple search "destroy&instant")
+				let fulltext = card.attrs.types.join(' ')+"\n"+card.attrs.subtypes.join(' ')+"\n"+card.text ;
+				if ( ! this.match(fulltext) ) {
 					continue ;
 				}
 			}
