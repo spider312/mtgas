@@ -101,15 +101,18 @@ class GameServer {
 		$this->import_mtg() ;
 		$this->import_mogg() ;
 	}
-	public function import_mtg() {
+	public function import_mtg() { // Action behind "refresh" button in admin, shall refresh all MTG data and MOGG configuration data, but not MOGG game data
 		$this->say("\tBegin MTG import") ;
 		Extension::fill_cache() ;
 		$this->say("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
 		$this->import_tokens() ;
+		$this->say("\tEnd MTG import") ;
+		$this->say("\tBegin MOGG refreshable import") ;
 		$this->import_suggestions() ;
 		$this->import_keywords() ;
+		$this->say("\tEnd MOGG refreshable import") ;
 	}
 	public function import_tokens() {
 		// Token images
@@ -133,7 +136,6 @@ class GameServer {
 		}
 		$this->tokens = $orderedtokens ;
 		$this->say("\t\t$nbtoken tokens listed") ;
-		$this->say("\tEnd MTG import") ;
 	}
 	public function import_suggestions() {
 		global $db ;
