@@ -96,20 +96,32 @@ class Game {
 		switch ( $action->type ) {
 			case 'psync' :
 				$json = $action->param ;
-				if ( is_string($json) )
+				if ( is_string($json) ) {
 					$json = json_decode($json) ;
+				}
+				// Update player score
 				if ( property_exists($json->attrs, 'score') ) {
-					switch ( $json->player ) {
-						case 'game.creator' :
-							$this->creator_score = $json->attrs->score ;
-							$this->commit('creator_score') ;
-							break ;
-						case 'game.joiner' :
-							$this->joiner_score = $json->attrs->score ;
-							$this->commit('joiner_score') ;
-							break ;
-						default :
-							$this->say('Unknown player : '.$json->player) ;
+					if (
+						( $this->tournament_obj === null ) // For non-tournament games
+						||
+						( // And tournament games that are not already finished
+							( $this->creator_score < 2 )
+							&&
+							( $this->joiner_score < 2 )
+						)
+					) {
+						switch ( $json->player ) {
+							case 'game.creator' :
+								$this->creator_score = $json->attrs->score ;
+								$this->commit('creator_score') ;
+								break ;
+							case 'game.joiner' :
+								$this->joiner_score = $json->attrs->score ;
+								$this->commit('joiner_score') ;
+								break ;
+							default :
+								$this->say('Unknown player : '.$json->player) ;
+						}
 					}
 					if ( $this->tournament_obj != null )
 						$this->tournament_obj->match_won($this) ;
