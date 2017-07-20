@@ -138,11 +138,6 @@ class IndexHandler extends ParentHandler {
 				break ;
 			// Tournament
 			case 'pending_tournament' :
-				/*
-				foreach ( $this->observer->pending_tournaments as $tournament )
-					if ( $tournament->registered($user) !== false )
-						$tournament->unregister($user) ;
-				*/
 				$data->type = 'pending_tournament' ;
 				$tournament = Tournament::create($data, $user) ;
 				if ( is_string($tournament) )
@@ -156,13 +151,15 @@ class IndexHandler extends ParentHandler {
 				break ;
 			case 'tournament_register' :
 				$data->player_id = $user->player_id ;
-				foreach ( $this->observer->pending_tournaments as $tournament )
-					if ( $tournament->registered($user) !== false )
-						$tournament->unregister($user) ;
-					else { // Client not registered
-						if ( $tournament->id == $data->id ) // Wanted tournament
+				foreach ( $this->observer->pending_tournaments as $tournament ) {
+					if ( $tournament->id == $data->id ) { // Wanted tournament
+						if ( $tournament->registered($user) !== false ) {
+							$tournament->unregister($user) ;
+						} else {
 							$tournament->register($data, $user) ;
+						}
 					}
+				}
 				break ;
 			default :
 				$this->say('Unknown type : '.$data->type) ;
