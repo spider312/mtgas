@@ -233,7 +233,7 @@ class Registration {
 		if ( $this->ready == $ready ) {
 			return false ;
 		}
-		if ( ( $this->status > 4 ) && ! $ready ) { // Statuses ended, dropped and bye don't need a "finished" substatus
+		if ( ( $this->status > 4 ) && $ready ) { // Statuses ended, dropped and bye don't need a "finished" substatus
 			return false ;
 		}
 		$this->ready = $ready ;
