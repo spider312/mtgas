@@ -138,9 +138,11 @@ class IndexHandler extends ParentHandler {
 				break ;
 			// Tournament
 			case 'pending_tournament' :
+				/*
 				foreach ( $this->observer->pending_tournaments as $tournament )
 					if ( $tournament->registered($user) !== false )
 						$tournament->unregister($user) ;
+				*/
 				$data->type = 'pending_tournament' ;
 				$tournament = Tournament::create($data, $user) ;
 				if ( is_string($tournament) )
