@@ -230,15 +230,21 @@ class Registration {
 		}
 	}
 	public function set_ready($ready=true) { // Return if value changed
-		if ( $this->ready == $ready )
+		if ( $this->ready == $ready ) {
 			return false ;
+		}
+		if ( $this->status > 4 ) {
+			return false ;
+		}
 		$this->ready = $ready ;
 		$this->commit('ready') ;
 		// Tournament consequences
-		if ( $this->tournament->status == 4 )
+		if ( $this->tournament->status == 4 ) {
 			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
-		if ( $ready )
+		}
+		if ( $ready ) {
 			$this->tournament->players_ready() ;
+		}
 		return true ;
 	}
 	public function drop($msg='No reason') {
