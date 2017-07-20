@@ -962,24 +962,30 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 			var card = attacking_player.battlefield.cards[i] ;
 			if ( card.attacking ) { // Attacking creatures
 				var pow = card.get_pow_total() ;
-				if ( card.has_attr('double_strike') )
+				if ( card.has_attr('double_strike') ) {
 					pow *= 2 ;
+				}
 				var targeting = game.target.targeting(card) ; // Targeting current card
 				var blocking = [] ;
-				for ( var j = 0 ; j < targeting.length ; j++ ) // Keep only those from opponent
-					if ( card.zone.player != targeting[j].zone.player )
+				for ( var j = 0 ; j < targeting.length ; j++ ) { // Keep only those from opponent
+					if ( card.zone.player != targeting[j].zone.player ) {
 						blocking.push(targeting[j]) ;
+					}
+				}
 				if ( blocking.length > 0 ) { // Targeted (blocked) creature
 					if ( card.has_attr('trample') ) {
-						for ( var j = 0 ; j < blocking.length ; j++ )
+						for ( var j = 0 ; j < blocking.length ; j++ ) {
 							pow -= blocking[j].get_thou_total() ;
-					} else
+						}
+					} else {
 						pow = 0 ;
+					}
 				}
-				if ( card.has_attr('infect') )
+				if ( card.has_attr('infect') ) {
 					poison += pow ;
-				else
+				} else {
 					life -= pow ;
+				}
 			}
 		}
 	} else { // Changing life for attacking player
@@ -987,8 +993,9 @@ function sum_attackers_powers(player) { // Returns an array of life/poison lost 
 			var card = defending_player.battlefield.cards[i] ;
 			if ( card.attacking && card.has_attr('lifelink') ) { // Attacking creatures with lifelink
 				var pow = card.get_pow_total() ;
-				if ( card.attrs.double_strike )
+				if ( card.attrs.double_strike ) {
 					pow *= 2 ;
+				}
 				life += pow ;
 			}
 		}
