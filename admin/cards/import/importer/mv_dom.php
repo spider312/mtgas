@@ -66,8 +66,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			break ;
 		case 4 : // Split cards
 			$us_idx = $name_nodes->length - 2 ; // English items are after french sun and moon items
-			$frname = trim($name_nodes->item(0)->nodeValue).' / '.trim($name_nodes->item(0)->nodeValue) ;
-			$name = trim($name_nodes->item(1)->nodeValue) ;
+			$frname = trim($name_nodes->item(0)->nodeValue).' / '.trim($name_nodes->item(1)->nodeValue) ;
+			$name = trim($name_nodes->item(2)->nodeValue) ;
 			break ;
 		default:
 			$importer->adderror('Name nodes : '.$name_nodes->length, $href);
@@ -218,12 +218,14 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		}
 	}*/
 	$second_text = '' ;
+	$idx = 2 ;
 	switch ( $text_nodes_length ) {
 		case 6 : // Split / Aftermath + Transform ?
 			$second_text = $text_nodes->item($text_nodes->length-2)->C14N() ;
 			$second_text = mv2txt($second_text) ;
+			$idx = 3 ;
 		case 3 : // Normal case
-			$text = $text_nodes->item(2)->C14N() ;
+			$text = $text_nodes->item($idx)->C14N() ;
 			$text = mv2txt($text) ;
 			$text = str_replace(chr(194), '', $text) ; // Strange char appearing before - and * in modal and keywords
 			$text = str_replace(chr(160), ' ', $text) ; // Repair bug due to correction above
