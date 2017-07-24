@@ -109,17 +109,16 @@ class GameHandler extends ParentHandler {
 			default :
 				$action = null ;
 				if ( $user->game !== null ) {
-					$action = $user->game->addAction($user->player_id, $data->type,
-						$data->param, $data->local_index) ;
+					$action = $user->game->addAction($user->player_id, $data->type, $data->param, $data->local_index) ;
 				}
-				if ( $action == null )
+				if ( $action === null ) {
 					$user->sendString('{"type": "msg", "sender": "", "param": {"text": "You can\'t send '.$data->type.'"}}') ;
-				else {
+				} else {
 					// Send back to sender if containing a callback ID
-					if ( isset($data->callback) )
+					if ( isset($data->callback) ) {
 						$action->callback = $data->callback ;
-					$this->broadcast(json_encode($action), $user->game,
-						isset($action->callback)?null:$user) ;
+					}
+					$this->broadcast(json_encode($action), $user->game, isset($action->callback)?null:$user) ;
 				}
 		}
 	}
