@@ -143,9 +143,13 @@ function TournamentIndex() {
 		}
 		if ( inarray('due_time', fields) )
 			start_timer(timeleft, this.due_time, this.status!=6) ;
-		if ( inarray('players', fields) )
-			for ( var i = 0 ; i < this.players.length ; i++ )
+		if ( inarray('players', fields) ) {
+			for ( var i = 0 ; i < this.players.length ; i++ ) {
 				this.players[i].display() ;
+				let node = this.players[i].node ;
+				node.parentNode.appendChild(node) ; // Place tr at the end of its container, in order to sort table rows in same order than array lines
+			}
+		}
 		if ( inarray('games', fields) && ( this.games.length > 0 ) ) {
 			rounds.parentNode.classList.remove('hidden') ;
 			node_empty(rounds) ;
