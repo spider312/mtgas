@@ -78,6 +78,10 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		$importer->adderror('No name', $href) ;
 		continue;
 	}
+	if ( $name === 'Punch Card' ) {
+		$importer->adderror('Punch card ignored', $href) ;
+		continue;
+	}
 	// PT
 	$pt_nodes = $card_xpath->query("//div[@class='G14']") ;
 	$pt = '' ;
