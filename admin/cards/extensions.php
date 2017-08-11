@@ -75,7 +75,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	if ( $arr['rd'] == 0 ) 
 		echo '     <td></td>'."\n" ;
 	else
-		echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
+		echo '     <td class="nowrap">'.date('d F Y', $arr['rd']).'</td>'."\n" ;
 	echo '     <td>'.$arr['priority'].'</td>' ;
 	echo '     <td>' ;
 	$json = $arr['data'] ;
@@ -85,7 +85,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 		echo '<p>'.json_last_error_msg().'</p>' ;
 	}
 	echo '     </td>' ;
-	echo '     <td>' ;
+	echo '     <td class="nowrap">' ;
 	echo '<a href="?ext_del='.$arr['id'].'">del</a>' ;
 	echo ' - ' ;
 	echo '<a href="extension_export.php?ext='.$arr['se'].'">export</a>' ;
