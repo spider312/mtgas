@@ -233,8 +233,19 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$text = mv2txt($text) ;
 			$text = str_replace(chr(194), '', $text) ; // Strange char appearing before - and * in modal and keywords
 			$text = str_replace(chr(160), ' ', $text) ; // Repair bug due to correction above
-			if ( $pt != '' )
+			// Specific planeswalker parsing
+			$match = 'Loyalty : ' ;
+			if ( substr($pt, 0, strlen($match)) === $match ) {
+				// Loyalty
+				$pt = substr($pt, strlen($match)) ;
+				if ( ! is_numeric($pt) ) { $pt = '0' ; } // Integer expected - X loyalty
+				// HTML -> C14N produced some strange chars, convert to expected text
+				$text = str_replace(chr(10).chr(9).chr(9).chr(9).chr(32).chr(32), ': ', $text); // String between loyalty count and effect
+				$text = str_replace(chr(10).chr(9).chr(9).chr(9).chr(10), "\n", $text); // End of effect
+			}
+			if ( $pt != '' ) {
 				$text = $pt."\n".$text ;
+			}
 			break ;
 		case 5 : // Planeswalker
 			if ( $second_types !== '' ) {
