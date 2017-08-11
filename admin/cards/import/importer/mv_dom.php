@@ -198,7 +198,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$types = $type_nodes->item(1)->nodeValue ;
 			break ;
 		case 4 :
-			$types = $type_nodes->item(1)->nodeValue ;
+			$types = $type_nodes->item(2)->nodeValue ;
 			$second_types = $type_nodes->item(3)->nodeValue ;
 			break ;
 		default : 
