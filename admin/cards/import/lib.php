@@ -150,6 +150,11 @@ function string_detail_disp($str) {
 	$result .= '</pre>' ;
 	return $result ;
 }
+function tokenpath($token, $name='') {
+	if ( $name == '' )
+		$name = $token['type'] ;
+	return $name.((($token['pow']!=='')||($token['tou']!==''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
+}
 // Classes
 class Importer {
 	public $code = '' ;
@@ -503,11 +508,7 @@ class Importer {
 		return true ;
 	}
 }
-function tokenpath($token, $name='') {
-	if ( $name == '' )
-		$name = $token['type'] ;
-	return $name.((($token['pow']!=='')||($token['tou']!==''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-}
+
 class ImportCard {
 	public $ext = null ;
 	public $url = 'Uninitialized' ;
