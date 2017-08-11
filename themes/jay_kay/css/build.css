@@ -190,6 +190,13 @@ td.th {
 #filter_form {
 	display: inline ;
 }
+#filter_suggestions, #filter_input {
+	box-sizing: border-box;
+	height: 26px;
+}
 #filter_suggestions {
 	width: 20px ;
+}
+#filter_input {
+	width: 226px;
 }
