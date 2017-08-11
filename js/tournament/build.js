@@ -117,11 +117,11 @@ function start(id, pid) {
 	}
 	// Filter form
 	document.getElementById('filter_form').addEventListener('submit', function(ev) {
-		game.tournament.me.pool.side.set_text_filter(this.filter_input.value) ;
+		game.tournament.me.pool.set_text_filter(this.filter_input.value) ;
 		return eventStop(ev) ;
 	}, false) ;
 	filter_input.addEventListener('keyup', function(ev) {
-		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+		game.tournament.me.pool.set_text_filter(filter_input.value) ;
 	}, false) ;
 	// Recompute columns number on resize
 	window.addEventListener('resize', function(ev) {
@@ -147,7 +147,7 @@ function filter_option(suggestion_name, suggestion_value, select) {
 		if      ( ( value !== ''  ) && ev.ctrlKey )  { value = filter_input.value + '&' + value ; }
 		else if ( ( value !== ''  ) && ev.shiftKey ) { value = filter_input.value + '|' + value ; }
 		filter_input.value = value ;
-		game.tournament.me.pool.side.set_text_filter(filter_input.value) ;
+		game.tournament.me.pool.set_text_filter(filter_input.value) ;
 		filter_input.select() ;
 		filter_suggestions.selectedIndex = -1 ;
 	}, false);
@@ -278,6 +278,10 @@ function Pool(player) {
 	this.set_smallres = function(val) {
 		this.smallres = val ;
 		this.calc_maxcols() ;
+	}
+	this.set_text_filter = function(txt) {
+		this.main.set_text_filter(txt) ;
+		this.side.set_text_filter(txt) ;
 	}
 	this.player = player ;
 	this.main = new Zone(this, table_main, 'Deck', 'converted_cost') ;
