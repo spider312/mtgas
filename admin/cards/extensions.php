@@ -80,8 +80,9 @@ while ( $arr = mysql_fetch_array($query) ) {
 	echo '     <td>' ;
 	$json = $arr['data'] ;
 	$data = json_decode($json) ;
+	echo $json ;
 	if ( $data === null ) {
-		echo $json ;
+		echo '<p>'.json_last_error_msg().'</p>' ;
 	}
 	echo '     </td>' ;
 	echo '     <td>' ;
