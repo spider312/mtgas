@@ -76,7 +76,7 @@ $chosen_importer = 'importer/'.$source.'.php' ;
 if ( ! file_exists($chosen_importer) )
 	die('No importer for source '.$source) ;
 
-$importer = new ImportExtension() ;
+$importer = new Importer() ;
 echo '<pre>' ;
 include_once $chosen_importer ;
 if ( ! $importer->validate() ) {

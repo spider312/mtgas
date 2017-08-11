@@ -151,7 +151,7 @@ function string_detail_disp($str) {
 	return $result ;
 }
 // Classes
-class ImportExtension {
+class Importer {
 	public $code = '' ;
 	public $name = '' ;
 	public $nbcards = 0 ;
