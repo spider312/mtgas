@@ -9,7 +9,7 @@ $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 $import_url = $base_url.'set_cards.php?setcode='.$ext_source.'&lang=eng' ;
 $importer->init($import_url) ;
 $ext_path = 'cache/'.$source.'_'.$ext_source ;
-$html = cache_get($importer->url, $ext_path, $verbose, true, 300) ; // Update && limit cache life time for this file
+$html = cache_get($importer->url, $ext_path, $verbose, true, $importer->cachetime) ; // Update && limit cache life time for this file
 
 // DOM parsing
 libxml_use_internal_errors(true) ; // No warnings during parsing
@@ -48,7 +48,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$href = $base_url.$href ;
 	// Download
 	$path = $ext_path . '_' . $i ;
-	$card_html = cache_get($href, $path, $verbose) ;
+	$card_html = cache_get($href, $path, $verbose, true, $importer->cachetime) ;
 	$card_dom->loadHTML($card_html);
 	$card_xpath = new DOMXpath($card_dom);
 // Parsing
@@ -130,6 +130,14 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	} else {
 		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
 		$rarity = $rarities[$rarity_id] ;
+		if ( $importer->type === 'preview' ) {
+			if ( ( $rarity === 'R' ) || ( $rarity === 'M' ) ) { 
+				$rarity = 'L' ; // To appear differently in builder
+				$img = null ;
+			} else {
+				continue ;
+			}
+		}
 	}
 // Token
 	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::*") ; // HTML Element following table containing card navigator
@@ -144,6 +152,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		}
 		switch ( $extratxt ) {
 			case '' : // extratxt is only a counter, card is a token
+				if ( $importer->type !== 'main' ) { continue 2 ; }
 				$nb_token_found++ ;
 				if ( $nb_token_expected === 0 ) { // First time
 					$nb_token_expected = $nbt ;
@@ -160,17 +169,19 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				continue 2 ;
 
 			case 'Story Spotlight': // Normal cards included in extension
+				if ( $importer->type !== 'main' ) { continue 2 ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 				break;
 
-			default:
-				$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
-				$rarity = 'S' ;
-				//$importer->nbcards-- ; // Card read and counted in total, but not imported
-				continue 2 ;
+			default: // Only import PW Decks cards in PW Decks context
+				if ( ( $importer->type !== 'pwdecks' ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
+					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
+					continue 2 ;
+				}
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
+		if ( $importer->type === 'pwdecks' ) { continue ; } // PW Decks imports only PW Decks cards
 	}
 	$exceptions = [297, 305] ; // Cards wrongly declared as nontoken on source during "hot" import. Current : AKH
 	if ( array_search($number, $exceptions) !== false ) {

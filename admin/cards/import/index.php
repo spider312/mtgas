@@ -8,6 +8,10 @@ $ext_source = param($_GET, 'ext_source', $ext_local) ;
 $apply = param($_GET, 'apply', false) ;
 if ( $apply !== false )
 	$apply = true ;
+
+$importtype = param($_GET, 'importtype') ;
+$cache_time = param($_GET, 'cache_time', -1) ;
+
 $verbose = false ;
 
 html_head(
@@ -45,19 +49,30 @@ html_menu() ;
     <fieldset>
      <legend>From</legend>
      <label>Source : <select name="source">
-      <?=html_option('mtgjson', 'MTGJSON', $source) ; ?>
-      <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
+      <?/*=html_option('mtgjson', 'MTGJSON', $source) ; */?>
+      <?/*=html_option('mtgsalvation', 'MTGSalvation', $source) ; */?>
+      <?/*=html_option('mci', 'Magic Cards Info', $source) ; */?>
       <?/*=html_option('mv', 'Magic Ville', $source) ; */?>
       <?=html_option('mv_dom', 'Magic Ville DOM', $source) ; ?>
-      <?=html_option('mtgsalvation', 'MTGSalvation', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
     <fieldset>
      <legend>To</legend>
      <label>Ext code (in DB) : <input type="text" name="ext_local" value="<?=$ext_local?>"></label>
-     <label><?=html_checkbox('apply', $apply) ; ?>Apply<label>
+     <label><?=html_checkbox('apply') ; ?>Apply<label>
     </fieldset>
+	<fieldset>
+	 <legend>Parameters</legend>
+	 <label>Import type
+	  <select name="importtype">
+       <?=html_option('main', 'Main', $importtype) ; ?>
+       <?=html_option('preview', 'Preview', $importtype) ; ?>
+       <?=html_option('pwdecks', 'Planewalker Decks', $importtype) ; ?>
+      </select>
+	 </label>
+	 <label>Cache time<input type="text" name="cache_time" value="<?=$cache_time?>">
+	</fieldset>
     <button type="submit">Refresh</button>
    </form>
   </div>
@@ -76,7 +91,7 @@ $chosen_importer = 'importer/'.$source.'.php' ;
 if ( ! file_exists($chosen_importer) )
 	die('No importer for source '.$source) ;
 
-$importer = new Importer() ;
+$importer = new Importer($importtype, $cache_time) ;
 echo '<pre>' ;
 include_once $chosen_importer ;
 if ( ! $importer->validate() ) {
