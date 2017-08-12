@@ -17,13 +17,13 @@ function card_search($get, $connec=null) {
 	// Start to build query
 	$select = '`card`.*' ;
 	$from = '`card`' ;
-	$where = '' ;
+	$where = ' ( `card_ext`.`nbpics` > 0 ) ' ;
 	$order = '`card`.`name`' ;
 	// Special fields that modify query instead of just beeing searched
 	if ( isset($get['ext']) && ( $get['ext'] != '' ) ) {
 		$select .= ', `extension`.`se`' ;
-		$from .= 'LEFT JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` LEFT JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
-		$where .= 'AND ( `extension`.`se` = \''.$get['ext'].'\' OR `extension`.`sea` = \''.$get['ext'].'\' )' ;
+		$from .= 'INNER JOIN `card_ext` ON `card`.`id` = `card_ext`.`card` INNER JOIN `extension` ON `card_ext`.`ext` = `extension`.`id`' ;
+		$where .= 'AND ( `extension`.`se` LIKE \'%'.$get['ext'].'%\' OR `extension`.`sea` LIKE \'%'.$get['ext'].'%\' )' ;
 		unset($get['ext']) ;
 	}
 	if ( isset($get['lang']) ) {
@@ -41,7 +41,7 @@ function card_search($get, $connec=null) {
 	// Normal fields
 	$where .= get2where($get, 'LIKE', '%', '%', 'card') ;
 	// Parts acquired, merge and query
-	$query = "SELECT $select FROM $from WHERE 1 $where ORDER BY $order";
+	$query = "SELECT $select FROM $from WHERE $where ORDER BY $order";
 	$result = query($query, 'Card listing', $connec) ;
 	$data->num_rows = mysql_num_rows($result) ;
 	$data->cards = array() ;
