@@ -294,7 +294,7 @@ function html_option($value, $disp, $selected) {
 	$return .= '>'.$disp.'</option>' ;
 	return $return ;
 }
-function html_checkbox($name, $checked) {
+function html_checkbox($name, $checked=false) {
 	$return = '<input type="checkbox" name="'.$name.'"' ;
 	if ( $checked )
 		$return .= ' checked="checked"' ;
