@@ -183,7 +183,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		//echo "$name {$token_number_node->length}\n" ;
 		if ( $importer->type === 'pwdecks' ) { continue ; } // PW Decks imports only PW Decks cards
 	}
-	$exceptions = [297, 305] ; // Cards wrongly declared as nontoken on source during "hot" import. Current : AKH
+	$exceptions = [] ; // Cards wrongly declared as nontoken on source during "hot" import
 	if ( array_search($number, $exceptions) !== false ) {
 		$nb_token_found++ ;
 		$importer->addtoken($href, $name, $pow, $tou, $img) ;
