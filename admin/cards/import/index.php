@@ -230,10 +230,13 @@ foreach ( $import_log as $i => $log ) {
 		echo '       <li><a href="'.$card->urls[0].'" target="_blank">source ('.$source.')</a></li>'."\n" ;
 		echo '       <li><a href="../card.php?id='.$log['id'].'" target="_blank">destination</a></li>'."\n" ;
 		echo '      </td>'."\n" ;
-		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
+		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) ) {
 			echo '      <td>only multiverseID</td>'."\n" ;
-		else
+		} elseif ( count($card->images) > 0 ) {
 			echo '      <td><img src="'.$card->images[0].'"></td>'."\n" ;
+		} else {
+			echo '      <td>???</td>' ;
+		}
 		echo '      <td>'."\n" ;
 		foreach ( $log['updates'] as $field => $upd ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
