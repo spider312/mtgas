@@ -113,6 +113,7 @@ function start() { // On page load
 			case 'shout' :
 				var leftspan = create_span(create_a(data.player_nick, '/player.php?id='+data.player_id))
 				leftspan.appendChild(create_text(': '+data.message)) ;
+				leftspan.innerHTML = replaceURLWithHTMLLinks(leftspan.innerHTML, true) ;
 				leftspan.classList.add('shouttext') ;
 				var rightspan = create_span(' '+timeWithDays(mysql2date(data.time, game.connection.offset))) ;
 				rightspan.classList.add('shouttime') ;
