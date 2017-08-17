@@ -93,7 +93,7 @@ function side_start_recieve(player, winner) {
 	document.body.appendChild(side_window) ;
 	side_resize() ;
 	side_lists_fill(player, deck_ul, side_ul, 'orig_zone') ;
-	but_can.focus() ;
+	//but_can.focus() ;
 }
 // Refresh lists
 function side_resize() {
