@@ -255,8 +255,8 @@ class Registration {
 			$which = $game->which($this->player_id) ;
 			$opponent = $game->opponent($this->player_id) ;
 			if ( ( $opponent !== '' ) && ( $game->joiner_id !== '' ) ) { // No need to "abandon" byes
-				$game->addAction(''/*$this->player_id*/, 'psync', '{"player":"game.'.$which.'","attrs":{"score":0}}') ;
-				$game->addAction(''/*$this->player_id*/, 'psync', '{"player":"game.'.$opponent.'","attrs":{"score":2}}') ;
+				$game->addAction('', 'psync', '{"player":"game.'.$which.'","attrs":{"score":0}}') ;
+				$game->addAction('', 'psync', '{"player":"game.'.$opponent.'","attrs":{"score":2}}') ;
 			}
 		}
 		$this->set_status(7) ;
