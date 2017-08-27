@@ -271,7 +271,7 @@ class GameServer {
 	public function clean_duel($duel) { // On last player disconnection from a duel : remove that duel from joined_duels
 		try {
 			$i = array_search($duel, $this->joined_duels) ;
-		} catch ( $e ) {
+		} catch ( Exception $e ) {
 			caught($e) ;
 			$this->say("Faulty duel : ".$duel->name) ;
 			foreach ( $this->joined_duels as $i => $duel ) {
