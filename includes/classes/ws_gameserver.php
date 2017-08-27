@@ -259,7 +259,7 @@ class GameServer {
 		$this->joined_duels[] = $duel ;
 		return $duel ;
 	}
-	public function clean_duels($player_id) {
+	public function clean_duels($player_id) { // On player disconnection from index : remove all of its duels from pending_duels
 		$result = array() ;
 		foreach ( $this->pending_duels as $i => $duel )
 			if ( ( $duel->creator_id == $player_id ) || ( $duel->joiner_id == $player_id ) ) {
@@ -268,7 +268,7 @@ class GameServer {
 			}
 		return $result ;
 	}
-	public function clean_duel($duel) {
+	public function clean_duel($duel) { // On last player disconnection from a duel : remove that duel from joined_duels
 		try {
 			$i = array_search($duel, $this->joined_duels) ;
 		} catch ( $e ) {
