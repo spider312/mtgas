@@ -1,21 +1,12 @@
 <?php 
 class Game {
-	private $fields = array(
-		'id', 'status', 'creation_date', 'last_update_date', 'name', 'tournament', 'round',
-		'creator_nick', 'creator_id', 'creator_avatar', 'creator_deck', 'creator_score',
-		'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck', 'joiner_score',
-	) ;
-	public $creator_status = 0 ;
-	public $joiner_status = 0 ;
-	private $actions = array() ;
-	private $action_id = 0 ;
-	public $spectators = null ;
-	private $tournament_obj = null ;
+	// Static
 	static $cache = array() ;
 	static function get($id) {
-		foreach (Game::$cache as $game)
-			if ( $game->id == $id )
-				return $game ;
+		$id = intval($id) ;
+		if ( array_key_exists($id, Game::$cache) ) {
+			return Game::$cache[$id] ;
+		}
 		global $db ;
 		$games = $db->select("SELECT * FROM `round` WHERE `id` = '$id'") ;
 		if ( count($games) > 0 ) {
@@ -26,27 +17,59 @@ class Game {
 		}
 		return null ;
 	}
-	public function __construct($obj, $type='') {
-		Game::$cache[] = $this ;
+
+	// Instance
+		// List of fields that comes from DB
+	private $fields = array(
+		'id', 'status', 'creation_date', 'last_update_date', 'name', 'tournament', 'round',
+		'creator_nick', 'creator_id', 'creator_avatar', 'creator_deck', 'creator_score',
+		'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck', 'joiner_score',
+	) ;
+		// Used to inform index about connexion status of players
+	public $creator_status = 0 ;
+	public $joiner_status = 0 ;
+		// Linked
+	private $actions = array() ;
+	private $action_id = 0 ; // Counter for action IDs
+	public $spectators = null ;
+	private $tournament_obj = null ;
+	public function __construct($obj, $type='') { // $obj is an object fetched from DB
+		// Initialize all expected fields
 		foreach ( $this->fields as $field ) {
-			if ( property_exists($obj, $field) )
+			if ( property_exists($obj, $field) ) {
 				$this->$field = $obj->$field ;
-			else
+			} else {
 				$this->$field = '' ;
+			}
 		}
-		$this->spectators = new Spectators() ;
-		if ( ! isset($obj->id) )
-			$this->create() ;
-		else
-			$this->getActions() ;
-		if ( isset($obj->type) && ( $obj->type != '' ) )
+		// Manage game creation/import and its ID
+		if ( $this->id === '' ) {
+			$this->create() ; // Not previously existing, store in DB
+		} else { // Previously in DB
+			$this->id = intval($this->id) ; // Ensure ID type
+			$this->getActions() ; // Get linked data
+		}
+		// Index game now we have an ID
+		Game::$cache[$this->id] = $this ;
+		// Game type ?
+		if ( isset($obj->type) && ( $obj->type != '' ) ) {
 			$this->type = $obj->type ;
-		else
+		} else {
 			$this->type = $type ;
-		if ( isset($this->creator_score) && ( $this->creator_score == '' ) )
+		}
+		// Transtyping : Score
+		if ( ! isset($this->creator_score) ) {
 			$this->creator_score = 0 ;
-		if ( isset($this->joiner_score) && ( $this->joiner_score == '' ) )
+		} else if ( !is_int($this->creator_score) ) {
+			$this->creator_score = intval($this->creator_score) ;
+		}
+		if ( isset($this->joiner_score) ) {
 			$this->joiner_score = 0 ;
+		} else if ( !is_int($this->joiner_score) ) {
+			$this->joiner_score = intval($this->joiner_score) ;
+		}
+		// Linked data
+		$this->spectators = new Spectators() ;
 		$this->tournament_obj = Tournament::get($this->tournament, 'tournament') ;
 	}
 	// Actions
