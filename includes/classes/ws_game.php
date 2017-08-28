@@ -42,6 +42,9 @@ class Game {
 				$this->$field = '' ;
 			}
 		}
+		// Linked data (before other actions because they're needed for some)
+		$this->tournament_obj = Tournament::get($this->tournament, 'tournament') ;
+		$this->spectators = new Spectators() ;
 		// Manage game creation/import and its ID
 		if ( $this->id === '' ) {
 			$this->create() ; // Not previously existing, store in DB
@@ -68,9 +71,6 @@ class Game {
 		} else if ( !is_int($this->joiner_score) ) {
 			$this->joiner_score = intval($this->joiner_score) ;
 		}
-		// Linked data
-		$this->spectators = new Spectators() ;
-		$this->tournament_obj = Tournament::get($this->tournament, 'tournament') ;
 	}
 	// Actions
 	public function nextActionId() {
@@ -92,8 +92,9 @@ class Game {
 				$this->actions[] = $action ;
 				if ( $action->type == 'spectactor' ) {
 					$json = json_decode($action->param) ;
-					if ( isset($json->nick) )
+					if ( isset($json->nick) ) {
 						$this->spectators->add($action->sender, $json->nick) ;
+					}
 				}
 			}
 		}
