@@ -269,15 +269,13 @@ class GameServer {
 		return $result ;
 	}
 	public function clean_duel($duel) { // On last player disconnection from a duel : remove that duel from joined_duels
-		try {
-			$i = array_search($duel, $this->joined_duels) ;
-		} catch ( Exception $e ) {
-			caught($e) ;
-			$this->say("Faulty duel : ".$duel->name) ;
-			foreach ( $this->joined_duels as $i => $duel ) {
-				$this->say(gettype($duel)) ;
+		//$i = array_search($duel, $this->joined_duels) ; // Triggers recursive dependency fatal error
+		$i = -1 ;
+		foreach ( $this->joined_duels as $myidx => $myduel ) {
+			if ( $myduel->id === $duel->id ) {
+				$i = $myidx ;
+				break ;
 			}
-			$i = -1 ;
 		}
 		if ( $i > -1 ) {
 			$duels = array_splice($this->joined_duels, $i, 1) ;

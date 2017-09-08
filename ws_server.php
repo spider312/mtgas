@@ -34,12 +34,6 @@ function signal_handler($signo, $siginfo=null) {
 	unlink($pidfile) ;
 	exit($signo);
 }
-// Exception management
-function caught($e) {
-	echo 'Caught exception @'.$e->getFile().':'.$e->getLine().' : '.$e->getMessage() . "\n" ;
-	echo 'Trace : ' . "\n";
-	echo $e->getTraceAsString() . "\n";
-}
 // WS Lib
 require_once('vendor/autoload.php') ;
 use Devristo\Phpws\Server\WebSocketServer ;
