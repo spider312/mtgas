@@ -82,7 +82,7 @@ function start(id, pid) {
 		var landbase = function(id, name, mana) {
 			return {
 				'id': id, 'name': name,
-				'ext': 'UNH', 'rarity': 'L', 'ext_img': 'UNH',
+				'ext': 'UST', 'rarity': 'L', 'ext_img': 'UST',
 				'attrs': {
 					'manas': [], 'converted_cost': 0, 'color': 'X', 'color_index': 1,
 					'types': ['land'], 'supertypes': ['basic'],
