@@ -44,7 +44,7 @@ function cookie_set(name, value, days) {
 function notification_send(title, txt, tag) {
 	new Promise((resolve, reject) => {
 		if ( game.options.get('notification_sound') ) {
-			let src = url + '/themes/' + theme + '/Sounds/welcome.wav' ;
+			let src = url + '/themes/' + theme + '/Sounds/notification.wav' ;
 			let snd = new Audio(src) ;
 			snd.play() ;
 		}
