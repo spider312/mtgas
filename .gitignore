@@ -12,6 +12,8 @@ img/avatar/*
 admin/cards/import/cache/
 admin/.ht*
 /css
+log/
+exts_stats/
 
 composer.lock
 composer.phar
