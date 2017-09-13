@@ -1,7 +1,7 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
+function cache_get($url, $cache_file, $verbose = true, $noDownloadSmaller=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
 	$content = '' ;
 	clearstatcache() ;
@@ -18,7 +18,7 @@ function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_lif
 		$content = @file_get_contents($cache_file) ;
 	} else {
 		$message .= '[update cache : ' ;
-		if ( $update && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
+		if ( $noDownloadSmaller && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
 			$message .= 'cache file is already bigger' ;
 			$content = @file_get_contents($cache_file) ;
 		} else if ( ( $content = curl_download($url) ) !== false ) { // @file_get_contents($url)
