@@ -29,31 +29,59 @@ do {
 
 // Parse results
 foreach ( $data as $card ) {
-	// Modify some data to fit mogg database
-		// Rarity
+	// URI
+	$uri = $card->uri ;
+	// Rarity
 	$rarity = $card->rarity ; // Full word
 	$rarity = substr($rarity, 0, 1) ;
 	$rarity = strtoupper($rarity) ;
-		// Cost
+	$verso = null ;
+	// Manage layout
+	switch ( $card->layout ) {
+		case 'normal' :
+			break ;
+		case 'transform' :
+			$verso = $card->card_faces[1] ;
+			$verso->color_identity = $card->color_identity ;
+			$card = $card->card_faces[0] ;
+			break ;
+		default :
+			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
+			continue 2 ;
+	}
+	// Img
+	$imgURI = isset($card->image_uris->border_crop) ? $card->image_uris->border_crop : $card->image_uris->normal ;
+	// Cost
 	$cost = $card->mana_cost ;
 	$cost = str_replace('/', '', $cost) ; // Remove / from hybrids
 	$cost = preg_replace('/{(.)}/', '\1', $cost) ; // Transform non-hybrid (1 char length) mana to mana letter
-		// Types
+	// Types
 	$types = $card->type_line ;
 	$types = str_replace('—', '-', $types) ; // Historical more-standard char
-		// Build text
+	// Add card
+	$imported = $importer->addcard($uri, $rarity, $card->name, $cost, $types, card2text($card), $imgURI) ;
+	if ( $imported === null ) {
+		$importer->adderror('Card not added', $card->scryfall_uri) ;
+		continue ;
+	}
+	// Manage multi-faces layout
+	if ( $verso !== null ) {
+		$imported->transform($verso->name, $verso->color_identity[count($verso->color_identity)-1], $verso->type_line, card2text($verso), $verso->image_uris->border_crop) ;
+	}
+}
+
+function card2text($card) {
 	$text = isset($card->oracle_text) ? $card->oracle_text : '' ; // Vanilla creatures doesn't have this field
+	$text = str_replace('−', '-', $text) ; // Historical more-standard char
 	$text = str_replace('•', '*', $text) ; // Historical more-standard char
 	$text = preg_replace('#{(.)/(.)}#', '{\1\2}', $text) ; // Transform hybrid {A/B} mana to mogg format {AB}
 	if ( isset($card->power) && isset($card->toughness) ) { // Add pow/tou for creatures
 		$text = $card->power . '/'.$card->toughness."\n".$text ;
 	}
-	// Add card
-	$card = $importer->addcard($card->scryfall_uri, $rarity, $card->name, $cost, $types, $text, $card->image_uri) ;
-	if ( ! $card ) {
-		$importer->adderror('Card not added', $card->scryfall_uri) ;
-		continue ;
+	if ( isset($card->loyalty) ) { // Add loyalty info for planeswalkers
+		$text = $card->loyalty . "\n" . $text ;
 	}
+	return $text ;
 }
 
 ?>
