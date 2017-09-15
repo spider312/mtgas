@@ -294,10 +294,12 @@ class attrs {
 						$transform->name = stripslashes(array_shift($matches)) ;
 					if ( count($matches) > 0 ) {
 						$t = array_shift($matches) ;
-						$reg = '/\%(\S+) (.*)/s' ;
+						$reg = '/\%(\S+)? (.*)/s' ;
 						$transform->color = 'X' ;
 						if ( preg_match($reg, $t, $matches_t) ) {
-							$transform->color = $matches_t[1] ;
+							if ( $matches_t[1] !== '' ) {
+								$transform->color = $matches_t[1] ;
+							}
 							$t = $matches_t[2] ;
 						}
 						manage_types($t, $transform) ;
