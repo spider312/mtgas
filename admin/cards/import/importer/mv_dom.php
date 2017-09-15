@@ -290,26 +290,37 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$card->addlang('fr', $frname, $frimg) ;
 	// Second part
 	switch ( $name_nodes->length ) {
-		case '4' : // Split
-			$text = '' ; // mv2txt($matches[1]['text'])
-			$card->split(
-				card_name_sanitize($name_nodes->item(3)->nodeValue),
-				$second_cost,
-				$second_types,
-				$second_text
-			) ;
+		case '4' : // Split / Transform
+			$second_name = card_name_sanitize($name_nodes->item(3)->nodeValue) ;
+			// Search back image
+			$xpath = $card_xpath->query("//div[@id='CardScanBack']//img") ;
+			if ( $xpath->length === 0 ) { // No back image found : it's a split
+				$card->split($second_name, $second_cost, $second_types, $second_text) ;
+			} else { // Back image found : it's a transform
+				// Search back img and FR back img URL
+				$frtrimg = null ;
+				$trimg = $xpath->item(0)->getAttribute('src') ;
+				if ( strpos($trimg, 'FR') ) {
+					$frtrimg = $trimg ;
+					$trimg = str_replace('FR', '', $trimg) ;
+				}
+				$card->transform(
+					$second_name,
+					'', // For now (XLN), no need for a color, let's wait it's needed to think about it (sample code below)
+					$second_types,
+					$second_text,
+					$base_url.$trimg
+				) ;
+				if ( $frtrimg != null ) {
+					$card->addlangimg('fr', $base_url.$frtrimg) ;
+				}
+			}
 			break ;
 	}
 	// Moon
 	/*
 	if ( $name_nodes->length > 2 ) {
 		$idx = $name_nodes->length - 1 ;
-		// Name
-		$trname = trim($name_nodes->item($idx)->nodeValue) ;
-		// Types
-		$trtypes_node = $type_nodes->item($idx) ;
-		$trtypes = trim($trtypes_node->nodeValue) ;
-		$trtypes = str_replace(chr(194).chr(151), '-', $trtypes) ;
 		// Color
 		$trcolor = '' ;
 		$node = $trtypes_node->firstChild ;
@@ -325,23 +336,6 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		// Text & PT : managed in sun face text & PT managements
 		if ( $trpt != '' )
 			$second_text = $trpt."\n".$second_text ;
-		// Image
-		if ( preg_match('#if \(bflst==1\) \{document\["BIGflippic"\].src="(.*?)";bflst=2;\}#', $card_html, $matches) )
-			$trimg = $matches[1] ;
-		if ( strpos($trimg, 'FR') ) {
-			$frtrimg = $trimg ;
-			$trimg = str_replace('FR', '', $trimg) ;
-		}
-		// Import
-		$card->transform(
-			card_name_sanitize($trname)
-			, $trcolor
-			, $trtypes
-			, $second_text
-			, $base_url.$trimg
-		) ;
-		if ( $frtrimg != null )
-			$card->addlangimg('fr', $base_url.$frtrimg) ;
 	}
 	*/
 }
