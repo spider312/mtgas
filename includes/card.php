@@ -593,11 +593,13 @@ function manage_text($name, $text, $target) {
 		if ( $idx > -1 ) // {
 			array_splice($cost, $idx, 1) ;
 		if ( $matches['manas'] == 'one mana of any color' ) {
-			$target->addmana('W') ;
-			$target->addmana('U') ;
-			$target->addmana('B') ;
-			$target->addmana('R') ;
-			$target->addmana('G') ;
+			if ( method_exists($target, 'addmana') ) {
+				$target->addmana('W') ;
+				$target->addmana('U') ;
+				$target->addmana('B') ;
+				$target->addmana('R') ;
+				$target->addmana('G') ;
+			}
 		} else {
 			$manas = preg_split('/( or )|(, )/', $matches['manas']) ;
 			foreach ( $manas as $mana )
@@ -841,6 +843,18 @@ function manage_text($name, $text, $target) {
 		$token->attrs->types[] = "artifact" ;
 		$token->name = "Clue" ;
 		$target->tokens[] = $token ;
+	}
+	// Treasures
+	if ( preg_match('#[C|c]reates? (?<number>\w+) (?<color>'.$colreg.') (?<name>.*) artifact tokens?(.*They have| with) "(?<text>.*)"#', $text, $match) ) {
+		$token = new stdClass() ;
+		$token->nb = text2number($match['number'], 1) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$name = $match['name'] ;
+		$token->name = $name ;
+		manage_text($name, $match['text'], $token->attrs) ;
+		$target->tokens[] = $token ;
+		return;
 	}
 	// The Monarch
 	if ( preg_match('/the monarch/', $text, $matches) ) {
