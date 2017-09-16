@@ -119,6 +119,7 @@ function card_text_sanitize($text) {
 		$pieces[$i] = trim($pieces[$i]) ;
 		$pieces[$i] = trim($pieces[$i], '.') ;
 	}
+	$pieces = array_filter($pieces) ;
 	$text = implode("\n", $pieces) ;
 	return $text ;
 }
