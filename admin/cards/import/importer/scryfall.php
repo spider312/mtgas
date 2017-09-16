@@ -66,7 +66,12 @@ foreach ( $data as $card ) {
 	}
 	// Manage multi-faces layout
 	if ( $verso !== null ) {
-		$imported->transform($verso->name, $verso->color_identity[count($verso->color_identity)-1], $verso->type_line, card2text($verso), $verso->image_uris->border_crop) ;
+		$color = '' ;
+		$nbcolors = count($verso->color_identity) ;
+		if ( $nbcolors > 0 ) {
+			$color = $verso->color_identity[count($verso->color_identity)-1] ;
+		}
+		$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $verso->image_uris->border_crop) ;
 	}
 }
 
