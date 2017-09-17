@@ -237,7 +237,7 @@ class Registration {
 			return false ;
 		}
 		$this->ready = $ready ;
-		$this->commit('ready') ;
+		$this->commit('ready', 'deck') ;
 		// Tournament consequences
 		if ( $this->tournament->status == 4 ) {
 			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
