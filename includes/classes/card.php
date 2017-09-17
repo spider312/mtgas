@@ -125,9 +125,15 @@ class Card {
 		global $db_cards ;
 		$name = $db_cards->escape($name) ;
 		$cards = $db_cards->select("SELECT * FROM `card` WHERE `name` LIKE '$name'") ;
-		if ( count($cards) > 1 ) // Multiple cards found, bug
+		if ( count($cards) > 1 ) { // Multiple cards found, bug
 			echo count($cards)." cards found : $name\n" ;
-		else if ( count($cards) == 0 ) {
+		} else if ( count($cards) == 0 ) {
+			// Transforms stored as "day/moon"
+			$pieces = explode('/', $name) ;
+			if ( count($pieces) > 1 ) {
+				$name = $pieces[0] ;
+				return Card::get(trim($name), $ext) ;
+			}
 			echo "Card not found : [$name]\n" ;
 			return null ;
 		}
