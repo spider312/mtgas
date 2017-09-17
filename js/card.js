@@ -1165,10 +1165,11 @@ function card_prototype() {
 	}
 	this.info = function() {
 		var res = this.is_visible() ;
-		if ( res )
-			window.open('http://magiccards.info/query?q=!'+this.name+'&v=card&s=cname') ;
-		else
+		if ( res ) {
+			card_info(this.name) ;
+		} else {
 			log('You can\'t ask info for hidden card') ;
+		}
 		return res ;
 	}
 // === [ ZONE MANAGEMENT ] =====================================================

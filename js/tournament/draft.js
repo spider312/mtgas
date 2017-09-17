@@ -187,8 +187,13 @@ function Img(container, ext, name, nb) {
 	img.cardname = alt ;
 	img.width = img_width ;
 	img.classList.add('card') ;
+	img.addEventListener('mouseup', function(ev) {
+		if ( ev.button === 1 ) {
+			card_info(name) ;
+		}
+	}, false) ;
 	img.addEventListener('contextmenu', function(ev) {
-		window.open('http://magiccards.info/query?q=!'+name+'&v=card&s=cname') ;
+		card_info(name) ;
 		eventStop(ev) ;
 	}, false) ;
 	container.appendChild(img) ;

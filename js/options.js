@@ -808,3 +808,8 @@ function spectator_select() { // Returns a HTMLSelect listing spectators allowed
 	}
 	return div ;
 }
+// Open an information website for a card
+function card_info(name) {
+	//window.open('http://magiccards.info/query?q=!' + name + '&v=card&s=cname') ;
+	window.open('https://scryfall.com/search?q='+name) ;
+}

@@ -213,8 +213,9 @@ function load(body, deckname) {
 					this.width = 100 ;
 				break ;
 			case 1 : // Middle click : open on mci
-				if ( iss(this.card) )
-					window.open('http://magiccards.info/query?q=!'+this.card+'&v=card&s=cname') ;
+				if ( iss(this.card) ) {
+					card_info(this.card) ;
+				}
 				break ;
 			default:
 				alert('Unknown button '+ev.button) ;
@@ -667,10 +668,11 @@ function found(data) {
 			this.img = zoom(node.ext(), node.card.name.replace(/"/g, ''), node.attrs) ; // "Ach! Hans, Run!"
 		}, false) ;
 		row.addEventListener('mousedown', function(ev) {
-			if ( ev.button == 1 )
-				window.open('http://magiccards.info/query?q=!'+ev.currentTarget.card.name+'&v=card&s=cname') ;
-			else
+			if ( ev.button == 1 ) {
+				card_info(ev.currentTarget.card.name) ;
+			} else {
 				select(node_parent_search(ev.target, 'TR')) ;
+			}
 		}, false) ;
 		row.addEventListener('dblclick', function(ev) {
 			var node = node_parent_search(ev.target, 'TR') ;
@@ -689,7 +691,7 @@ function found(data) {
 					selected.parentNode.insertBefore(selected, sel) ;
 			}, row) ;
 			menu.addline('Informations (middle click)', function(target)  {
-				window.open('http://magiccards.info/query?q=!'+target.card.name+'&v=card&s=cname') ;
+				card_info(target.card.name) ;
 			}, row) ;
 			return menu.start(ev) ;
 		}, false)
@@ -814,10 +816,11 @@ function add_card(ext, name, num, nb, to) {
 			node.img = zoom(node.ext(), node.card.replace(/"/g, ''), node.attrs) ; // "Ach! Hans, Run!"
 	}, false) ;
 	row.addEventListener('mousedown', function(ev) {
-		if ( ev.button == 1 )
-			window.open('http://magiccards.info/query?q=!'+ev.currentTarget.card+'&v=card&s=cname') ;
-		else
+		if ( ev.button == 1 ) {
+			card_info(ev.currentTarget.card) ;
+		} else {
 			select_deck(ev.target) ;
+		}
 	}, false ) ;
 	row.addEventListener('dblclick', function(ev) {
 		remove_card(this, -1) ;
@@ -841,7 +844,7 @@ function add_card(ext, name, num, nb, to) {
 		else
 			alert('Don\'t know where card is') ;
 		menu.addline('Informations (middle click)', function(target)  {
-			window.open('http://magiccards.info/query?q=!'+target.card+'&v=card&s=cname') ;
+			card_info(target.card) ;
 		}, row) ;
 		return menu.start(ev) ;
 	}, false)

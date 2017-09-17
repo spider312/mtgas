@@ -550,7 +550,7 @@ function Zone(pool, node, name, sort) {
 			menu.addline('Include', function(card){
 				this.pool.toggle(card) ;
 			}, ev.target.card) ;
-			menu.addline('Informations (MagicCards.Info)', function(card){
+			menu.addline('Informations', function(card){
 				card.info() ;
 			}, ev.target.card) ;
 			menu.addline() ;
@@ -704,7 +704,7 @@ function Card(card) {
 		zoom.style.top = max(y, 0)+'px' ;
 	}
 	this.info = function() {
-		window.open('http://magiccards.info/query?q=!'+this.name) ;
+		card_info(this.name) ;
 	}
 	this.node = null ;
 	this.card = card ;
