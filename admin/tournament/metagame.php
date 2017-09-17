@@ -145,12 +145,16 @@ foreach ( $t as $d ) {
 		if ( $data->rounds_number > $rounds_number )
 			$rounds_number = $data->rounds_number ;
 		$score = $data->score->{$r->player_id}->gamepoints/3 ; // 3 gamepoints per game win
-		foreach ( $deck->main as $id => $card ) // Played cards
-			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) || ( $card->rarity === 'L' ) )
+		foreach ( $deck->main as $id => $card ) { // Played cards
+			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) || ( $card->rarity === 'L' ) ) {
 				update_score($card, $rounds_number, $rounds_number, $score) ;
-		foreach ( $deck->side as $id => $card ) // Not played cards
-			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) )
+			}
+		}
+		foreach ( $deck->side as $id => $card ) { // Not played cards
+			if ( ( count($exts) == 0 ) || ( count(array_intersect($card->exts, $exts)) > 0 ) ) {
 				update_score($card, $rounds_number) ;
+			}
+		}
 		$lparsed++ ;
 	}
 	$parsed += $lparsed ;
