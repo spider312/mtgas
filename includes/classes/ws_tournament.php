@@ -53,7 +53,7 @@ class Tournament {
 	public function __construct($obj=null) {
 		global $gameserver ;
 		$this->observer = $gameserver ;
-		Tournament::$cache[] = $this ;
+		array_unshift(Tournament::$cache, $this) ;
 		foreach ( $this->fields as $field ) {
 			if ( ( $obj != null ) && property_exists($obj, $field) )
 				$this->$field = $obj->$field ;
