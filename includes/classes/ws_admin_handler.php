@@ -24,6 +24,8 @@ class AdminHandler extends ParentHandler {
 			$overall->handlers->{$handler} = $h->list_users() ;
 		}
 		$overall->bans = $this->observer->bans->list ;
+		// Bench
+		$overall->bench = $this->observer->bench ;
 		// MTG Data
 		$overall->extensions = count(Extension::$cache) ;
 		$overall->cards = count(Card::$cache) ;

@@ -1,6 +1,7 @@
 function start(ev) { // On page load
 	var connected_users = document.getElementById('connected_users') ;
 	var bans = document.getElementById('bans') ;
+	var bench = document.getElementById('bench') ;
 	var pending_duels = document.getElementById('pending_duels') ;
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
@@ -20,6 +21,7 @@ function start(ev) { // On page load
 				for ( var i in data.handlers )
 					handler_li(i, data.handlers[i], connected_users) ;
 				bans.appendChild(offline_ban_li(data.bans[i])) ;
+				bench_fill(bench, data.bench) ;
 				for ( var i = 0 ; i < data.bans.length ; i++ )
 					bans.appendChild(ban_li(data.bans[i])) ;
 				//fill_duel(pending_duels, data.pending_duels) ;
@@ -41,6 +43,25 @@ function start(ev) { // On page load
 				debug(data) ;
 		}
 	}, clear);// OnClose/OnConnect
+}
+function bench_fill(container, data) {
+	Object.keys(data).map(function(handler, index) {
+		let benches = data[handler] ;
+		let li = create_li(handler) ;
+		let ul = create_ul() ;
+		li.appendChild(ul) ;
+		// Sum for percentage
+		let sum = 0 ;
+		Object.keys(benches).map(function(action, index) {
+			sum += benches[action] ;
+		}) ;
+		// Display
+		Object.keys(benches).map(function(action, index) {
+			let time = benches[action] ;
+			ul.appendChild(create_li(action + ' : ' + time + ' ('+(100*time/sum)+' %)')) ;
+		}) ;
+		container.appendChild(li) ;
+	}) ;
 }
 function clear() {
 	node_empty(

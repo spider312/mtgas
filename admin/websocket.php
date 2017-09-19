@@ -30,6 +30,8 @@ html_menu() ;
    <ul id="connected_users"></ul>
    <h2>Bans</h2>
    <ul id="bans"></ul>
+   <h2>Bench</h2>
+   <ul id="bench"></ul>
   </div>
 
   <div class="section">

@@ -34,6 +34,7 @@ class GameServer {
 	private $server = null ;
 	private $logger = null ;
 	// Handlers
+	public $bench = array() ;
 	public $index = null ;
 	public $draft = null ;
 	public $build = null ;

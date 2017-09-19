@@ -12,6 +12,7 @@ class ParentHandler extends WebSocketUriHandler {
 		parent::__construct($logger) ;
 		$this->observer = $observer ;
 		$this->type = $type ;
+		$this->observer->bench[get_class($this)] = array() ;
 	}
 	public function say($msg) {
 		$this->observer->say($msg) ;
@@ -50,6 +51,7 @@ class ParentHandler extends WebSocketUriHandler {
 		$user->ping = true ;
 	}
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg) {
+		$begin = microtime(true) ;
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
 			$this->say('Unparsable JSON : '.$msg->getData()) ;
@@ -100,5 +102,6 @@ class ParentHandler extends WebSocketUriHandler {
 					$user->close() ;
 				}
 		}
+		$this->observer->bench[get_class($this)][$data->type] += microtime(true) - $begin ;
 	}
 }
