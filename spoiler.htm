@@ -114,6 +114,13 @@ function display(cards) {
 					notARuptureFunc.add(rupture) ;
 					continue ;
 				}
+				if ( // For rares & mythics, keep only Color & Rarity ruptures
+					( ( card.rarity === 'mythic' ) || ( card.rarity === 'rare' ) ) &&
+					( rupture !== 'Color' ) &&
+					( rupture !== 'Rarity' )
+				) {
+					continue ;
+				}
 				if ( func(card, cards[idx-1]) !== 0 ) {
 					spoiler.appendChild(document.createElement('hr')) ;
 					break ;
