@@ -58,6 +58,7 @@ function search(form) {
 		return alert('Please fill "Extension" field') ;
 	}
 	sorts = form.sort.value.split(',') ;
+	sorts.push('Number') ; // Adds a last sorting by collector number, like when recieved, to solve sorting optimisations by Chrome
 	ruptures = form.rupture.value.split(',') ;
 	let setURL = baseURL + 'sets/' + ext ;
 	xhr(setURL, foundSet) ;
@@ -114,7 +115,7 @@ function display(cards) {
 					continue ;
 				}
 				if ( func(card, cards[idx-1]) !== 0 ) {
-					spoiler.appendChild(document.createElement('br')) ;
+					spoiler.appendChild(document.createElement('hr')) ;
 					break ;
 				}
 			}
@@ -157,9 +158,9 @@ function cardSort(a, b) {
 	}
 	return 0 ;
 }
-	// CreatureType (for rupture)
-function cardIsPWorC(a, b) {
-
+	// Collector number
+function cardSortNumber(a, b) {
+	return parseInt(a.collector_number) - parseInt(b.collector_number) ;
 }
 	// CMC
 function cardSortCMC(a, b) {
