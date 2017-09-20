@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <title>MTG Spoiler</title>
+  <style type="text/css">
+#spoiler {
+	line-height: 0 ;
+}
+#spoiler img {
+	/* MCI */
+	height: 445px ;
+	width: 312px ;
+	/* Gatherer */
+	height: 311px ;
+	width: 223px ;
+}
+  </style>
+  <script type="text/javascript">
+let baseURL = 'https://api.scryfall.com/' ; // API URL
+let setContainer = null ;
+let spoiler = null ;
+let cards = [] ;
+let sorts = [ 'Color', 'Rarity', 'Type', 'CMC' ] ; // couleur, rareté, type, ccm
+let ruptures = [ 'Color', 'Rarity', 'Type' ] ;
+let colors = [ 'W', 'U', 'B', 'R', 'G' ] ;
+let rarities = [ 'mythic', 'rare', 'uncommon', 'common' ] ;
+let sortTypes = [ 'Planeswalker', 'Creature', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land' ] ;
+function load(ev) {
+	let form = document.getElementById('params') ;
+	setContainer = document.getElementById('set') ;
+	spoiler = document.getElementById('spoiler') ;
+	form.addEventListener('submit', function(ev) {
+		search(ev.target) ;
+		ev.preventDefault() ;
+	}, false) ;
+	let ext = getParameterByName('ext') ;
+	let submit = false ;
+	if ( ext !== null ) {
+		form.ext.value = ext ;
+		submit = true ;
+	}
+	if ( submit ) {
+		search(form) ;
+	} else {
+		form.ext.select() ;
+	}	
+}
+function xhr(url, callback) {
+	let myXHR = new XMLHttpRequest();
+	myXHR.addEventListener('load', callback);
+	myXHR.open('GET', url) ;
+	myXHR.send();
+}
+function search(form) {
+	let ext = form.ext.value ;
+	if ( ext === '' ) {
+		return alert('Please fill "Extension" field') ;
+	}
+	sorts = form.sort.value.split(',') ;
+	ruptures = form.rupture.value.split(',') ;
+	let setURL = baseURL + 'sets/' + ext ;
+	xhr(setURL, foundSet) ;
+	form.ext.select() ;
+	return false ;
+}
+function foundSet(ev) {
+	setContainer.innerHTML = '' ;
+	spoiler.innerHTML = '' ;
+	cards = [] ;
+	let set = JSON.parse(ev.target.response) ;
+	switch ( set.object ) {
+		case 'error' :
+			alert(set.code + ' : ' + set.details) ;
+			break ;
+		case 'set' :
+			setContainer.innerHTML += '<img src="'+set.icon_svg_uri+'" height="30">' ;
+			setContainer.innerHTML += set.code + ' ' + set.name + '<br>'
+			setContainer.innerHTML += set.card_count + ' cards, released ' + set.released_at ;
+			xhr(set.search_uri, foundCard) ;
+			break ;
+		default :
+			console.log(set) ;
+			alert('Unknown result type ' + set.object + ' (see console)') ;
+
+	}
+}
+function foundCard(ev) {
+	let foundCards = JSON.parse(ev.target.response) ;
+	cards = cards.concat(foundCards.data) ;
+	spoiler.innerHTML = 'Loaded ' + cards.length + ' / ' + foundCards.total_cards ;
+	if ( foundCards.has_more ) {
+		xhr(foundCards.next_page, foundCard) ;
+	} else {
+		cards.sort(cardSort) ;
+		display(cards) ;
+	}
+}
+function display(cards) {
+	spoiler.innerHTML = '' ;
+	let notARuptureFunc = new Set() ;
+	cards.forEach(function (card, idx) {
+		// Rupture
+		if ( idx > 0 ) {
+			for ( let i = 0 ; i < ruptures.length ; i++ ) {
+				let rupture = ruptures[i].trim() ;
+				let funcName = 'cardSort' + rupture ;
+				let func = null ;
+				if ( window.hasOwnProperty(funcName) ) {
+					func = window[funcName] ;
+				}
+				if ( typeof func !== 'function' ) {
+					notARuptureFunc.add(rupture) ;
+					continue ;
+				}
+				if ( func(card, cards[idx-1]) !== 0 ) {
+					spoiler.appendChild(document.createElement('br')) ;
+					break ;
+				}
+			}
+		}
+		// Card
+		let a = document.createElement('a') ;
+		a.href = card.scryfall_uri ;
+		a.target = "_blank" ;
+		a.title = card.name ;
+		a.addEventListener('contextmenu', (ev) => {
+			console.log(card) ;
+			ev.preventDefault() ;
+		}, false) ;
+		let img = document.createElement('img') ;
+		img.src = card.image_uri ;
+		a.appendChild(img) ;
+		spoiler.appendChild(a) ;
+	}) ;
+	if ( notARuptureFunc.size > 0 ) {
+		if ( notARuptureFunc.size > 1 ) {
+			alert(Array.from(notARuptureFunc).join(', ') + ' are not sort fields') ;
+		} else {
+			alert(Array.from(notARuptureFunc).join(', ') + ' is not a sort field') ;
+		}
+	}
+}
+// Sorting
+function cardSort(a, b) {
+	for ( let i = 0 ; i < sorts.length ; i++ ) {
+		let funcName = sorts[i].trim() ;
+		let func = eval('cardSort'+funcName) ;
+		if ( typeof func !== 'function' ) {
+			console.log(funcName+" isn't a sort function") ;
+			continue ;
+		}
+		let sort = func(a, b) ;
+		if ( sort !== 0 ) {
+			return sort ;
+		}
+	}
+	return 0 ;
+}
+	// CreatureType (for rupture)
+function cardIsPWorC(a, b) {
+
+}
+	// CMC
+function cardSortCMC(a, b) {
+	let result = cardField(a, 'cmc') - cardField(b, 'cmc') ;
+	if ( result === 0 ) { // Same CMC, let's count mana nb
+		result = cardField(a, 'mana_cost').length - cardField(b, 'mana_cost').length ;
+	}
+	return result ;
+}
+	// Type
+function cardSortType(a, b) {
+	return cardType(a) - cardType(b) ;
+}
+function cardType(card) {
+	let typesParts = cardField(card, 'type_line').split('—') ;
+	let types = typesParts[0].trim().split(' ') ;
+	let result = -1 ;
+	types.forEach((type) => {
+		let idx = sortTypes.indexOf(type) ;
+		if ( idx !== -1 ) {
+			if ( ( result === -1 ) || ( idx < result ) ) {
+				result = idx ;
+			}
+		}
+	}) ;
+	return result ;
+}
+	// Rarity
+function cardSortRarity(a, b) {
+	return rarities.indexOf(a.rarity) - rarities.indexOf(b.rarity) ;
+}
+	// Color
+function cardSortColor(a, b) {
+	// Sort by number of colors
+	let colorAnb = cardColorNb(a) ;
+	let colorBnb = cardColorNb(b) ;
+	if ( colorAnb !== colorBnb ) {
+		return colorAnb - colorBnb ;
+	}
+	// Sort monocolor by color
+	let colorsA = cardField(a, 'colors') ;
+	let colorsB = cardField(b, 'colors') ;
+	if ( colorsA.length === 1 ) {
+		return colors.indexOf(colorsA[0]) - colors.indexOf(colorsB[0]) ;
+	}
+	return 0 ;
+}
+function cardColorNb(card) { // Monocolor, Multicolor (all colors nb), colorless
+	let colors = cardField(card, 'colors') ;
+	switch ( colors.length ) {
+		case 0 :
+			if ( card.mana_cost === '' ) {
+				return 3 ;
+			}
+			return 2 ;
+		case 1 :
+			return 0 ;
+		default :
+			return 1 ;
+	}
+}
+function cardField(card, field) {
+	if ( card.hasOwnProperty(field) ) {
+		return card[field] ;
+	} else if ( card.hasOwnProperty('card_faces') && ( card.card_faces.length > 0 ) ) {
+		return cardField(card.card_faces[0], field) ;
+	} else {
+		return [] ;
+	}
+}
+// External
+function getParameterByName(name, url) {
+	if (!url) url = window.location.href;
+	name = name.replace(/[\[\]]/g, "\\$&");
+	var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+	    results = regex.exec(url);
+	if (!results) return null;
+	if (!results[2]) return '';
+	return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+  </script>
+ </head>
+
+ <body onload="load(event);">
+  <form id="params">
+   <input name="ext" placeholder="Extension">
+   <input name="sort" placeholder="Sort fields" value="Color,Rarity,Type,CMC">
+   <input name="rupture" placeholder="Rupture fields" value="Color,Rarity,Type">
+   <input type="submit">
+  </form>
+  <div id="set"></div>
+  <div id="spoiler"></div>
+ </body>
+</html>
