@@ -124,7 +124,7 @@ function display(cards) {
 		a.href = card.scryfall_uri ;
 		a.target = "_blank" ;
 		a.title = card.name ;
-		a.addEventListener('contextmenu', (ev) => {
+		a.addEventListener('contextmenu', function (ev) {
 			console.log(card) ;
 			ev.preventDefault() ;
 		}, false) ;
@@ -171,13 +171,11 @@ function cardSortCMC(a, b) {
 }
 	// Type
 function cardSortType(a, b) {
-	return cardType(a) - cardType(b) ;
+	return cardTypeIdx(a) - cardTypeIdx(b) ;
 }
-function cardType(card) {
-	let typesParts = cardField(card, 'type_line').split('—') ;
-	let types = typesParts[0].trim().split(' ') ;
+function cardTypeIdx(card) {
 	let result = -1 ;
-	types.forEach((type) => {
+	cardTypes(card).forEach(function(type) { 
 		let idx = sortTypes.indexOf(type) ;
 		if ( idx !== -1 ) {
 			if ( ( result === -1 ) || ( idx < result ) ) {
@@ -186,6 +184,10 @@ function cardType(card) {
 		}
 	}) ;
 	return result ;
+}
+function cardTypes(card) {
+	let typesParts = cardField(card, 'type_line').split('—') ;
+	return typesParts[0].trim().split(' ') ;
 }
 	// Rarity
 function cardSortRarity(a, b) {
@@ -207,12 +209,16 @@ function cardSortColor(a, b) {
 	}
 	return 0 ;
 }
-function cardColorNb(card) { // Monocolor, Multicolor (all colors nb), colorless
+function cardColorNb(card) { // Monocolor, Multicolor (all colors nb), colorless (artifacts, non-basic lands, basic lands)
 	let colors = cardField(card, 'colors') ;
 	switch ( colors.length ) {
 		case 0 :
 			if ( card.mana_cost === '' ) {
-				return 3 ;
+				if ( cardTypes(card).indexOf('Basic') !== -1 ) {
+					return 4 ;
+				} else {
+					return 3 ;
+				}
 			}
 			return 2 ;
 		case 1 :
