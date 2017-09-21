@@ -19,7 +19,7 @@
 	display: none ;
 }
   </style>
-  <script type="text/javascript">
+  <!-- --><script type="text/javascript">
 // Globals
 let baseURL = 'https://api.scryfall.com/' ; // API URL
 let setContainer = null ;
@@ -156,8 +156,31 @@ function display(cards) {
 			console.log(card) ;
 			ev.preventDefault() ;
 		}, false) ;
+		a.addEventListener('mousedown', function(ev) {
+			ev.preventDefault() ; // Don't set focus to element
+		}, false);
 		let img = document.createElement('img') ;
-		img.src = card.image_uri ;
+		let src = card.image_uri ;
+		switch ( card.layout ) {
+			case 'normal' :
+				break ;
+			case 'transform' :
+				let face = 0 ;
+				src = card.card_faces[face].image_uris.normal ;
+				img.addEventListener('contextmenu', function (ev) {
+					face++ ;
+					if ( face > card.card_faces.length - 1 ) {
+						face = 0 ;
+					}
+					img.src = card.card_faces[face].image_uris.normal ;
+					ev.preventDefault() ;
+				}, false) ;
+
+				break ;
+			default :
+				console.log('Unknown layout : '+card.layout)
+		}
+		img.src = src ;
 		img.addEventListener('load', function(ev) {
 			loadedImg++ ;
 			if ( loadedImg === cards.length ) {
