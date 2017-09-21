@@ -15,20 +15,26 @@
 	height: 311px ;
 	width: 223px ;
 }
+.hidden {
+	display: none ;
+}
   </style>
   <script type="text/javascript">
+// Globals
 let baseURL = 'https://api.scryfall.com/' ; // API URL
 let setContainer = null ;
 let spoiler = null ;
+let progress = null ;
 let cards = [] ;
-let sorts = [ 'Color', 'Rarity', 'Type', 'CMC' ] ; // couleur, rareté, type, ccm
-let ruptures = [ 'Color', 'Rarity', 'Type' ] ;
+let loadedImg = 0 ;
 let colors = [ 'W', 'U', 'B', 'R', 'G' ] ;
 let rarities = [ 'mythic', 'rare', 'uncommon', 'common' ] ;
 let sortTypes = [ 'Planeswalker', 'Creature', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land' ] ;
+// On page load
 function load(ev) {
 	let form = document.getElementById('params') ;
 	setContainer = document.getElementById('set') ;
+	progress = document.getElementById('progress') ;
 	spoiler = document.getElementById('spoiler') ;
 	form.addEventListener('submit', function(ev) {
 		search(ev.target) ;
@@ -46,57 +52,71 @@ function load(ev) {
 		form.ext.select() ;
 	}	
 }
+// Generic XHR
 function xhr(url, callback) {
 	let myXHR = new XMLHttpRequest();
 	myXHR.addEventListener('load', callback);
 	myXHR.open('GET', url) ;
 	myXHR.send();
 }
+// Launch a set search
 function search(form) {
+	// Get data
 	let ext = form.ext.value ;
 	if ( ext === '' ) {
 		return alert('Please fill "Extension" field') ;
 	}
-	sorts = form.sort.value.split(',') ;
-	sorts.push('Number') ; // Adds a last sorting by collector number, like when recieved, to solve sorting optimisations by Chrome
 	ruptures = form.rupture.value.split(',') ;
+	sorts = form.sort.value.split(',') ;
+	sorts = ruptures.concat(sorts) ; // Force sort by ruptures in order ruptures mechanism to work safely
+	sorts.push('Number') ; // Adds a last sorting by collector number, like when recieved, to solve sorting optimisations by Chrome
+	// Launch set loading
 	let setURL = baseURL + 'sets/' + ext ;
 	xhr(setURL, foundSet) ;
 	form.ext.select() ;
 	return false ;
 }
+// Recieved set
 function foundSet(ev) {
-	setContainer.innerHTML = '' ;
 	spoiler.innerHTML = '' ;
-	cards = [] ;
 	let set = JSON.parse(ev.target.response) ;
 	switch ( set.object ) {
 		case 'error' :
-			alert(set.code + ' : ' + set.details) ;
+			setContainer.innerHTML = set.code + ' : ' + set.details ;
 			break ;
 		case 'set' :
-			setContainer.innerHTML += '<img src="'+set.icon_svg_uri+'" height="30">' ;
-			setContainer.innerHTML += set.code + ' ' + set.name + '<br>'
-			setContainer.innerHTML += set.card_count + ' cards, released ' + set.released_at ;
+			let setResume = '<a href="' + set.scryfall_uri + '">'
+			setResume += '<img src="'+set.icon_svg_uri+'" height="30">' ;
+			setResume += set.code + ' ' + set.name ;
+			setResume += '</a><br>'
+			setResume += set.card_count + ' cards, released ' + set.released_at ;
+			setContainer.innerHTML = setResume
+			cards = [] ;
+			loadedImg = 0 ;
+			progress.value = 0 ;
+			progress.classList.remove('hidden') ;
 			xhr(set.search_uri, foundCard) ;
 			break ;
 		default :
 			console.log(set) ;
-			alert('Unknown result type ' + set.object + ' (see console)') ;
-
+			setContainer.innerHTML = 'Unknown result type ' + set.object + ' (see console)' ;
 	}
 }
+// Recieved cards (recursively until all loaded)
 function foundCard(ev) {
 	let foundCards = JSON.parse(ev.target.response) ;
 	cards = cards.concat(foundCards.data) ;
-	spoiler.innerHTML = 'Loaded ' + cards.length + ' / ' + foundCards.total_cards ;
+	progress.innerHTML = cards.length + ' / ' + foundCards.total_cards ;
+	progress.value = cards.length / foundCards.total_cards ;
 	if ( foundCards.has_more ) {
 		xhr(foundCards.next_page, foundCard) ;
 	} else {
+		progress.value = 0 ;
 		cards.sort(cardSort) ;
 		display(cards) ;
 	}
 }
+// Recieved all cards, display them
 function display(cards) {
 	spoiler.innerHTML = '' ;
 	let notARuptureFunc = new Set() ;
@@ -138,6 +158,14 @@ function display(cards) {
 		}, false) ;
 		let img = document.createElement('img') ;
 		img.src = card.image_uri ;
+		img.addEventListener('load', function(ev) {
+			loadedImg++ ;
+			if ( loadedImg === cards.length ) {
+				progress.classList.add('hidden');
+			} else {
+				progress.value = loadedImg / cards.length ;
+			}
+		}, false) ;
 		a.appendChild(img) ;
 		spoiler.appendChild(a) ;
 	}) ;
@@ -260,11 +288,12 @@ function getParameterByName(name, url) {
  <body onload="load(event);">
   <form id="params">
    <input name="ext" placeholder="Extension" title="Extension">
-   <input name="sort" placeholder="Sort fields" title="Sort fields" value="Color,Rarity,Type,CMC">
-   <input name="rupture" placeholder="Rupture fields" title="Rupture fields" value="Color,Rarity,Type">
+   <input name="rupture" placeholder="Sort with rupture fields" title="Sort with rupture fields" value="Color,Rarity,Type">
+   <input name="sort" placeholder="Sort fields" title="Sort fields" value="CMC">
    <input type="submit">
   </form>
   <div id="set"></div>
+  <progress id="progress" class="hidden"></progress>
   <div id="spoiler"></div>
  </body>
 </html>
