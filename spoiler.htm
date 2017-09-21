@@ -85,7 +85,7 @@ function foundSet(ev) {
 			setContainer.innerHTML = set.code + ' : ' + set.details ;
 			break ;
 		case 'set' :
-			let setResume = '<a href="' + set.scryfall_uri + '">'
+			let setResume = '<a href="' + set.scryfall_uri + '" target="_blank">'
 			setResume += '<img src="'+set.icon_svg_uri+'" height="30">' ;
 			setResume += set.code + ' ' + set.name ;
 			setResume += '</a><br>'
