@@ -163,7 +163,7 @@ function start() { // On page load
 					for ( var i = 0 ; i < data.players.length ; i++ ) {
 						if ( data.players[i].player_id == player_id ) {
 							game.notify('tournament_start', 'Mogg Tournament', 'Starting : '+data.format+' '+data.name) ;
-							if ( ( data.min_players < 3 ) || confirm('Tournament '+data.name+' starting') ) {
+							if ( /*( data.min_players < 3 ) || */confirm('Tournament '+data.name+' starting') ) {
 								document.location = 'tournament/?id='+data.id ;
 							}
 						}
