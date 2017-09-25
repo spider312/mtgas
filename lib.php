@@ -24,6 +24,7 @@ menu_add('<img src='.theme_image("youtube.png").' alt="Youtube icon"> Tutorials'
 menu_add(__('menu.chat'), 'http://tchat.rs2i.net/?chan=mtg&amp;soft=qwebirc', __('menu.chat.title'), true) ;
 //menu_add(__('menu.forum'), 'http://forum.mogg.fr', __('menu.forum.title'), true) ;
 menu_add('<img src='.theme_image("discord.png").' alt="Discord icon"> Vocal', 'https://discord.gg/nnXznAW', 'Vocal and textual chat on Discord', true) ;
+menu_add('DevBlog', 'http://blog.mogg.fr/', 'Blog about new features', true) ;
 
 // Session
 $session_id = $appname.'playerid' ;
