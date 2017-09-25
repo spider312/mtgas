@@ -42,6 +42,7 @@ class GameServer {
 	public $game = null ;
 	// Parameters
 	public $ts3 = false ;
+	public $restart = false ; // Scheduled restart : forbid tournament creation, restart on last tournament end
 	// MTG data
 	public $tokens = array() ;
 	// MOGG data
@@ -309,5 +310,12 @@ class GameServer {
 			return false ;
 		}
 		$this->{$to}[] = $spl[0] ;
+	}
+	public function tournament_ended($tournament) {
+		if ( $this->restart ) { // Scheduled server restart
+			if ( count($this->running_tournaments) === 0 ) {
+				die('Scheduled restart') ;
+			}
+		}
 	}
 }

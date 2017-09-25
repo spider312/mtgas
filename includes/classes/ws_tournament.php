@@ -849,6 +849,7 @@ class Tournament {
 			ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
 			ts3_disco() ;
 		}
+		$this->observer->tournament_ended($this) ;
 	}
 	// Websocket communication
 	public function send() {

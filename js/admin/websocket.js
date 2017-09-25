@@ -1,13 +1,14 @@
 function start(ev) { // On page load
 	var connected_users = document.getElementById('connected_users') ;
 	var bans = document.getElementById('bans') ;
-	var bench = document.getElementById('bench') ;
 	var pending_duels = document.getElementById('pending_duels') ;
 	var joined_duels = document.getElementById('joined_duels') ;
 	var pending_tournaments = document.getElementById('pending_tournaments') ;
 	var running_tournaments = document.getElementById('running_tournaments') ;
 	var mtg_data = document.getElementById('mtg_data') ;
 	var refresh_mtg_data = document.getElementById('refresh_mtg_data') ;
+	var restart = document.getElementById('restart') ;
+	var bench = document.getElementById('bench') ;
 	refresh_mtg_data.addEventListener('click', function(ev) {
 		game.connection.send({'type': 'refresh_mtg_data'}) ;
 	}, false) ;
@@ -21,7 +22,6 @@ function start(ev) { // On page load
 				for ( var i in data.handlers )
 					handler_li(i, data.handlers[i], connected_users) ;
 				bans.appendChild(offline_ban_li(data.bans[i])) ;
-				bench_fill(bench, data.bench) ;
 				for ( var i = 0 ; i < data.bans.length ; i++ )
 					bans.appendChild(ban_li(data.bans[i])) ;
 				//fill_duel(pending_duels, data.pending_duels) ;
@@ -37,6 +37,13 @@ function start(ev) { // On page load
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
 				mtg_data.appendChild(create_li('Games : '+data.cache_games)) ;
 				mtg_data.appendChild(create_li('Tournaments : '+data.cache_tournament)) ;
+				// Options
+				restart.checked = data.restart ;
+				restart.addEventListener('change', function(ev) {
+					game.connection.send('{"type" : "restart", "value" : '+restart.checked+'}') ;
+				}, false) ;
+				// Bench
+				bench_fill(bench, data.bench) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;

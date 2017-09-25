@@ -5,6 +5,7 @@ use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class IndexHandler extends ParentHandler {
 	protected $shouts = array() ;
 	protected $nbshouts = 50 ; // Max number of shouts to keep in cache
+	private $restart_msg = 'A server restart is scheduled, please wait until it\'s done' ;
 	public $users_fields = array('player_id', 'nick', 'inactive', 'typing') ;
 	public function __construct($logger, $observer, $type) {
 		parent::__construct($logger, $observer, $type) ;
@@ -94,12 +95,20 @@ class IndexHandler extends ParentHandler {
 				break ;
 			// Duels
 			case 'pendingduel' :
+				if ( $this->observer->restart ) {
+					$user->sendString('{"type": "msg", "msg":"' . $this->restart_msg . '"}') ;
+					break ;
+				}
 				$data->creator_id = $user->player_id ;
 				$duel = new Game($data) ;
 				$this->observer->pending_duels[] = $duel ;
 				$this->broadcast(json_encode($duel)) ;
 				break ;
 			case 'joineduel' :
+				if ( $this->observer->restart ) {
+					$user->sendString('{"type": "msg", "msg":"' . $this->restart_msg . '"}') ;
+					break ;
+				}
 				$duel_index = $this->observer->pending_duel($data->id) ;
 				if ( $duel_index === false ) {
 					$this->say('Pending duel '.$data->id.' not found') ;
@@ -125,6 +134,10 @@ class IndexHandler extends ParentHandler {
 				}
 				break ;
 			case 'goldfish' :
+				if ( $this->observer->restart ) {
+					$user->sendString('{"type": "msg", "msg":"' . $this->restart_msg . '"}') ;
+					break ;
+				}
 				$data->type = 'joineduel' ;
 				$data->name = 'Goldfish' ;
 				$data->creator_id = $user->player_id ;
@@ -138,6 +151,10 @@ class IndexHandler extends ParentHandler {
 				break ;
 			// Tournament
 			case 'pending_tournament' :
+				if ( $this->observer->restart ) {
+					$user->sendString('{"type": "msg", "msg":"' . $this->restart_msg . '"}') ;
+					break ;
+				}
 				$data->type = 'pending_tournament' ;
 				$tournament = Tournament::create($data, $user) ;
 				if ( is_string($tournament) )
@@ -150,6 +167,10 @@ class IndexHandler extends ParentHandler {
 				}
 				break ;
 			case 'tournament_register' :
+				if ( $this->observer->restart ) {
+					$user->sendString('{"type": "msg", "msg":"' . $this->restart_msg . '"}') ;
+					break ;
+				}
 				$data->player_id = $user->player_id ;
 				foreach ( $this->observer->pending_tournaments as $tournament ) {
 					if ( $tournament->id == $data->id ) { // Wanted tournament
