@@ -242,6 +242,9 @@ foreach ( $import_log as $i => $log ) {
 		foreach ( $log['updates'] as $field => $upd ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
 			echo '       <strong title="'.$card->{$field}.'">'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
+			if ( $field === 'types' ) {
+				echo strdebug($upd).strdebug($card->{$field}) ;
+			}
 		}
 		foreach ( $log['langs'] as $code => $lang ) {
 			if ( ! isset($lang['from']) ) continue ;
