@@ -28,7 +28,11 @@ html_menu() ;
     <select name="dir">
 <?php
 foreach ( scandir($base_image_dir) as $rep )
-	if ( ( substr($rep, 0, 1) != '.' ) && ( array_search($rep, array('scrot', 'VOA')) === false ) ) {
+	if (
+		( substr($rep, 0, 1) != '.' )
+		&& ( is_dir($base_image_dir.$rep) )
+		&& ( array_search($rep, array('scrot', 'VOA')) === false )
+	) {
 		if ( $dir == $rep )
 			$selected = 'selected="selected" ' ;
 		else
