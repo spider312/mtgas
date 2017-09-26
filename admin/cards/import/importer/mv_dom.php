@@ -142,9 +142,9 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		}
 	}
 // Token
-	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::*") ; // HTML Element following table containing card navigator
+	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::div") ; // HTML Element following table containing card navigator
 	$myel = $form_node->item(0);
-	if ( ( $myel != null ) && ( $myel->nodeName === 'div' ) ) {
+	if ( ! $myel->hasAttributes() ) { // div after table is "Autorisations en Tournois" and has class S14
 		$extratxt = $myel->nodeValue;
 		if ( preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches) ) { // Extract counters from extratxt
 			$extratxt = trim($matches['txt']) ;
