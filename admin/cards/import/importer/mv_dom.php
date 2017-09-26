@@ -120,6 +120,8 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		if ( strpos($img, 'FR') ) {
 			$frimg = $img ;
 			$img = str_replace('FR', '', $img) ;
+		} else {
+			$importer->adderror('No FR Image', $href) ;
 		}
 	}
 	// Rarity (before token detection because it may cause a rarity change)
