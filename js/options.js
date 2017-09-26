@@ -471,10 +471,10 @@ function Options(check_id) {
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
 		// Notifications
-	this.add('Notifications', 'notification_shout', 'Shouts', 'A new shout is recieved', true) ;
-	this.add('Notifications', 'notification_duel_new', 'New duel', 'A new duel is created', true) ;
+	this.add('Notifications', 'notification_shout', 'Shouts', 'A new shout is recieved', false) ;
+	this.add('Notifications', 'notification_duel_new', 'New duel', 'A new duel is created', false) ;
 	this.add('Notifications', 'notification_duel_start', 'Duel started', 'A duel you created started', true) ;
-	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', true) ;
+	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', false) ;
 	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you joined started', true) ;
 	this.add('Notifications', 'notification_autoclose', 'Auto close', 'Notification closes automatically', true) ;
 	this.add('Notifications', 'notification_sound', 'Play a sound', 'Plays a sound for enabled notifications events', false) ;
