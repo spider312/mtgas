@@ -213,8 +213,9 @@ function load(body, deckname) {
 					this.width = 100 ;
 				break ;
 			case 1 : // Middle click : open on mci
-				if ( iss(this.card) )
-					window.open('http://magiccards.info/query?q=!'+this.card+'&v=card&s=cname') ;
+				if ( iss(this.card) ) {
+					card_info(this.card) ;
+				}
 				break ;
 			default:
 				alert('Unknown button '+ev.button) ;
@@ -260,14 +261,16 @@ function sort_deck(deck) {
 	var rows = [] ; // Work on a copy containing only cards
 	for ( var i = 0 ; i < deck.rows.length ; i++ ) {
 		var row = deck.rows[i] ;
-		if ( iso(row.rattrs) )
+		if ( iso(row.rattrs) ) { // A card
 			rows.push(row) ;
+		}
 	}
 	// Sort copy
 	rows.sort(deck_sort) ;
 	// Remove copied elements from source
-	for ( var i = 0 ; i < rows.length ; i++ )
+	for ( var i = 0 ; i < rows.length ; i++ ) {
 		rows[i].parentNode.removeChild(rows[i]) ;
+	}
 	// Append sorted copy
 	var pts = -1 ; // Previous typescore
 	for ( var i = 0 ; i < rows.length ; i++ ) {
@@ -302,29 +305,25 @@ function sort_deck(deck) {
 		deck.appendChild(rows[i]) ;
 	}
 }
-function deck_sort(a, b) {
+function deck_sort(a, b) { // Sort a deck array by type, converted cost, name
+	// Sort by "typescore" (goups of types for deck sorting : lands, creatures, other permanents, spells)
 	var score = typescore(a.rattrs) - typescore(b.rattrs) ; 
-	if ( score == 0 ) {
-		score = a.rattrs.converted_cost - b.rattrs.converted_cost ;
-		if ( score == 0 ) {
-			for ( var i = 0 ; i < a.parentNode.rows.length ; i++ ) {
-				if ( a.parentNode.rows[i] == a )
-					break ;
-			}
-			for ( var j = 0 ; j < b.parentNode.rows.length ; j++ ) {
-				if ( a.parentNode.rows[j] == b )
-					break ;
-			}
-			return i - j ;
-			if ( a.card > b.card )
-				score = 1 ;
-			else if ( a.card < b.card )
-				score = -1 ;
-			else
-				score = 0 ;
-		}
+	if ( score !== 0 ) {
+		return score ;
 	}
-	return score ;
+	// Sort by converted cost
+	score = a.rattrs.converted_cost - b.rattrs.converted_cost ;
+	if ( score !== 0 ) {
+		return score ;
+	}
+	// Sort by name
+	if ( a.card > b.card ) {
+		return 1 ;
+	} else if ( a.card < b.card ) {
+		return -1 ;
+	} else {
+		return 0 ;
+	}
 }
 function typescore(attrs) {
 	var result = 3 ; // Defaults to "other"
@@ -484,6 +483,10 @@ function select_deck(node) {
 	return node ;
 }
 function extension_select(card, orig_ext, orig_attrs) {
+	if ( card.ext.length < 1 ) {
+		console.log('No ext for '+card.name) ;
+		return '' ;
+	}
 	var pics = [] ; // Build a list of pics
 	for ( var j = 0 ; j < card.ext.length ; j++ ) { // For each extension
 		for ( var l = 0 ; l < card.ext[j].nbpics ; l++ ) { // For each pic in that extension
@@ -495,7 +498,8 @@ function extension_select(card, orig_ext, orig_attrs) {
 	}
 	switch ( pics.length ) { // Finding ext to display
 		case 0 :
-			alert('Got 0 pics on ext request for '+card) ;
+			console.log('Got 0 pics on ext request for '+card.name) ;
+			console.log(card.ext) ;
 			break ;
 		case 1 : // 1 ext, just display it
 			var ext = card.ext[0].se ;
@@ -664,10 +668,11 @@ function found(data) {
 			this.img = zoom(node.ext(), node.card.name.replace(/"/g, ''), node.attrs) ; // "Ach! Hans, Run!"
 		}, false) ;
 		row.addEventListener('mousedown', function(ev) {
-			if ( ev.button == 1 )
-				window.open('http://magiccards.info/query?q=!'+ev.currentTarget.card.name+'&v=card&s=cname') ;
-			else
+			if ( ev.button == 1 ) {
+				card_info(ev.currentTarget.card.name) ;
+			} else {
 				select(node_parent_search(ev.target, 'TR')) ;
+			}
 		}, false) ;
 		row.addEventListener('dblclick', function(ev) {
 			var node = node_parent_search(ev.target, 'TR') ;
@@ -686,7 +691,7 @@ function found(data) {
 					selected.parentNode.insertBefore(selected, sel) ;
 			}, row) ;
 			menu.addline('Informations (middle click)', function(target)  {
-				window.open('http://magiccards.info/query?q=!'+target.card.name+'&v=card&s=cname') ;
+				card_info(target.card.name) ;
 			}, row) ;
 			return menu.start(ev) ;
 		}, false)
@@ -811,10 +816,11 @@ function add_card(ext, name, num, nb, to) {
 			node.img = zoom(node.ext(), node.card.replace(/"/g, ''), node.attrs) ; // "Ach! Hans, Run!"
 	}, false) ;
 	row.addEventListener('mousedown', function(ev) {
-		if ( ev.button == 1 )
-			window.open('http://magiccards.info/query?q=!'+ev.currentTarget.card+'&v=card&s=cname') ;
-		else
+		if ( ev.button == 1 ) {
+			card_info(ev.currentTarget.card) ;
+		} else {
 			select_deck(ev.target) ;
+		}
 	}, false ) ;
 	row.addEventListener('dblclick', function(ev) {
 		remove_card(this, -1) ;
@@ -838,7 +844,7 @@ function add_card(ext, name, num, nb, to) {
 		else
 			alert('Don\'t know where card is') ;
 		menu.addline('Informations (middle click)', function(target)  {
-			window.open('http://magiccards.info/query?q=!'+target.card+'&v=card&s=cname') ;
+			card_info(target.card) ;
 		}, row) ;
 		return menu.start(ev) ;
 	}, false)

@@ -6,7 +6,7 @@ class Registration {
 	public $player_id = '' ;
 	public $nick = '' ;
 	public $avatar = '' ;
-	public $status = 1 ;
+	public $status = 1 ; // ['Waiting', 'Redirecting', 'Drafting', 'Building', 'Playing', 'Ended', 'BYE', 'Dropped']
 	public $order = -2 ;
 	public $ready = false ;
 	public $score = null ;
@@ -40,7 +40,9 @@ class Registration {
 		if ( ( $i = array_search($from, $this->connected) ) === false ) {
 			array_push($this->connected, $from) ;
 			$this->tournament->send() ;
+			return true ;
 		}
+		return false ;
 	}
 	public function disconnect($from) {
 		if ( ( $i = array_search($from, $this->connected) ) !== false ) {
@@ -58,11 +60,37 @@ class Registration {
 		else
 			$this->deck_obj->main[] = $card ;
 		$this->summarize() ;
+		$this->commit('deck') ;
 		$this->set_ready(false) ;
 	}
+	public function reorder($zone, $from, $to) {
+		switch ( $zone ) {
+			case 'main' :
+			case 'side' :
+				$zone =& $this->deck_obj->{$zone} ;
+				break ;
+			default :
+				return false ;
+		}
+		$nb = count($zone) ;
+		if ( ! is_numeric($from) || ( $from < 0 ) || ( $from > $nb ) ) return false ;
+		if ( ! is_numeric($to) || ( $to < 0 ) || ( $to > $nb ) ) return false ;
+		if ( $from === $to ) { return false ; }
+		$spl = array_splice($zone, $from, 1) ;
+		array_splice($zone, $to, 0, $spl) ;
+		$this->summarize() ;
+		//$this->commit('deck') ; // Why ? Why not ?
+		return true ;
+	}
 	// Build
+		// Initial pool set
+	public function set_pool($pool) {
+		$this->deck_obj->side = $pool ;
+		$this->summarize(true) ;
+		$this->commit('deck') ;
+	}
 		// Pool cards
-	public function toggle($name, $from) {
+	public function toggle($name, $from, $position=-1) {
 		if ( ! property_exists($this->deck_obj, $from) )
 			return false ;
 		if ( $from == 'main' ) {
@@ -75,8 +103,11 @@ class Registration {
 		foreach ( $from as $i => $card )
 			if ( $card->name == $name ) {
 				$spl = array_splice($from, $i, 1) ;
-				array_push($to, $spl[0]) ;
-				//$this->deck_obj->sort() ;
+				if ( ( $position < 0 ) || ( $position >= count($to) ) ) {
+					array_push($to, $spl[0]) ;
+				} else {
+					array_splice($to, $position, 0, $spl) ;
+				}
 				$this->card_removed() ;
 				$this->summarize() ;
 				return true ;
@@ -183,45 +214,62 @@ class Registration {
 	public function get_deck() {
 		return $this->deck_obj ;
 	}
-	public function summarize($sort=false) {
+	private function summarize($sort=false) {
 		$this->deck = $this->deck_obj->summarize() ;
 		if ( $sort )
 			$this->deck_obj->sort() ;
 		$this->deck_cards = count($this->deck_obj->main) ;
 		$this->side_cards = count($this->deck_obj->side) ;
-		$this->commit('deck') ;
+		//$this->commit('deck') ;
 	}
 	public function set_status($status) {
-		if ( $this->status < 6 ) {
+		if ( $this->status < 8 ) {
 			$this->status = $status ;
 			$this->commit('status') ;
 			$this->set_ready(false) ;
 		}
 	}
 	public function set_ready($ready=true) { // Return if value changed
-		if ( $this->ready == $ready )
+		if ( $this->ready == $ready ) {
 			return false ;
+		}
+		if ( ( $this->status > 4 ) && $ready ) { // Statuses ended, dropped and bye don't need a "finished" substatus
+			return false ;
+		}
 		$this->ready = $ready ;
-		$this->commit('ready') ;
+		$this->commit('ready', 'deck') ;
 		// Tournament consequences
-		if ( $this->tournament->status == 4 )
+		if ( $this->tournament->status == 4 ) {
 			$this->tournament->log($this->player_id, 'ready', $this->ready) ;
-		if ( $ready )
+		}
+		if ( $ready ) {
 			$this->tournament->players_ready() ;
+		}
 		return true ;
 	}
 	public function drop($msg='No reason') {
 		$this->tournament->log($this->player_id, 'drop', $msg) ;
+		// Abandon current game
+		$game = $this->tournament->player_match($this->player_id) ;
+		if ( $game !== null ) {
+			$which = $game->which($this->player_id) ;
+			$opponent = $game->opponent($this->player_id) ;
+			if ( ( $opponent !== '' ) && ( $game->joiner_id !== '' ) ) { // No need to "abandon" byes
+				$game->addAction('', 'psync', '{"player":"game.'.$which.'","attrs":{"score":0}}') ;
+				$game->addAction('', 'psync', '{"player":"game.'.$opponent.'","attrs":{"score":2}}') ;
+			}
+		}
 		$this->set_status(7) ;
-		if ( count($this->tournament->get_players()) < 2 )	
-			$this->tournament->cancel('Not enough players left') ;
-		else
+		if ( count($this->tournament->get_players()) < 2 ) {
+			$this->tournament->cancel('Only one player left') ;
+		} else {
 			$this->tournament->send() ;
+		}
 	}
 	public function insert($i) {
 		$this->order = $i ;
 		global $db ;
-		$db->query("INSERT INTO `registration` (
+		$db->insert("INSERT INTO `registration` (
 			`tournament_id`,
 			`player_id`,
 			`nick`,
@@ -257,8 +305,13 @@ class Registration {
 						$db->escape($this->$field)."'" ;
 			} else
 				return false ;
-		$db->query("UPDATE `registration` SET $update
+		$db->update("UPDATE `registration` SET $update
 		WHERE `tournament_id` = '{$this->tournament->id}'
 		AND `player_id` = '{$this->player_id}' ; ") ;
 	}
+/*
+	static $buffer = array() ;
+	static function commit() {
+	}
+*/
 }

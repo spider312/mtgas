@@ -420,6 +420,12 @@ function library(player) {
 		return menu.start(ev) ;
 	}
 	// Accessors
+	mylib.card_under_mouse = function(ev) {
+		if ( this.cards.length > 0 ) {
+			return this.cards[this.cards.length-1] ;
+		}
+		return null ;
+	}
 	mylib.reveal = function() {
 		if ( this.reveal_recieve() )
 			this.player.sync() ;
@@ -474,6 +480,9 @@ function graveyard(player) {
 				var dredgesubmenu = new menu_init(this) ;
 				var retracesubmenu = new menu_init(this) ;
 				var scavengesubmenu = new menu_init(this) ;
+				var embalmsubmenu = new menu_init(this) ;
+				var aftermathsubmenu = new menu_init(this) ;
+				var eternalizesubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -501,6 +510,36 @@ function graveyard(player) {
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
+					if ( iss(card.attrs.embalm) ) {
+						var l = embalmsubmenu.addline(card.name+' ('+card.attrs.embalm+')', function(card) {
+							var attrs = JSON.parse(JSON.stringify(card.attrs));
+							attrs.subtypes.push('zombie') ;
+							create_token(card.ext, card.name, this.player.battlefield, attrs) ;
+							card.changezone(this.player.exile) ;
+						}, card);
+						l.moimg = card.imgurl() ;
+					}
+					if ( iss(card.attrs.aftermath) ) {
+						var l = aftermathsubmenu.addline(card.name+' ('+card.attrs.aftermath+')', card.changezone, this.player.battlefield) ;
+						l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
+					if ( iss(card.attrs.eternalize) ) {
+						var l = eternalizesubmenu.addline(card.name+' ('+card.attrs.eternalize+')', function(card) {
+							var attrs = JSON.parse(JSON.stringify(card.attrs));
+							attrs.subtypes.push('zombie') ;
+							attrs.pow = 4 ;
+							attrs.thou = 4 ;
+							attrs.manas = '' ;
+							attrs.converted_cost = 0
+							attrs.color = 'B'
+							create_token(card.ext, card.name, this.player.battlefield, attrs) ;
+							card.changezone(this.player.exile) ;
+
+						}, card);
+						l.moimg = card.imgurl() ;
+					}
+
 				}
 				var addline = false ;
 				if ( creatsubmenu.items.length > 0 ) {
@@ -521,6 +560,18 @@ function graveyard(player) {
 				}
 				if ( scavengesubmenu.items.length > 0 ) {
 					menu.addline('Scavenge ('+scavengesubmenu.items[0].length+')', scavengesubmenu) ;
+					addline = true ;
+				}
+				if ( embalmsubmenu.items.length > 0 ) {
+					menu.addline('Embalm ('+embalmsubmenu.items[0].length+')', embalmsubmenu) ;
+					addline = true ;
+				}
+				if ( aftermathsubmenu.items.length > 0 ) {
+					menu.addline('Aftermath ('+aftermathsubmenu.items[0].length+')', aftermathsubmenu) ;
+					addline = true ;
+				}
+				if ( eternalizesubmenu.items.length > 0 ) {
+					menu.addline('Eternalize ('+eternalizesubmenu.items[0].length+')', eternalizesubmenu) ;
 					addline = true ;
 				}
 				if ( addline )
@@ -715,8 +766,15 @@ function hand(player) {
 		if ( this.img != null )
 			context.drawImage(this.img, this.x + (this.w-this.img.width)/2 , this.y +(this.h-this.img.height)/2) ;
 		// Cards
-		for ( var i = this.cards.length ; i > 0 ; i-- )
-			this.cards[i-1].draw(context) ;
+		for ( var i = this.cards.length ; i > 0 ; i-- ) {
+			var card = this.cards[i-1] ;
+			if ( isf(card.draw) ) {
+				card.draw(context) ;
+			} else {
+				console.log('No draw for '+typeof card) ;
+				console.log(card) ;
+			}
+		}
 		// Data : card number
 		var opt = game.options.get('zone_card_number') ;
 		if ( ( opt == 'all' ) || ( opt == 'selzone' ) ) 

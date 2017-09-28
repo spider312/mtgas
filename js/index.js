@@ -3,13 +3,23 @@ function start() { // On page load
 	workarounds() ;
 	document.getElementById('shout')[0].focus() ;
 	ajax_error_management() ;
-	notification_request() ;
+	Notification.requestPermission() ;
 	game = {}
+	game.notify = function(type, title, text) {
+		if ( this.send_notifications && this.options.get('notification_'+type) && ! document.hasFocus() ) {
+			notification_send(title, text, type) ;
+		}
+	}
 	game.options = new Options(true) ;
 	game.options.add_trigger('profile_nick', function(option) {
-		game.connection.close(1000, 'reconnecting for nick change') ;
-		game.connection.connect() ;
+		if ( option.get() !== game.connection.registration_data.nick ) {
+			game.connection.close(1000, 'reconnecting for nick change') ;
+			game.connection.connect() ;
+		}
 	}) ;
+	// Init suggestions before trying to restore saved value
+	draft_formats = [] ;
+	sealed_formats = [] ;
 	// Non-options fields to save
 	save_restore('game_name') ;
 	save_restore('tournament_name') ;
@@ -45,16 +55,53 @@ function start() { // On page load
 				break ;
 			case 'userlist' :
 				node_empty(shouters) ;
+				// Compute rating averages
 				for ( var i = 0 ; i < data.users.length ; i++ ) {
 					var user = data.users[i] ;
+					user.avg = ( user.rating_nb === 0 ) ? 0 : user.rating / user.rating_nb ;
+				}
+				// Sort by number of ratings, average, nick
+				var users = data.users.sort(function(a, b) {
+					var result = b.rating_nb - a.rating_nb ;
+					if ( result === 0 ) {
+						result = b.avg - a.avg ;
+					}
+					if ( result === 0 ) {
+						if ( a.nick > b.nick ) {
+							result = 1 ;
+						} else if ( a.nick < b.nick ) {
+							result = -1 ;
+						} else {
+							result = 0 ;
+						}
+					}
+					return result ;
+				});
+				// Create list
+				for ( var i = 0 ; i < users.length ; i++ ) {
+					var user = users[i] ;
 					var shouter = create_li(user.nick) ;
-					if ( user.inactive )
-						shouter.classList.add('inactive') ;
-					if ( user.typing )
-						shouter.classList.add('typing') ;
+					if ( user.rating_nb < 1 ) {
+						shouter.title = user.nick + ' (not evaluated yet)' ;
+					} else {
+						if ( user.inactive )
+							shouter.classList.add('inactive') ;
+						if ( user.typing )
+							shouter.classList.add('typing') ;
+						var stars = "" ;
+						var j = 0
+						for ( ; j < Math.round(user.avg) + 3 ; j++ ) { stars += '★' ; }
+						for ( ; j < 5 ; j++ ) { stars += '☆' ; }
+						shouter.title = user.nick + ' ' + stars + ' (' + user.rating_nb + ' evaluations)' ;
+					}
 					shouters.appendChild(shouter) ;
 				}
 				update_connected() ;
+				break ;
+			case 'suggest' :
+				draft_formats = data.draft ;
+				sealed_formats = data.sealed ;
+				tournament_boosters(document.getElementById('tournament_type').selectedIndex) ;
 				break ;
 			case 'extensions' :
 				get_extensions(data.data) ;
@@ -64,23 +111,26 @@ function start() { // On page load
 				break ;
 			// Shoutbox
 			case 'shout' :
-				var li = create_li(create_a(data.player_nick, '/player.php?id='+data.player_id))
-				li.appendChild(create_text(': '+data.message)) ;
-				li.appendChild(create_span(' '+timeWithDays(mysql2date(data.time)))) ;
-				shouts.appendChild(li) ;
-				shouts.scrollTop = shouts.scrollHeight ;
-				if ( game.send_notifications && ! document.hasFocus() )
-					notification_send('Mogg Shout', data.player_nick+' : '+data.message, 'shout') ;
+				var leftspan = create_span(create_a(data.player_nick, '/player.php?id='+data.player_id))
+				leftspan.appendChild(create_text(': '+data.message)) ;
+				leftspan.innerHTML = replaceURLWithHTMLLinks(leftspan.innerHTML, true) ;
+				leftspan.classList.add('shouttext') ;
+				var rightspan = create_span(' '+timeWithDays(mysql2date(data.time, game.connection.offset))) ;
+				rightspan.classList.add('shouttime') ;
+				var li = create_li() ;
+				li.appendChild(rightspan) ;
+				li.appendChild(leftspan) ;
+				addAndScroll(shouts, li) ;
+				game.notify('shout', 'Mogg Shout', data.player_nick+' : '+data.message) ;
 				break ;
 			// Duels
 			case 'pendingduel' :
-				if ( game.send_notifications && ! document.hasFocus() )
-					notification_send('Mogg Duel', 'New duel : '+data.name, 'duel') ;
+				game.notify('duel_new', 'Mogg Duel', 'New duel : '+data.name) ;
 				pending_duel_add(data) ;
 				break ;
 			case 'joineduel' :
 				if ( data.redirect && ( ( player_id == data.creator_id ) || ( player_id == data.joiner_id ) ) ) {
-					notification_send('Mogg Duel', 'Joined duel : '+data.name, 'duel') ;
+					game.notify('duel_start', 'Mogg Duel', 'Duel starting : '+data.name) ;
 					window.focus() ;
 					document.location = 'play.php?id='+data.id ;
 				} else {
@@ -96,28 +146,28 @@ function start() { // On page load
 			// Tournaments
 			case 'pending_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
-				if ( tr == null )
+				if ( tr == null ) {
 					running_tournament_remove(data.id) ;
-				if ( pending_tournament_add(data)
+				}
+				if (
+					pending_tournament_add(data)
 					&& ( tr == null )
 					&& ( data.min_players > 1 )
-					&& game.send_notifications
-					&& ! document.hasFocus() )
-					notification_send('Mogg Tournament',
-						'New tournament : '+data.format+' '+data.name, 'tournament');
+				) {
+					game.notify('tournament_new', 'Mogg Tournament', 'New tournament : '+data.format+' '+data.name) ;
+				}
 				break ;
 			case 'running_tournament' :
 				var tr = pending_tournament_remove(data.id) ;
 				if ( tr != null ) { // Found in pending : tournament starting, redirect
-					for ( var i = 0 ; i < data.players.length ; i++ )
+					for ( var i = 0 ; i < data.players.length ; i++ ) {
 						if ( data.players[i].player_id == player_id ) {
-							window.focus() ;
-							if (! document.hasFocus() )
-								notification_send('Mogg Tournament starting',
-									'Starting : '+data.format+' '+data.name, 'start') ;
-							//if ( confirm('Tournament starting, redirect ?') )
+							game.notify('tournament_start', 'Mogg Tournament', 'Starting : '+data.format+' '+data.name) ;
+							if ( ( data.min_players < 2 ) || confirm('Tournament '+data.name+' starting') ) {
 								document.location = 'tournament/?id='+data.id ;
+							}
 						}
+					}
 				}
 				running_tournament_add(data) ;
 				break ;
@@ -287,6 +337,7 @@ function start() { // On page load
 			create_hidden('name', deck+'.mwDeck'),
 			create_hidden('content', deck_get(deck))
 		)
+		form.target = "_blank" ;
 		document.body.appendChild(form) ;
 		form.submit() ;
 		document.body.removeChild(form) ;
@@ -317,7 +368,7 @@ function start() { // On page load
 					// Try to guess name from headers
 					var cd = request.getResponseHeader('Content-Disposition');
 					var needle = 'attachment; filename=' ;
-					if ( cd.indexOf(needle) === 0 ) {
+					if ( ( cd !== null ) && ( cd.indexOf(needle) === 0 ) ) {
 						name = cd.substr(needle.length).replace(/"/g, '') ;
 					} else {
 						// Fallback to guessing name from URL
@@ -370,6 +421,7 @@ function pending_duel_add(round) {
 		''
 	) ;
 	player_cell(tr.cells[1], round.creator_nick, round.creator_avatar) ;
+	tr.cells[2].classList.add('nowrap') ;
 	tr.timer = start_timer(tr.cells[2], round.creation_date) ;
 	tr.round = round ;
 	tr.addEventListener('click', function(ev) {
@@ -404,6 +456,7 @@ function running_duel_add(round) {
 	tr.cells[1].firstElementChild.appendChild(connected(round.creator_status)) ;
 	player_cell(tr.cells[4].firstElementChild, round.joiner_nick, round.joiner_avatar) ;
 	tr.cells[4].firstElementChild.appendChild(connected(round.joiner_status)) ;
+	tr.cells[5].classList.add('nowrap') ;
 	tr.timer = start_timer(tr.cells[5].firstElementChild, round.creation_date) ;
 	tr.round = round ;
 	tr.title = 'View '+round.name+' between '+round.creator_nick+' and '+round.joiner_nick ;
@@ -432,7 +485,8 @@ function duel_remove(tbody, div, id) {
 }
 function player_cell(cell, nick, avatar) {
 	node_empty(cell) ;
-	var img =  player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
+	var img = player_avatar(avatar, nick+'\'s avatar', nick+'\'s avatar') ;
+	cell.classList.add("nowrap") ;
 	cell.appendChild(img) ;
 	cell.appendChild(create_text(nick)) ;
 }
@@ -679,19 +733,16 @@ function tournament_boosters(type) {
 	}
 	// Fill boosters suggestions list
 	var set = false ;
-		// Empty
-	while ( suggestions.options.length > 0 )
-		suggestions.options.remove(0) ;
-		// Fill with hard schemes
-	for ( var i in content ) {
-		var option = create_option(i, content[i]);
+	node_empty(suggestions);
+	content.forEach( suggest => {
+		let option = create_option(suggest.name, suggest.value);
 		suggestions.options.add(option) ;
-		if ( boosters.value == content[i] ) {
+		if ( boosters.value === suggest.value ) {
 			option.selected = true ;
 			set = true ;
 		}
-	}
-		// Add empty "Custom" booster scheme
+	}) ;
+	// Add empty "Custom" booster scheme
 	var option = create_option('Custom', '')
 	suggestions.options.add(option) ;
 		// If no scheme was set as selected in filling, select "Custom"
@@ -708,6 +759,7 @@ function deck_checked() { // Returns selected deck's name
 	}
 	return null
 }
+NodeList.prototype['indexOf'] = Array.prototype['indexOf'];
 function decks_list() {
 	var table = document.getElementById('decks_list') ;
 	if ( table == null )
@@ -720,26 +772,55 @@ function decks_list() {
 			var deck_name = decks[i] ;
 			var deck_content = deck_get(deck_name) ;
 			var row = table.insertRow(-1) ;
-			//row.id = deck_name ;
+			row.id = deck_name ;
 			row.title = deck_name ;
 			row.classList.add('deck') ;
-			/*
-			row.toString = function() {
-				return 'Row Card '+this.id ;
-			}
-			row.draggable = true ;
+			// DND
+			row.draggable = true ; // Only make cell dragable
 			row.addEventListener('dragstart', function(ev) {
-				ev.dataTransfer.setData('text/plain', ev.target.id) ;
+				game.draging = this ;
+				game.draging.to = this ; // Just to have a valid value inside "to"
+				game.draging.initialNext = this.nextElementSibling ; // For reinitialisation on refused drop
+				game.draging.classList.add('drag') ;
+				ev.dataTransfer.setData('text/plain', ev.target.id) ; // setData required for triggering DND
+				var dragimg = this.childNodes[0].childNodes[0].childNodes[1] ; // Span containing only deck name
+				ev.dataTransfer.setDragImage(dragimg, -15, 8); // Placed just on pointer's right
 			}, false) ;
 			row.addEventListener('dragenter', function(ev) {
-				//alert(ev.originalTarget.parentNode.parentNode.parentNode.tagName) ;
-				//alert(node_parent_search(ev.originalTarget, 'TR')) ;
-				var from = ev.currentTarget ;
-				var to = node_parent_search(ev.target, 'TR') ;
-				alert(from.id + ' -> ' +to.id) ;
-				log2(ev) ;
+				if ( this.nodeName !== 'TR' ) { return true ; }
+				if ( game.draging === this ) { return true ; }
+				var reference = this ; // Dragging TR will be added before reference
+				if ( game.draging.parentNode !== null ) {
+					var from = game.draging.parentNode.childNodes.indexOf(game.draging) ;
+					var to = this.parentNode.childNodes.indexOf(this) ;
+					if ( to >= from ) {
+						reference = reference.nextElementSibling ;
+					}
+				}
+				this.parentNode.insertBefore(game.draging, reference) ;
+				game.draging.to = reference ;
 				return eventStop(ev) ;
-			}, false) ;*/
+			}, false) ;
+			row.addEventListener('dragover', eventStop, false) ; // Confirm drop
+			row.addEventListener('drop', function(ev) {
+				deck_move(game.draging.id, game.draging.to.id)
+				game.draging.to = null ;
+				return eventStop(ev) ;
+			}, false) ;
+			row.addEventListener('dragend', function(ev) {
+				if ( game.draging == null ) { return true ; }
+				game.draging.classList.remove('drag') ;
+				if ( game.draging.to !== null ) {
+					game.draging.to = null ;
+					if ( confirm('Delete '+game.draging.id+' ?') ) {
+						game.draging.parentNode.removeChild(game.draging) ;
+						deck_del(game.draging.id, true) ;
+					} else {
+						game.draging.parentNode.insertBefore(game.draging, game.draging.initialNext) ;
+					}
+					game.draging = null ;
+				}
+			}, false) ;
 			// Main cell : radio + name
 			var cell = row.insertCell(-1) ;
 			cell.colSpan = 2 ;
@@ -752,7 +833,7 @@ function decks_list() {
 			deck_name_s = deck_name ;
 			if ( deck_name_s.length > deckname_maxlength )
 				deck_name_s = deck_name_s.substr(0, deckname_maxlength-3) + '...' ;
-			var label = create_label(null, radio, deck_name_s) ;
+			var label = create_label(null, radio, create_span(deck_name_s)) ;
 			label.addEventListener('dblclick', function(ev) {
 				document.getElementById('deck_edit').click() ;
 			}, false) ;

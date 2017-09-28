@@ -1,5 +1,6 @@
 <?php
 include_once 'lib.php' ;
+include 'import/HtmlDiff.php' ;
 $id = param_or_die($_GET, 'id') ;
 
 html_head(
@@ -7,6 +8,7 @@ html_head(
 	array(
 		'style.css'
 		, 'admin.css'
+		, 'diff.css'
 	), 
 	array (
 		'lib/jquery.js',
@@ -40,6 +42,7 @@ function setimage(src, backsrc) {
 	}
 }
 function start() {
+	setimage(firstimgurl, firsttrimgurl);
 	ajax_error_management() ;
 	document.getElementById('update_card').addEventListener('submit', function(ev) {
 		ev.target.parentNode.classList.add('updating') ;
@@ -139,18 +142,24 @@ $langs = query_as_array("SELECT * FROM cardname WHERE card_id = $id");
      <ul>
 <?php
 $json = JSON_decode($card_bdd['attrs']) ;
+$firsttrimgurl = $firstimgurl = '' ;
 foreach ( $ext as $i => $value ) {
 	if ( $ext[$i]['nbpics'] == 0 )
 		echo '      <li>'.$ext[$i]['name'].' ('.$ext[$i]['rarity'].')</li>' ;
 	else if ( $ext[$i]['nbpics'] == 1 ) {
 		$imgurl = $cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($card_bdd['name'])) ;
+		if ( $firstimgurl === '' ) {
+			$firstimgurl = $imgurl ;
+		}
 		if ( isset($json->transformed_attrs->name) ) {
-			$imgurl .= "', '".$cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($json->transformed_attrs->name)) ;
+			$tr = $cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($json->transformed_attrs->name)) ;
+			$imgurl .= "', '".$tr;
+			if ( $firsttrimgurl === '' ) {
+				$firsttrimgurl = $tr;
+			}
 		}
 		echo '      <li><a href="extension.php?ext='.$ext[$i]['se'].'" onmouseover="javascript:setimage(\''.$imgurl.'\')">'.$ext[$i]['name'].'</a> ('.$ext[$i]['rarity'].')'."\n" ;
 		echo '      </li>' ;
-		if ( ! isset($firstimgurl) )
-			$firstimgurl = $imgurl ;
 	} else {
 		echo '      <li><a href="extension.php?ext='.$ext[$i]['se'].'">'.$ext[$i]['name'].'</a> ('.$ext[$i]['rarity'].')'."\n" ;
 
@@ -158,8 +167,9 @@ foreach ( $ext as $i => $value ) {
 		for ( $j = 1 ; $j <= $ext[$i]['nbpics'] ; $j++) {
 			$imgurl = $cardimages_default.'/'.$ext[$i]['se'].'/'.addslashes(card_img_by_name($card_bdd['name'], $j, $ext[$i]['nbpics'])) ;
 			echo '        <li><a onmouseover="javascript:setimage(\''.$imgurl.'\')">'.$j.'</a></li>'."\n" ;
-			if ( ! isset($firstimgurl) )
+			if ( $firstimgurl === '' ) {
 				$firstimgurl = $imgurl ;
+			}
 		}
 		echo '       </ul>'."\n" ;
 		echo '      </li>'."\n" ;
@@ -168,7 +178,8 @@ foreach ( $ext as $i => $value ) {
 ?>
      </ul>
      <script type="text/javascript">
-	setimage('<?php echo $firstimgurl ; ?>') ;
+	firstimgurl = '<?php echo $firstimgurl ; ?>' ;
+	firsttrimgurl = '<?php echo $firsttrimgurl ; ?>' ;
      </script>
      <form action="card.php" method="get">
       <input type="hidden" name="id" value="<?php echo $card_bdd['id'] ; ?>">
@@ -178,11 +189,11 @@ foreach ( $ext as $i => $value ) {
       <input type="submit" value="Add">
      </form>
     </td>
-    <td id="cardimage" rowspan="10" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimage" rowspan="11" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 if ( isset($json->transformed_attrs) ) {
 ?>
-    <td id="cardimageback" rowspan="10" style="background-position: left top ; background-repeat: repeat-y">
+    <td id="cardimageback" rowspan="11" style="background-position: left top ; background-repeat: repeat-y">
 <?php
 }
 ?>
@@ -221,49 +232,63 @@ if ( count($langs) > 0 ) {
     </tr>
     <tr>
      <th>Fixed</th>
-     <td><textarea name="fixed_attrs" cols="80" rows="7"><?php echo $card_bdd['fixed_attrs'] ; ?></textarea></td>
-    </tr>
-    <tr>
-     <th>Merged</th>
-	 <td><pre>
 <?php
-if ( $card_bdd['fixed_attrs'] != '' ) {
+$disp = jsonpp($card_bdd['fixed_attrs']) ;
+$rows = count(explode(PHP_EOL, $disp)) ;
+?>
+     <td><textarea name="fixed_attrs" cols="80" rows="<?php echo $rows ; ?>"><?php echo $disp ; ?></textarea></td>
+    </tr>
+    <tr title="Data stored in DB for that card, being the compiled data on last update/compilation">
+     <th>Stored</th>
+     <td class="pre"><?php print_json($json) ; ?></td>
+    </tr>
+    <tr title="Stored with fixed applied on it, being data used by mogg">
+     <th>Merged</th>
+	 <td class="pre"><?php
 // Merge stored and fixed
 $merged = null ;
-$fixed_attrs = json_decode($card_bdd['fixed_attrs']) ;
-if ( $fixed_attrs == null ) {
-	echo "{$card_bdd['name']} has buggy fixed attrs : {$card_bdd['fixed_attrs']}\n" ;
-	echo json_verbose_error()."\n" ;
-} else {
-	$merged = JSON_decode($card_bdd['attrs']) ;
-	foreach($fixed_attrs as $k => $v) {
-		if ( isset($merged->$k) ) {
-			echo " - Replacing stored attr $k with fixed one\n" ;
+if ( $card_bdd['fixed_attrs'] != '' ) {
+	$fixed_attrs = json_decode($card_bdd['fixed_attrs']) ;
+	if ( $fixed_attrs == null ) {
+		echo "{$card_bdd['name']} has buggy fixed attrs : {$card_bdd['fixed_attrs']}\n" ;
+		echo json_verbose_error()."\n" ;
+	} else {
+		$merged = JSON_decode($card_bdd['attrs']) ;
+		foreach($fixed_attrs as $k => $v) {
+			if ( isset($merged->$k) ) {
+				echo " - Replacing stored attr $k with fixed one\n" ;
+			}
+			$merged->$k = $v ; // Overwrites array attrs such as tokens
 		}
-		$merged->$k = $v ; // Overwrites array attrs such as tokens
+		echo "Result : " ;
+		print_json($merged) ;
 	}
-	echo "Result : " ;
-	print_r($merged) ;
-}
-?>
-<?php
 } else {
     echo "No fixed to merge" ;
 }
-?>
-     </pre></td>
+?></td>
     </tr>
-    <tr>
-     <th>Stored</th>
-     <td title="<?php echo str_replace('"', "'", $card_bdd['attrs']) ; ?>"><pre><?php print_r($json) ; ?></pre></td>
-    </tr>
-    <tr>
+    <tr title="Should always be empty. Message returned during that card's compilation, for debugging purpose">
      <th>Compile log</th>
-     <td><pre><?php $attrs = new attrs($card_bdd) ;?></pre></td>
+     <td class="pre"><?php $attrs = new attrs($card_bdd) ;?></td>
     </tr>
-    <tr>
-     <th>Compiled</th>
-     <td title="<?php echo str_replace('"', "'", JSON_encode($attrs)) ; ?>"><pre><?php print_r($attrs) ; ?></pre></td>
+    <tr title="Compiled data for this card. Will become stored if you update it. Compared with stored">
+     <th>Compiled - stored</th>
+     <td class="pre"><?php
+$diff = new HtmlDiff(jsonpp($json), jsonpp($attrs)) ;
+echo $diff->build() ;
+?></td>
+    </tr>
+    <tr title="Same compiled data, but compared with merged, used to check if fixed is still needed">
+     <th>Merged - Compiled</th>
+     <td class="pre"><?php
+if ( $merged !== null ) {
+	$diff = new HtmlDiff(jsonpp($attrs), jsonpp($merged)) ;
+	echo $diff->build() ;
+} else {
+	echo "No merged" ;
+}
+?></td>
     </tr>
    </form>
 

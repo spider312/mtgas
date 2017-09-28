@@ -12,6 +12,7 @@ class ParentHandler extends WebSocketUriHandler {
 		parent::__construct($logger) ;
 		$this->observer = $observer ;
 		$this->type = $type ;
+		$this->observer->bench[get_class($this)] = array() ;
 	}
 	public function say($msg) {
 		$this->observer->say($msg) ;
@@ -29,6 +30,9 @@ class ParentHandler extends WebSocketUriHandler {
 			$obj = new stdClass() ;
 			foreach ( $this->users_fields as $field )
 				$obj->{$field} = $cnx->{$field} ;
+			$obj->host = $cnx->getIp() ;
+			// Evaluations average
+			list($obj->rating, $obj->rating_nb) = Evaluation::get_average($cnx->player_id) ;
 			$result->users[] = $obj ;
 		}
 		return $result ;
@@ -47,6 +51,7 @@ class ParentHandler extends WebSocketUriHandler {
 		$user->ping = true ;
 	}
 	public function onMessage(WebSocketTransportInterface $user, WebSocketMessageInterface $msg) {
+		$begin = microtime(true) ;
 		$data = json_decode($msg->getData()) ;
 		if ( $data == null ) {
 			$this->say('Unparsable JSON : '.$msg->getData()) ;
@@ -61,6 +66,7 @@ class ParentHandler extends WebSocketUriHandler {
 		switch ( $data->type ) {
 			case 'ping' :
 				$data->type = 'pong' ;
+				$data->time = time() ; // Helps to better synchronize
 				$user->sendString(json_encode($data)) ;
 				break ;
 			case 'pong' :
@@ -68,11 +74,12 @@ class ParentHandler extends WebSocketUriHandler {
 				break ;
 			case 'register' :
 				if ( isset($data->player_id) && isset($data->nick) ) {
-					$ban = $this->observer->bans->is(null, $data->player_id) ;
+					$ban = $this->observer->bans->is($user->getIp(), $data->player_id) ;
 					if ( $ban ) {
 						$this->say('Connexion attempt from banned user '.$data->player_id.' ('.$ban->reason.')') ;
 						$user->sendString('{"type": "ban", "reason": "'.$ban->reason.'"}') ;
 					} else {
+						$user->sendString('{"type": "time", "time": "'.time().'"}'); // Base sync offset
 						$user->player_id = $data->player_id ;
 						$user->nick = $data->nick ;
 						$this->register_user($user, $data) ;
@@ -80,6 +87,11 @@ class ParentHandler extends WebSocketUriHandler {
 				} else {
 					$this->say('Incomplete registration : '.$data->player_id.' / '.$data->nick) ;
 					$user->close();
+				}
+				break ;
+			case 'evaluation' :
+				if ( isset($data->opponent_id) && isset($data->rating) ) {
+					Evaluation::set($user->player_id, $data->opponent_id, $data->rating) ;
 				}
 				break ;
 			default :
@@ -90,5 +102,6 @@ class ParentHandler extends WebSocketUriHandler {
 					$user->close() ;
 				}
 		}
+		$this->observer->bench[get_class($this)][$data->type] += microtime(true) - $begin ;
 	}
 }

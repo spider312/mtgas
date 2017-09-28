@@ -8,6 +8,10 @@ $ext_source = param($_GET, 'ext_source', $ext_local) ;
 $apply = param($_GET, 'apply', false) ;
 if ( $apply !== false )
 	$apply = true ;
+
+$importtype = param($_GET, 'importtype') ;
+$cache_time = param($_GET, 'cache_time', -1) ;
+
 $verbose = false ;
 
 html_head(
@@ -16,6 +20,7 @@ html_head(
 		'style.css'
 		, 'admin.css'
 		, 'mtg.css'
+		, 'diff.css'
 	)
 ) ;
 ?>
@@ -44,19 +49,31 @@ html_menu() ;
     <fieldset>
      <legend>From</legend>
      <label>Source : <select name="source">
-      <?=html_option('mtgjson', 'MTGJSON', $source) ; ?>
-      <?=html_option('mci', 'Magic Cards Info', $source) ; ?>
+      <?/*=html_option('mtgjson', 'MTGJSON', $source) ; */?>
+      <?/*=html_option('mtgsalvation', 'MTGSalvation', $source) ; */?>
+      <?/*=html_option('mci', 'Magic Cards Info', $source) ; */?>
       <?/*=html_option('mv', 'Magic Ville', $source) ; */?>
       <?=html_option('mv_dom', 'Magic Ville DOM', $source) ; ?>
-      <?=html_option('mtgsalvation', 'MTGSalvation', $source) ; ?>
+      <?=html_option('scryfall', 'Scryfall', $source) ; ?>
      </select></label>
      <label>Ext code (in source) : <input type="text" name="ext_source" value="<?=$ext_source?>"><label>
     </fieldset>
     <fieldset>
      <legend>To</legend>
      <label>Ext code (in DB) : <input type="text" name="ext_local" value="<?=$ext_local?>"></label>
-     <label><?=html_checkbox('apply', $apply) ; ?>Apply<label>
+     <label><?=html_checkbox('apply') ; ?>Apply<label>
     </fieldset>
+	<fieldset>
+	 <legend>Parameters</legend>
+	 <label>Import type
+	  <select name="importtype">
+       <?=html_option('main', 'Main', $importtype) ; ?>
+       <?=html_option('preview', 'Preview', $importtype) ; ?>
+       <?=html_option('pwdecks', 'Planewalker Decks', $importtype) ; ?>
+      </select>
+	 </label>
+	 <label>Cache time<input type="text" name="cache_time" value="<?=$cache_time?>">
+	</fieldset>
     <button type="submit">Refresh</button>
    </form>
   </div>
@@ -75,7 +92,7 @@ $chosen_importer = 'importer/'.$source.'.php' ;
 if ( ! file_exists($chosen_importer) )
 	die('No importer for source '.$source) ;
 
-$importer = new ImportExtension() ;
+$importer = new Importer($importtype, $cache_time) ;
 echo '<pre>' ;
 include_once $chosen_importer ;
 if ( ! $importer->validate() ) {
@@ -214,14 +231,20 @@ foreach ( $import_log as $i => $log ) {
 		echo '       <li><a href="'.$card->urls[0].'" target="_blank">source ('.$source.')</a></li>'."\n" ;
 		echo '       <li><a href="../card.php?id='.$log['id'].'" target="_blank">destination</a></li>'."\n" ;
 		echo '      </td>'."\n" ;
-		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) )
+		if ( ( count($log['updates']) == 1 ) && isset($log['updates']['multiverseid']) ) {
 			echo '      <td>only multiverseID</td>'."\n" ;
-		else
+		} elseif ( count($card->images) > 0 ) {
 			echo '      <td><img src="'.$card->images[0].'"></td>'."\n" ;
+		} else {
+			echo '      <td>???</td>' ;
+		}
 		echo '      <td>'."\n" ;
 		foreach ( $log['updates'] as $field => $upd ) {
 			$diff = new HtmlDiff($upd,  $card->{$field}) ;
 			echo '       <strong title="'.$card->{$field}.'">'.$field.' : </strong><div style="white-space:pre-wrap">'.$diff->build().'</div>'."\n" ;
+			if ( $field === 'types' ) {
+				echo strdebug($upd).strdebug($card->{$field}) ;
+			}
 		}
 		foreach ( $log['langs'] as $code => $lang ) {
 			if ( ! isset($lang['from']) ) continue ;

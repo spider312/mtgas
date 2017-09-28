@@ -1,6 +1,7 @@
 <?php
 include '../lib.php' ;
 $id = intval(param_or_die($_GET, 'id')) ;
+$pid = param($_GET, 'pid', '') ;
 html_head('Drafting #'.$id,
 	array(
 		'style.css',
@@ -25,7 +26,7 @@ html_head('Drafting #'.$id,
 	)
 ) ;
 ?>
- <body onload="start(<?php echo $id ; ?>)">
+ <body onload="start(<?=$id;?>, '<?=$pid;?>')">
 
   <div id="info" class="section">
    <input id="timeleft" type="text" value="Initializing" readonly="readonly" title="Time left for picking" size="8"><br>
@@ -40,12 +41,12 @@ html_head('Drafting #'.$id,
 
   <div class="section central">
    <h1>Deck</h1>
-   <div id="drafted_cards"></div>
+   <div id="main"></div>
   </div>
 
   <div class="section central">
    <h1>Side</h1>
-   <div id="sided_cards"></div>
+   <div id="side"></div>
   </div>
 
 
@@ -63,7 +64,7 @@ html_head('Drafting #'.$id,
   </div>
 
   <div id="back" class="section">
-   <a id="mainpage" title="Main page" href="../"><img src="themes/<?=$theme?>/<?=$index_image?>"></a>
+   <a id="mainpage" title="Main page" href="../"><img src="../themes/<?=$theme?>/<?=$index_image?>"></a>
    <span id="aditional_link"></span>
   </div>
 <?php

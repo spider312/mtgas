@@ -6,6 +6,7 @@ require_once 'includes/mojosto.php' ;
 require_once 'includes/card.php' ;
 require_once 'includes/ranking.php' ;
 require_once 'includes/ts3.php' ;
+require_once 'includes/classes/evaluation.php' ;
 // Websocket objects
 require_once 'includes/classes/ws_ban.php' ;
 require_once 'includes/classes/ws_game.php' ;
@@ -33,6 +34,7 @@ class GameServer {
 	private $server = null ;
 	private $logger = null ;
 	// Handlers
+	public $bench = array() ;
 	public $index = null ;
 	public $draft = null ;
 	public $build = null ;
@@ -40,9 +42,12 @@ class GameServer {
 	public $game = null ;
 	// Parameters
 	public $ts3 = false ;
+	public $restart = false ; // Scheduled restart : forbid tournament creation, restart on last tournament end
 	// MTG data
 	public $tokens = array() ;
 	// MOGG data
+	public $suggest_draft = array() ;
+	public $suggest_sealed = array() ;
 	public $pending_duels = array() ;
 	public $joined_duels = array() ;
 	public $pending_tournaments = array() ;
@@ -58,13 +63,16 @@ class GameServer {
 			// Writes to stdout
 		$writer = new \Zend\Log\Writer\Stream("php://output");
 		$this->logger->addWriter($writer);
+			// Filter log messages
+		/*
+		Possible values : EMERG, ALERT, CRIT, ERR, WARN, NOTICE, INFO, DEBUG
+		Errors are displayed in a normal use case in WARN and ERR levels, that's why CRIT is the chosen one
+		*/
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
+		$writer->addFilter($filter);
 			// Also log to a file
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
 		//$this->logger->addWriter($writer2);
-			// Filter log messages not showing debug
-		//$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::WARN);
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
-		$writer->addFilter($filter);
 		//$writer2->addFilter($filter);
 		// WebSocket server
 		$this->loop = \React\EventLoop\Factory::create();
@@ -95,13 +103,18 @@ class GameServer {
 		$this->import_mtg() ;
 		$this->import_mogg() ;
 	}
-	public function import_mtg() {
+	public function import_mtg() { // Action behind "refresh" button in admin, shall refresh all MTG data and MOGG configuration data, but not MOGG game data
 		$this->say("\tBegin MTG import") ;
 		Extension::fill_cache() ;
 		$this->say("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
 		$this->import_tokens() ;
+		$this->say("\tEnd MTG import") ;
+		$this->say("\tBegin MOGG refreshable import") ;
+		$this->import_suggestions() ;
+		$this->import_keywords() ;
+		$this->say("\tEnd MOGG refreshable import") ;
 	}
 	public function import_tokens() {
 		// Token images
@@ -120,12 +133,27 @@ class GameServer {
 			}
 		if ( isset($tokendirs['EXT']) ) { // Fallback tokens without specific extension
 			$orderedtokens['EXT'] = $tokendirs['EXT'] ;
-			$nbtoken += count($tokendirs[$obj->se]) ;
+			$nbtoken += count($tokendirs['EXT']) ;
 			unset($tokendirs['EXT']) ;
 		}
 		$this->tokens = $orderedtokens ;
 		$this->say("\t\t$nbtoken tokens listed") ;
-		$this->say("\tEnd MTG import") ;
+	}
+	public function import_suggestions() {
+		global $db ;
+		$this->suggest_draft = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_draft' ORDER BY `position`") ;
+		$this->say("\t\t".count($this->suggest_draft).' draft suggestions imported') ;
+		$this->suggest_sealed = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'suggest_sealed' ORDER BY `position`") ;
+		$this->say("\t\t".count($this->suggest_sealed).' sealed suggestions imported') ;
+	}
+	public function import_keywords() {
+		global $db ;
+		$keywords = $db->select("SELECT `name`, `value` FROM `config` WHERE `cluster` = 'keyword' ORDER BY `position`") ;
+		$this->keywords = new stdClass ;
+		foreach ( $keywords as $keyword ) {
+			$this->keywords->{$keyword->name} = $keyword->value ;
+		}
+		$this->say("\t\t".count($keywords).' keywords imported') ;
 	}
 	public function import_mogg() {
 		$this->say("\tBegin MOGG import") ;
@@ -149,12 +177,15 @@ class GameServer {
 			// Running tournaments
 		foreach ( $db->select("SELECT `id` FROM `tournament`
 			WHERE `status` > '1' AND `status` < '6'	ORDER BY `id` ASC") as $tournament ) {
-			$t = Tournament::get($tournament->id, 'running_tournament') ;
-			if ( $t )
-				$this->running_tournaments[] = $t ;
+			Tournament::get($tournament->id) ; // Will add it itself to corresponding list
 		}
 		$this->say("\t\t".count($this->running_tournaments).' running tournaments imported') ;
+			// Evaluations
+		Evaluation::fill() ;
+		$this->say("\t\t".count(Evaluation::$cache).' evaluations imported') ;
 		$this->say("\tEnd MOGG import") ;
+		// Once all "fat" queries are finished, enable debug on DB
+		$db->debug = true ;
 	}
 	public function export() { // Not called anymore, week & month are generated on tournament end and year and all are generated via crontab
 		$this->say("\tBegin export") ;
@@ -182,6 +213,7 @@ class GameServer {
 		$this->loop->addTimer($index_timeout, function() use($observer) {
 			$observer->index->check_users() ;
 			$observer->game->check_users() ;
+			Action::commit();
 			$observer->check() ;
 		}) ;
 	}
@@ -229,7 +261,7 @@ class GameServer {
 		$this->joined_duels[] = $duel ;
 		return $duel ;
 	}
-	public function clean_duels($player_id) {
+	public function clean_duels($player_id) { // On player disconnection from index : remove all of its duels from pending_duels
 		$result = array() ;
 		foreach ( $this->pending_duels as $i => $duel )
 			if ( ( $duel->creator_id == $player_id ) || ( $duel->joiner_id == $player_id ) ) {
@@ -238,14 +270,23 @@ class GameServer {
 			}
 		return $result ;
 	}
-	public function clean_duel($duel) {
-		$i = array_search($duel, $this->joined_duels) ;
+	public function clean_duel($duel) { // On last player disconnection from a duel : remove that duel from joined_duels
+		//$i = array_search($duel, $this->joined_duels) ; // Triggers recursive dependency fatal error
+		$i = -1 ;
+		foreach ( $this->joined_duels as $myidx => $myduel ) {
+			if ( $myduel->id === $duel->id ) {
+				$i = $myidx ;
+				break ;
+			}
+		}
 		if ( $i > -1 ) {
 			$duels = array_splice($this->joined_duels, $i, 1) ;
-			foreach ( $duels as $spliceduel )
+			foreach ( $duels as $spliceduel ) {
 				unset($spliceduel) ;
-		} else
+			}
+		} else {
 			$this->say('Joined duel not found : '.$duel->name) ;
+		}
 	}
 		// Tournament
 	public function move_tournament($tournament, $from, $to) {
@@ -269,5 +310,12 @@ class GameServer {
 			return false ;
 		}
 		$this->{$to}[] = $spl[0] ;
+	}
+	public function tournament_ended($tournament) {
+		if ( $this->restart ) { // Scheduled server restart
+			if ( count($this->running_tournaments) === 0 ) {
+				die('Scheduled restart') ;
+			}
+		}
 	}
 }

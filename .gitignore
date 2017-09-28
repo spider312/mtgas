@@ -1,20 +1,21 @@
-config.php
+/config.php
 header.php
 footer.php
 
-admin/.ht*
+mtgas.pid
 admin/cards/import/version.json
-
-composer.lock
-composer.phar
-vendor/
-
-js/lib/Flotr2/examples/*
-css
-
 ranking/*
 stats/*
 decks/*
 img/avatar/*
 
 admin/cards/import/cache/
+admin/.ht*
+/css
+log/
+exts_stats/
+
+composer.lock
+composer.phar
+vendor/
+js/lib/Flotr2/examples/*

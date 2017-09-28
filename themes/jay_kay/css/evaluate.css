@@ -1,0 +1,53 @@
+#evaluation {
+	width: 600px;
+	margin-left: -300px ;
+	height: 400px ;
+	margin-top: -200px ;
+	border: 1px solid white;
+	background-color: white ;
+	box-shadow: 0 0 5px 3px black;
+}
+#evaluation h1 {
+	margin: 0 ;
+	padding: 5px ;
+	color: white ;
+	background-color: black ;
+}
+#evaluation > div {
+	margin: 5px ;
+}
+#evaluation button {
+	cursor: pointer ;
+}
+#evaluation_buttons {
+	position: absolute ;
+	bottom: 5px ;
+	right: 5px ;
+}
+#evaluation_rating { /* UL */
+	margin: 0 ;
+}
+.evaluation_rating { /* LI */
+	list-style-type: none ;
+	display: inline-block ;
+	width: 100px ;
+	height: 100px ;
+	background-image: url('../evaluation/star_disabled.png') ;
+	background-size: 100px 100px ;
+	cursor: pointer ;
+}
+.evaluation_rating.enabled {
+	background-image: url('../evaluation/star.png') ;
+}
+.evaluation_rating.selected {
+	background-color: #FFEEEE ;
+}
+#rating_desc {
+	text-align: center;
+}
+#evaluation_avatar {
+	text-align: center;
+}
+#evaluation_avatar img {
+	max-height: 100px ;
+}

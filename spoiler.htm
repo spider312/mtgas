@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <title>MTG Spoiler</title>
+  <style type="text/css">
+#spoiler {
+	line-height: 0 ;
+}
+#spoiler img {
+	/* MCI */
+	height: 445px ;
+	width: 312px ;
+	/* Gatherer */
+	height: 311px ;
+	width: 223px ;
+}
+.hidden {
+	display: none ;
+}
+  </style>
+  <!-- --><script type="text/javascript">
+// Globals
+let baseURL = 'https://api.scryfall.com/' ; // API URL
+let setContainer = null ;
+let spoiler = null ;
+let progress = null ;
+let cards = [] ;
+let loadedImg = 0 ;
+let colors = [ 'W', 'U', 'B', 'R', 'G' ] ;
+let rarities = [ 'mythic', 'rare', 'uncommon', 'common' ] ;
+let sortTypes = [ 'Planeswalker', 'Creature', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land' ] ;
+// On page load
+function load(ev) {
+	let form = document.getElementById('params') ;
+	setContainer = document.getElementById('set') ;
+	progress = document.getElementById('progress') ;
+	spoiler = document.getElementById('spoiler') ;
+	form.addEventListener('submit', function(ev) {
+		search(ev.target) ;
+		ev.preventDefault() ;
+	}, false) ;
+	let ext = getParameterByName('ext') ;
+	let submit = false ;
+	if ( ext !== null ) {
+		form.ext.value = ext ;
+		submit = true ;
+	}
+	if ( submit ) {
+		search(form) ;
+	} else {
+		form.ext.select() ;
+	}	
+}
+// Generic XHR
+function xhr(url, callback) {
+	let myXHR = new XMLHttpRequest();
+	myXHR.addEventListener('load', callback);
+	myXHR.open('GET', url) ;
+	myXHR.send();
+}
+// Launch a set search
+function search(form) {
+	// Get data
+	let ext = form.ext.value ;
+	if ( ext === '' ) {
+		return alert('Please fill "Extension" field') ;
+	}
+	ruptures = form.rupture.value.split(',') ;
+	sorts = form.sort.value.split(',') ;
+	sorts = ruptures.concat(sorts) ; // Force sort by ruptures in order ruptures mechanism to work safely
+	sorts.push('Number') ; // Adds a last sorting by collector number, like when recieved, to solve sorting optimisations by Chrome
+	// Launch set loading
+	let setURL = baseURL + 'sets/' + ext ;
+	xhr(setURL, foundSet) ;
+	form.ext.select() ;
+	return false ;
+}
+// Recieved set
+function foundSet(ev) {
+	spoiler.innerHTML = '' ;
+	let set = JSON.parse(ev.target.response) ;
+	switch ( set.object ) {
+		case 'error' :
+			setContainer.innerHTML = set.code + ' : ' + set.details ;
+			break ;
+		case 'set' :
+			let setResume = '<a href="' + set.scryfall_uri + '" target="_blank">'
+			setResume += '<img src="'+set.icon_svg_uri+'" height="30">' ;
+			setResume += set.code + ' ' + set.name ;
+			setResume += '</a><br>'
+			setResume += set.card_count + ' cards, released ' + set.released_at ;
+			setContainer.innerHTML = setResume
+			cards = [] ;
+			loadedImg = 0 ;
+			progress.value = 0 ;
+			progress.classList.remove('hidden') ;
+			xhr(set.search_uri, foundCard) ;
+			break ;
+		default :
+			console.log(set) ;
+			setContainer.innerHTML = 'Unknown result type ' + set.object + ' (see console)' ;
+	}
+}
+// Recieved cards (recursively until all loaded)
+function foundCard(ev) {
+	let foundCards = JSON.parse(ev.target.response) ;
+	cards = cards.concat(foundCards.data) ;
+	progress.innerHTML = cards.length + ' / ' + foundCards.total_cards ;
+	progress.value = cards.length / foundCards.total_cards ;
+	if ( foundCards.has_more ) {
+		xhr(foundCards.next_page, foundCard) ;
+	} else {
+		progress.value = 0 ;
+		cards.sort(cardSort) ;
+		display(cards) ;
+	}
+}
+// Recieved all cards, display them
+function display(cards) {
+	spoiler.innerHTML = '' ;
+	let notARuptureFunc = new Set() ;
+	cards.forEach(function (card, idx) {
+		// Rupture
+		if ( idx > 0 ) {
+			for ( let i = 0 ; i < ruptures.length ; i++ ) {
+				let rupture = ruptures[i].trim() ;
+				let funcName = 'cardSort' + rupture ;
+				let func = null ;
+				if ( window.hasOwnProperty(funcName) ) {
+					func = window[funcName] ;
+				}
+				if ( typeof func !== 'function' ) {
+					notARuptureFunc.add(rupture) ;
+					continue ;
+				}
+				if ( // For rares & mythics, keep only Color & Rarity ruptures
+					( ( card.rarity === 'mythic' ) || ( card.rarity === 'rare' ) ) &&
+					( rupture !== 'Color' ) &&
+					( rupture !== 'Rarity' )
+				) {
+					continue ;
+				}
+				if ( func(card, cards[idx-1]) !== 0 ) {
+					spoiler.appendChild(document.createElement('hr')) ;
+					break ;
+				}
+			}
+		}
+		// Card
+		let a = document.createElement('a') ;
+		a.href = card.scryfall_uri ;
+		a.target = "_blank" ;
+		a.title = card.name ;
+		a.addEventListener('contextmenu', function (ev) {
+			console.log(card) ;
+			ev.preventDefault() ;
+		}, false) ;
+		a.addEventListener('mousedown', function(ev) {
+			ev.preventDefault() ; // Don't set focus to element
+		}, false);
+		let img = document.createElement('img') ;
+		let src = card.image_uri ;
+		switch ( card.layout ) {
+			case 'normal' :
+				break ;
+			case 'transform' :
+				let face = 0 ;
+				src = card.card_faces[face].image_uris.normal ;
+				img.addEventListener('contextmenu', function (ev) {
+					face++ ;
+					if ( face > card.card_faces.length - 1 ) {
+						face = 0 ;
+					}
+					img.src = card.card_faces[face].image_uris.normal ;
+					ev.preventDefault() ;
+				}, false) ;
+
+				break ;
+			default :
+				console.log('Unknown layout : '+card.layout)
+		}
+		img.src = src ;
+		img.addEventListener('load', function(ev) {
+			loadedImg++ ;
+			if ( loadedImg === cards.length ) {
+				progress.classList.add('hidden');
+			} else {
+				progress.value = loadedImg / cards.length ;
+			}
+		}, false) ;
+		a.appendChild(img) ;
+		spoiler.appendChild(a) ;
+	}) ;
+	if ( notARuptureFunc.size > 0 ) {
+		if ( notARuptureFunc.size > 1 ) {
+			alert(Array.from(notARuptureFunc).join(', ') + ' are not sort fields') ;
+		} else {
+			alert(Array.from(notARuptureFunc).join(', ') + ' is not a sort field') ;
+		}
+	}
+}
+// Sorting
+function cardSort(a, b) {
+	for ( let i = 0 ; i < sorts.length ; i++ ) {
+		let funcName = sorts[i].trim() ;
+		let func = eval('cardSort'+funcName) ;
+		if ( typeof func !== 'function' ) {
+			console.log(funcName+" isn't a sort function") ;
+			continue ;
+		}
+		let sort = func(a, b) ;
+		if ( sort !== 0 ) {
+			return sort ;
+		}
+	}
+	return 0 ;
+}
+	// Collector number
+function cardSortNumber(a, b) {
+	return parseInt(a.collector_number) - parseInt(b.collector_number) ;
+}
+	// CMC
+function cardSortCMC(a, b) {
+	let result = cardField(a, 'cmc') - cardField(b, 'cmc') ;
+	if ( result === 0 ) { // Same CMC, let's count mana nb
+		result = cardField(a, 'mana_cost').length - cardField(b, 'mana_cost').length ;
+	}
+	return result ;
+}
+	// Type
+function cardSortType(a, b) {
+	return cardTypeIdx(a) - cardTypeIdx(b) ;
+}
+function cardTypeIdx(card) {
+	let result = -1 ;
+	cardTypes(card).forEach(function(type) { 
+		let idx = sortTypes.indexOf(type) ;
+		if ( idx !== -1 ) {
+			if ( ( result === -1 ) || ( idx < result ) ) {
+				result = idx ;
+			}
+		}
+	}) ;
+	return result ;
+}
+function cardTypes(card) {
+	let typesParts = cardField(card, 'type_line').split('—') ;
+	return typesParts[0].trim().split(' ') ;
+}
+	// Rarity
+function cardSortRarity(a, b) {
+	return rarities.indexOf(a.rarity) - rarities.indexOf(b.rarity) ;
+}
+	// Color
+function cardSortColor(a, b) {
+	// Sort by number of colors
+	let colorAnb = cardColorNb(a) ;
+	let colorBnb = cardColorNb(b) ;
+	if ( colorAnb !== colorBnb ) {
+		return colorAnb - colorBnb ;
+	}
+	// Sort monocolor by color
+	let colorsA = cardField(a, 'colors') ;
+	let colorsB = cardField(b, 'colors') ;
+	if ( colorsA.length === 1 ) {
+		return colors.indexOf(colorsA[0]) - colors.indexOf(colorsB[0]) ;
+	}
+	return 0 ;
+}
+function cardColorNb(card) { // Monocolor, Multicolor (all colors nb), colorless (artifacts, non-basic lands, basic lands)
+	let colors = cardField(card, 'colors') ;
+	switch ( colors.length ) {
+		case 0 :
+			if ( card.mana_cost === '' ) {
+				if ( cardTypes(card).indexOf('Basic') !== -1 ) {
+					return 4 ;
+				} else {
+					return 3 ;
+				}
+			}
+			return 2 ;
+		case 1 :
+			return 0 ;
+		default :
+			return 1 ;
+	}
+}
+function cardField(card, field) {
+	if ( card.hasOwnProperty(field) ) {
+		return card[field] ;
+	} else if ( card.hasOwnProperty('card_faces') && ( card.card_faces.length > 0 ) ) {
+		return cardField(card.card_faces[0], field) ;
+	} else {
+		return [] ;
+	}
+}
+// External
+function getParameterByName(name, url) {
+	if (!url) url = window.location.href;
+	name = name.replace(/[\[\]]/g, "\\$&");
+	var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+	    results = regex.exec(url);
+	if (!results) return null;
+	if (!results[2]) return '';
+	return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+  </script>
+ </head>
+
+ <body onload="load(event);">
+  <form id="params">
+   <input name="ext" placeholder="Extension" title="Extension">
+   <input name="rupture" placeholder="Sort with rupture fields" title="Sort with rupture fields" value="Color,Rarity,Type">
+   <input name="sort" placeholder="Sort fields" title="Sort fields" value="CMC">
+   <input type="submit">
+  </form>
+  <div id="set"></div>
+  <progress id="progress" class="hidden"></progress>
+  <div id="spoiler"></div>
+<!-- Piwik -->
+<script type="text/javascript">
+	var _paq = _paq || [];
+	_paq.push(['trackPageView']);
+	_paq.push(['enableLinkTracking']);
+	(function() {
+		var u="//piwik.mogg.fr/";
+		_paq.push(['setTrackerUrl', u+'piwik.php']);
+		_paq.push(['setSiteId', 1]);
+		var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+		g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+	})();
+</script>
+<noscript><p><img src="//stats.mogg.fr/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+ </body>
+</html>

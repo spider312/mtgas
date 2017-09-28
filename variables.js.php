@@ -67,10 +67,6 @@ foreach ( scandir($localedir) as $dir )
 else*/
 	applang = 'en' ;
 
-// Index
-draft_formats = <?php echo JSON_encode($suggest_draft) ; ?> ;
-sealed_formats = <?php echo JSON_encode($suggest_sealed) ; ?> ;
-
 // Game params
 restricted_access = false ;
 deckname_maxlength = 32 ; // Displayed length in deck list
@@ -105,9 +101,6 @@ cardwidth = 56 ;
 cardheight = 80 ;
 cardhandspace = 30 ;
 place_offset = 2 ; // Offset on gris when "placing" cards (if "0, 0" is occupied, then try "0, offset", then "0, 2*offset" ... "offset, 0", "offset, offset"
-
-// Delays
-notification_duration = 5000 ; // Notifications auto-close after 5 sec in browsers not managing it
 
 // Ingame timers during tournament
 timer_notice_time = 20 ;

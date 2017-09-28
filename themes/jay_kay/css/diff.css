@@ -1,0 +1,25 @@
+/* Overwrite default behaviour with background-color */
+.diffins, .diffmod, .diffdel {
+	text-decoration: none ;
+}
+ins {
+	background-color: lightgreen ;
+	border-color: lime ;
+}
+del {
+	background-color: pink ;
+	border-color: red ;
+}
+/* Distinct "only inserted" and "inserted part of a modified", and the same for deleted */
+ins.diffins {
+	color: green ;
+}
+del.diffdel {
+	color: red ;
+}
+/* Be sure to display <ins/del> even when it contains only whitespaces */
+.diffmod { /* Force diffs to have a minimum width despite being inline */
+	display: inline-block ;
+	min-width: 10px ;
+}
+

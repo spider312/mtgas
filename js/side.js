@@ -93,7 +93,7 @@ function side_start_recieve(player, winner) {
 	document.body.appendChild(side_window) ;
 	side_resize() ;
 	side_lists_fill(player, deck_ul, side_ul, 'orig_zone') ;
-	but_can.focus() ;
+	//but_can.focus() ;
 }
 // Refresh lists
 function side_resize() {
@@ -261,7 +261,7 @@ function side_name_in_pack(name, deck) { // Returns index of 'name' in 'deck', -
 function side_land_li(name) {
 	var myli = create_li(null) ;
 	myli.name = name ;
-	var urls = card_images(card_image_url('UNH', name)) ;
+	var urls = card_images(card_image_url('UST', name)) ;
 	game.image_cache.load(urls, function(img, myli) {
 		myli.style.backgroundImage = 'url(\"'+img.src+'\")' ;
 	}, function(myli) {

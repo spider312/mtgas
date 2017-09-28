@@ -34,14 +34,6 @@ class Deck {
 				}
 				if ( $line != null ) { // Card found in MWS or Aprentice
 					$card = Card::get(trim($name), $ext) ;
-					if ( $card === null ) {
-						// Transforms stored as "day/moon"
-						$pieces = explode('/', $name) ;
-						if ( count($pieces) > 1 ) {
-							$name = $pieces[0] ;
-							$card = Card::get(trim($name), $ext) ;
-						}
-					}
 				}
 				// (not) Found
 				if ( $card == null ) {

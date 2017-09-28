@@ -48,14 +48,14 @@ td.nowrap {
 	overflow-x: hidden ;
 	overflow-y: scroll ;
 }
-#shouts span {
+#shouts .shouttime {
 	float: right ;
 	color: #907C6C ;
 }
 #shouts li:hover {
 	background-color: #F4ECD2 ;
 }
-#shouts li:hover span {
+#shouts li:hover .shouttime {
 	color: black ;
 }
 #shouters {
@@ -64,7 +64,8 @@ td.nowrap {
 	height: 90% ;
 	width: 15% ;
 	padding-left: 0 ;
-	overflow: hidden ;
+	overflow-x: hidden ;
+	overflow-y: auto ;
 }
 #shouters li {
 	cursor: pointer ;
@@ -169,6 +170,27 @@ tr:hover td a {
 }
 table button {
 	padding: 0 ;
+}
+#decks_list label > input {
+	vertical-align: bottom;
+	position: relative;
+	top: -1px;
+	padding: 0;
+	margin: 0 3px 0 3px;
+}
+.drag {
+	background-color: #F4ECD2 ;
+	border: 1px solid black ;
+	box-shadow: 0px 0px 10px 1px red;
+}
+#decks_list label {
+	display: inline ;
+}
+#decks_list td {
+	cursor: move ;
+}
+#decks_list input {
+	cursor: pointer ;
 }
 /* Tournaments */
 .registered {

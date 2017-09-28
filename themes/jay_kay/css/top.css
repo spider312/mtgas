@@ -63,3 +63,6 @@
 .loading #table {
 	display: none ;
 }
+.evaluation_star {
+	height: 20px ;
+}

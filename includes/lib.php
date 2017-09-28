@@ -90,11 +90,27 @@ function arr_diff($new, $old) { // Returns $new without values that didn't chang
 			if ( obj_compare($v, $value) )
 				continue 2 ; // Not added to result
 		}
-		$result[$key] = $value ;
+		$diff = obj_diff($value, $v) ;
+		if ( $diff !== null ) {
+			$result[$key] = $diff ;
+		}
 	}
 	return $result ;
 }
 function obj_diff($new, $old) { // Returns only properties that changed between new and old value
+	// Not the same type : consider all changed
+	if ( gettype($new) !== gettype($old) ) {
+		return $new;
+	}
+	// Cases "not enumerable"
+	if ( is_string($new) || is_numeric($old) ) {
+		if ( $new !== $old ) {
+			return $new;
+		} else {
+			return null;
+		}
+	}
+	// Compare 2 enumerables : build a result obj
 	$result = new stdClass() ;	
 	foreach ( $new as $key => $value ) { // Each value in new
 		if ( isset($old->$key) ) {  // Key is present in old
@@ -278,7 +294,7 @@ function html_option($value, $disp, $selected) {
 	$return .= '>'.$disp.'</option>' ;
 	return $return ;
 }
-function html_checkbox($name, $checked) {
+function html_checkbox($name, $checked=false) {
 	$return = '<input type="checkbox" name="'.$name.'"' ;
 	if ( $checked )
 		$return .= ' checked="checked"' ;
@@ -315,12 +331,28 @@ function json_verbose_error($i=-1) {
 			return 'Erreur inconnue : '.$i ;
 	}
 }
+function jsonpp($obj) { // Returns a JSON pretty print string compatible with HTML
+	if ( is_string($obj) ) {
+		if ( $obj === '' ) {
+			return $obj ;
+		}
+		$obj = json_decode($obj) ;
+	}
+	$result = JSON_encode($obj, JSON_PRETTY_PRINT) ;
+	return $result ;
+	//return str_replace('"', "'", $result) ; // for inclusion in a HTML tag such as a title
+}
+function print_json($obj) { // Equivalent to print_r, but prints as JSON
+	echo jsonpp($obj) ;
+}
+
 // Theme
 function theme_image($name) {
 	global $theme, $url ;
 	return $url.'/themes/'.$theme.'/'.$name ;
 }
 function manas2html($manas) { // Returns HTML code for icons representing array 'manas'
+	$colors = '' ;
 	foreach ( $manas as $mana )
 		$colors .= '<img src="'.theme_image('ManaIcons/'.$mana.'.png').'" width="16" height="16" alt="{'.$mana.'}">' ;
 	return $colors ;

@@ -30,16 +30,16 @@ class TournamentHandler extends ParentHandler {
 	}
 	public function onDisconnect(WebSocketTransportInterface $disco) {
 		if ( isset($disco->tournament) ) {
-			foreach ( $this->getConnections() as $user )
+			foreach ( $this->getConnections() as $user ) {
 				if (
 					isset($user->tournament)
 					&& ( $user->tournament->id == $disco->tournament->id )
 					&& ( $user->player_id ==  $disco->player_id )
-				)
+				) {
 					return false ;
+				}
+			}
 			$disco->tournament->player_disconnect($disco->player_id, $this->type) ;
-		} else
-			$this->say('Disconection from unregistered user') ;
+		}
 	}
-
 }

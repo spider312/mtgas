@@ -4,6 +4,8 @@ function start(id, pid) {
 	land = document.getElementById('land') ;
 	zoom = document.getElementById('zoom') ;
 	ready = document.getElementById('ready') ;
+	filter_input = document.getElementById('filter_input') ;
+	filter_suggestions = document.getElementById('filter_suggestions') ;
 	TournamentBuild.prototype = new TournamentLimited() ;
 	Tournament.prototype = new TournamentBuild() ;
 	PlayerBuild.prototype = new PlayerLimited() ;
@@ -38,15 +40,37 @@ function start(id, pid) {
 			case 'running_tournament' :
 			case 'ended_tournament' :
 				game.tournament.recieve(data) ;
+				if ( ( game.tournament.me === null ) && ( pid != '' ) ) {
+					game.tournament.me = game.tournament.get_player(pid) ;
+					game.tournament.me.me = true ; // Spectator overrides "me"
+				}
 				break ;
 			case 'deck' :
-				if ( pid != '' )
-					game.tournament.me = game.tournament.get_player(pid) ;
-				if ( game.tournament.me != null ) {
-					game.tournament.me.me = true ; // Spectator overrides "me"
-					game.tournament.me.recieve({'deck_obj': data}) ;
-				} else
-					debug('player is null') ;
+				game.tournament.me.recieve({'deck_obj': data}) ;
+				break ;
+			case 'keywords' :
+				node_empty(filter_suggestions) ;
+				// Clear
+				let opt = filter_option('', '', filter_suggestions) ;
+				opt.title = 'Clear filter' ;
+				// Extension keywords
+				var optgroup = create_element('optgroup') ;
+				optgroup.label = 'Extension' ;
+				optgroup.title = 'Extension keywords' ;
+				Object.keys(data.keywords).sort().forEach((currentValue, currentIndex, listObj) => {
+					filter_option(currentValue, data.keywords[currentValue], optgroup) ;
+				}, true) ;
+				if ( optgroup.childNodes.length > 0 ) {
+					filter_suggestions.appendChild(optgroup) ;
+				}
+				// Base
+				var optgroup = create_element('optgroup') ;
+				optgroup.label = 'Basic' ;
+				optgroup.title = 'Generic filter suggestions' ;
+				Object.keys(data.base).forEach((currentValue, currentIndex, listObj) => {
+					filter_option(currentValue, data.base[currentValue], optgroup) ;
+				}) ;
+				filter_suggestions.appendChild(optgroup) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
@@ -58,7 +82,7 @@ function start(id, pid) {
 		var landbase = function(id, name, mana) {
 			return {
 				'id': id, 'name': name,
-				'ext': 'UNH', 'rarity': 'L', 'ext_img': 'UNH',
+				'ext': 'UST', 'rarity': 'L', 'ext_img': 'UST',
 				'attrs': {
 					'manas': [], 'converted_cost': 0, 'color': 'X', 'color_index': 1,
 					'types': ['land'], 'supertypes': ['basic'],
@@ -91,6 +115,14 @@ function start(id, pid) {
 			}, false) ;
 		}
 	}
+	// Filter form
+	document.getElementById('filter_form').addEventListener('submit', function(ev) {
+		game.tournament.me.pool.set_text_filter(this.filter_input.value) ;
+		return eventStop(ev) ;
+	}, false) ;
+	filter_input.addEventListener('keyup', function(ev) {
+		game.tournament.me.pool.set_text_filter(filter_input.value) ;
+	}, false) ;
 	// Recompute columns number on resize
 	window.addEventListener('resize', function(ev) {
 		pool = game.tournament.me.pool ;
@@ -107,6 +139,20 @@ function start(id, pid) {
 	zoom.addEventListener('mouseenter', function(ev) {
 		zoom.classList.add('hidden') ;
 	}, false) ;
+}
+function filter_option(suggestion_name, suggestion_value, select) {
+	var opt = create_option(suggestion_name, suggestion_value, 'Search for "'+suggestion_value+'" in types and text\nCtrl/Shift to modify current filter with a AND/OR operator') ;
+	opt.addEventListener('click', function(ev) {
+		let value = this.value ;
+		if      ( ( value !== ''  ) && ev.ctrlKey )  { value = filter_input.value + '&' + value ; }
+		else if ( ( value !== ''  ) && ev.shiftKey ) { value = filter_input.value + '|' + value ; }
+		filter_input.value = value ;
+		game.tournament.me.pool.set_text_filter(filter_input.value) ;
+		filter_input.select() ;
+		filter_suggestions.selectedIndex = -1 ;
+	}, false);
+	select.appendChild(opt) ;
+	return opt ;
 }
 function TournamentBuild() {}
 function PlayerBuild() {
@@ -233,6 +279,10 @@ function Pool(player) {
 		this.smallres = val ;
 		this.calc_maxcols() ;
 	}
+	this.set_text_filter = function(txt) {
+		this.main.set_text_filter(txt) ;
+		this.side.set_text_filter(txt) ;
+	}
 	this.player = player ;
 	this.main = new Zone(this, table_main, 'Deck', 'converted_cost') ;
 	this.side = new Zone(this, table_side, 'Sideboard', 'color_index') ;
@@ -287,6 +337,7 @@ function Zone(pool, node, name, sort) {
 	this.node = node ;
 	this.name = name ;
 	this.cards = [] ;
+	this.text_filter = '' ;
 	this.color_filter = {'X': true, 'W': true, 'U': true, 'B': true, 'R': true, 'G': true} ;
 	this.field = sort ;
 	this.fields = {
@@ -366,6 +417,10 @@ function Zone(pool, node, name, sort) {
 		me.menu(ev) ;
 	}, false) ;
 	// Methods
+	this.set_text_filter = function(txt) {
+		this.text_filter = txt ;
+		this.display() ;
+	}
 		// Filter
 	this.set_filter = function(color, val) {
 		this.color_filter[color] = val ;
@@ -404,14 +459,39 @@ function Zone(pool, node, name, sort) {
 		if ( sort_side != null )
 			sort_side.value = field ;
 	}
+	this.match = (txt) => {
+		let filter = this.text_filter.toLowerCase() ;
+		let tokens_or = filter.split('|') ;
+		txt = txt.toLowerCase() ;
+		return tokens_or.some((token_or) => {
+			let tokens_and = token_or.split('&') ;
+			return tokens_and.every((token_and) => {
+				token_and = token_and.trim() ;
+				let result = ( txt.indexOf(token_and) > -1 ) ;
+				return result ;
+			}) ;
+		}) ;
+	}
 	this.filtered = function() {
 		var result = [] ;
-		for ( var i = 0 ; i < this.cards.length ; i++ )
-			for ( var j in this.color_filter )
-				if ( this.color_filter[j] && inarray(j, this.cards[i].attrs.color) ) {
-					result.push(this.cards[i]) ;
+		for ( var i = 0 ; i < this.cards.length ; i++ ) {
+			var card = this.cards[i] ;
+			// Filter by text
+			if ( this.text_filter !== '' ) {
+				// Match over a join of all parts of search text in order to allow matches to append between fields (for exemple search "destroy&instant")
+				let fulltext = card.attrs.types.join(' ')+"\n"+card.attrs.subtypes.join(' ')+"\n"+card.text ;
+				if ( ! this.match(fulltext) ) {
+					continue ;
+				}
+			}
+			// Filter by color
+			for ( var j in this.color_filter ) {
+				if ( this.color_filter[j] && inarray(j, card.attrs.color) ) {
+					result.push(card) ;
 					break ;
 				}
+			}
+		}
 		return result ;
 	}
 	this.sorted = function(field) { // Return an array of "columns" sorted by field
@@ -470,7 +550,7 @@ function Zone(pool, node, name, sort) {
 			menu.addline('Include', function(card){
 				this.pool.toggle(card) ;
 			}, ev.target.card) ;
-			menu.addline('Informations (MagicCards.Info)', function(card){
+			menu.addline('Informations', function(card){
 				card.info() ;
 			}, ev.target.card) ;
 			menu.addline() ;
@@ -528,8 +608,9 @@ function Card(card) {
 			div.classList.add(card.rarity) ;
 			div.card = this ;
 			div.transformed_url = '' ;
-			if ( iso(card.attrs.split) )
+			if ( iso(card.attrs.split) && ! iss(card.attrs.aftermath) ) {
 				div.classList.add('split') ;
+			}
 			// Image loading
 			var urls = card_images(card_image_url(this.card.ext_img, this.card.name, this.card.attrs.nb)) ;
 			game.image_cache.load(urls, function(img, div) {
@@ -573,9 +654,12 @@ function Card(card) {
 		if ( alt.src != '' )
 			alt.src = '' ;
 		// Split
-		if ( iso(card.attrs.split) )
+		if ( iss(card.attrs.aftermath) ) {
+			alt.src = div.card.img.src ;
+			alt.classList.add('aftermath') ;
+		} else if ( iso(card.attrs.split) ) {
 			zoom.classList.add('split') ;
-		else
+		} else
 			zoom.classList.remove('split') ;
 		// Flip
 		if ( iso(card.attrs.flip_attrs) ) {
@@ -620,13 +704,14 @@ function Card(card) {
 		zoom.style.top = max(y, 0)+'px' ;
 	}
 	this.info = function() {
-		window.open('http://magiccards.info/query?q=!'+this.name) ;
+		card_info(this.name) ;
 	}
 	this.node = null ;
 	this.card = card ;
 	this.name = card.name ;
 	this.attrs = card.attrs ;
 	this.rarity = card.rarity ;
+	this.text = card.text ;
 }
 function generate_base_land() {
 	base_lands = document.getElementById('base_lands') ;

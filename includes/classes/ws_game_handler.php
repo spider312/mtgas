@@ -109,17 +109,16 @@ class GameHandler extends ParentHandler {
 			default :
 				$action = null ;
 				if ( $user->game !== null ) {
-					$action = $user->game->addAction($user->player_id, $data->type,
-						$data->param, $data->local_index) ;
+					$action = $user->game->addAction($user->player_id, $data->type, $data->param, $data->local_index) ;
 				}
-				if ( $action == null )
+				if ( $action === null ) {
 					$user->sendString('{"type": "msg", "sender": "", "param": {"text": "You can\'t send '.$data->type.'"}}') ;
-				else {
+				} else {
 					// Send back to sender if containing a callback ID
-					if ( isset($data->callback) )
+					if ( isset($data->callback) ) {
 						$action->callback = $data->callback ;
-					$this->broadcast(json_encode($action), $user->game,
-						isset($action->callback)?null:$user) ;
+					}
+					$this->broadcast(json_encode($action), $user->game, isset($action->callback)?null:$user) ;
 				}
 		}
 	}
@@ -160,7 +159,6 @@ class GameHandler extends ParentHandler {
 	}
 	public function onDisconnect(WebSocketTransportInterface $user) {
 		if ( ! isset($user->player_id) ) { // Unregistered user
-			$this->observer->say('Disconnection from unregistered user') ;
 			return false ;
 		}
 		if ( ! $this->connected($user->player_id, $user->game) ) { // Last connexion on this game from that user

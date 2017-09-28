@@ -1,18 +1,24 @@
 <?php
 include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'../lib.php' ;
 // Cache management
-function cache_get($url, $cache_file, $verbose = true, $update=false, $cache_life=43200/*12*3600*/) {
+function cache_get($url, $cache_file, $verbose = true, $noDownloadSmaller=false, $cache_life=43200/*12*3600*/) {
 	$message = '' ;
 	$content = '' ;
 	clearstatcache() ;
 	if ( $url == '' )
 		$message .= '[empty url]' ;
-	else if ( file_exists($cache_file) && ( time() - filemtime($cache_file) <= $cache_life ) ) {
+	else if (
+		file_exists($cache_file)
+		&& (
+			( $cache_life < 0 )
+			|| ( time() - filemtime($cache_file) <= $cache_life )
+		)
+	) {
 		$message .= '[use cache]' ;
 		$content = @file_get_contents($cache_file) ;
 	} else {
 		$message .= '[update cache : ' ;
-		if ( $update && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
+		if ( $noDownloadSmaller && file_exists($cache_file) && ( curl_get_file_size($url) <= filesize($cache_file) ) ) {
 			$message .= 'cache file is already bigger' ;
 			$content = @file_get_contents($cache_file) ;
 		} else if ( ( $content = curl_download($url) ) !== false ) { // @file_get_contents($url)
@@ -150,8 +156,13 @@ function string_detail_disp($str) {
 	$result .= '</pre>' ;
 	return $result ;
 }
+function tokenpath($token, $name='') {
+	if ( $name == '' )
+		$name = $token['type'] ;
+	return $name.((($token['pow']!=='')||($token['tou']!==''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
+}
 // Classes
-class ImportExtension {
+class Importer {
 	public $code = '' ;
 	public $name = '' ;
 	public $nbcards = 0 ;
@@ -159,7 +170,11 @@ class ImportExtension {
 	public $cards = array() ;
 	public $tokens = array() ;
 	public $errors = array() ;
-	function __construct() {
+	public $type = '' ;
+	public $cachetime = -1 ;
+	function __construct($type, $cachetime) {
+		$this->type = $type ;
+		$this->cachetime = $cachetime ;
 	}
 	function __destruct() {
 	}
@@ -267,15 +282,37 @@ class ImportExtension {
 		if ( $ext == '' ) 
 			echo 'No ext given'."\n" ;
 		else {
-			$ext = strtoupper($ext) ;
+			$origext = $ext ; // Save for getting release date & bloc
+			switch ( $this->type ) {
+				case 'main' :
+					$data = '{"c":10, "u":3, "r":1, "mps": "'.$ext.'I", "keywords": {}}' ;
+					break ;
+				case 'preview' :
+					$data = '{"l":1}' ;
+					$ext .= 'P' ;
+					$this->name .= ' - Previews' ;
+					break ;
+				case 'pwdecks' :
+					$data = '{}' ;
+					$ext .= 'PW' ;
+					$this->name .= ' - Planeswalker Decks' ;
+					break ;
+				default:
+					die("Incorrect import type : ".$this->type) ;
+			}
 			$res = mysql_fetch_object(query("SELECT * FROM extension WHERE `se` = '$ext' ; ")) ; // First search in SE
 			if ( ! $res ) // Take another chance with sea
 				$res = mysql_fetch_object(query("SELECT * FROM extension WHERE `sea` = '$ext' ; ")) ;	
 			if ( ! $res ) {
+				$release_date = date('Y-m-d') ; // Let's make as if import is done on release day, it's better than 0000-00-00
+				if ( $origext !== $ext ) { // Base other imports on main one
+					if ( $origres = mysql_fetch_object(query("SELECT * FROM extension WHERE `se` = '$origext' ; ")) ) {
+						$release_date = $origres->release_date ;
+					}
+				}
 				echo 'Extension ['.$ext.'] not found'."\n" ;
 				if ( $apply ) {
-					$query = query("INSERT INTO extension (`se`, `name`) VALUE
-						 ('$ext', '".mysql_real_escape_string($this->name)."')") ;
+					$query = query("INSERT INTO extension (`se`, `name`, `release_date`, `data`) VALUE ('$ext', '".mysql_real_escape_string($this->name)."', '$release_date', '$data')") ;
 					$ext_id = mysql_insert_id() ;
 					echo 'Created'."\n" ;
 				}
@@ -408,9 +445,9 @@ class ImportExtension {
 				if ( count($card->images) < 2 )
 					die('2 images expected for tranfsorm') ;
 				$path = $dir.card_img_by_name($card->name, 1, 1) ;
-				cache_get($card->images[0], $path, $verbose, $update) ;
+				cache_get($card->images[0], $path, $verbose, $update, $this->cachetime) ;
 				$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
-				cache_get($card->images[1], $path, $verbose, $update) ;
+				cache_get($card->images[1], $path, $verbose, $update, $this->cachetime) ;
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
@@ -423,16 +460,16 @@ class ImportExtension {
 					echo " - $lang : " ;
 					$path = $langdir.card_img_by_name($card->name, 1, 1) ;
 					$image = $images['images'][0] ;
-					cache_get($image, $path, $verbose, $update) ;
+					cache_get($image, $path, $verbose, $update, $this->cachetime) ;
 					$path = $langdir.card_img_by_name($card->secondname, 1, 1) ;
 					$image = $images['images'][1] ;
-					cache_get($image, $path, $verbose, $update) ;
+					cache_get($image, $path, $verbose, $update, $this->cachetime) ;
 					echo "\n" ;
 				}
 			} else {
 				foreach ( $card->images as $i => $image ) {
 					$path = $dir.card_img_by_name($card->name, $i+1, count($card->images)) ;
-					cache_get($image, $path, $verbose, $update) ;
+					cache_get($image, $path, $verbose, $update, $this->cachetime) ;
 				}
 				echo "\n" ;
 				// Languages
@@ -445,7 +482,7 @@ class ImportExtension {
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					foreach ( $images['images'] as $i => $image ) {
 						$path = $langdir.card_img_by_name($card->name, $i+1, count($card->images)) ;
-						cache_get($image, $path, $verbose, $update) ;
+						cache_get($image, $path, $verbose, $update, $this->cachetime) ;
 					}
 					echo "\n" ;
 				}
@@ -466,24 +503,25 @@ class ImportExtension {
 			}
 			// Token is an emblem
 			if ( preg_match('/Emblem (.*)/', $name, $matches) ) {
+				$emblemname = trim($matches[1]) ; // May be just the type or the full name
 				$found = false ;
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
 					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
-					if ( $matches[1] == $card->name ) {
+					if ( $emblemname === $card->name ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
 					}
 					// Check card subtype
-					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($matches[1]) ) ) {
+					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($emblemname) ) ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
 					}
 					// Check transform subtype
-					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($matches[1]) ) ) {
+					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($emblemname) ) ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->transformed_attrs->subtypes[0] ;
 						break ;
@@ -494,7 +532,7 @@ class ImportExtension {
 					continue ;
 				}
 			}
-			cache_get($token['image_url'], $tkdir.tokenpath($token, $name), $verbose, $update) ;
+			cache_get($token['image_url'], $tkdir.tokenpath($token, $name), $verbose, $update, $this->cachetime) ;
 			echo "\n" ;
 		}
 		umask($oldumask) ;
@@ -502,11 +540,7 @@ class ImportExtension {
 		return true ;
 	}
 }
-function tokenpath($token, $name='') {
-	if ( $name == '' )
-		$name = $token['type'] ;
-	return $name.((($token['pow']!=='')||($token['tou']!==''))?'.'.$token['pow'].'.'.$token['tou']:'').'.jpg' ;
-}
+
 class ImportCard {
 	public $ext = null ;
 	public $url = 'Uninitialized' ;
@@ -530,8 +564,10 @@ class ImportCard {
 		$this->cost = $cost ;
 		$this->types = $types ;
 		$this->text = trim($text) ;
-		$this->nbimages = 1 ;
-		$this->addimage($url) ;
+		if ( $url !== null ) {
+			$this->nbimages = 1 ;
+			$this->addimage($url) ;
+		}
 		$this->multiverseid = intval($multiverseid) ;
 	}
 	// Dual

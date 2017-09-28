@@ -1,4 +1,5 @@
 function start(pid) {
+	evaluations_delay = document.getElementById('evaluations_delay') ;
 	games_delay = document.getElementById('past_games_delay') ;
 	tournaments_delay = document.getElementById('past_tournaments_delay') ;
 	ajax_error_management() ;
@@ -6,10 +7,15 @@ function start(pid) {
 	game.options = new Options(true) ;
 	if ( iss(pid) )
 		player_id = pid ;
-	save_restore('past_games_delay') ;
-	save_restore('past_tournaments_delay') ;
+	//save_restore('past_games_delay') ;
+	//save_restore('past_tournaments_delay') ;
+	get_evaluations();
 	get_past_games() ;
 	get_past_tournaments() ;
+	evaluations_delay.addEventListener('change', function(ev) {
+		get_evaluations() ;
+		ev.target.blur() ;
+	}, false) ;
 	games_delay.addEventListener('change', function(ev) {
 		get_past_games() ;
 		ev.target.blur() ;
@@ -18,6 +24,42 @@ function start(pid) {
 		get_past_tournaments() ;
 		ev.target.blur() ;
 	}, false) ;
+}
+function get_stars(nb, node) {
+	node.title = nb ;
+	nb = Math.round(nb) ;
+	for ( var i = -2 ; i < 3 ; i++ ) {
+		var url = 'evaluation/star' + ( ( nb < i ) ? '_disabled' : '' ) + '.png' ;
+		var img = create_img(theme_image(url)[0]) ;
+		node.appendChild(img) ;
+	}
+}
+function get_evaluations() {
+	var evaluations = document.getElementById('evaluations') ;
+	var no_evaluations = document.getElementById('no_evaluations') ;
+	var caption = evaluations.parentNode.caption.firstChild ;
+	caption.nodeValue = 'Loading ...' ;
+	$.getJSON('json/evaluations.php', {'player_id': player_id, 'delay': evaluations_delay.value}, function(data) {
+		node_empty(evaluations) ;
+		if ( data.length === 0 ) {
+			caption.nodeValue = 'no evaluations' ;
+			no_evaluations.style.display = '' ;
+		} else {
+			var total = nb = 0 ;
+			data.forEach((line) => {
+				total += line.rating * line.nb ;
+				nb += line.nb ;
+				var tr = create_tr(evaluations, '', line.nb) ;
+				get_stars(line.rating, tr.cells[0]) ;
+			}) ;
+			var tr = create_tr(evaluations, 'Average', '') ;
+			var precision = 100 ;
+			var avg = Math.round(precision*total/nb)/precision ;
+			get_stars(avg, tr.cells[1]) ;
+			caption.nodeValue = nb + ' evaluations' ;
+			no_evaluations.style.display = 'none' ; 
+		}
+	});
 }
 function get_past_games() {
 	var past_games = document.getElementById('past_games') ;

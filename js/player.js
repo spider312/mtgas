@@ -112,6 +112,7 @@ function Game(id, start_date, options, player_id, player_nick, player_avatar, pl
 	this.stonehewer = true ;
 	this.nokiou = false ;
 	this.lastwinner = null ; // Used in "refresh while siding"
+	this.ended = false ; // Used for not open side when round ended
 }
 function Player(game, is_top, id, name, avatar, score) { // game as a param as it's not already a global
 	// Methods
@@ -187,13 +188,15 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 			message(this.name+' won match '+game.match_num(), 'win') ;
 			if ( ( spectactor != 1 ) && ( this.attrs.score > this.score ) ) { // Only ask for side on real score change
 				this.score = this.attrs.score ;
-				side_start(game.player, this) ;
+				if ( ! game.ended ) {
+					side_start(game.player, this) ;
+				}
 			}
 			game.lastwinner = this ;
 			this.endgame() ;
 		}
 		// Side
-		if ( isb(attrs.siding) && ( this.attrs.siding != attrs.siding ) ) {
+		if ( ( ! game.ended ) && isb(attrs.siding) && ( this.attrs.siding != attrs.siding ) ) {
 			if ( attrs.siding )
 				this.side_start_recieve() ;
 			else
@@ -233,9 +236,9 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 		message(this.name+' won match '+game.match_num(), 'win') ;
 		var player = this ;
 		this.sync(function(param) {
-			// Only delays side start, hoping an action recieve/manage will trigger before response, 
-			// as it will redirect player if round started before asking him for side
-			side_start(game.player, player) ;
+			if ( ! game.ended ) {
+				side_start(game.player, player) ;
+			}
 		}) ;
 		this.endgame() ;
 	}

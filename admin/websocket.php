@@ -30,6 +30,11 @@ html_menu() ;
    <ul id="connected_users"></ul>
    <h2>Bans</h2>
    <ul id="bans"></ul>
+   <h2>Options</h2>
+   <label>
+    Scheduled restart
+    <input type="checkbox" id="restart">
+   </label>
   </div>
 
   <div class="section">
@@ -54,6 +59,11 @@ html_menu() ;
    <h1>MTG Data</h1>
    <ul id="mtg_data"></ul>
    <button id="refresh_mtg_data">Refresh</button>
+  </div>
+
+  <div class="section">
+   <h1>Bench</h1>
+   <ul id="bench"></ul>
   </div>
 
  </body>

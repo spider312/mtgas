@@ -1,20 +1,12 @@
 <?php 
 class Game {
-	private $fields = array(
-		'id', 'status', 'creation_date', 'last_update_date', 'name', 'tournament', 'round',
-		'creator_nick', 'creator_id', 'creator_avatar', 'creator_deck', 'creator_score',
-		'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck', 'joiner_score',
-	) ;
-	public $creator_status = 0 ;
-	public $joiner_status = 0 ;
-	private $actions = array() ;
-	public $spectators = null ;
-	private $tournament_obj = null ;
+	// Static
 	static $cache = array() ;
 	static function get($id) {
-		foreach (Game::$cache as $game)
-			if ( $game->id == $id )
-				return $game ;
+		$id = intval($id) ;
+		if ( array_key_exists($id, Game::$cache) ) {
+			return Game::$cache[$id] ;
+		}
 		global $db ;
 		$games = $db->select("SELECT * FROM `round` WHERE `id` = '$id'") ;
 		if ( count($games) > 0 ) {
@@ -25,30 +17,65 @@ class Game {
 		}
 		return null ;
 	}
-	public function __construct($obj, $type='') {
-		Game::$cache[] = $this ;
+
+	// Instance
+		// List of fields that comes from DB
+	private $fields = array(
+		'id', 'status', 'creation_date', 'last_update_date', 'name', 'tournament', 'round',
+		'creator_nick', 'creator_id', 'creator_avatar', 'creator_deck', 'creator_score',
+		'joiner_nick', 'joiner_id', 'joiner_avatar', 'joiner_deck', 'joiner_score',
+	) ;
+		// Used to inform index about connexion status of players
+	public $creator_status = 0 ;
+	public $joiner_status = 0 ;
+		// Linked
+	private $actions = array() ;
+	private $action_id = 0 ; // Counter for action IDs
+	public $spectators = null ;
+	private $tournament_obj = null ;
+	public function __construct($obj, $type='') { // $obj is an object fetched from DB
+		// Initialize all expected fields
 		foreach ( $this->fields as $field ) {
-			if ( property_exists($obj, $field) )
+			if ( property_exists($obj, $field) ) {
 				$this->$field = $obj->$field ;
-			else
+			} else {
 				$this->$field = '' ;
+			}
 		}
-		$this->spectators = new Spectators() ;
-		if ( ! isset($obj->id) )
-			$this->create() ;
-		else
-			$this->getActions() ;
-		if ( isset($obj->type) && ( $obj->type != '' ) )
-			$this->type = $obj->type ;
-		else
-			$this->type = $type ;
-		if ( isset($this->creator_score) && ( $this->creator_score == '' ) )
-			$this->creator_score = 0 ;
-		if ( isset($this->joiner_score) && ( $this->joiner_score == '' ) )
-			$this->joiner_score = 0 ;
+		// Linked data (before other actions because they're needed for some)
 		$this->tournament_obj = Tournament::get($this->tournament, 'tournament') ;
+		$this->spectators = new Spectators() ;
+		// Manage game creation/import and its ID
+		if ( $this->id === '' ) {
+			$this->create() ; // Not previously existing, store in DB
+		} else { // Previously in DB
+			$this->id = intval($this->id) ; // Ensure ID type
+			$this->getActions() ; // Get linked data
+		}
+		// Index game now we have an ID
+		Game::$cache[$this->id] = $this ;
+		// Game type ?
+		if ( isset($obj->type) && ( $obj->type != '' ) ) {
+			$this->type = $obj->type ;
+		} else {
+			$this->type = $type ;
+		}
+		// Transtyping : Score
+		if ( ! isset($this->creator_score) ) {
+			$this->creator_score = 0 ;
+		} else if ( !is_int($this->creator_score) ) {
+			$this->creator_score = intval($this->creator_score) ;
+		}
+		if ( isset($this->joiner_score) ) {
+			$this->joiner_score = 0 ;
+		} else if ( !is_int($this->joiner_score) ) {
+			$this->joiner_score = intval($this->joiner_score) ;
+		}
 	}
 	// Actions
+	public function nextActionId() {
+		return $this->action_id++ ;
+	}
 	public function getActions($from = null) {
 		if ( count($this->actions) == 0 ) {
 			global $db ;
@@ -56,14 +83,18 @@ class Game {
 				$db->select("SELECT * FROM `action` WHERE `game` = '{$this->id}' ORDER BY `id`")
 				as $data
 			) {
-				$action = new Action($this, $data->sender, $data->type, $data->param,
-					$data->local_index) ;
+				$action = new Action($this, $data->sender, $data->type, $data->param, $data->local_index) ;
 				$action->import($data->id, $data->recieved) ;
+				$id = intval($data->id) ;
+				if ( $id >= $this->action_id ) {
+					$this->action_id = $id + 1 ;
+				}
 				$this->actions[] = $action ;
 				if ( $action->type == 'spectactor' ) {
 					$json = json_decode($action->param) ;
-					if ( isset($json->nick) )
+					if ( isset($json->nick) ) {
 						$this->spectators->add($action->sender, $json->nick) ;
+					}
 				}
 			}
 		}
@@ -89,20 +120,32 @@ class Game {
 		switch ( $action->type ) {
 			case 'psync' :
 				$json = $action->param ;
-				if ( is_string($json) )
+				if ( is_string($json) ) {
 					$json = json_decode($json) ;
+				}
+				// Update player score
 				if ( property_exists($json->attrs, 'score') ) {
-					switch ( $json->player ) {
-						case 'game.creator' :
-							$this->creator_score = $json->attrs->score ;
-							$this->commit('creator_score') ;
-							break ;
-						case 'game.joiner' :
-							$this->joiner_score = $json->attrs->score ;
-							$this->commit('joiner_score') ;
-							break ;
-						default :
-							$this->say('Unknown player : '.$json->player) ;
+					if (
+						( $this->tournament_obj === null ) // For non-tournament games
+						||
+						( // And tournament games that are not already finished
+							( $this->creator_score < 2 )
+							&&
+							( $this->joiner_score < 2 )
+						)
+					) {
+						switch ( $json->player ) {
+							case 'game.creator' :
+								$this->creator_score = $json->attrs->score ;
+								$this->commit('creator_score') ;
+								break ;
+							case 'game.joiner' :
+								$this->joiner_score = $json->attrs->score ;
+								$this->commit('joiner_score') ;
+								break ;
+							default :
+								$this->say('Unknown player : '.$json->player) ;
+						}
 					}
 					if ( $this->tournament_obj != null )
 						$this->tournament_obj->match_won($this) ;
@@ -134,6 +177,11 @@ class Game {
 			default:
 				return '' ;
 		}
+	}
+	public function opponent($player_id) {
+		$p = $this->which($player_id) ;
+		if ( $p === '' ) { return '' ; }
+		return ( $p === 'creator' ) ? 'joiner' : 'creator' ;
 	}
 	public function isPlayer($player_id) {
 		return ( $this->isCreator($player_id) || $this->isJoiner($player_id) ) ;
@@ -169,7 +217,7 @@ class Game {
 				$update .= "`$field` = '".$db->escape($value)."'" ;
 			} else
 				return debug('cannot commit '.$field) ;
-		$db->query("UPDATE `round` SET $update WHERE `id` = '{$this->id}' ; ") ;
+		$db->update("UPDATE `round` SET $update WHERE `id` = '{$this->id}' ; ") ;
 	}
 	private function create() {
 		global $db ;
@@ -239,7 +287,7 @@ class Action {
 	public $recieved = 0 ;
 	public $type = null ;
 	public $param = null ;
-	public function __construct($game, $sender, $type, $param, $local_index = null) {
+	public function __construct($game, $sender, $type, $param, $local_index = null) { // Common between new action and import
 		if ( $local_index == null )
 			$local_index = time() ;
 		$this->game = $game ;
@@ -250,27 +298,37 @@ class Action {
 	}
 	public function import($id, $recieved) {
 		$this->id = $id ;
-		$this->recieved = $recieved ;
+		$this->recieved = intval($recieved) ;
 	}
-	public function insert() {
+	public function insert() { // Adds this instance to insertion buffer, will be commited later by main loop
 		global $db ;
-		$param = $this->param ;
-		if ( is_object($param) )
-			$param = json_encode($param) ;
-		$this->id = $db->insert("INSERT INTO `action`
-			(`game`, `sender`, `local_index`, `type`, `param`, `recieved`)
-		VALUES (
-			'{$this->game->id}',
-			'{$this->sender}',
-			'{$this->local_index}',
-			'{$this->type}',
-			'".$db->escape($param)."',
-			'{$this->recieved}'
-		);") ;
+		$this->id = $this->game->nextActionId() ;
+		Action::$buffer[] = $this ;
 	}
 	public function recieve() {
 		global $db ;
-		$db->query("UPDATE `action` SET `recieved` = `recieved`+1 WHERE `id`='{$this->id}' ;") ;
 		$this->recieved++ ;
+		$db->update("UPDATE `action` SET `recieved` = '{$this->recieved}' WHERE `id` = '{$this->id}' AND `game` = '{$this->game->id}';") ;
+	}
+	// Action insertion buffer
+	static $buffer = array() ;
+	static function commit() {
+		if ( count(Action::$buffer) > 0 ) {
+			global $db ;
+			$values = array() ;
+			foreach ( Action::$buffer as $action ) {
+				$param = $action->param ;
+				if ( is_object($param) )
+					$param = json_encode($param) ;
+				$values[] = "('{$action->id}', '{$action->game->id}', '{$action->sender}', '{$action->local_index}', '{$action->type}', '".$db->escape($param)."', '{$action->recieved}')" ;
+			}
+			$nb = $db->update("INSERT INTO `action` (`id`, `game`, `sender`, `local_index`, `type`, `param`, `recieved`) VALUES ".implode(', ', $values).';') ; // update to get affected rows, insert returns an id, nonsense here
+			$nbv = count($values) ;
+			$nba = count(Action::$buffer) ;
+			if ( ( $nb !== $nbv ) || ( $nb !== $nba ) ) {
+				echo $nb.'/'.count($values).'/'.count(Action::$buffer).' actions commited'."\n" ;
+			}
+			Action::$buffer = array() ;
+		}
 	}
 }

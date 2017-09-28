@@ -28,7 +28,11 @@ html_menu() ;
     <select name="dir">
 <?php
 foreach ( scandir($base_image_dir) as $rep )
-	if ( ( substr($rep, 0, 1) != '.' ) && ( array_search($rep, array('scrot', 'VOA')) === false ) ) {
+	if (
+		( substr($rep, 0, 1) != '.' )
+		&& ( is_dir($base_image_dir.$rep) )
+		&& ( array_search($rep, array('scrot', 'VOA')) === false )
+	) {
 		if ( $dir == $rep )
 			$selected = 'selected="selected" ' ;
 		else
@@ -65,6 +69,7 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$query_b = query('SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '.$arr['id'].' AND `card`.`id` = `card_ext`.`card` ORDER BY `card`.`name`') ;
 	$nbcards = 0 ;
 	$cards = array() ;
+	$trnames = array() ; // Save transformed names, for cases in EMN where multiple sun have the same moon
 	while ( $card = mysql_fetch_array($query_b) ) {
 		$nbcards += $card['nbpics'] ;
 		$cards[] = $card ;
@@ -72,8 +77,11 @@ while ( $arr = mysql_fetch_array($query) ) {
 		if ( isset($attrs->transformed_attrs) && ( $card['name'] != $attrs->transformed_attrs->name ) ) { // Curse of the fire penguin has same
 			$trcard = $card ; // Arrays are copied by value Oo
 			$trcard['name'] = $attrs->transformed_attrs->name ;
-			$nbcards += $card['nbpics'] ;
-			$cards[] = $trcard ;
+			if ( array_search($trcard['name'], $trnames) === false ) {
+				array_push($trnames, $trcard['name']) ;
+				$nbcards += $card['nbpics'] ;
+				$cards[] = $trcard ;
+			}
 		}
 	}
 	$images= array() ;

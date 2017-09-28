@@ -207,7 +207,7 @@ foreach ( $p as $i => $c ) {
 	echo '    <tr title="'.$title.'">
      <td>'.$nb++.'/'.$i.'</td>
      <td class="bg_r_'.$crarity.'" title="'.$rdisp.'">'.$crarity.'</td>
-     <td><a href="http://magiccards.info/query?q=!'.$c->name.'">'.$c->name.'</a></td>
+     <td><a href="https://scryfall.com/search?q='.$c->name.'" target="_blank">'.$c->name.'</a></td>
      <td>'.manas2html($d->manas).'</td>
      <td>'.$c->opened.'</td>
      <td>'.$c->played.'</td>

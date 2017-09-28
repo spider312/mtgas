@@ -185,7 +185,7 @@ function Log(data) {
 		}
 		var span = create_span() ;
 		var li = create_li(span) ;
-		li.title = mysql2date(this.timestamp).toLocaleTimeString() ;
+		li.title = mysql2date(this.timestamp, game.connection.offset).toLocaleTimeString() ;
 		switch ( this.type ) {
 			case 'create' :
 				if ( iss(this.value) && ( this.value != '' ) )
@@ -235,14 +235,14 @@ function Log(data) {
 				break ;
 			case 'build' :
 				msg = 'Build started' ;
-				startdate = mysql2date(this.timestamp) ;
+				startdate = mysql2date(this.timestamp, game.connection.offset) ;
 				break ;
 			case 'save' :
 				msg = nick+' saved a deck' ;
 				break ;
 			case 'ready' :
 				if ( this.value == '1' )
-					msg = nick+' is ready ('+time_disp(Math.round((mysql2date(this.timestamp)-startdate)/1000))+')' ;
+					msg = nick+' is ready ('+time_disp(Math.round((mysql2date(this.timestamp, game.connection.offset)-startdate)/1000))+')' ;
 				else
 					msg = nick+' isn\'t ready anymore' ;
 				break ;

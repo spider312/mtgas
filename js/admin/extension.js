@@ -3,6 +3,33 @@ $(function() { // On page load
 	// Extension update
 	document.getElementById('update_ext').addEventListener('submit', function(ev) {
 		ev.target.classList.add('updating') ;
+		let data = ev.target.data ;
+		if ( data.value != '' ) {
+			let json = null ;
+			try {
+				json = JSON.parse(data.value) ;
+			} catch (ex) {
+				let regEx = /at line (.*) column (.*) of the JSON data/ ;
+				let result = regEx.exec(ex.message) ;
+				if ( result !== null ) {
+					// Exception data
+					let line = parseInt(result[1]) ;
+					let col = parseInt(result[2]) ;
+					console.log(line, col) ;
+					// Search position
+					let idx = data.value.split("\n").slice(0, line-1).join("\n").length + col ; // Cut by lines, keep wanted number of lines, recreating text from lines, adding column
+					data.focus();
+					data.setSelectionRange(idx, idx+1) ;
+				}
+				alert(ex.message) ;
+			}
+			if ( json === null ) {
+				ev.target.classList.remove('updating') ;
+				return eventStop(ev) ;
+			} else {
+				ev.target.data.value = JSON.stringify(json) ;
+			}
+		}
 		$.getJSON(ev.target.action, form2param(ev.target), function(data) {
 			ev.target.classList.remove('updating') ;
 			if ( ( typeof data.msg == 'string' ) && ( data.msg != '' ) )

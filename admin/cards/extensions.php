@@ -2,6 +2,16 @@
 include_once 'lib.php' ;
 $sort = param($_GET, 'sort', 'rd') ;
 $order = param($_GET, 'order', 'ASC') ;
+
+// Define JSON errors
+$constants = get_defined_constants(true);
+$json_errors = array();
+foreach ($constants["json"] as $name => $value) {
+	if (!strncmp($name, "JSON_ERROR_", 11)) {
+		$json_errors[$value] = $name;
+	}
+}
+
 html_head(
 	'Admin > Cards > Extensions list',
 	array(
@@ -43,6 +53,7 @@ if ( $ext != 0 ) {
      <th>Cards / Images in DB</th>
      <th>Release date</th>
      <th title="For images, higher priority is selected">Priority</th>
+	 <th>json</th>
      <th>Actions</th>
     </tr>
 <?php
@@ -64,12 +75,20 @@ while ( $arr = mysql_fetch_array($query) ) {
 	if ( $arr['rd'] == 0 ) 
 		echo '     <td></td>'."\n" ;
 	else
-		echo '     <td>'.date('d F Y', $arr['rd']).'</td>'."\n" ;
+		echo '     <td class="nowrap">'.date('d F Y', $arr['rd']).'</td>'."\n" ;
 	echo '     <td>'.$arr['priority'].'</td>' ;
 	echo '     <td>' ;
+	$json = $arr['data'] ;
+	$data = json_decode($json) ;
+	echo $json ;
+	if ( $data === null ) {
+		echo '<p>'.json_last_error_msg().'</p>' ;
+	}
+	echo '     </td>' ;
+	echo '     <td class="nowrap">' ;
 	echo '<a href="?ext_del='.$arr['id'].'">del</a>' ;
 	echo ' - ' ;
-	echo '<a href="cards/extension_export.php?ext='.$arr['se'].'">export</a>' ;
+	echo '<a href="extension_export.php?ext='.$arr['se'].'">export</a>' ;
 	echo '</td>' ;
 	echo "\n" ;
 	echo '    </tr>'."\n" ;
@@ -79,3 +98,6 @@ while ( $arr = mysql_fetch_array($query) ) {
   </div>
  </body>
 </html>
+<?php
+
+

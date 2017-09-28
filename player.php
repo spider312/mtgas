@@ -52,15 +52,47 @@ html_head(
  <body onload="start('<?=$player_id?>')">
 <?php html_menu() ; ?>
   <div class="section">
+
    <h1><?php echo join(', ', $self_nicks) ; ?>'s recent games</h1>
+
+   <h2>Evaluations
+    <select id="evaluations_delay" title="Delay">
+     <option value="">All</option>
+     <option value="YEAR">Year</option>
+     <option value="MONTH">Month</option>
+     <option value="WEEK">Week</option>
+     <option value="DAY">Day</option>
+     <option value="HOUR" selected="selected">Hour</option>
+    </select>
+   </h2>
+   <table id="evaluations_list">
+    <caption>uninitialised</caption>
+    <thead>
+	 <tr>
+	  <td>Rating</td>
+	  <td># of evaluations</td>
+	 </tr>
+	</thead>
+	<tbody id="evaluations">
+     <tr>
+      <td colspan="6">Waiting for list of evaluations</td>
+     </tr>
+	</tbody>
+	<tbody id="no_evaluations">
+     <tr>
+      <td colspan="6">No evaluation</td>
+     </tr>
+    </tbody>
+   </table>
+
    <h2>Duels
     <select id="past_games_delay" title="Delay">
      <option value="">All</option>
      <option value="YEAR">Year</option>
      <option value="MONTH">Month</option>
-     <option value="WEEK" selected="selected">Week</option>
+     <option value="WEEK">Week</option>
      <option value="DAY">Day</option>
-     <option value="HOUR">Hour</option>
+     <option value="HOUR" selected="selected">Hour</option>
     </select>
    </h2>
    <table id="past_games_list">
@@ -90,9 +122,9 @@ html_head(
      <option value="">All</option>
      <option value="YEAR">Year</option>
      <option value="MONTH">Month</option>
-     <option value="WEEK" selected="selected">Week</option>
+     <option value="WEEK">Week</option>
      <option value="DAY">Day</option>
-     <option value="HOUR">Hour</option>
+     <option value="HOUR" selected="selected">Hour</option>
     </select>
    </h2>
    <table id="past_tournament_list">

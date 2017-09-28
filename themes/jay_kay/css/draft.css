@@ -16,7 +16,7 @@
 	background: darkgreen url('../THS_BackgroundTexture_01.jpg') repeat left top ;
 	background-size: contain ;
 }
-#tournament_info td {
+.playerDraft, .playerDraft a {
 	color: white ;
 }
 td.self {
@@ -37,12 +37,12 @@ td.self {
 	cursor: pointer ; /* Clickable */
 }
 /* Drafted cards */
-#drafted_cards, #sided_cards {
+#main, #side {
 	min-height: 100px ; /* Default space for drag'n'drop when empty */
 	line-height: 0 ; /* No space between "lines" of cards */
 }
-.drafted.card, .sided.card {
-	/*cursor: move ; /* Drag'n'drop*/
+#main .card, #side .card {
+	cursor: move ; /* Drag'n'drop*/
 }
 /* DND */
 .drag {

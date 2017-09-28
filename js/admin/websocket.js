@@ -7,6 +7,8 @@ function start(ev) { // On page load
 	var running_tournaments = document.getElementById('running_tournaments') ;
 	var mtg_data = document.getElementById('mtg_data') ;
 	var refresh_mtg_data = document.getElementById('refresh_mtg_data') ;
+	var restart = document.getElementById('restart') ;
+	var bench = document.getElementById('bench') ;
 	refresh_mtg_data.addEventListener('click', function(ev) {
 		game.connection.send({'type': 'refresh_mtg_data'}) ;
 	}, false) ;
@@ -35,12 +37,38 @@ function start(ev) { // On page load
 				mtg_data.appendChild(create_li('Cards : '+data.cards)) ;
 				mtg_data.appendChild(create_li('Games : '+data.cache_games)) ;
 				mtg_data.appendChild(create_li('Tournaments : '+data.cache_tournament)) ;
+				// Options
+				restart.checked = data.restart ;
+				restart.addEventListener('change', function(ev) {
+					game.connection.send('{"type" : "restart", "value" : '+restart.checked+'}') ;
+				}, false) ;
+				// Bench
+				bench_fill(bench, data.bench) ;
 				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
 				debug(data) ;
 		}
 	}, clear);// OnClose/OnConnect
+}
+function bench_fill(container, data) {
+	Object.keys(data).map(function(handler, index) {
+		let benches = data[handler] ;
+		let li = create_li(handler) ;
+		let ul = create_ul() ;
+		li.appendChild(ul) ;
+		// Sum for percentage
+		let sum = 0 ;
+		Object.keys(benches).map(function(action, index) {
+			sum += benches[action] ;
+		}) ;
+		// Display
+		Object.keys(benches).map(function(action, index) {
+			let time = benches[action] ;
+			ul.appendChild(create_li(action + ' : ' + time + ' ('+(100*time/sum)+' %)')) ;
+		}) ;
+		container.appendChild(li) ;
+	}) ;
 }
 function clear() {
 	node_empty(
@@ -63,7 +91,10 @@ function offline_ban_li() {
 	}, 'Ban offline player by ID')) ;
 }
 function ban_li(data) {
-	var li = create_li(data.id+' : '+data.player_id+' : '+data.reason) ;
+	var userHost = ( data.player_id === null ) ? '*' : data.player_id ;
+	userHost += '@' ;
+	userHost += ( data.host === null ) ? '*' : data.host ;
+	var li = create_li(data.id+' : '+userHost+' : '+data.reason) ;
 	var button = create_button('Unban', function(ev) {
 		game.connection.send('{"type": "unban", "id": "'+data.id+'"}') ;
 	}, 'Unban player') ;
@@ -93,6 +124,12 @@ function player_li(user, handler) {
 		if ( ( reason != null ) && ( reason != '' ) )
 			game.connection.send('{"type": "ban", "id": "'+user.player_id+'", "reason": "'+reason+'"}') ;
 	}, 'Ban player by ID ('+user.player_id+')') ;
+	li.appendChild(button) ;
+	var button = create_button('Ban IP', function(ev) {
+		var reason = prompt('Reason for banning '+user.nick) ;
+		if ( ( reason != null ) && ( reason != '' ) )
+			game.connection.send('{"type": "ban", "host": "'+user.host+'", "reason": "'+reason+'"}') ;
+	}, 'Ban player by IP ('+user.host+')') ;
 	li.appendChild(button) ;
 	return li ;
 }

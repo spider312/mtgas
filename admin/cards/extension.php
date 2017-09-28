@@ -44,7 +44,12 @@ if ( $arr = mysql_fetch_array($query) ) {
     Priority : <input type="text" name="priority" size="2" value="<?php echo $ext_bdd['priority'] ; ?>">
     Release date : <input type="text" name="release_date" size="10" value="<?php echo $ext_bdd['release_date'] ; ?>">
     Bloc : <input type="text" name="bloc" size="2" value="<?php echo $ext_bdd['bloc'] ; ?>">
-	Data : <textarea name="data"><?php echo $ext_bdd['data'] ; ?></textarea>
+	<br>
+<?php
+$data = jsonpp($ext_bdd['data']) ;
+$lines = explode("\n", $data);
+?>
+	Data : <textarea name="data" cols="50" rows="<?php echo count($lines)+2 ?>"><?php echo $data ?></textarea>
     <input type="submit" name="update" value="Update">
   </form>
 

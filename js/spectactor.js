@@ -29,6 +29,10 @@ function Spectators(msg_func, allow_func, allowed_func) {
 				return this.spectators[i] ;
 		return null ;
 	}
+	this.is_allowed_by = function(spectator_id, player_id) {
+		var spec = this.get(spectator_id) ;
+		return ( spec === null ) ? false : spec.allowed(player_id) ;
+	}
 	this.allow = function(spectator_id) { // Send
 		var s = this.get(spectator_id) ;
 		if ( s == null )

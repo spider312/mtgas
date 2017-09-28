@@ -104,11 +104,11 @@ function deck_set(name, content) {
 	store('deck', name) ; // Set this deck as selected
 	return true ;
 }
-function deck_del(name) {
+function deck_del(name, force) {
 	var decks = decks_get() ;
 	var index = decks.indexOf(name) ;
 	if ( index != -1 ) {
-		if ( ! confirm('Are you sure you want to remove deck '+name+' ?') )
+		if ( ! force && ! confirm('Are you sure you want to remove deck '+name+' ?') )
 			return null ;
 		decks.splice(index, 1) ;
 		store('decks', decks.join(',')) ;
@@ -117,6 +117,19 @@ function deck_del(name) {
 	}
 	alert('Impossible to remove deck '+name+' : it doesn\'t seem to exist') ;
 	return false ;
+}
+function deck_move(name, next) {
+	if ( name === next ) { return false ; }
+	var decks = decks_get() ;
+	var indexFrom = decks.indexOf(name) ;
+	if ( indexFrom === -1 ) { return false ; }
+	var indexTo = decks.indexOf(next) ;
+	if ( indexTo === -1 ) { return false ; }
+	// Checkings done
+	var deck = decks.splice(indexFrom, 1) ;
+	indexTo = decks.indexOf(next) ; // Recompute indexTo as it may have changed
+	decks.splice(indexTo, 0, deck) ;
+	store('decks', decks.join(',')) ;
 }
 function deck_get(name) {
 	var decks = decks_get() ;
@@ -167,7 +180,7 @@ function deck_xml_to_mw(str) {
 	var div = create_div(resultDocument) ; // Add to document to get content
 	return div.textContent ; // Return parsed string
 }
-// Converts MTGO (.dec) into mwDeck by adding "SB:" in front of lines following an empty line or containging only "Sideboard"
+// Converts MTGO (.dec) into mwDeck by adding "SB:" in front of lines following a line containging only "Sideboard"
 function mtgo2mwdeck(str) {
 	if ( typeof str !== 'string' ) {
 		return str ;
@@ -176,7 +189,7 @@ function mtgo2mwdeck(str) {
 	var addsb = false ;
 	for ( var i = 0 ; i < lines.length ; i++ ) {
 		var line = lines[i].trim() ; // trim required, i don't know why
-		if ( ( line === 'Sideboard' ) || ( line === '' ) ) {
+		if ( line === 'Sideboard' ) {
 			addsb = true ;
 			lines[i] = '// Sideboard' ;
 		} else if ( addsb ) {

@@ -4,43 +4,29 @@ use \Devristo\Phpws\Protocol\WebSocketTransportInterface ;
 use \Devristo\Phpws\Messaging\WebSocketMessageInterface ;
 class BuildHandler extends LimitedHandler {
 	public function register_user(WebSocketTransportInterface $user, $data) {
-		$tournament = Tournament::get($data->tournament) ;
-		if ( $tournament == null ) {
-			$user->sendString('{"msg": "Tournament not exist"}') ;
-			$this->say('Tournament '.$data->tournament.' not exist') ;
-			return false ;
+		if ( $this->limited_register($user, $data) ) {
+			$deck = $user->player->get_deck() ;
+			$deck_json = json_encode($deck) ;
+			if ( $deck_json === false ) {
+				foreach ( $deck->side as $card ) {
+					$json = json_encode($card) ;
+					if ( $json === false ) {
+						 $this->say("Card text of [".$card->name."] can't be JSONized : ".json_last_error_msg()) ;
+					}
+				}
+			}
+			$user->sendString($deck_json) ;
+			$keywords = new stdClass() ;
+			$keywords->type = 'keywords' ;
+			$keywords->keywords = $user->tournament->keywords() ;
+			$keywords->base = $this->observer->keywords ;
+			$user->sendString(json_encode($keywords)) ;
 		}
-		$user->tournament = $tournament ;
-		$user->follow = null ;
-		if ( property_exists($data, 'follow') ) {
-			$pid = $data->follow ;
-			$user->follow = $user->player_id ;
-		} else
-			$pid = $user->player_id ;
-		$user->sendString(json_encode($tournament)) ;
-		$player = $tournament->get_player($pid) ;
-		if ( $player == null )
-			$this->observer->say('Player '.$user->player_id.' not found in build') ;
-		else {
-			$player->connect($this->type) ;
-			$user->player = $player ;
-			$user->sendString(json_encode($player->get_deck())) ;
-		}
-	}
-	public function broadcast_following($player) {
-		foreach ( $this->getConnections() as $user )
-			if (
-				isset($user->tournament)
-				&& ( $user->tournament->id == $player->get_tournament_id() )
-				&& isset($user->follow)
-				&& ( $user->follow != null )
-				&& ( $user->player == $player )
-			)
-				$user->sendString(json_encode($player->get_deck())) ;
 	}
 	public function recieved(WebSocketTransportInterface $user, $data) {
-		if ( $user->follow != null )
+		if ( $user->follow !== null ) {
 			return false ;
+		}
 		switch ( $data->type ) {
 			case 'add' :
 				$user->player->add($data->cardname, $data->nb) ;
@@ -56,15 +42,16 @@ class BuildHandler extends LimitedHandler {
 				if ( $user->player->toggle($data->cardname, $data->from) ) {
 					$user->tournament->send('tournament', 'build') ;
 					$this->broadcast_following($user->player) ;
-				} else
+				} else {
 					$user->sendString('{"msg": "'.$data->cardname.' not found in '.$data->from.'"}') ;
+				}
 				break ;
 			case 'ready' :
 				if ( ( $user->tournament->status == 4 ) && property_exists($data, 'ready') ) {
-					if ( ( $data->ready ) && ( $user->player->deck_cards < 40 ) )
+					if ( ( $data->ready ) && ( $user->player->deck_cards < 40 ) ) {
 						 $user->sendString('{"msg": "You only have '.$user->player->deck_cards
 						 	.' cards in your deck"}') ;
-					else  {
+					} else  {
 						$user->player->set_ready($data->ready) ;
 						$user->tournament->send('tournament', 'build') ;
 					}

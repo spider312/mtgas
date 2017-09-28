@@ -35,6 +35,10 @@ html_head('Building #'.$id,
   </div>
 
   <div id="stats" class="section">
+   <h2>Filter</h2>
+   <form id="filter_form">
+    <select id="filter_suggestions" title="Suggestions of words you may want to search in cards types/texts"></select><input id="filter_input" name="filter_input" type="text">
+   </form>
    <h2>Stats</h2>
    <label><input id="stats_side" type="checkbox">Stats side</label>
    <div id="stats_graphs"></div>

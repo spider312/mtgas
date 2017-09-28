@@ -1,5 +1,6 @@
 <?php
-include_once('extension.php') ;
+require_once __dir__ . '/extension.php' ;
+require_once __dir__ . '/../../includes/card.php' ;
 //
 $cards_cache = array() ;
 class Card {
@@ -9,12 +10,14 @@ class Card {
 	public $attrs = null ;
 	public $ext = '' ; // Higher priority image (or given) extension
 	public $rarity = '' ; // Rarity in selected extension
+	public $text = '' ;
 	public $exts = array() ; // Extension list
 	private $extensions = array() ; // Full data for extensions
 	public function __construct($card) {
 		$this->occurence = ++Card::$occurences ;
 		$this->id = $card->id ;
 		$this->name = $card->name ;
+		$this->text = $card->text ;
 		$this->attrs = json_decode($card->attrs) ;
 		// Merge attrs and fixed_attrs
 		if ( $card->fixed_attrs != '' ) {
@@ -122,9 +125,15 @@ class Card {
 		global $db_cards ;
 		$name = $db_cards->escape($name) ;
 		$cards = $db_cards->select("SELECT * FROM `card` WHERE `name` LIKE '$name'") ;
-		if ( count($cards) > 1 ) // Multiple cards found, bug
+		if ( count($cards) > 1 ) { // Multiple cards found, bug
 			echo count($cards)." cards found : $name\n" ;
-		else if ( count($cards) == 0 ) {
+		} else if ( count($cards) == 0 ) {
+			// Transforms stored as "day/moon"
+			$pieces = explode('/', $name) ;
+			if ( count($pieces) > 1 ) {
+				$name = $pieces[0] ;
+				return Card::get(trim($name), $ext) ;
+			}
 			echo "Card not found : [$name]\n" ;
 			return null ;
 		}

@@ -197,14 +197,22 @@ function bench() {
 	var date = new Date()
 	return date.getMilliseconds() + date.getSeconds()*1000 ;
 }
-function mysql2date(mysqldate) {
-	var date = new Date() ;
-	if ( !iss(mysqldate) )
-		return date ;
+function mysql2date(mysqldate, offset) { // Returns a javascript Date from a mysql string date
+	var now = new Date() ; // for .getTimezoneOffset()
+	if ( !iss(mysqldate) ) {
+		return now ;
+	}
 	// Solve UTC problems between FF and other browsers (expected GMT+1 from mysql)
-	var offset = - Math.ceil(date.getTimezoneOffset()/60) ;
-	mysqldate += (offset?'+':'-')+'0'+Math.abs(offset)+':00' ;
-	return new Date(mysqldate.replace(' ', 'T')) ;
+	var offset_utc = - Math.ceil(now.getTimezoneOffset()/60) ;
+	if ( offset_utc !== 0 ) {
+		mysqldate += ((offset_utc>0)?'+':'-')+'0'+Math.abs(offset_utc)+':00' ;
+	}
+	date = new Date(mysqldate.replace(' ', 'T')) ; // Parse mysql string date
+	// Remove offset with server
+	if ( isn(offset) && (offset !== 0 ) ) {
+		date = new Date(date.getTime() - offset*1000) ; // remove offset
+	}
+	return date ;
 }
 function timeWithDays(msgdate) {
 	var date = new Date() ;

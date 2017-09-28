@@ -1,4 +1,14 @@
 <?php
+function array_utf8_encode($dat) {
+	if (is_string($dat))
+		return utf8_encode($dat);
+	if (!is_array($dat) && !is_object($dat))
+		return $dat;
+	$ret = array();
+	foreach ($dat as $i => $d)
+		$ret[$i] = array_utf8_encode($d);
+	return $ret;
+}
 if ( array_key_exists('ext', $_GET) ) {
 	include '../../../lib.php' ;
 	include '../../../includes/db.php' ;
@@ -12,7 +22,8 @@ if ( array_key_exists('ext', $_GET) ) {
 		$where .= 'AND `card_ext`.`rarity` = \''.$rarity.'\' ' ;
 	if ( $text )
 		$where .= 'AND `card`.`text` LIKE \'%'.$text.'%\' ' ;
-	die(json_encode(query_as_array("SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '$ext' AND `card`.`id` = `card_ext`.`card` $where ORDER BY `card`.`name`", 'Card list', $connec))) ;
+	$result = query_as_array("SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '$ext' AND `card`.`id` = `card_ext`.`card` $where ORDER BY `card`.`name`", 'Card list', $connec) ;
+	die(json_encode(array_utf8_encode($result))) ;
 } else
 	die("{'msg' : 'No ext in param'}") ;
 ?>

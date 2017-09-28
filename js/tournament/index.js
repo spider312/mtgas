@@ -143,9 +143,13 @@ function TournamentIndex() {
 		}
 		if ( inarray('due_time', fields) )
 			start_timer(timeleft, this.due_time, this.status!=6) ;
-		if ( inarray('players', fields) )
-			for ( var i = 0 ; i < this.players.length ; i++ )
+		if ( inarray('players', fields) ) {
+			for ( var i = 0 ; i < this.players.length ; i++ ) {
 				this.players[i].display() ;
+				let node = this.players[i].node ;
+				node.parentNode.appendChild(node) ; // Place tr at the end of its container, in order to sort table rows in same order than array lines
+			}
+		}
 		if ( inarray('games', fields) && ( this.games.length > 0 ) ) {
 			rounds.parentNode.classList.remove('hidden') ;
 			node_empty(rounds) ;
@@ -218,7 +222,8 @@ function PlayerIndex() {
 		if ( allowed ) {
 			var button_view = create_submit('view', 'View') ;
 			button_view.title = 'View deck while player builds it' ;
-			var view_form = create_form('build.php', 'get'
+			var url = ( parseInt(game.tournament.status) === 3 ) ? 'draft.php' : 'build.php' ;
+			var view_form = create_form(url, 'get'
 				, create_hidden('id', game.tournament.id)
 				, create_hidden('pid', this.player_id)
 				, button_view
@@ -240,9 +245,9 @@ function LogIndex() {
 		if ( fields.length == 0 )
 			return false ;
 		var li = this.generate() ;
-		var span = create_span(timeWithDays(mysql2date(this.timestamp))) ;
+		var span = create_span(timeWithDays(mysql2date(this.timestamp, game.connection.offset))) ;
 		span.classList.add('linetime') ;
-		li.appendChild(span) ;
+		li.insertBefore(span, li.firstChild) ;
 		this.update_node(li, tournament_log) ;
 	}
 }

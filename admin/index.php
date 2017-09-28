@@ -13,37 +13,24 @@ html_head(
 		, 'html.js'
 		, 'image.js'
 		, 'options.js'
+		, 'admin/index.js'
 	)
 ) ;
 ?>
 
  <body onload="start()">
   <script language="javascript">
-function start() { // On page load
-	game = {} ;
-	game.options = new Options(true) ;
-	var report_list = document.getElementById('report_list') ;
-	report_list.addEventListener('change', function(ev) {
-		var select = this ;
-		var option = select.options[select.selectedIndex] ;
-		var spl = option.value.split('|') ;
-		if ( spl.length < 5 )
-			alert('Not 5 parts in '+el.value) ;
-		var form = document.getElementById('stats_create') ;
-		var i = 0 ;
-		form.name.value = spl[i++] ;
-		form.date.value = spl[i++] ;
-		form.format.value = spl[i++] ;
-		form.exts.value = spl[i++] ;
-		form.mask.value = spl[i++] ;
-		form.imask.value = spl[i++] ;
-	}, false) ;
-}
   </script>
 <?php
 html_menu() ;
 // === [ Tournaments ] =========================================================
 ?>
+
+  <div class="section">
+   <h1>General configuration</h1>
+   <h2><a href="suggestions.php">Suggestions</a></h2>
+   <h2><a href="keywords.php">Keywords</a></h2>
+  </div>
 
   <div class="section">
    <h1>Tournaments</h1>

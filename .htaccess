@@ -1,3 +1,0 @@
-ExpiresActive On
-ExpiresDefault "modification"
-ExpiresByType text/html "access"

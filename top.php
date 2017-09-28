@@ -33,11 +33,12 @@ html_menu(true) ;
 	  <td id="matches" class="sortable">Games</td>
 	  <td id="score" class="sortable">Score</td>
 	  <td id="ratio" class="sortable">Ratio</td>
+	  <td id="eval_avg" class="sortable">Evaluation</td>
 	 </tr>
 	</thead>
 	<tbody id="loading">
 	 <tr>
-	  <td colspan="6">Loading...</td>
+	  <td colspan="7">Loading...</td>
 	 </tr>
 	</tbody>
 	<tbody id="table"></tbody>

@@ -24,6 +24,10 @@ class AdminHandler extends ParentHandler {
 			$overall->handlers->{$handler} = $h->list_users() ;
 		}
 		$overall->bans = $this->observer->bans->list ;
+		// Bench
+		$overall->bench = $this->observer->bench ;
+		// Scheduled restart
+		$overall->restart = $this->observer->restart ;
 		// MTG Data
 		$overall->extensions = count(Extension::$cache) ;
 		$overall->cards = count(Card::$cache) ;
@@ -84,15 +88,23 @@ class AdminHandler extends ParentHandler {
 				}
 				break ;
 			case 'ban' :
-				if ( property_exists($data, 'id') && property_exists($data, 'reason') ) {
-					$this->observer->bans->add($data->reason, null, $data->id) ;
-					$this->refresh($user) ;
-				}
+				$host = null ;
+				$id = property_exists($data, 'id') ? $data->id : null ;
+				$host = property_exists($data, 'host') ? $data->host : null ;
+				$reason = property_exists($data, 'reason') ? $data->reason : 'Unknown reason' ;
+				$this->observer->bans->add($reason, $host, $id) ;
+				$this->refresh($user) ;
 				break ;
 			case 'unban' :
 				if ( property_exists($data, 'id') ) {
 					$this->observer->bans->del($data->id) ;
 					$this->refresh($user) ;
+				}
+				break ;
+			case 'restart' :
+				if ( is_bool($data->value) ) {
+					$this->observer->tournament_ended(null) ;
+					$this->observer->restart = $data->value ;
 				}
 				break ;
 			default :

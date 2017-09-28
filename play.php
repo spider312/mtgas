@@ -82,7 +82,8 @@ add_css(array(
 	'list.css',
 	'side.css',
 	'menu.css', 
-	'options.css'
+	'options.css',
+	'evaluate.css'
 )) ;
 add_js(array(
 	'debug.js',
@@ -115,6 +116,7 @@ add_js(array(
 	'selection.js',
 	'options.js',
 	'spectactor.js',
+	'evaluation.js',
 	'../variables.js.php'
 )) ;
 ?>

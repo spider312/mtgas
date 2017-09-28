@@ -142,20 +142,29 @@ td.th {
 }
 /* Zoom */
 #zoom {
-	position: fixed ;
+	position: absolute;
 	transition-property: transform ; /* Transition makes mouse hovers zoom and 'leave' main_div
 	and add a laggy effect, use it only for rotate */
-	z-index: 11 ;
+	z-index: 11 ; /* Required for second image */
 }
 #zoom.split {
 	transform: rotate(90deg) translate(-52px, -52px) ;
+}
+#zoom .aftermath {
+	position: relative;
+	left: -145px ;
+	transform: scale(1.29, 1.29) rotate(-90deg) ;
+	z-index: -1;
+}
+.smallres #zoom .aftermath {
+	transform: scale(1.29, 1.29) rotate(-90deg) ;
+	left: -117px ;
 }
 #zoom.split.displaytop { /* When displayed on top of mouse */
 	transform: rotate(90deg) translate(52px, -52px) ;
 }
 #zoom .flip {
 	transform: rotate(180deg) ;
-
 }
 /* Small image resolution*/
 .smallres .card {
@@ -177,4 +186,17 @@ td.th {
 }
 .smallres #selectors {
 	right: 130px ;
+}
+#filter_form {
+	display: inline ;
+}
+#filter_suggestions, #filter_input {
+	box-sizing: border-box;
+	height: 26px;
+}
+#filter_suggestions {
+	width: 20px ;
+}
+#filter_input {
+	width: 226px;
 }

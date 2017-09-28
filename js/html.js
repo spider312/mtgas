@@ -1,3 +1,31 @@
+//HTML
+function replaceURLWithHTMLLinks(text, external) { // https://stackoverflow.com/questions/19547008/how-to-replace-plain-urls-with-links-with-example + external
+	var re = /(\(.*?)?\b((?:https?|ftp|file):\/\/[-a-z0-9+&@#\/%?=~_()|!:,.;]*[-a-z0-9+&@#\/%=~_()|])/ig;
+	return text.replace(re, function(match, lParens, url) {
+		var rParens = '';
+		lParens = lParens || '';
+		// Try to strip the same number of right parens from url
+		// as there are left parens.  Here, lParenCounter must be
+		// a RegExp object.  You cannot use a literal
+		//     while (/\(/g.exec(lParens)) { ... }
+		// because an object is needed to store the lastIndex state.
+		var lParenCounter = /\(/g;
+		while (lParenCounter.exec(lParens)) {
+			var m;
+			// We want m[1] to be greedy, unless a period precedes the
+			// right parenthesis.  These tests cannot be simplified as
+			//     /(.*)(\.?\).*)/.exec(url)
+			// because if (.*) is greedy then \.? never gets a chance.
+			if (m = /(.*)(\.\).*)/.exec(url) ||
+					/(.*)(\).*)/.exec(url)) {
+				url = m[1];
+				rParens = m[2] + rParens;
+			}
+		}
+		let target = external ? ' target="_blank"' : '' ;
+		return lParens + '<a href="' + url + '"' + target + '>' + url + "</a>" + rParens;
+	});
+}
 // Cookies
 function cookie_set(name, value, days) {
 	if (!isn(days)) 
@@ -12,48 +40,36 @@ function cookie_set(name, value, days) {
 	var cookie = name+"="+value+"; Expires="+expire+"; Path=/";
 	document.cookie = cookie ;
 }
-// Notification granted, denied, default
-// 		https://developer.mozilla.org/en-US/docs/WebAPI/Using_Web_Notifications
-// 		https://developer.mozilla.org/en-US/docs/Web/API/Notification
-function notification_granted() {
-	return ( Notification && Notification.permission === "granted" ) ;
-}
-function notification_request(title, txt, tag) {
-	if ( window.Notification ) {
-		if ( ! notification_granted() ) {
-			Notification.requestPermission(function (status) {
-				if (Notification.permission !== status) {
-					Notification.permission = status;
-					if ( iss(title) )
-						notification_send(title, txt, tag) ;
-				}
-			});
-		}
-	} else
-		debug('Notification not supported') ;
-}
+// Notifications
 function notification_send(title, txt, tag) {
-	if ( Notification ) {
-		if ( notification_granted() ) {
-			options = {} ;
-			options.body = txt ;
-			options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
-			if ( iss(tag) )
-				options.tag = tag
-			var n = new Notification(title, options) ;
-			// All browsers (chrome) don't clean notifications, add ways to close
-			n.addEventListener('show', function(ev) {
-				n.addEventListener('click', function(ev) { ev.target.close() ; }, false) ;
-				window.setTimeout(function(n) { n.close() ;	}, notification_duration, ev.target) ;
-				// On window close (as it cancels timeout)
-				window.addEventListener('beforeunload', function(ev) { n.close() ; }, false) ;
-			}, false) ;
-			return n ;
-		} else
-			return notification_request(title, txt, tag)
-	}
-	alert(txt) ;
-	return false ;
+	new Promise((resolve, reject) => {
+		if ( game.options.get('notification_sound') ) {
+			let src = url + '/themes/' + theme + '/Sounds/notification.wav' ;
+			let snd = new Audio(src) ;
+			snd.play() ;
+		}
+		Notification.requestPermission((resp) => {
+			resolve(resp) ;
+		}) ;
+	}).then((resp) => {
+		switch ( resp ) {
+			case 'granted' : {
+				options = { "body": txt, "requireInteraction": ! game.options.get('notification_autoclose') } ;
+				if ( game.options.get('notification_icon') ) {
+					options.icon = 'themes/jay_kay/Mogg Maniac.crop.png' ;
+				}
+				if ( iss(tag) ) { options.tag = tag ; }
+				return new Notification(title, options) ;
+			} break ;
+			case 'denied' : {
+				console.info('Notification : ['+tag+'] '+title+' - '+txt) ;
+			} break ;
+			default: 
+				console.error('notification_send : Unknown response '+resp) ;
+		}
+	}).catch((msg) => {
+		console.error('notification_send : '+msg)
+	}) ;
 }
 // Ajaj
 function ajax_error_management() {
@@ -88,9 +104,9 @@ function start_timer(node, date, countdown) {
 function update_timer(node, date, countdown) {
 	now = new Date() ;
 	if ( countdown )
-		var duration = mysql2date(date) - now ;
+		var duration = mysql2date(date, game.connection.offset) - now ;
 	else
-		var duration = now - mysql2date(date) ;
+		var duration = now - mysql2date(date, game.connection.offset) ;
 	var disp = time_disp(Math.round(duration/1000)) ;
 	if ( node.nodeName == 'INPUT' ) {
 		node.value = disp ;
@@ -123,6 +139,13 @@ function document_add_css(doc, url) {
 	doc.documentElement.firstChild.appendChild(mycss)
 }
 // Basic node management
+function addAndScroll(container, toAdd) { // Adds a node to a container, then scroll bottom if it was scrolled
+	var scrbot = container.scrollHeight - ( container.scrollTop + container.clientHeight ) ;
+	container.appendChild(toAdd) ;
+	if ( scrbot === 0 ) {
+		container.scrollTop = container.scrollHeight ;
+	}
+}
 function node_empty() {
 	for ( var i = 0 ; i < arguments.length ; i++) {
 		var node = arguments[i] ;
@@ -258,14 +281,18 @@ function create_form(action, method) {
 function create_submit(name, value, id, classname) {
 	var submit = document.createElement('input') ;
 	submit.type = 'submit' ;
-	if ( issn(id) )
+	if ( iss(id) ) {
 		submit.id = id ;
-	if ( issn(name) )
+	}
+	if ( iss(name) ) {
 		submit.name = name ;
-	if ( issn(value) )
+	}
+	if ( iss(value) ) {
 		submit.value = value ;
-	if ( issn(classname) )
+	}
+	if ( iss(classname) ) {
 		submit.className = classname ;
+	}
 	return submit ;
 }
 function create_checkbox(name, checked, id, value) {
@@ -281,14 +308,21 @@ function create_checkbox(name, checked, id, value) {
 	return checkbox ;
 
 }
-function create_input(name, value, id) {
+function create_input(name, value, id, placeholder) {
 	var text = document.createElement('input') ;
 	text.type = 'text' ;
-	if ( issn(name) )
+	if ( iss(name) ) {
 		text.name = name ;
-	text.value = ''+value ;
-	if ( issn(id) )
+	}
+	if ( iss(value) ) {
+		text.value = value ;
+	}
+	if ( iss(id) ) {
 		text.id = id ;
+	}
+	if ( iss(placeholder) ) {
+		text.placeholder = placeholder ;
+	}
 	return text ;
 }
 function create_password(name, value, id) {

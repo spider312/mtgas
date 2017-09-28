@@ -88,7 +88,8 @@ Then it will fill 'autotext' with buttons, then place 'sendbox' just on top of '
 }
 #sendbox {
 	position: absolute ; /* Defined by JS after filling #autotext */
-	width: 98% ; /* Simulate a "true" 100% width */
+	box-sizing: border-box;
+	width: 100%;
 }
 /* Autotext */
 #autotext {

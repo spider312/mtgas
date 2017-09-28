@@ -71,8 +71,17 @@ function ranking($period='WEEK', $plength=1) {
 	$min_games = mingames_by_period($period) ;
 	$players_e = array() ;
 	foreach ( $players as $key => $player ) {
-		if ( $player->matches > $min_games )
+		if ( $player->matches > $min_games ) {
+			$evaluation = $db->select("SELECT COUNT(*) AS `nb`, SUM(`rating`) AS `sum` FROM `evaluation` WHERE `to` = '$key' AND `date` > TIMESTAMPADD($period, -$plength, NOW())");
+			if ( count($evaluation) === 0 ) {
+				$player->eval_nb = 0 ;
+				$player->eval_sum = 0 ;
+			} else {
+				$player->eval_nb = $evaluation[0]->nb ;
+				$player->eval_sum = $evaluation[0]->sum ;
+			}
 			$players_e[$key] = $player ;
+		}
 	}
 	// Add alias data
 	foreach ( $players_e as $key => $player ) {

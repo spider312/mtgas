@@ -12,7 +12,7 @@ class Tournament {
 	private $timer = null ;
 	public $spectators = null ;
 	static $cache = array() ;
-	static function get($id, $type='ended_tournament') {
+	static function get($id) {
 		foreach (Tournament::$cache as $tournament)
 			if ( $tournament->id == $id )
 				return $tournament ;
@@ -22,10 +22,7 @@ class Tournament {
 			if ( count($tournaments) > 1 ) // bug
 				echo count($tournaments)." tournaments found : $id\n" ;
 			$t = new Tournament($tournaments[0]) ;
-			if ( $t->status > 5 )
-				$t->import('ended_tournament') ;
-			else
-				$t->import('running_tournament') ;
+			$t->import() ;
 			return $t ;
 		}
 		return null ;
@@ -56,7 +53,7 @@ class Tournament {
 	public function __construct($obj=null) {
 		global $gameserver ;
 		$this->observer = $gameserver ;
-		Tournament::$cache[] = $this ;
+		array_unshift(Tournament::$cache, $this) ;
 		foreach ( $this->fields as $field ) {
 			if ( ( $obj != null ) && property_exists($obj, $field) )
 				$this->$field = $obj->$field ;
@@ -105,17 +102,6 @@ class Tournament {
 		}
 		return null ;
 	}
-	private function get_exts() {
-		$exts = array() ;
-		if ( ( property_exists($this->data, 'boosters') ) && count($this->data->boosters) > 0 ) {
-			global $db_cards ;
-			$in = implode("', '", array_unique($this->data->boosters)) ;
-			foreach ( $db_cards->select("SELECT * FROM `extension`
-				WHERE `se` in ('$in')") as $ext )
-				$exts[$ext->se] = $ext ;
-		}
-		return $exts ;
-	}
 	// DB Interactions
 	private function commit() { // Update all DB fields in param with this object's data
 		if ( func_num_args() < 1 )
@@ -136,7 +122,7 @@ class Tournament {
 					$update .= "`$field` = '{$this->$field}'" ;
 			} else
 				return $this->debug('cannot commit '.$field) ;
-		$db->query("UPDATE `tournament` SET $update WHERE `id` = '{$this->id}' ; ") ;
+		$db->update("UPDATE `tournament` SET $update WHERE `id` = '{$this->id}' ; ") ;
 	}
 	// Log
 	public function log($player_id, $type, $value) {
@@ -160,10 +146,10 @@ class Tournament {
 		$spectator = $this->spectators->add($user->player_id, $user->nick) ;
 		$this->log($spectator->player_id, 'spectactor', $spectator->nick) ;
 		$this->send('tournament', 'build', 'draft') ;
+		return true ;
 	}
 	// Initialisation
-	public function import($type) { // Called on daemon start on each pending/running tournament
-		$this->type = $type ;
+	public function import() { // Called on daemon start on each pending/running tournament
 		// Players
 		global $db ;
 		$this->players = $db->select("SELECT *
@@ -171,8 +157,12 @@ class Tournament {
 		WHERE
 			`tournament_id` = '".$this->id."'
 		ORDER BY `order` ASC ; ") ;
-		foreach ( $this->players as $i => $player )
+		foreach ( $this->players as $i => $player ) {
+			if ( $this->status < 3 ) { // In an import following a crash, it's dangerous to consider a player ready
+				$player->ready = false ;
+			}
 			$this->players[$i] = new Registration($player, $this) ;
+		}
 		if ( count($this->players) == 0 ) {
 			$this->cancel('No player in import') ;
 			return false ;
@@ -196,8 +186,19 @@ class Tournament {
 			}
 			$this->games[count($this->games)-1][] = new Game($game, 'tournament', $this) ;
 		}
+		// JSON type + Index tournaments list
+		if ( ( $t->status > 5 ) || ( $t->status < 1 ) ) {
+			$status = 'ended_tournament' ;
+		} else if ( $t->status === 1 ) {
+			$status = 'pending_tournament' ;
+		} else {
+			$status = 'running_tournament' ;
+		}
+		$this->type = $status ;
+		$this->observer->{$status}[] = $this ;
 		// Go on
 		$left = strtotime($this->due_time) - time() ;
+		$left += 300 ; // 5 minutes given to players to recover from a crash
 		if ( $left > 0 ) // Some time left in current tournament step
 			$this->timer_goon($left) ;
 		else
@@ -325,7 +326,7 @@ class Tournament {
 	}
 	// Tournament run
 	private function set_status($status) { // Set status for tournament and its players
-		$this->status = $status ;
+		$this->status = intval($status) ;
 		$this->round = 1 ;
 		$this->commit('status', 'round') ;
 		if ( $status > 0 )
@@ -438,6 +439,31 @@ class Tournament {
 				$this->observer->build->broadcast($this, '{"type": "redirect"}') ;
 		}
 	}
+	public function keywords() {
+		$result = new stdClass ;
+		if ( ! is_array($this->data->boosters) ) {
+			return $result ;
+		}
+		$exts = array() ;
+		foreach ( $this->data->boosters as $ext ) {
+			if ( array_search($ext, $exts) === false ) {
+				$exts[] = $ext ;
+			}
+		}
+		foreach ( $exts as $ext ) {
+			$ext_obj = Extension::get($ext) ;
+			if ( $ext_obj === null ) {
+				$this->say("Extension $ext not found in keywords") ;
+				continue ;
+			}
+			if ( is_object($ext_obj->data->keywords) ) {
+				foreach( $ext_obj->data->keywords as $name => $value ) {
+					$result->{$name} = $value ;
+				}
+			}
+		}
+		return $result ;
+	}
 	public function begin() { // Launch first step for tournament (draft, build ...)
 		// DB
 		shuffle($this->players) ; // Give random numbers to players
@@ -469,22 +495,30 @@ class Tournament {
 				$this->log('', 'draft', '') ;
 				break ;
 			case 'sealed' :
-				foreach ( $this->data->boosters as $ext ) {
-					$ext_obj = Extension::get($ext) ;
-					if ( $ext_obj == null ) {
-						$this->say("Extension $ext not found in sealed generation") ;
-						continue ;
+				$pool = null ; // First pool, for clone sealed
+				foreach ( $this->players as $player ) {
+					// Create new pool if needed (clone sealed only create 1 pool)
+					if (
+						( $pool === null ) // First pool
+						||
+						! $this->data->clone_sealed // NOT clone_sealed
+					) {
+						$pool = array() ;
+						foreach ( $this->data->boosters as $ext ) {
+							$ext_obj = Extension::get($ext) ;
+							if ( $ext_obj === null ) {
+								$this->say("Extension $ext not found in sealed generation") ;
+								continue ;
+							}
+							$booster = $ext_obj->booster($upool) ;
+							foreach ( $booster as $card ) {
+								$pool[] = $card ;
+							}
+						}
 					}
-					$booster = null ;
-					foreach ( $this->players as $player ) {
-						if ( ( $booster == null ) || ! $this->data->clone_sealed )
-							$booster = $ext_obj->booster($upool) ; // Only need object in memory for sealed
-						foreach ( $booster as $card )
-							$player->pick($card) ;
-					}
+					// Apply pool to player
+					$player->set_pool($pool) ;
 				}
-				foreach ( $this->players as $player )
-					$player->summarize(true) ;
 				$this->build() ;
 				break ;
 			default :
@@ -538,6 +572,7 @@ class Tournament {
 	// Build
 	private function build() {
 		$this->set_status(4) ;
+		$this->send() ;
 		global $build_duration ;
 		$this->timer_goon($build_duration) ;
 		$this->log('', 'build', '') ;
@@ -687,7 +722,13 @@ class Tournament {
 	}
 	public function nextround() {
 		foreach ( $this->round_matches() as $game ) { // End games
-			$action = $game->addAction('', 'roundend', '') ;
+			$data = new stdClass() ;
+			// Send back their previous evaluations to players as roundend data
+			if ( ( $game->creator_id !== '' ) && ( $game->joiner_id !== '' ) ) {
+				$data->{$game->creator_id} = Evaluation::get_rating($game->joiner_id, $game->creator_id) ;
+				$data->{$game->joiner_id} = Evaluation::get_rating($game->creator_id, $game->joiner_id) ;
+			}
+			$action = $game->addAction('', 'roundend', json_encode($data)) ;
 			$this->observer->game->broadcast(json_encode($action), $game) ;
 		}
 		$this->round++ ;
@@ -775,14 +816,20 @@ class Tournament {
 		return $matches ;
 	}
 	public function end() { // Last round ended normally
+		if ( ( $this->status < 1 ) || ( $this->status > 5 ) ) {
+			return false ;
+		}
 		$this->observer->move_tournament($this, 'running', 'ended') ;
 		$this->set_status(6) ;
 		$this->terminate() ;
 		$this->log($this->players[0]->player_id, 'end', '') ;
-		ranking_to_file('ranking/week.json', 'WEEK') ;
-		ranking_to_file('ranking/month.json', 'MONTH') ;
+		//ranking_to_file('ranking/week.json', 'WEEK') ;
+		//ranking_to_file('ranking/month.json', 'MONTH') ;
 	}
 	public function cancel($reason = 'No reason given') { // Any error occured
+		if ( ( $this->status < 1 ) || ( $this->status > 5 ) ) {
+			return false ;
+		}
 		$from = substr($this->type, 0, strpos($this->type, '_')) ;
 		$this->observer->move_tournament($this, $from, 'ended') ;
 		$this->set_status(0) ;
@@ -793,6 +840,7 @@ class Tournament {
 	private function terminate() { // Common between end and cancel
 		$this->score_games() ;
 		$this->due_time = now() ;
+		$this->send() ;
 		$this->commit('due_time') ;
 		$this->timer_cancel() ;
 		if ( $this->observer->ts3 ) {
@@ -801,19 +849,39 @@ class Tournament {
 			ts3_invite($this->players, $cid) ; // Move each tournament's player to chan
 			ts3_disco() ;
 		}
+		$this->observer->tournament_ended($this) ;
 	}
 	// Websocket communication
 	public function send() {
 		$args = func_get_args() ;
-		$noargs = ( count($args) == 0 ) ;
-		if ( $noargs || in_array('index', $args) )
-			$this->observer->index->broadcast(json_encode($this)) ;
-		if ( $noargs || in_array('tournament', $args) )
+		if ( count($args) < 1 ) {
+			$args = array('index', 'tournament', 'draft', 'build') ;
+		}
+		if ( in_array('index', $args) ) {
+			$msg = json_encode($this) ;
+			if ( $this->min_players > 1 ) {
+				$this->observer->index->broadcast($msg) ;
+			} else {
+				if (
+					(
+						( $this->status === 1 )
+						|| ( $this->status === 2 )
+					)
+					&& ( count($this->players) > 0 )
+				) { // Only send create + redirect to index
+					$this->observer->index->send_first($msg, $this->players[0]->player_id) ;
+				}
+			}
+		}
+		if ( in_array('tournament', $args) ) {
 			$this->observer->tournament->broadcast($this, json_encode($this));
-		if ( $noargs || in_array('draft', $args) )
+		}
+		if ( in_array('draft', $args) ) {
 			$this->observer->draft->broadcast($this, json_encode($this));
-		if ( $noargs || in_array('build', $args) )
+		}
+		if ( in_array('build', $args) ) {
 			$this->observer->build->broadcast($this, json_encode($this));
+		}
 	}
 	// Players connexion management
 	public function player_connect($id, $type) {

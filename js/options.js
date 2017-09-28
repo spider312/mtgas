@@ -76,10 +76,12 @@ function Option(name, desc, longdesc, def, choices, onChange) {
 						ev.target.option.onChange(myoption) ;
 				}, false) ;
 			} else {
-
 				this.input = create_input(name, this.get()) ;
 				this.input.placeholder = desc ;
 				this.input.addEventListener('change', function (ev) {
+					if ( ! ev.target.checkValidity() ) {
+						return eventStop(ev) ;
+					}
 					ev.target.option.set(ev.target.value) ;
 					if ( isf(ev.target.option.onChange) )
 						ev.target.option.onChange(myoption) ;
@@ -161,12 +163,11 @@ function Options(check_id) {
 		// Nick checking
 		var nick = this.get('profile_nick') ;
 		if ( nick == '' ) {
-			var nickfield = document.getElementById('profile_nick') ;
+			var nickfield = document.getElementById('option_profile_nick') ;
 			if ( nickfield == null ) { // Options opened on another tab
 				this.select_tab('Identity') ;
-				nickfield = document.getElementById('profile_nick') ;
+				nickfield = document.getElementById('option_profile_nick') ;
 			}
-			nickfield.classList.add('errored') ;
 			nickfield.select() ;
 			return false ;
 		}
@@ -238,7 +239,6 @@ function Options(check_id) {
 		style.height = height+'px' ;
 		style.marginTop = '-'+Math.ceil(height/2)+'px' ;
 	}
-
 	this.select_tab = function(tab) {
 		if ( ! iss(tab) || ! this.tabs[tab] )
 			tab = 'Options' ;
@@ -274,12 +274,17 @@ function Options(check_id) {
 			return eventStop(ev) ;
 		}, false) ;
 		fieldset.appendChild(nick) ;
+		inick.required = true ;
 		inick.select() ;
 		// Avatar
 			// Input + link to demo
 		var avatar = this.options['profile_avatar'].render() ;
 		avatar.childNodes[1].addEventListener('change', function (ev) {
-			document.getElementById('avatar_demo').src = ev.target.value ;
+			if ( ev.target.value === '' ) {
+				ev.target.value = document.getElementById('avatar_demo').src ;
+			} else {
+				document.getElementById('avatar_demo').src = ev.target.value ;
+			}
 		}, false) ;
 		fieldset.appendChild(avatar) ;
 			// Demo
@@ -296,11 +301,8 @@ function Options(check_id) {
 		}, false) ;
 		avatar_demo.addEventListener('error', function (ev) {
 			ev.target.classList.add('errored') ;
-			if ( ev.target.src == last_working_avatar ) {
-				game.options.resize() ; // Last working
-				alert('err') ;
-			} else
-				ev.target.src = last_working_avatar ;
+			ev.target.src = last_working_avatar ;
+			game.options.set('profile_avatar', last_working_avatar) ;
 		}, false) ;
 		avatar.appendChild(create_a(avatar_demo, 'javascript:gallery()', null, 'Choose an avatar from a gallery')) ;
 		var a = create_a('Unexpectedly reset and using CCleaner ?',
@@ -318,6 +320,28 @@ function Options(check_id) {
 				fieldset.appendChild(group[j].render()) ;
 			container.appendChild(fieldset) ;
 		}
+	}
+		// Notifications
+	this.tab_notifications = function(container) {
+		var group = this.groups['Notifications'] ;
+		var fieldset = create_fieldset('Notifications') ;
+		// Each option
+		for ( var j in group ) {
+			fieldset.appendChild(group[j].render()) ;
+		}
+		// Status field
+		var status_input = create_input('notification_status', Notification.permission)
+		status_input.disabled = true ;
+		status_input.size = 7 ; // value = default | denied | granted = length 7
+		var current_status = create_label(null, 'Current status : ', status_input) ;
+		fieldset.appendChild(current_status) ;
+		// Guide about enabling
+		if ( Notification.permission !== 'granted' ) {
+			var a = create_a('Learn about how to enable it', 'http://blog.mogg.fr/post/2017/06/05/Notifications');
+			a.target = '_blank';
+			fieldset.appendChild(a) ;
+		}
+		container.appendChild(fieldset) ;
 	}
 		// Spectators
 	this.tab_spectators = function(container) {
@@ -383,6 +407,7 @@ function Options(check_id) {
 	this.tabs = {
 		'Identity': this.tab_identity,
 		'Options': this.tab_options,
+		'Notifications': this.tab_notifications,
 		'Spectators': this.tab_spectators,
 		'Profile': this.tab_profile
 	} ;
@@ -419,11 +444,13 @@ function Options(check_id) {
 	this.add('Identity', 'profile_avatar', 'Avatar', 'Image displayed near your life counter. Can be any image hosted anywhere on the web, or simply chosen in a local gallery', default_avatar) ;
 		// Options
 			// Appearence
+	/*
 	this.add('Appearence', 'lang', 'Language', 'Language used for every message printed on this site, does not include card images', applang, applangs, function(option) {
 		cookie_set(option.name, option.get()) ;
 		alert('Lang changed, reloading') ;
 		document.location = document.location ;
 	}) ;
+	*/
 	this.add('Appearence', 'cardimages', 'Card images', 'A theme of card images', cardimages_default_lang, cardimages_choice) ;
 	this.add('Appearence', 'invert_bf', 'Invert opponent\'s cards',	'Display card upside-down when in an opponent\'s zone, looking more like real MTG playing', false) ;
 	this.add('Appearence', 'display_card_names', 'Card names / mana costs',	'Display card names on top of picture for cards on battlefield, and their costs for cards in hand',	true) ;
@@ -443,6 +470,15 @@ function Options(check_id) {
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
+		// Notifications
+	this.add('Notifications', 'notification_shout', 'Shouts', 'A new shout is recieved', false) ;
+	this.add('Notifications', 'notification_duel_new', 'New duel', 'A new duel is created', false) ;
+	this.add('Notifications', 'notification_duel_start', 'Duel started', 'A duel you created started', true) ;
+	this.add('Notifications', 'notification_tournament_new', 'New tournament', 'A new tournament is created', false) ;
+	this.add('Notifications', 'notification_tournament_start', 'Tournament started', 'A tournament you joined started', true) ;
+	this.add('Notifications', 'notification_autoclose', 'Auto close', 'Notification closes automatically', true) ;
+	this.add('Notifications', 'notification_sound', 'Play a sound', 'Plays a sound for enabled notifications events', false) ;
+	this.add('Notifications', 'notification_icon', 'Display mogg icon', 'Solves notifications not working under older Firefox versions', true) ;
 		// Hidden (Only retrieved, or set by other means)
 		//player_id
 	this.add('Hidden', 'autotext', '', '', 'Ok\nOk?\nWait!\nKeep\nThinking\nEnd my turn\nEOT') ;
@@ -771,4 +807,9 @@ function spectator_select() { // Returns a HTMLSelect listing spectators allowed
 		div.appendChild(button) ;
 	}
 	return div ;
+}
+// Open an information website for a card
+function card_info(name) {
+	//window.open('http://magiccards.info/query?q=!' + name + '&v=card&s=cname') ;
+	window.open('https://scryfall.com/search?q='+name) ;
 }

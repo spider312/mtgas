@@ -1,5 +1,27 @@
-<pre><?php
+<?php
 include_once 'lib.php' ;
+include 'import/HtmlDiff.php' ;
+?>
+<html>
+<head>
+<link type="text/css" rel="stylesheet" href="../../themes/jay_kay/css/diff.css">
+<style>
+table {
+	width: 100%;
+}
+td {
+	border: 1px solid black ;
+	white-space: pre;
+}
+</style>
+</head>
+<body>
+<table>
+ <tr>
+  <th>Card</th>
+  <th>Diff</th>
+ </tr>
+<?php
 // Apply ?
 $apply = param($_GET, 'apply', false) ;
 if ( $apply !== false )
@@ -12,10 +34,11 @@ while ( $arr = mysql_fetch_array($query) ) {
 	$attrs_obj = new attrs($arr) ;
 	$attrs = json_encode($attrs_obj) ;
 	if ( $arr['attrs'] != $attrs ) {
+		$diff = new HtmlDiff(jsonpp($arr['attrs']), jsonpp($attrs)) ;
 		$nb++ ;
-		echo '<hr>'.$arr['name'] ;
-		echo '<pre>-'.print_r(obj_diff(json_decode($arr['attrs']), $attrs_obj), true).'</pre>';
-		echo '<pre>+'.print_r(obj_diff($attrs_obj, json_decode($arr['attrs'])), true).'</pre>';
+		echo '<tr>' ;
+		echo '<td><a href="card.php?id='.$arr['id'].'">'.$arr['name'].'</a></td>' ;
+		echo '<td>'.$diff->build().'</td>';
 		if ( $apply ) {
 			query("UPDATE
 				card
@@ -26,7 +49,11 @@ while ( $arr = mysql_fetch_array($query) ) {
 				`id` = '".$arr['id']."'
 			; ") ;
 		}
+		echo '</tr>' ;
 	}
 }
-die($nb.' updates <a href="?apply=1">apply</a>') ;
 ?>
+<caption><?php echo $nb ; ?> updates <a href="?apply=1">apply</a></caption>
+</table>
+</body>
+</html>
