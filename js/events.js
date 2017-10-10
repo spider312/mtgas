@@ -50,7 +50,7 @@ keyActions = { // Key <=> action association
 	'control_shift_ ' : function(ev) { game.turn.trigger_step() ; draw() ; },
 	'control_d' : function(ev) { game.player.hand.draw_card() ; },
 	'control_i' : rolldice,
-	'control_k' : function(ev) { alert(game.image_cache.info()) ; },
+	'control_y' : function(ev) { alert(game.image_cache.info()) ; },
 	'control_l' : function(ev) { log_clear() ; },
 	'control_shift_l' : function(ev) { 
 		if ( iso(logtext) )
