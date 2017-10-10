@@ -22,7 +22,7 @@ function replaceURLWithHTMLLinks(text, external) { // https://stackoverflow.com/
 				rParens = m[2] + rParens;
 			}
 		}
-		let target = external ? ' target="_blank"' : '' ;
+		var target = external ? ' target="_blank"' : '' ;
 		return lParens + '<a href="' + url + '"' + target + '>' + url + "</a>" + rParens;
 	});
 }
@@ -42,16 +42,16 @@ function cookie_set(name, value, days) {
 }
 // Notifications
 function notification_send(title, txt, tag) {
-	new Promise((resolve, reject) => {
+	new Promise(function(resolve, reject) {
 		if ( game.options.get('notification_sound') ) {
-			let src = url + '/themes/' + theme + '/Sounds/notification.wav' ;
-			let snd = new Audio(src) ;
+			var src = url + '/themes/' + theme + '/Sounds/notification.wav' ;
+			var snd = new Audio(src) ;
 			snd.play() ;
 		}
-		Notification.requestPermission((resp) => {
+		Notification.requestPermission(function(resp) {
 			resolve(resp) ;
 		}) ;
-	}).then((resp) => {
+	}).then(function(resp) {
 		switch ( resp ) {
 			case 'granted' : {
 				options = { "body": txt, "requireInteraction": ! game.options.get('notification_autoclose') } ;
@@ -67,7 +67,7 @@ function notification_send(title, txt, tag) {
 			default: 
 				console.error('notification_send : Unknown response '+resp) ;
 		}
-	}).catch((msg) => {
+	}).catch(function(msg) {
 		console.error('notification_send : '+msg)
 	}) ;
 }

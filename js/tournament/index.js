@@ -146,7 +146,7 @@ function TournamentIndex() {
 		if ( inarray('players', fields) ) {
 			for ( var i = 0 ; i < this.players.length ; i++ ) {
 				this.players[i].display() ;
-				let node = this.players[i].node ;
+				var node = this.players[i].node ;
 				node.parentNode.appendChild(node) ; // Place tr at the end of its container, in order to sort table rows in same order than array lines
 			}
 		}

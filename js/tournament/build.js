@@ -51,13 +51,13 @@ function start(id, pid) {
 			case 'keywords' :
 				node_empty(filter_suggestions) ;
 				// Clear
-				let opt = filter_option('', '', filter_suggestions) ;
+				var opt = filter_option('', '', filter_suggestions) ;
 				opt.title = 'Clear filter' ;
 				// Extension keywords
 				var optgroup = create_element('optgroup') ;
 				optgroup.label = 'Extension' ;
 				optgroup.title = 'Extension keywords' ;
-				Object.keys(data.keywords).sort().forEach((currentValue, currentIndex, listObj) => {
+				Object.keys(data.keywords).sort().forEach(function(currentValue, currentIndex, listObj) {
 					filter_option(currentValue, data.keywords[currentValue], optgroup) ;
 				}, true) ;
 				if ( optgroup.childNodes.length > 0 ) {
@@ -67,7 +67,7 @@ function start(id, pid) {
 				var optgroup = create_element('optgroup') ;
 				optgroup.label = 'Basic' ;
 				optgroup.title = 'Generic filter suggestions' ;
-				Object.keys(data.base).forEach((currentValue, currentIndex, listObj) => {
+				Object.keys(data.base).forEach(function(currentValue, currentIndex, listObj) {
 					filter_option(currentValue, data.base[currentValue], optgroup) ;
 				}) ;
 				filter_suggestions.appendChild(optgroup) ;
@@ -143,7 +143,7 @@ function start(id, pid) {
 function filter_option(suggestion_name, suggestion_value, select) {
 	var opt = create_option(suggestion_name, suggestion_value, 'Search for "'+suggestion_value+'" in types and text\nCtrl/Shift to modify current filter with a AND/OR operator') ;
 	opt.addEventListener('click', function(ev) {
-		let value = this.value ;
+		var value = this.value ;
 		if      ( ( value !== ''  ) && ev.ctrlKey )  { value = filter_input.value + '&' + value ; }
 		else if ( ( value !== ''  ) && ev.shiftKey ) { value = filter_input.value + '|' + value ; }
 		filter_input.value = value ;
@@ -459,15 +459,15 @@ function Zone(pool, node, name, sort) {
 		if ( sort_side != null )
 			sort_side.value = field ;
 	}
-	this.match = (txt) => {
-		let filter = this.text_filter.toLowerCase() ;
-		let tokens_or = filter.split('|') ;
+	this.match = function(txt) {
+		var filter = this.text_filter.toLowerCase() ;
+		var tokens_or = filter.split('|') ;
 		txt = txt.toLowerCase() ;
-		return tokens_or.some((token_or) => {
-			let tokens_and = token_or.split('&') ;
-			return tokens_and.every((token_and) => {
+		return tokens_or.some(function(token_or) {
+			var tokens_and = token_or.split('&') ;
+			return tokens_and.every(function(token_and) {
 				token_and = token_and.trim() ;
-				let result = ( txt.indexOf(token_and) > -1 ) ;
+				var result = ( txt.indexOf(token_and) > -1 ) ;
 				return result ;
 			}) ;
 		}) ;
@@ -479,7 +479,7 @@ function Zone(pool, node, name, sort) {
 			// Filter by text
 			if ( this.text_filter !== '' ) {
 				// Match over a join of all parts of search text in order to allow matches to append between fields (for exemple search "destroy&instant")
-				let fulltext = card.attrs.types.join(' ')+"\n"+card.attrs.subtypes.join(' ')+"\n"+card.text ;
+				var fulltext = card.attrs.types.join(' ')+"\n"+card.attrs.subtypes.join(' ')+"\n"+card.text ;
 				if ( ! this.match(fulltext) ) {
 					continue ;
 				}

@@ -734,8 +734,8 @@ function tournament_boosters(type) {
 	// Fill boosters suggestions list
 	var set = false ;
 	node_empty(suggestions);
-	content.forEach( suggest => {
-		let option = create_option(suggest.name, suggest.value);
+	content.forEach(function(suggest) {
+		var option = create_option(suggest.name, suggest.value);
 		suggestions.options.add(option) ;
 		if ( boosters.value === suggest.value ) {
 			option.selected = true ;

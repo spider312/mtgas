@@ -46,7 +46,7 @@ function get_evaluations() {
 			no_evaluations.style.display = '' ;
 		} else {
 			var total = nb = 0 ;
-			data.forEach((line) => {
+			data.forEach(function(line) {
 				total += line.rating * line.nb ;
 				nb += line.nb ;
 				var tr = create_tr(evaluations, '', line.nb) ;

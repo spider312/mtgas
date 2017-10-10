@@ -176,11 +176,11 @@ Player.prototype.display = function player(table) {
 }
 // Evaluation display
 Player.prototype.evaluation = function() {
-	let container = create_span() ;
+	var container = create_span() ;
 	container.title = round(this.eval_avg, 2)+' in '+this.eval_nb+' evaluations' ;
-	for ( let j = -2 ; j < 3 ; j++ ) {
-		let img_url = ( this.eval_avg < j ) ? 'evaluation/star_disabled.png' : 'evaluation/star.png' ;
-		let img = create_img(theme_image(img_url)[0])
+	for ( var j = -2 ; j < 3 ; j++ ) {
+		var img_url = ( this.eval_avg < j ) ? 'evaluation/star_disabled.png' : 'evaluation/star.png' ;
+		var img = create_img(theme_image(img_url)[0])
 		img.classList.add('evaluation_star');
 		container.appendChild(img) ;
 	}
