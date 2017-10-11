@@ -119,9 +119,12 @@ function card_text_sanitize($text) {
 		$pieces[$i] = trim($pieces[$i]) ;
 		$pieces[$i] = trim($pieces[$i], '.') ;
 	}
-	$pieces = array_filter($pieces) ;
+	$pieces = array_filter($pieces, 'card_text_filter') ;
 	$text = implode("\n", $pieces) ;
 	return $text ;
+}
+function card_text_filter($text) {
+	return ( $text !== '' ) ;
 }
 function firstline($string='') {
 	$pos = strpos($string, "\n") ;
