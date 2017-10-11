@@ -217,6 +217,22 @@ class attrs {
 				$this->color .= $color ;
 		}
 	}
+	function parsemana($manas) { // Recieve mana array and adds its data to color and converted cost (card mana cost, split)
+		foreach ( $manas as $mana ) { // mana symbols
+			if ( isint($mana) ) // Is a number
+				$this->converted_cost += intval($mana) ;
+			else { // Is a mana
+				if ( ! in_array($mana, array('X', 'Y', 'Z') ) ) { // X is worth 0 and no color, Y and Z only are in the ultimate nightmare ...
+
+					$this->add_color($mana) ;
+					if ( isint($mana[0]) ) // Hybrid colorless/colored
+						$this->converted_cost += intval($mana[0]) ;
+					else
+						$this->converted_cost++ ;
+				}
+			}
+		}
+	}
 	function addmana($color) {
 		if ( ! property_exists($this, 'provide') )
 			$this->provide = array() ;
@@ -232,20 +248,7 @@ class attrs {
 				// Compute color and converted cost
 				$this->color = '' ;
 				$this->converted_cost = 0 ;
-				foreach ( $this->manas as $mana ) { // mana symbols
-					if ( isint($mana) ) // Is a number
-						$this->converted_cost += intval($mana) ;
-					else { // Is a mana
-						if ( ! in_array($mana, array('X', 'Y', 'Z') ) ) { // X is worth 0 and no color, Y and Z only are in the ultimate nightmare ...
-
-							$this->add_color($mana) ;
-							if ( isint($mana[0]) ) // Hybrid colorless/colored
-								$this->converted_cost += intval($mana[0]) ;
-							else
-								$this->converted_cost++ ;
-						}
-					}
-				}
+				$this->parsemana($this->manas) ;
 				// No color found, consider as colorless
 				if ( $this->color == '' )
 					$this->color = 'X' ;
@@ -334,13 +337,7 @@ class attrs {
 							$this->split = $split ;
 							manage_all_text($arr['name'], implode("\n", $matches), $this) ;
 							// Apply colors to initial card
-							foreach ( $split->manas as $mana ) { // mana symbols
-								if ( ! isint($mana) ) { // Is a mana
-									if ( $mana != 'X' ) { // X is worth 0 and no color
-										$this->add_color($mana) ;
-									}
-								}
-							}
+							$this->parsemana($split->manas) ;
 							// Apply aftermath
 							if ( property_exists($split, 'aftermath') ) {
 								$this->aftermath = $split->aftermath ;
