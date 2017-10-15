@@ -253,17 +253,17 @@ function Pool(player) {
 			var from = this.main ;
 		var to = (from==this.side) ? this.main : this.side ;
 		from.cards.splice(i, 1) ;
-		if ( inarray('basic', card.card.attrs.supertypes) ) {
+		/*if ( inarray('basic', card.card.attrs.supertypes) ) {
 			game.connection.send({"type": "remove", "cardname": card.name}) ;
 			this.player.deck_obj.main.splice(i, 1) ;
 			this.player.remove(card) ;
-		} else {
+		} else {*/
 			to.cards.push(card) ;
 			var strfrom = (from==this.side) ? 'side' : 'main' ;
 			this.player.toggle(card, strfrom) ;
 			// Send
 			game.connection.send({"type": "toggle", "cardname": card.name, "from": strfrom}) ;
-		}
+		//}
 		if ( ! multiple )
 			this.display() ;
 	}
