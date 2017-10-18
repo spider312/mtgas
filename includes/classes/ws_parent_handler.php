@@ -81,7 +81,7 @@ class ParentHandler extends WebSocketUriHandler {
 					} else {
 						$user->sendString('{"type": "time", "time": "'.time().'"}'); // Base sync offset
 						$user->player_id = $data->player_id ;
-						$user->nick = $data->nick ;
+						$user->nick = substr($data->nick, 0, 16) ;
 						$this->register_user($user, $data) ;
 					}
 				} else {

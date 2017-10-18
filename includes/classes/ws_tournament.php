@@ -276,6 +276,7 @@ class Tournament {
 			return $this->debug("Trying to register while in status {$this->status}") ;
 		// Basic verifications
 		$msg = '' ;
+		$data->nick = $user->nick ; // Has already been checked by registration procedure
 		if ( $data->nick == '' )
 			 $msg = 'You must choose a valid nickname' ;
 		if ( $this->status != 1 )
