@@ -24,16 +24,21 @@ function Zone(player, type) {
 		sel.moveinzone(to) ;
 	}
 	this.changezone = function(dest_zone, nb, to, from, visible) {
-		if ( ! isn(nb) )
-			nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type, this.cards.length) ;
-		if ( ! isn(from) )
+		if ( ! isn(nb) ) {
+			nb = prompt_int('How many cards to move from '+this.type+' to '+dest_zone.type, 1/*this.cards.length*/) ;
+		}
+		if ( ! isn(from) ) {
 			from = this.cards.length ;
-		if ( from > this.cards.length )
+		}
+		if ( from > this.cards.length ) {
 			from = this.cards.length ;
-		if ( from < 0 )
+		}
+		if ( from < 0 ) {
 			from = 0 ;
-		if ( ! isb(visible) )
+		}
+		if ( ! isb(visible) ) {
 			visible = null ;
+		}
 		(new Selection(this.cards.slice(from-nb, from).reverse())).changezone(dest_zone, visible, to) ;
 	}
 	this.rand_selection = function(cards, nb) { // Returns a selection containing nb cards crom cards
