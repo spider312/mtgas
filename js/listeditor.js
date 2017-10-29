@@ -1,6 +1,6 @@
 // Card list editor
 function card_list_edit_n_bottom(zone, dest) {
-	var n = prompt_int('How many cards to look ?', 3) ;
+	var n = prompt_int('How many cards to look ?', 1) ;
 	if ( isn(n) && ( n != 0 ) ) {
 		n = - n ;
 		return card_list_edit(zone, dest, n) ;
@@ -8,7 +8,7 @@ function card_list_edit_n_bottom(zone, dest) {
 		return n ;
 }
 function card_list_edit_n(zone, dest, bottom) {
-	var n = prompt_int('How many cards to look ?', 3) ;
+	var n = prompt_int('How many cards to look ?', 1) ;
 	if ( isn(n) && ( n != 0 ) )
 		return card_list_edit(zone, dest, n) ;
 	else
