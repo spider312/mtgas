@@ -48,8 +48,8 @@ function load(ev) {
 	}
 	if ( submit ) {
 		search(form) ;
-		form.classList.add('hidden') ;
 	} else {
+		form.classList.remove('hidden') ;
 		form.ext.select() ;
 	}	
 }
@@ -310,7 +310,7 @@ function getParameterByName(name, url) {
  </head>
 
  <body onload="load(event);">
-  <form id="params">
+  <form id="params" class="hidden">
    <input name="ext" placeholder="Extension" title="Extension">
    <input name="rupture" placeholder="Sort with rupture fields" title="Sort with rupture fields" value="Color,Rarity,Type">
    <input name="sort" placeholder="Sort fields" title="Sort fields" value="CMC">
