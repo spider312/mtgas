@@ -160,7 +160,7 @@ function display(cards) {
 			ev.preventDefault() ; // Don't set focus to element
 		}, false);
 		let img = document.createElement('img') ;
-		let src = card.image_uri ;
+		let src = card.image_uris['normal'] ;
 		switch ( card.layout ) {
 			case 'normal' :
 				break ;
