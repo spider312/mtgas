@@ -858,10 +858,11 @@ function decks_list() {
 			img.addEventListener('mouseout', function(ev) {
 				ev.target.src = theme_image('deckbuilder/layer_visible.png')[0] ;
 			}, false) ;
+			img.classList.add('clickable') ;
 			cell.appendChild(img) ;
 			var img = create_img('themes/'+theme+'/goldfish.png') ;
 			img.height = 18 ;
-			img.style.cursor = 'pointer' ;
+			img.classList.add('clickable') ;
 			cell.appendChild(img) ;
 			// Goldfish
 			img.addEventListener('click', function(ev) {
