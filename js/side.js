@@ -111,30 +111,39 @@ function side_resize() {
 function side_lists_fill(player, deck_ul, side_ul, field) {
 	var deckcards = new Array() ;
 	var sidecards = new Array() ;
+	var list = null ;
 	for ( var i in game.cards ) { // Create arrays of cards in order to group cards with the same name
 		var card = game.cards[i] ;
+		card.attrs = clone(card.orig_attrs, true) ; // Reinit card (visibility, transform status ...)
+		card.watching = true ; // Force visible locally
+		// Determine target list
 		switch ( card[field] ) {
 			case player.library :
-				card.watching = true ; // Force visible locally
-				if ( ! deckcards[card.name] )
-					deckcards[card.name] = new Array() ;
-				deckcards[card.name].push(card) ;
+				list = deckcards ;
 				break ;
 			case player.sideboard :
-				card.watching = true ;
-				if ( ! sidecards[card.name] )
-					sidecards[card.name] = new Array() ;
-				sidecards[card.name].push(card) ;
+				list = sidecards ;
 				break ;
+			default:
+				list = null ; // Card won't be displayed (probably an opponent's card)
+		}
+		// Add card to list
+		if ( list !== null ) {
+			if ( ! list[card.name] ) {
+				list[card.name] = new Array() ;
+			}
+			list[card.name].push(card) ;
 		}
 	}
 	// When arrays are filled, create LIs
 	node_empty(deck_ul) ;
 	node_empty(side_ul) ;
-	for ( var i in deckcards )
+	for ( var i in deckcards ) {
 		deck_ul.appendChild(side_create_li(deckcards[i])) ;
-	for ( var i in sidecards )
-		side_ul.appendChild(side_create_li(sidecards[i])) ;	
+	}
+	for ( var i in sidecards ) {
+		side_ul.appendChild(side_create_li(sidecards[i])) ;
+	}
 	// Then titles
 	side_card_numbers('deck') ;
 	side_card_numbers('side') ;
@@ -330,7 +339,6 @@ function side_newgame(winner) { // Exec by both players after siding (or not sid
 	// Reinit game data (cards visible in library)
 	for ( var i in game.cards ) {
 		game.cards[i].watching = false ; // For cards made locally visible for side
-		game.cards[i].attrs.visible = null ; // For any card with forced visibility
 		game.cards[i].load_image() ;
 		game.cards[i].refresh() ;
 	}
