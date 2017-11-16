@@ -12,8 +12,11 @@ if ( array_key_exists('url', $_GET) ) {
 	// Return headers
 	$headers = explode("\n", $headers);
 	foreach($headers as $i => $header) {
-		//if ( stripos($header, 'Transfer-Encoding') === false ) { // This header crashes import from mtgtop8
-		if ( stripos($header, 'Content-Disposition') !== false ) { // This header is the only one read on client side
+		// This header is the only one read on client side, send only that one after correcting it
+		if ( preg_match('/Content-Disposition: attachment; filename="?(.*)"?/', $header, $matches) ) {
+			$filename = $matches[1] ; // Extract filename
+			$filename = str_replace("\r", '', $filename) ; // Remove unexpected newlines (Firefox doesn't like it)
+			$header = 'Content-Disposition: attachment; filename="'.$filename.'"' ; // Rebuild header (Chrome doesn't like filename not enclosed in quotation marks)
 			header($header) ;
 		}
 	}
