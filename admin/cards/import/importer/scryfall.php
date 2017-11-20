@@ -27,6 +27,7 @@ do {
 	}
 } while ( $list->has_more ) ;
 
+$imgPriorities = array('large', 'normal') ; // border_crop ?
 // Parse results
 foreach ( $data as $card ) {
 	// URI
@@ -36,6 +37,21 @@ foreach ( $data as $card ) {
 	$rarity = substr($rarity, 0, 1) ;
 	$rarity = strtoupper($rarity) ;
 	$verso = null ;
+	// Img
+	if ( ! property_exists($card, 'image_uris') ) {
+		$importer->adderror('No image', $card->scryfall_uri) ;
+		continue;
+	}
+	$imgURI = null ;
+	foreach ( $imgPriorities as $imgType ) {
+		if ( property_exists($card->image_uris, $imgType ) ) {
+			$imgURI = $card->image_uris->{$imgType} ;
+			break ;
+		}
+	}
+	if ( $imgURI === null ) {
+		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
+	}
 	// Manage layout
 	switch ( $card->layout ) {
 		case 'normal' :
@@ -45,12 +61,13 @@ foreach ( $data as $card ) {
 			$verso->color_identity = $card->color_identity ;
 			$card = $card->card_faces[0] ;
 			break ;
+		case 'token' :
+			$importer->addtoken($uri, $card->name, $card->power, $card->toughness, $imgURI) ;
+			continue 2 ;
 		default :
 			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
 			continue 2 ;
 	}
-	// Img
-	$imgURI = isset($card->image_uris->border_crop) ? $card->image_uris->border_crop : $card->image_uris->normal ;
 	// Cost
 	$cost = $card->mana_cost ;
 	$cost = str_replace('/', '', $cost) ; // Remove / from hybrids
