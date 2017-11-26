@@ -1,7 +1,8 @@
 function deck_parse(deck) {
 	var reg_comment = /\/\/(.*)/ ;
 	var reg_empty = /^$/ ;
-	var reg_card_mwd = /(\d+)\s*\[(.*)\]\s*\b(.+)\b/ ;
+	//var reg_card_mwd = /(\d+)\s*\[(.*)\]\s*\b(.+)\b/ ;
+	var reg_card_mwd = /(\d+)\s*\[(.*)\]\s*(.*)/ ;
 	var reg_card_apr = /(\d+)\s*\b(.+)\b/ ;
 	var str_side = 'SB:' ;
 	if ( typeof deck == 'string' )
