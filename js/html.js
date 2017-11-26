@@ -6,7 +6,7 @@ function xhr(url, get, callback) {
 			if ( suffix !== '' ) {
 				suffix += '&' ;
 			}
-			suffix += idx + '=' + get[idx] ;
+			suffix += encodeURIComponent(idx) + '=' + encodeURIComponent(get[idx]) ;
 		}) ;
 		if ( suffix !== '' ) {
 			url += '?' + suffix ;
