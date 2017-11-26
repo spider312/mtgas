@@ -1,3 +1,30 @@
+// XHR
+function xhr(url, get, callback) {
+	if ( iso(get) ) {
+		var suffix = '' ;
+		Object.keys(get).forEach(function(idx) {
+			if ( suffix !== '' ) {
+				suffix += '&' ;
+			}
+			suffix += idx + '=' + get[idx] ;
+		}) ;
+		if ( suffix !== '' ) {
+			url += '?' + suffix ;
+		}
+	}
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest() ;
+		if ( isf(callback) ) {
+			xhr.addEventListener('load', callback) ;
+		} else {
+			xhr.onload = () => resolve(xhr.responseText) ;
+			xhr.onerror = () => reject(xhr.statusText) ;
+		}
+		xhr.open('GET', url) ;
+		xhr.send();
+	});
+}
+
 //HTML
 function replaceURLWithHTMLLinks(text, external) { // https://stackoverflow.com/questions/19547008/how-to-replace-plain-urls-with-links-with-example + external
 	var re = /(\(.*?)?\b((?:https?|ftp|file):\/\/[-a-z0-9+&@#\/%?=~_()|!:,.;]*[-a-z0-9+&@#\/%=~_()|])/ig;
