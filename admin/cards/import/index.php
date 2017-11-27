@@ -267,8 +267,9 @@ foreach ( $import_log as $i => $log ) {
 <?php
 if ( count($found) > 0 )
 	echo '<p title="'.implode(', ', $found).'">'.count($found).' cards found but not updated</p>' ;
-if ( count($notfound) > 0 )
-	echo '<p class="warn" title="'.implode(', ', $notfound).'">'.count($notfound).' cards not found, so inserted</p>' ;
+if ( count($notfound) > 0 ) {
+	echo '<p class="warn" title="'.str_replace('"', "''", implode(', ', $notfound)).'">'.count($notfound).' cards not found, so inserted</p>' ;
+}
 // Links
 echo '<p>Actions on links : <ul>' ;
 foreach ( $actions as $i => $action ) {
