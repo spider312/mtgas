@@ -100,6 +100,11 @@ function card_name_sanitize($name) {
 	$name = str_replace(array('“', '”'), '"', $name) ;
 	// Lotus Noir
 	$name = preg_replace('/\s*\/+\s*/', ' / ', $name) ; // corrects "a // b", "a/b"
+	// Scryfall / Unstable
+	$name = str_replace(' | ', ' ', $name) ;
+	$name = str_replace('"', '', $name) ;
+	// Special trick for scryfall/magic-ville unstable's "rumor of my death"
+	$name = str_replace(' .', '.', $name) ;
 	return $name ;
 }
 function card_text_sanitize($text) {
@@ -107,6 +112,7 @@ function card_text_sanitize($text) {
 	$text = preg_replace('/ ?\([^)]*\([^()]*?\)[^(]*\)/', '', $text) ; // UGLY workaround for parenthesis contained in parenthesis on MV
 	$text = preg_replace('/ ?\(.*?\)/', '', $text) ; // Remove helper texts
 	$text = preg_replace('/ *— */', ' - ', $text) ;
+	$text = str_replace('–', '-', $text) ;
 	$text = str_replace(chr(151), '-', $text) ;
 	$text = str_replace(chr(149), '*', $text) ;
 	$text = str_replace("\r\n", "\n", $text) ; // Keep only one type of carriage return
