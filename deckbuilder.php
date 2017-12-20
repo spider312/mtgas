@@ -9,7 +9,6 @@ html_head(
 		, 'options.css'
 	),
 	array(
-		'lib/jquery.js',
 		'image.js',
 		'math.js',
 		'menu.js',

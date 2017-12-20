@@ -1,6 +1,5 @@
 function load(body, deckname) {
 	// Init
-	ajax_error_management() ;
 	selected = null ;
 	selected_deck = null ;
 	game = {}
@@ -222,14 +221,6 @@ function load(body, deckname) {
 		}
 		return eventStop(ev) ;
 	}, false) ;
-	// Ajax events
-	jQuery('#log').ajaxError(function(ev, req, options, error){
-		ev.target.value += req.responseText + '\n' ;
-	}) ;
-	// Delayed effect
-	/*setTimeout(function() {
-		document.body.classList.add('hideh1') ;
-	}, 1000) ;*/
 }
 function update_row_language(row, decklist) {
 	if ( row.cells.length > 2 ) { // Only rows with columns (no comment row)
@@ -238,8 +229,8 @@ function update_row_language(row, decklist) {
 			node_empty(row.cells[2]) ;
 			row.cells[2].appendChild(document.createTextNode(string_limit(row.card, 25))) ;
 		} else
-			jQuery.getJSON('json/card.php', {'name': row.card, 'lang': deck_language.value},
-			function(data, b, c) {
+			xhrJson('json/card.php', {'name': row.card, 'lang': deck_language.value})
+			.then(function(data) {
 				var row = null
 				for ( var i = 0 ; i < decklist.rows.length ; i++ )
 					if ( decklist.rows[i].card == data.name )
@@ -762,7 +753,8 @@ function add_card(ext, name, num, nb, to) {
 	buttons.appendChild(img_button('button_cancel', 'Remove all', function(ev) { remove_card(row) ; })) ;
 	buttons.parentNode.classList.add('buttonlist') ;
 	// Ask server info about it
-	jQuery.getJSON('json/card.php', {'name': name, 'lang': deck_language.value}, function(data) {
+	xhrJson('json/card.php', {'name': name, 'lang': deck_language.value})
+	.then(function(data, get) {
 		// Search given extension in list returned by server
 		var i = 0 ; // By default, take first extension in list if given extension doesn't exists for this card
 		if ( ! iss(data.id) )
