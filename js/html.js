@@ -1,30 +1,43 @@
 // XHR
-function xhr(url, get, callback) {
-	if ( iso(get) ) {
-		var suffix = '' ;
-		Object.keys(get).forEach(function(idx) {
-			if ( suffix !== '' ) {
-				suffix += '&' ;
-			}
-			suffix += encodeURIComponent(idx) + '=' + encodeURIComponent(get[idx]) ;
-		}) ;
-		if ( suffix !== '' ) {
-			url += '?' + suffix ;
-		}
-	}
+function xhr(url, get) {
 	return new Promise((resolve, reject) => {
-		const xhr = new XMLHttpRequest() ;
-		if ( isf(callback) ) {
-			xhr.addEventListener('load', callback) ;
-		} else {
-			xhr.onload = () => resolve(xhr.responseText) ;
-			xhr.onerror = () => reject(xhr.statusText) ;
+		// Build full URL from GET
+		if ( iso(get) ) {
+			var suffix = '' ;
+			Object.keys(get).forEach(function(idx) {
+				if ( suffix !== '' ) {
+					suffix += '&' ;
+				}
+				suffix += encodeURIComponent(idx) + '=' + encodeURIComponent(get[idx]) ;
+			}) ;
+			if ( suffix !== '' ) {
+				url += '?' + suffix ;
+			}
 		}
+		// Run XHR
+		const xhr = new XMLHttpRequest() ;
+		xhr.onload = () => resolve(xhr.responseText) ;
+		xhr.onerror = () => reject(xhr.statusText) ;
 		xhr.open('GET', url) ;
 		xhr.send();
 	});
 }
-
+// XHR with automatic JSON management
+function xhrJson(url, get) {
+	return xhr(url, get)
+	.then(function xhrCallback(txtData) {
+		var data = null ;
+		try {
+			data = JSON.parse(txtData) ;
+		} catch (ex) {
+			console.log('xhrJson Exception in JSON.parse : ') ;
+			console.log(ex) ;
+			console.log('txtData : ') ;
+			console.log(txtData) ;
+		}
+		return data ;
+	}) ;
+}
 //HTML
 function replaceURLWithHTMLLinks(text, external) { // https://stackoverflow.com/questions/19547008/how-to-replace-plain-urls-with-links-with-example + external
 	var re = /(\(.*?)?\b((?:https?|ftp|file):\/\/[-a-z0-9+&@#\/%?=~_()|!:,.;]*[-a-z0-9+&@#\/%=~_()|])/ig;
