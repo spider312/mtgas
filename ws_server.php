@@ -1,5 +1,6 @@
 #!/php -q
 <?php
+ini_set('memory_limit', '10240M');
 // Manage process ident/unicity
 $pidfile = __DIR__.'/mtgas.pid' ;
 	// Get currently running
