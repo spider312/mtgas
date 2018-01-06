@@ -83,8 +83,8 @@ function load(body, deckname) {
 		}
 	}, false) ;
 	search_cards.addEventListener('submit', function(ev) { // Search form
-		search() ;
 		ev.preventDefault() ;
+		search() ;
 	}, false) ;
 	document.getElementById('clear_search').addEventListener('click', function(ev) {
 		document.getElementById('cardname').value = '' ;
@@ -542,7 +542,7 @@ function search() {
 	}
 	params.lang = deck_language.value ;
 	// Send search request
-	$.getJSON('json/cards.php', params, found) ;
+	xhrJson('json/cards.php', params).then(found) ;
 	var cardlist = document.getElementById('search_result') ;
 	selected = null ;
 	node_empty(cardlist) ;
