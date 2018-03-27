@@ -77,14 +77,6 @@ html_head(
     <td>Opponent gains 1 life</td>
    </tr>
    <tr>
-    <td>F11</td>
-    <td>You lose 1 life</td>
-   </tr>
-   <tr>
-    <td>F12</td>
-    <td>You gain 1 life</td>
-   </tr>
-   <tr>
     <td>Ctrl+d</td>
     <td>Draw</td>
    </tr>
