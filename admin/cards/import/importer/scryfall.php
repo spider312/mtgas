@@ -27,7 +27,7 @@ do {
 	}
 } while ( $list->has_more ) ;
 
-$imgPriorities = array('large', 'normal') ; // border_crop ?
+$imgPriorities = array('border_crop', 'large', 'normal') ; // border_crop ?
 // Parse results
 foreach ( $data as $card ) {
 	// URI
@@ -52,9 +52,26 @@ foreach ( $data as $card ) {
 	if ( $imgURI === null ) {
 		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
 	}
+	if ( $card->name === 'Feisty | Stegasaurus' ) { $card->name = 'Feisty Stegosaurus' ; }
+	if ( $card->name === 'Work Double' ) { $card->name = 'Work a Double' ; }
+	if ( $card->name === 'The Countdown Is At One' ) { $card->name = 'The Countdown Is at One' ; }
+	if ( $card->name === 'It That Gets Left HAnging' ) { $card->name = 'It That Gets Left Hanging' ; }
 	// Manage layout
 	switch ( $card->layout ) {
+		case 'augment' :
+			if ( preg_match('/Augment (?<cost>.*) \(/', $card->oracle_text, $matches) ) {
+				$card->mana_cost = $matches['cost'] ;
+				$card->oracle_text .= "\n" . 'Enchanted creature gets ' . $card->power . '/' . $card->toughness ;
+				$card->power = intval($card->power) ;
+				$card->toughness = intval($card->toughness) ;
+			} else {
+				echo "Invalid syntax for {$card->name}" ;
+			}
+		case 'host' :
 		case 'normal' :
+		if ( substr($card->type_line, 0, 5) === 'Basic' ) {
+			$rarity = 'L' ;
+		}
 			break ;
 		case 'transform' :
 			$verso = $card->card_faces[1] ;
