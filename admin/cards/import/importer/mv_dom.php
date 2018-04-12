@@ -144,6 +144,12 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 // Token
 	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::div") ; // HTML Element following table containing card navigator
 	$myel = $form_node->item(0);
+	/*
+	if ( count($importer->cards) >= $nbcards ) { // On-demand enabling of importer nb cards limit, for when tokens are detected as cards
+		//$importer->addtoken($href, $name, $pow, $tou, $img) ; // Commented because at this point we didn't extract pow/tou yet
+		continue ;
+	}
+	*/
 	if ( ! $myel->hasAttributes() ) { // div after table is "Autorisations en Tournois" and has class S14
 		$extratxt = $myel->nodeValue;
 		if ( preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches) ) { // Extract counters from extratxt
@@ -222,6 +228,9 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$types = str_replace(chr(194).chr(151), '-', $types) ;
 	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
 		$rarity = 'L' ;
+	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
+		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
+	}
 	// Text
 	$text_nodes = $card_xpath->query("//div[@class='S12' or @class='S11']") ; //div[@id='EngShort']
 	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
