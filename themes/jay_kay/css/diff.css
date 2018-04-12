@@ -21,5 +21,6 @@ del.diffdel {
 .diffmod { /* Force diffs to have a minimum width despite being inline */
 	display: inline-block ;
 	min-width: 10px ;
+	white-space: pre-wrap ;
 }
 
