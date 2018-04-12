@@ -203,23 +203,29 @@ class Importer {
 		if ( $name == '' )
 			return $this->adderror('Empty name', $card_url) ;
 		// Searching in already imported cards
-		foreach ( $this->cards as $card )
+		foreach ( $this->cards as $card ) {
 			if ( $card->name == $name ) {
-				$log = '' ;
-				foreach ( array('rarity', 'name', 'cost', 'types', 'text'/*, 'multiverseid'*/) as $val )
+				// Inform if card already imported is not identical
+				$differentData = false ;
+				//$log = '' ;
+				foreach ( array('rarity', 'name', 'cost', 'types', 'text'/*, 'multiverseid'*/) as $val ) {
 					if ( trim($$val) != $card->{$val} ) {
-						$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
+						$differentData = true ;
+						//$log .= ' - '.$val.' : '.$card->{$val}.' -> '.$$val."\n" ;
 						//$card->{$val} = $$val ;
 					}
-				if ( $log != '' ) // For Planeshift from MCI, has 3 promos as "special" rarity in list
-					echo 'Card already parsed with different data (ignored) : '.$name."\n".$log."\n" ;
-				else {
-					if ( $card->addimage($url) )
-						$card->nbimages++ ;
-					$card->addurl($card_url) ;
 				}
+				if ( $differentData ) {
+					$this->adderror('Card already parsed with different data : '.$name, $card_url) ;
+				}
+				// Add image URL anyway (Unstable alternative pics)
+				if ( $card->addimage($url) ) {
+					$card->nbimages++ ;
+				}
+				$card->addurl($card_url) ;
 				return $card ;
 			}
+		}
 		// Else it's a new card
 		$card = new ImportCard($this, $card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid) ;
 		$this->cards[] = $card ;
@@ -474,8 +480,8 @@ class Importer {
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
-					if ( count($images['images']) < 1 ) {
-						echo "No card images\n" ;
+					if ( !array_key_exists('images', $images) || (count($images['images']) < 1 ) ) {
+						echo "No card images for language $lang\n" ;
 						continue ;
 					}
 					echo " - $lang : " ;
@@ -506,7 +512,7 @@ class Importer {
 				$emblemname = trim($matches[1]) ; // May be just the type or the full name
 				$found = false ;
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
-					if ( split(' ', $card->types)[0] != 'Planeswalker' ) // Only parse planeswalker, with information aviable
+					if ( ! in_array('Planeswalker', split(' ', $card->types)) ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
 					if ( $emblemname === $card->name ) {
