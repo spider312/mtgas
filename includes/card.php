@@ -586,6 +586,15 @@ function manage_text($name, $text, $target) {
 		global $allcolorscode ;
 		$target->color = $allcolorscode[1] ;
 	}
+	if ( $text === 'Ascend' ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'Emblem' ;
+		$token->name = 'City\'s Blessing' ;
+		$target->tokens[] = $token ;
+		return;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
