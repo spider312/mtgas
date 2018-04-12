@@ -69,9 +69,9 @@ foreach ( $data as $card ) {
 			}
 		case 'host' :
 		case 'normal' :
-		if ( substr($card->type_line, 0, 5) === 'Basic' ) {
-			$rarity = 'L' ;
-		}
+			if ( substr($card->type_line, 0, 5) === 'Basic' ) {
+				$rarity = 'L' ;
+			}
 			break ;
 		case 'transform' :
 			$verso = $card->card_faces[1] ;
