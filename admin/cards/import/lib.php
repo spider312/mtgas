@@ -291,7 +291,7 @@ class Importer {
 			$origext = $ext ; // Save for getting release date & bloc
 			switch ( $this->type ) {
 				case 'main' :
-					$data = '{"c":10, "u":3, "r":1, "mps": "'.$ext.'I", "keywords": {}}' ;
+					$data = '{"c":10, "u":3, "r":1, "keywords": {}}' ;
 					break ;
 				case 'preview' :
 					$data = '{"l":1}' ;
