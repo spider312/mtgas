@@ -42,6 +42,8 @@ if ( ! needUpdate($raw_cache_file) ) {
 	FROM
 		`tournament`
 	WHERE
+		min_players > 1
+		AND
 		DATE(`creation_date`) < CURDATE() /* Dont select todays tournament as day is not finished thus not comparable with others */
 		AND
 		DATEDIFF(CURDATE(), `creation_date`) <= '.$period.'
