@@ -236,19 +236,22 @@ class Tournament {
 							break ;
 						case 2 :
 							$boost = $expl[0] ;
-							$nb = intval($expl[1]) ;
+							$nb = min(36, intval($expl[1])) ; // Cap value to avoid deamon crashes
 							break ;
 						default ;
 					}
 					$boost = strtoupper($boost) ;
-					if ( Extension::get($boost) == null )
+					if ( Extension::get($boost) == null ) {
 						return 'Extension '.$boost.' doesn\'t exist' ;
-					else
-						for ( $i = 0 ; $i < $nb ; $i++ ) 
+					} else {
+						for ( $i = 0 ; $i < $nb ; $i++ ) {
 							array_push($options->boosters, $boost) ;
+						}
+					}
 				}
-				if ( count($options->boosters) < 1 )
+				if ( count($options->boosters) < 1 ) {
 					return 'No parsable boosters' ;
+				}
 				break ;
 		}
 		// Other options
