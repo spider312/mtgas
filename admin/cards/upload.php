@@ -2,6 +2,13 @@
 include 'lib.php' ;
 
 $default_data = '{"uniq":true,"c":14}' ; // Default JSON to insert for created extensions
+$rarity = 'C' ;
+
+if ( false ) { // Creating a "preview" extension
+	$default_data = '{"l":1}' ;
+	$rarity = 'L' ;
+}
+
 // File upload/reuse
 $file_input = 'list' ;
 $dir = '/tmp/' ;
@@ -83,7 +90,7 @@ for ( $i = 0 ; $i < count($cards) ; $i++ ) {
 	if ( $res = mysql_fetch_object($query) ) {
 	} else {
 		if ( $apply)
-			query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`) VALUES ('$card_id', '$ext_id', 'C', '0') ;") ;
+			query("INSERT INTO card_ext (`card`, `ext`, `rarity`, `nbpics`) VALUES ('$card_id', '$ext_id', '$rarity', '0') ;") ;
 		$log .= 'Added to '.$ext ;
 	}
 	$log .= '</td>' ;
