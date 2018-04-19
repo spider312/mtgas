@@ -56,6 +56,9 @@ function network_loop() { // Things to do regulary
 						game.ended = true ; // Game ended by tournament, won't start siding
 						var param = JSON.parse(data.param) ;
 						var func_redirect = function() {
+							if ( game.options.get('debug') && ! confirm('redirect ?') ) {
+								return;
+							}
 							window.removeEventListener('beforeunload', onBeforeUnload, false) ;
 							document.location = 'tournament/?id='+tournament ;
 						}
