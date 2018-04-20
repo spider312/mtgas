@@ -928,18 +928,7 @@ function manage_text($name, $text, $target) {
 					}
 				}
 			}
-			$boost_bf = new stdClass() ;
-			// Amount boosted
-			$boost_bf->pow = 0 ;
-			$boost_bf->tou = 0 ;
-			if ( isset($match['pow']) ) {
-				$boost_bf->pow = intval($match['pow']) ;
-			}
-			if ( isset($match['tou']) ) {
-				$boost_bf->tou = intval($match['tou']) ;
-			}
-			// Shall it affect self (invert "other")
-			$boost_bf->self = true ;
+			$boost_bf = boost_bf($match) ;
 			if ( strpos($cond, 'other') > -1 ) {
 				$boost_bf->self = false ;
 				$cond = str_replace('other', '', $cond) ;
@@ -949,7 +938,6 @@ function manage_text($name, $text, $target) {
 				$cond = str_replace(strtolower($name), '', $cond) ;
 			}
 			// Whose creatures are affected
-			$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
 			if ( strpos($cond, 'you control') > -1 ) { // Yours
 				$boost_bf->control = 1 ;
 				$cond = str_replace('you control', '', $cond) ;
@@ -1091,7 +1079,7 @@ function manage_text($name, $text, $target) {
 				$applied_attrs = apply_all_creat_attrs($boost_bf, $match['attrs']) ;
 			}
 			$boost_bf->eot = $eot ;
-			if ( ! isset($boost_bf->enabled) ) { // Not already set
+			if ( $boost_bf->enabled ) { // Not already changed from its default value
 				if ( isset($target->permanent) && ( $target->permanent === false ) ) { // Spells (ex: Overrun)
 					$boost_bf->enabled = true; // enabled by default
 				} else {
@@ -1104,6 +1092,13 @@ function manage_text($name, $text, $target) {
 				return;
 			}
 		}
+	}
+	if ( preg_match("#Each other creature you control that's a (?<type1>.*) or (?<type2>.*) gets (?<pow>$boost)\/(?<tou>$boost)#", $text, $match) ) {
+		$boost_bf = boost_bf($match) ;
+		$boost_bf->self = false ;
+		$boost_bf->control = 1 ;
+		$boost_bf->cond = strtolower('ctype='.$match['type1'].'|ctype='.$match['type2']) ;
+		$target->boost_bf[] = $boost_bf ;
 	}
 	// Animate
 	if ( preg_match('/((?<cost>.*)\s*:\s*)?(?<eot>Until end of turn, )?'.addcslashes($name, '/').' (.* it )?becomes an? (?<pow>\d)\/(?<tou>\d) (?<rest>.*)/', $text, $matches) ) {
@@ -1325,5 +1320,24 @@ function conditionnal_poly_boost($target, $matches, $text) { // Parses text afte
 			$target->powtoucond->other = true ;
 	} //else 
 		//msg($name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;
+}
+function boost_bf($match) {
+	$boost_bf = new stdClass() ;
+	// Amount boosted ($match is passed instead of pow/tou because the mechanism may be used for non pow/tou boost)
+	$boost_bf->pow = 0 ;
+	$boost_bf->tou = 0 ;
+	if ( isset($match['pow']) ) {
+		$boost_bf->pow = intval($match['pow']) ;
+	}
+	if ( isset($match['tou']) ) {
+		$boost_bf->tou = intval($match['tou']) ;
+	}
+	// Shall it affect self (invert "other")
+	$boost_bf->self = true ;
+	// Whose creatures are affected
+	$boost_bf->control = 0 ; // Default : No "control" indication : crusade, lord of atlantis ...
+	$boost_bf->eot = false ; // Permanent by default
+	$boost_bf->enabled = true; // Enabled by default
+	return $boost_bf ;
 }
 ?>
