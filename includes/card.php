@@ -967,6 +967,11 @@ function manage_text($name, $text, $target) {
 							case 'nontoken':
 								$type_cond[] = "class=card" ;
 								break ;
+							// Supertype
+							case 'legendary' :
+							case 'commander' : // Let's consider it as a supertype for now (changeling should not been boosted)
+								$type_cond[] = "stype=$token" ;
+								break ;
 							// Card type, not creature type
 							case 'instant' : // Soulfire Grand Master
 							case 'sorcery' :
