@@ -776,6 +776,7 @@ function manage_text($name, $text, $target) {
 						break ;
 					case 'an opponent' : // Unmanaged, just there to avoid error message
 					case 'no opponent' :
+					case 'any player' :
 						break ;
 					default:
 						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
