@@ -353,23 +353,30 @@ function virtual_unselzones(result) { // Unselzones + life (targeting)
 	}
 	result.mouseover = function(ev) {
 		if ( game.target.tmp != null ) { // Targeting in progress
-			if ( game.current_targeting == this ) 
+			if ( game.current_targeting == this ) { // Enter again in zone which the target 
 				game.target.tmp.stop(null) ;
-			else
+			} else {
 				game.target.tmp.over(this) ;
+			}
+			this.refresh() ;
 		}
 	}
 	result.mouseout = function(ev) {
-		if ( ( game.card_under_mouse != null ) && ( isf(this.mousemove) ) )
+		if ( ( game.card_under_mouse != null ) && ( isf(this.mousemove) ) ) {
 			this.mousemove(ev) ; // Left a zone, if a card was under mouse, it probably isn't anymore
-		if ( game.target.tmp != null )
+		}
+		if ( game.target.tmp != null ) {
 			game.target.tmp.out(this) ;
-		else if ( game.current_targeting == this ) 
+		} else if ( game.current_targeting == this ) {
 			game.target.start(this, ev) ;
+		}
+		this.refresh() ;
 	}
 	result.mouseup = function(ev) {
-		if ( game.target.tmp != null )
+		if ( game.target.tmp != null ) {
 			game.target.tmp.stop(this) ;
+			this.refresh() ;
+		}
 	}
 	return result ;
 }
