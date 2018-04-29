@@ -441,9 +441,11 @@ function Turn(game) {
 	// Step triggers
 	this.trigger_step = function() { // Triggers step specific action then next step (or delegate to step action the step nexting)
 		this.triggering = false ;
-		if ( isf(this.steps[this.step].func) ) { // Current step is triggerable
+		var step = this.steps[this.step] ;
+		var func = step.func ;
+		if ( isf(func) ) { // Current step is triggerable
 			this.button.disabled = true ;
-			this.triggering = this.steps[this.step].func(this) ; // Trigger it
+			this.triggering = func(this) ; // Trigger it
 			if ( ! this.triggering ) // If it didn't block, next step
 				this.incstep() ;
 		} else // Not triggerable
@@ -467,19 +469,22 @@ function Turn(game) {
 			// Check if lists are open before changing step
 			var fl = this.current_player.focuslists() ;
 			fl += this.current_player.opponent.focuslists() ;
-			if ( fl != '' )
+			if ( fl != '' ) {
 				game.infobulle.set('Please close lists : '+fl) ;
-			else  {
+			} else {
 				// Check for stopped steps between
-				if ( n > this.step )
-					for ( var i = this.step ; i < n ; i++ )
+				if ( n > this.step ) { // Only if incrementing step
+					for ( var i = this.step ; i < n ; i++ ) {
 						if ( this.steps[i].stoped ) {
 							message('Opponent required a stop at step '+this.steps[i].name) ;
-							if ( i == this.step )
+							if ( i == this.step ) {
 								return i ;
-							else
+							} else {
 								n = i ;
+							}
 						}
+					}
+				}
 				// Go to desired step
 				result = this.setstep_recieve(n) ;
 				action_send('step', {'step': result}) ;
