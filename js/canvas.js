@@ -280,19 +280,22 @@ function draw() {
 }
 function display_start() {
 	game.display.count = 0 ;
-	window.setInterval(draw_timer, 40) ;
 	game.display.time = 0 ;
-	game.display.bench = 'Uninitialized' ;
+	game.display.bench = 'Counting frames during 1 sec' ;
 	window.setInterval(debug_timer, 1000) ;
+	draw_timer() ;
 }
 function debug_timer() {
-	var txt = 'Display : '+Math.round(game.display.time / game.display.count)+'ms' ;
+	var mean_frame_time = game.display.time / game.display.count ;
+	var display_time = Math.round(mean_frame_time * 100) /100 ;
+	var txt = 'FPS : '+game.display.count+' ('+display_time+'ms)' ;
 	//txt += ' '+game.card_under_mouse ;
 	game.display.bench = txt ;
 	game.display.count = 0 ;
 	game.display.time = 0 ;
 }
 function draw_timer() {
+	requestAnimationFrame(draw_timer) ;
 	var begin = bench() ;
 	// Background
 	game.context.clearRect(0, 0, game.canvas.width, game.canvas.height) ;
