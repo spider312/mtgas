@@ -7,10 +7,15 @@ $setURL = $baseURL . 'sets/' . $ext_source ;
 $importer->init($setURL) ;
 $json = cache_get($setURL, $basePath, $verbose, false, $importer->cachetime) ;
 $set = json_decode($json) ;
+if ( $set === null ) {
+	echo "<a href=\"$setURL\">Unparsable JSON</a> : $json" ;
+	die() ;
+}
 $importer->setext($set->code, $set->name, $set->card_count) ;
 
 // Get cards pages
-$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
+//$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
+$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+not:pwdeck+not:buyabox' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 $data = array() ;
 $page = 0 ;
 do {
@@ -68,6 +73,7 @@ foreach ( $data as $card ) {
 				echo "Invalid syntax for {$card->name}" ;
 			}
 		case 'host' :
+		case 'saga' :
 		case 'normal' :
 			if ( substr($card->type_line, 0, 5) === 'Basic' ) {
 				$rarity = 'L' ;
