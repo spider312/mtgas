@@ -595,6 +595,9 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
+	if ( preg_match('/Partner with (.+)/', $text, $matches) ) {
+		$target->partner = $matches[1] ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
@@ -649,9 +652,11 @@ function manage_text($name, $text, $target) {
 								$target->ciptc = 'this.zone.player.controls({"types": "land"})>3' ;
 							} elseif ( $matches[1] == 'unless you control two or more basic lands' ) {
 								$target->ciptc = '(this.zone.player.controls({"supertypes": "basic"})<2)' ;
-							} elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $matches ) ) {
-								$target->ciptc = '(this.zone.player.controls({"subtypes": "'.strtolower($matches[1]).'"})==0)' ;
-								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($matches[2]).'"})==0)' ;
+							} elseif ( preg_match('/^unless you control an? (.*) or an? (.*)$/', $matches[1], $submatches ) ) {
+								$target->ciptc = '(this.zone.player.controls({"subtypes": "'.strtolower($submatches[1]).'"})==0)' ;
+								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($submatches[2]).'"})==0)' ;
+							} elseif ( $matches[1] === 'unless you have two or more opponents') {
+								$target->tapped = true ;
 							} else // Unmanaged
 								echo $name.' : '.$words[0].' : '.$matches[1]."\n" ;
 							break ;
@@ -796,7 +801,7 @@ function manage_text($name, $text, $target) {
 			conditionnal_poly_boost($target, $matches, $matches['what']) ;
 	}
 	// Attach/Equip-boost
-	if ( preg_match('/(Equipped|Enchanted) (creature|permanent) gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
+	if ( preg_match('/(Equipped|Enchanted) (creature|permanent)( is legendary,)? gets '.$boosts.'(?<after>.*)/', $text, $matches) ) {
 		if ( strpos($matches['after'], 'until end of turn') === FALSE ) { // Umezawa's Jitte
 			if ( preg_match('/for each (?<what>.*)/', $matches['after'], $matches_after) ) {
 				conditionnal_poly_boost($target, $matches, $matches_after['what']) ;
