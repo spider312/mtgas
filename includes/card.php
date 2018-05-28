@@ -461,6 +461,7 @@ function parse_creature($name, $text_lines, $target) { // Creatures : pow/tou
 	return $text_lines ;
 }
 function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty counters, steps, emblems
+	// Loyalty counters
 	if ( preg_match('/^\%?(\d+)\#?$/', $pieces[0], $matches) ) {
 		$target->counter = intval($matches[1]) ;
 		array_shift($pieces) ;
@@ -470,7 +471,8 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 	}
 	// Steps
 	$target->steps = array() ;
-	foreach ( $pieces as $piece )
+	foreach ( $pieces as $piece ) {
+		$managed = false ;
 		if (
 			preg_match('/\[([+-]?[\dX]+)\]/', $piece, $matches) // Spoilers with [+1]
 			|| preg_match('/\|([+-]?[\dX]+)\|/', $piece, $matches) // Spoilers with |+1|
@@ -489,9 +491,14 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 				manage_text($name, $matches[1], $token->attrs) ;
 				$target->tokens[] = $token ;
 				manage_text($name, $matches[2], $target) ;
-			} else
-				manage_text($name, $piece, $target) ;
+				$managed = true ;
+			}
 		}
+		// Text that is not a loyalty counter line nor an emblem line
+		if ( ! $managed ) { // && ( $piece !== "$name can be your commander")
+			manage_text($name, $piece, $target) ;
+		}
+	}
 	return array() ;
 	//return $pieces ;
 }
