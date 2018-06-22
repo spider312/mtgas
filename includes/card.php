@@ -484,6 +484,10 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $piece, $matches) ) {
 				$token = new stdClass() ;
 				$token->nb = 1 ;
+				if ( count($target->subtypes) < 1 ) {
+					echo 'Missing subtypes for '.$name ;
+					return ;
+				}
 				$token->name = 'Emblem.'.$target->subtypes[0] ;
 				$token->attrs = new stdClass() ;
 				$token->attrs->types = array('emblem') ;
