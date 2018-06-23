@@ -249,7 +249,7 @@ function Pool(player) {
 			this.player.toggle(card, strfrom) ;
 			// Send
 			game.connection.send({"type": "toggle", "cardname": card.name, "from": strfrom}) ;
-		//}
+		}
 		if ( ! multiple )
 			this.display() ;
 	}
