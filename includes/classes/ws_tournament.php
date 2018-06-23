@@ -460,7 +460,7 @@ class Tournament {
 				$this->say("Extension $ext not found in keywords") ;
 				continue ;
 			}
-			if ( is_object($ext_obj->data->keywords) ) {
+			if ( property_exists($ext_obj->data, 'keywords') && is_object($ext_obj->data->keywords) ) {
 				foreach( $ext_obj->data->keywords as $name => $value ) {
 					$result->{$name} = $value ;
 				}
