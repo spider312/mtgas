@@ -15,7 +15,8 @@ $importer->setext($set->code, $set->name, $set->card_count) ;
 
 // Get cards pages
 //$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
-$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+not:pwdeck+not:buyabox' ; // First page URL has to be generated in order to contain selectors for "booster like" list
+$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
+$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.':booster' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 $data = array() ;
 $page = 0 ;
 do {
@@ -35,6 +36,9 @@ do {
 $imgPriorities = array('border_crop', 'large', 'normal') ; // border_crop ?
 // Parse results
 foreach ( $data as $card ) {
+	if ( ( $importer->type === 'preview' ) && ( $card->rarity !== 'mythic' ) && ( $card->rarity !== 'rare') ) {
+		continue ;
+	}
 	// URI
 	$uri = $card->uri ;
 	// Rarity
@@ -42,21 +46,6 @@ foreach ( $data as $card ) {
 	$rarity = substr($rarity, 0, 1) ;
 	$rarity = strtoupper($rarity) ;
 	$verso = null ;
-	// Img
-	if ( ! property_exists($card, 'image_uris') ) {
-		$importer->adderror('No image', $card->scryfall_uri) ;
-		continue;
-	}
-	$imgURI = null ;
-	foreach ( $imgPriorities as $imgType ) {
-		if ( property_exists($card->image_uris, $imgType ) ) {
-			$imgURI = $card->image_uris->{$imgType} ;
-			break ;
-		}
-	}
-	if ( $imgURI === null ) {
-		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
-	}
 	if ( $card->name === 'Feisty | Stegasaurus' ) { $card->name = 'Feisty Stegosaurus' ; }
 	if ( $card->name === 'Work Double' ) { $card->name = 'Work a Double' ; }
 	if ( $card->name === 'The Countdown Is At One' ) { $card->name = 'The Countdown Is at One' ; }
@@ -98,6 +87,26 @@ foreach ( $data as $card ) {
 	// Types
 	$types = $card->type_line ;
 	$types = str_replace('—', '-', $types) ; // Historical more-standard char
+	// Image
+	if ( ! property_exists($card, 'image_uris') ) {
+		$importer->adderror('No image', $card->scryfall_uri) ;
+		continue;
+	}
+	$imgURI = null ;
+	foreach ( $imgPriorities as $imgType ) {
+		if ( property_exists($card->image_uris, $imgType ) ) {
+			$imgURI = $card->image_uris->{$imgType} ;
+			break ;
+		}
+	}
+	if ( $imgURI === null ) {
+		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
+	}
+	// Last minute management of importer type
+	if ( $importer->type === 'preview' ) {
+		$rarity = 'L' ;
+		$imgURI = null ;
+	}
 	// Add card
 	$imported = $importer->addcard($uri, $rarity, $card->name, $cost, $types, card2text($card), $imgURI) ;
 	if ( $imported === null ) {
@@ -111,7 +120,8 @@ foreach ( $data as $card ) {
 		if ( $nbcolors > 0 ) {
 			$color = $verso->color_identity[count($verso->color_identity)-1] ;
 		}
-		$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $verso->image_uris->border_crop) ;
+		$versoImgURI = ( $importer->type === 'preview' ) ? null : $verso->image_uris->border_crop ;
+		$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $versoImgURI) ;
 	}
 }
 
