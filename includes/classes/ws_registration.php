@@ -115,11 +115,13 @@ class Registration {
 		return false ;
 	}
 		// Lands in maindeck
-	public function add($name, $nb) {
+	public function add($card, $nb) {
+		$card = Card::get($card->name, $card->ext) ;
+		if ( $card == null ) {
+			return;
+		}
 		for ( $i = 0 ; $i < $nb ; $i++ ) {
-			$card = Card::get($name) ;
-			if ( $card != null )
-				$this->deck_obj->main[] = $card ;
+			$this->deck_obj->main[] = $card ;
 		}
 		$this->summarize() ;
 	}

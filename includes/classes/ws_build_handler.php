@@ -29,7 +29,7 @@ class BuildHandler extends LimitedHandler {
 		}
 		switch ( $data->type ) {
 			case 'add' :
-				$user->player->add($data->cardname, $data->nb) ;
+				$user->player->add($data->card, $data->nb) ;
 				$user->tournament->send('tournament', 'build') ;
 				$this->broadcast_following($user->player) ;
 				break ;

@@ -15,6 +15,7 @@ function start(id, pid) {
 	game = {} ;
 	game.image_cache = new image_cache() ;
 	game.options = new Options() ;
+	landext = game.options.get('baseland_extensions') ; ;
 	game.tournament = new Tournament(id) ;
 	game.spectators = new Spectators(function(msg, span) { // Message display
 		// Messages are managed via the "log" mechanism which triggers after spectator recieving
@@ -79,24 +80,6 @@ function start(id, pid) {
 	}, function(ev) { // OnClose/OnConnect
 	}, wsregistration) ;
 	if ( pid == '' ) {
-		var landbase = function(id, name, mana) {
-			return {
-				'id': id, 'name': name,
-				'ext': 'UST', 'rarity': 'L', 'ext_img': 'UST',
-				'attrs': {
-					'manas': [], 'converted_cost': 0, 'color': 'X', 'color_index': 1,
-					'types': ['land'], 'supertypes': ['basic'],
-					'provide': [mana]
-				},
-				toString: function() { return this.name+"\n" ; } } ;
-		}
-		arr_base_land = [
-			landbase(6871, 'Plains', 'W'),
-			landbase(4621, 'Island', 'U'),
-			landbase(9266, 'Swamp', 'B'),
-			landbase(6020, 'Mountain', 'R'),
-			landbase(3332, 'Forest', 'G')
-		] ;
 		// GUI events
 		ready.addEventListener('change', function(ev) { // On click
 			game.connection.send({"type": "ready", "ready": ev.target.checked}) ;
@@ -225,7 +208,7 @@ function Pool(player) {
 	}
 	// Basic lands in main
 	this.add = function(card, nb) {
-		game.connection.send({"type": "add", "cardname": card.name, "nb": nb}) ;
+		game.connection.send({"type": "add", "card": card, "nb": nb}) ;
 		for ( var j = 0 ; j < nb ; j++ ) {
 			this.player.deck_obj.main.push(card) ;
 			this.main.cards.push(new Card(card)) ;
@@ -253,11 +236,14 @@ function Pool(player) {
 			var from = this.main ;
 		var to = (from==this.side) ? this.main : this.side ;
 		from.cards.splice(i, 1) ;
-		/*if ( inarray('basic', card.card.attrs.supertypes) ) {
+		if (
+			inarray('basic', card.card.attrs.supertypes)
+			&& ! inarray('snow', card.card.attrs.supertypes)
+		) {
 			game.connection.send({"type": "remove", "cardname": card.name}) ;
 			this.player.deck_obj.main.splice(i, 1) ;
 			this.player.remove(card) ;
-		} else {*/
+		} else {
 			to.cards.push(card) ;
 			var strfrom = (from==this.side) ? 'side' : 'main' ;
 			this.player.toggle(card, strfrom) ;
@@ -731,67 +717,23 @@ function generate_base_land() {
 		hider.classList.add('hider') ;
 		document.body.appendChild(hider) ;
 		// Title
-		container.appendChild(create_h(1,'Basic lands'))
+		container.appendChild(create_h(1,'Basic lands')) ;
 		// Table
-		var table = create_element('table') ;
-		// Count lands and basic lands in deck
-		var blindeck = {}
-		for ( var i = 0 ; i < arr_base_land.length ; i++ )
-			blindeck[arr_base_land[i].name] = 0 ;
-		for ( var i = 0 ; i < game.tournament.me.pool.main.cards.length ; i++ ) {
-			var card = game.tournament.me.pool.main.cards[i] ;
-			if ( inarray('land', card.attrs.types) && inarray('basic', card.attrs.supertypes) )
-				blindeck[card.name]++
-		}
+		var table = create_element('table') ; // Before select because table will be used in select event
+		// Extension select
+		var land_ext = create_select() ;
+		Object.keys(baseland_extensions).forEach(function(ext) {
+			land_ext.add(create_option(baseland_extensions[ext], ext)) ;
+		}) ;
+		land_ext.value = landext ;
+		land_ext.addEventListener('change', function(ev) {
+			node_empty(table) ;
+			landext = ev.target.value ;
+			add_land_lines(table, landext) ;
+		}, false) ;
+		container.appendChild(land_ext) ;
 		container.appendChild(table) ;
-		for ( var i = 0 ; i < arr_base_land.length ; i++ ) {
-			var land = arr_base_land[i] ;
-			var tr = table.insertRow(-1) ;
-			// Image
-			var td = tr.insertCell(-1) ;
-			var land_div = create_div(land.name) ;
-			td.appendChild(land_div)
-			land_div.classList.add('card') ;
-			land_div.classList.add('L') ;
-			var urls = card_images(card_image_url(land.ext_img, land.name, land.attrs.nb)) ;
-			game.image_cache.load(urls, function(img, div) {
-				node_empty(div) ; // Erase name wrotten while loading
-				img.draggable = false ;
-				div.appendChild(img) ;
-			}, function(div, url) {}, land_div) ;
-			// Buttons & input
-			var add = function(land, input) {
-				return function(ev) {
-					game.tournament.me.pool.add(land, 1) ;
-					input.value = parseInt(input.value)+1 ;
-					game.tournament.me.pool.display() ;
-				}
-			}
-			var del = function(land, input) {
-				return function(ev) {
-					var val = parseInt(input.value) ;
-					if ( val > 0 ) {
-						game.tournament.me.pool.remove(land) ;
-						input.value = val-1 ;
-					}
-				}
-			}
-			var input = create_input() ;
-			land.input = input ;
-			input.size = 2 ;
-			input.value = blindeck[land.name] ;
-			input.tabIndex = i+1 ;
-			var td = tr.insertCell(-1) ;
-			td.appendChild(create_button('-', del(land, input))) ;
-			td.appendChild(input) ;
-			td.appendChild(create_button('+', add(land, input))) ;
-			if ( i == 0 )
-				input.select() ;
-			// Events on image
-			land_div.addEventListener('contextmenu', del(land, input), false) ;
-			land_div.addEventListener('click', add(land, input), false) ;
-			land_div.addEventListener('mousedown', eventStop, false) ;
-		}
+		add_land_lines(table, land_ext.value) ;
 		// Close button
 		var button = create_button(create_img(theme_image('deckbuilder/button_cancel.png')[0]), function(ev) {
 			var hider = document.getElementById('basic_lands').parentNode ;
@@ -805,4 +747,89 @@ function generate_base_land() {
 		style.marginLeft = '-'+Math.ceil(container.clientWidth/2)+'px' ;
 		style.marginTop = '-'+Math.ceil(container.clientHeight)+'px' ;
 	}, false) ;
+}
+function add_land_lines(table, ext) {
+	var arr_base_land = [
+		landbase(6871, 'Plains', 'W', ext),
+		landbase(4621, 'Island', 'U', ext),
+		landbase(9266, 'Swamp', 'B', ext),
+		landbase(6020, 'Mountain', 'R', ext),
+		landbase(3332, 'Forest', 'G', ext)
+	] ;
+	// Count lands and basic lands in deck
+	var blindeck = {}
+	for ( var i = 0 ; i < arr_base_land.length ; i++ )
+		blindeck[arr_base_land[i].name] = 0 ;
+	for ( var i = 0 ; i < game.tournament.me.pool.main.cards.length ; i++ ) {
+		var card = game.tournament.me.pool.main.cards[i] ;
+		if ( inarray('land', card.attrs.types) && inarray('basic', card.attrs.supertypes) )
+			blindeck[card.name]++
+	}
+	// Fill table
+	for ( var i = 0 ; i < arr_base_land.length ; i++ ) {
+		var land = arr_base_land[i] ;
+		var tr = table.insertRow(-1) ;
+		// Image
+		var td = tr.insertCell(-1) ;
+		var land_div = create_div(land.name) ;
+		td.appendChild(land_div)
+		land_div.classList.add('card') ;
+		land_div.classList.add('L') ;
+		var urls = card_images(card_image_url(land.ext_img, land.name, land.attrs.nb)) ;
+		game.image_cache.load(urls, function(img, div) {
+			node_empty(div) ; // Erase name wrotten while loading
+			img.draggable = false ;
+			div.appendChild(img) ;
+		}, function(div, url) {}, land_div) ;
+		// Buttons & input
+		var add = function(land, input) {
+			return function(ev) {
+				game.tournament.me.pool.add(land, 1) ;
+				input.value = parseInt(input.value)+1 ;
+				game.tournament.me.pool.display() ;
+			}
+		}
+		var del = function(land, input) {
+			return function(ev) {
+				var val = parseInt(input.value) ;
+				if ( val > 0 ) {
+					game.tournament.me.pool.remove(land) ;
+					input.value = val-1 ;
+				}
+			}
+		}
+		var input = create_input() ;
+		land.input = input ;
+		input.size = 2 ;
+		input.value = blindeck[land.name] ;
+		var td = tr.insertCell(-1) ;
+		td.appendChild(create_button('-', del(land, input))) ;
+		td.appendChild(input) ;
+		td.appendChild(create_button('+', add(land, input))) ;
+		input.tabIndex = i+1 ;
+		if ( i == 0 )
+			input.select() ;
+		// Events on image
+		land_div.addEventListener('contextmenu', del(land, input), false) ;
+		land_div.addEventListener('click', add(land, input), false) ;
+		land_div.addEventListener('mousedown', eventStop, false) ;
+	}
+}
+function landbase(id, name, mana, ext) {
+	var tokens = ext.split('/') ;
+	var nb = null ;
+	if ( tokens.length > 1 ) {
+		ext = tokens[0] ;
+		nb = parseInt(tokens[1]) ;
+	}
+	return {
+		'id': id, 'name': name,
+		'ext': ext, 'rarity': 'L', 'ext_img': ext,
+		'attrs': {
+			'manas': [], 'converted_cost': 0, 'color': 'X', 'color_index': 1,
+			'types': ['land'], 'supertypes': ['basic'],
+			'provide': [mana], 'nb': nb
+		},
+		toString: function() { return this.name+"\n" ; }
+	} ;
 }

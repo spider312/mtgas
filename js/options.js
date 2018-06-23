@@ -313,7 +313,7 @@ function Options(check_id) {
 	}
 		// Options
 	this.tab_options = function(container) { // Base options, render all fields grouped inside fieldset
-		for ( var i in {'Appearence': true, 'Behaviour': true, 'Debug': true} ) {
+		for ( var i in {'Appearence': true, 'Behaviour': true, 'Builder': true, 'Debug': true} ) {
 			var group = this.groups[i] ;
 			var fieldset = create_fieldset(i) ;
 			for ( var j in group )
@@ -468,6 +468,8 @@ function Options(check_id) {
 	this.add('Behaviour', 'place_noncreatures', 'Place non-creature', 'Where to place non-creature cards by default (when double clicked) on battlefield', 'top', positions) ; 
 	this.add('Behaviour', 'place_lands', 'Place land', 'Where to place land cards by default (when double clicked) on battlefield', 'bottom', positions) ;
 	this.add('Behaviour', 'check_preload_image', 'Preload images', 'Every card image will be preloaded at the begining of the game instead of waiting its first display', true) ;
+		// Builder
+	this.add('Builder', 'baseland_extensions', 'Basic lands extension', 'Default extension for basic lands in builder', 'UNH', baseland_extensions) ;
 			// Debug
 	this.add('Debug', 'debug', 'Debug mode', 'Logs message (non blocking errors, debug informations) will be displayed as chat messages instead of being sent to a hidden console (Ctrl+L), and debug options are added to menus', false) ;
 		// Notifications

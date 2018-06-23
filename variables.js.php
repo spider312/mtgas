@@ -17,6 +17,7 @@ default_avatar = '<?php echo $default_avatar ; ?>' ;
 fallback_avatar = '<?php echo $fallback_avatar ; ?>' ;
 wshost = '<?=$wshost;?>' ;
 wsport = <?=$wsport;?> ;
+baseland_extensions = <?=json_encode($baseland_extensions) ; ?> ;
 
 // Options
 	// Lang
