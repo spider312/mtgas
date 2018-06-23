@@ -47,6 +47,8 @@ $(function() { // On page load
 		var sortobj = {} ;
 		if ( ev.target.rarity.value != '' )
 			sortobj.rarity = ev.target.rarity.value ;
+		if ( ev.target.type.value != '' )
+			sortobj.type = ev.target.type.value ;
 		if ( ev.target.text.value != '' )
 			sortobj.text = ev.target.text.value ;
 		update_list(sortobj) ;

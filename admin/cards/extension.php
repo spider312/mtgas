@@ -55,6 +55,7 @@ $lines = explode("\n", $data);
 
   <form id="filter">
    Rarity : <input type="text" name="rarity">
+   Type : <input type="text" name="type">
    Text : <input type="text" name="text">
    <input type="submit" name="filter" value="filter">
   </form>
