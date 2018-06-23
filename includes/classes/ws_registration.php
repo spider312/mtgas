@@ -116,7 +116,11 @@ class Registration {
 	}
 		// Lands in maindeck
 	public function add($card, $nb) {
-		$card = Card::get($card->name, $card->ext) ;
+		$name = $card->name ;
+		if ( is_numeric($card->attrs->nb) ) {
+			$name .= ' ('.$card->attrs->nb.')' ;
+		}
+		$card = Card::get($name, $card->ext) ;
 		if ( $card == null ) {
 			return;
 		}
