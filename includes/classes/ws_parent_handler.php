@@ -102,6 +102,9 @@ class ParentHandler extends WebSocketUriHandler {
 					$user->close() ;
 				}
 		}
+		if ( ! array_key_exists($data->type, $this->observer->bench[get_class($this)]) ) {
+			$this->observer->bench[get_class($this)][$data->type] = 0 ;
+		}
 		$this->observer->bench[get_class($this)][$data->type] += microtime(true) - $begin ;
 	}
 }
