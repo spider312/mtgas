@@ -1,6 +1,7 @@
 <?php
 $baseURL = 'https://api.scryfall.com/' ; // API URL
 $basePath = 'cache/'.$source.'_'.$ext_source ; // Local cache file path
+$imgPriorities = array('border_crop', 'large', 'normal') ; // border_crop ?
 
 // Get set data
 $setURL = $baseURL . 'sets/' . $ext_source ;
@@ -36,7 +37,6 @@ do {
 	}
 } while ( $list->has_more ) ;
 
-$imgPriorities = array('border_crop', 'large', 'normal') ; // border_crop ?
 // Parse results
 foreach ( $data as $card ) {
 	if ( ( $importer->type === 'preview' ) && ( $card->rarity !== 'mythic' ) && ( $card->rarity !== 'rare') ) {
@@ -48,11 +48,10 @@ foreach ( $data as $card ) {
 	$rarity = $card->rarity ; // Full word
 	$rarity = substr($rarity, 0, 1) ;
 	$rarity = strtoupper($rarity) ;
+	// Faces
+	$recto = $card ;
 	$verso = null ;
-	if ( $card->name === 'Feisty | Stegasaurus' ) { $card->name = 'Feisty Stegosaurus' ; }
-	if ( $card->name === 'Work Double' ) { $card->name = 'Work a Double' ; }
-	if ( $card->name === 'The Countdown Is At One' ) { $card->name = 'The Countdown Is at One' ; }
-	if ( $card->name === 'It That Gets Left HAnging' ) { $card->name = 'It That Gets Left Hanging' ; }
+	$imageFace = $card ; // Face hosting image, distinction between flip & transform
 	// Manage layout
 	switch ( $card->layout ) {
 		case 'augment' :
@@ -72,9 +71,11 @@ foreach ( $data as $card ) {
 			}
 			break ;
 		case 'transform' :
+			$imageFace = $card->card_faces[0] ; // Recto hosts main image for transform
+		case 'flip' :
+			$recto = $card->card_faces[0] ;
 			$verso = $card->card_faces[1] ;
 			$verso->color_identity = $card->color_identity ;
-			$card = $card->card_faces[0] ;
 			break ;
 		case 'token' :
 			$importer->addtoken($uri, $card->name, $card->power, $card->toughness, $imgURI) ;
@@ -83,22 +84,24 @@ foreach ( $data as $card ) {
 			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
 			continue 2 ;
 	}
+	// Name
+	$name = $recto->name ;
 	// Cost
-	$cost = $card->mana_cost ;
+	$cost = $recto->mana_cost ;
 	$cost = str_replace('/', '', $cost) ; // Remove / from hybrids
 	$cost = preg_replace('/{(.)}/', '\1', $cost) ; // Transform non-hybrid (1 char length) mana to mana letter
 	// Types
-	$types = $card->type_line ;
+	$types = $recto->type_line ;
 	$types = str_replace('—', '-', $types) ; // Historical more-standard char
 	// Image
-	if ( ! property_exists($card, 'image_uris') ) {
+	if ( ! property_exists($imageFace, 'image_uris') ) {
 		$importer->adderror('No image', $card->scryfall_uri) ;
 		continue;
 	}
 	$imgURI = null ;
 	foreach ( $imgPriorities as $imgType ) {
-		if ( property_exists($card->image_uris, $imgType ) ) {
-			$imgURI = $card->image_uris->{$imgType} ;
+		if ( property_exists($imageFace->image_uris, $imgType ) ) {
+			$imgURI = $imageFace->image_uris->{$imgType} ;
 			break ;
 		}
 	}
@@ -111,9 +114,9 @@ foreach ( $data as $card ) {
 		$imgURI = null ;
 	}
 	// Add card
-	$imported = $importer->addcard($uri, $rarity, $card->name, $cost, $types, card2text($card), $imgURI) ;
+	$imported = $importer->addcard($uri, $rarity, $name, $cost, $types, card2text($recto), $imgURI) ;
 	if ( $imported === null ) {
-		$importer->adderror('Card not added', $card->scryfall_uri) ;
+		$importer->adderror('Card not added', $recto->scryfall_uri) ;
 		continue ;
 	}
 	// Manage multi-faces layout
@@ -123,8 +126,17 @@ foreach ( $data as $card ) {
 		if ( $nbcolors > 0 ) {
 			$color = $verso->color_identity[count($verso->color_identity)-1] ;
 		}
-		$versoImgURI = ( $importer->type === 'preview' ) ? null : $verso->image_uris->border_crop ;
-		$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $versoImgURI) ;
+		switch ( $card->layout ) {
+			case 'flip' :
+				$imported->flip($verso->name, $verso->type_line, card2text($verso)) ;
+				break ;
+			case 'transform' :
+				$versoImgURI = ( $importer->type === 'preview' ) ? null : $verso->image_uris->border_crop ;
+				$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $versoImgURI) ;
+				break ;
+			default :
+				die('Unknown verso layout : '.$card->layout) ;
+		}
 	}
 }
 
