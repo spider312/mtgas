@@ -70,6 +70,7 @@ html_menu() ;
        <?=html_option('main', 'Main', $importtype) ; ?>
        <?=html_option('preview', 'Preview', $importtype) ; ?>
        <?=html_option('pwdecks', 'Planewalker Decks', $importtype) ; ?>
+       <?=html_option('all', 'All', $importtype) ; ?>
       </select>
 	 </label>
 	 <label>Cache time<input type="text" name="cache_time" value="<?=$cache_time?>">

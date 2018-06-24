@@ -290,18 +290,21 @@ class Importer {
 		else {
 			$origext = $ext ; // Save for getting release date & bloc
 			switch ( $this->type ) {
-				case 'main' :
+				case 'main' : // Classical set (bought in form of boosters
 					$data = '{"c":10, "u":3, "r":1, "keywords": {}}' ;
 					break ;
-				case 'preview' :
+				case 'preview' : // Extension containing only rares & mythics with "land" rarity to add one rare like in previews
 					$data = '{"l":1}' ;
 					$ext .= 'P' ;
 					$this->name .= ' - Previews' ;
 					break ;
-				case 'pwdecks' :
+				case 'pwdecks' : // Other cards from extension not present in boosters (planeswalkers decks and other kind of products like that)
 					$data = '{}' ;
 					$ext .= 'PW' ;
 					$this->name .= ' - Planeswalker Decks' ;
+					break ;
+				case 'all' : // Sets that does not follow this logic such as preconstructed
+					$data = '{}' ;
 					break ;
 				default:
 					die("Incorrect import type : ".$this->type) ;

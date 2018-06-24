@@ -14,9 +14,12 @@ if ( $set === null ) {
 $importer->setext($set->code, $set->name, $set->card_count) ;
 
 // Get cards pages
-//$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
-$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
-$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.':booster' ; // First page URL has to be generated in order to contain selectors for "booster like" list
+if ( $importer->type === 'all' ) {
+	$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
+} else {
+	$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
+	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.':booster+unique:prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
+}
 $data = array() ;
 $page = 0 ;
 do {
