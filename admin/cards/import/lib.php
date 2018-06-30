@@ -199,6 +199,7 @@ class Importer {
 		$name = card_name_sanitize($oldname) ;
 		$text = card_text_sanitize($text) ;
 		$types = preg_replace('#\s+#', ' ', $types) ;
+		$types = str_replace(chr(194).chr(160), ' ', $types) ;
 		$cost = strtoupper($cost) ;
 		if ( $name == '' )
 			return $this->adderror('Empty name', $card_url) ;
