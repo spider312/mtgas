@@ -709,6 +709,7 @@ function found(data) {
 function img_button(imgname, title, onclick) {
 	var img = create_img(theme_image('deckbuilder/'+imgname+'.png')[0], 'imgname', title) ;
 	img.addEventListener('click', onclick, false) ;
+	img.addEventListener('dblclick', eventStop, false) ;
 	return img ;
 }
 function add_card(ext, name, num, nb, to) {
