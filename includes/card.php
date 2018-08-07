@@ -1080,6 +1080,9 @@ function manage_text($name, $text, $target) {
 									case 'dwarves': 
 										$token = 'dwarf';
 										break ;
+									case 'elves':
+										$token = 'elf' ;
+										break ;
 								}
 								// Plurals - Generic
 								if ( substr($token, -1) === 's' ) {
