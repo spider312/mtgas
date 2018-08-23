@@ -68,7 +68,7 @@ class GameServer {
 		Possible values : EMERG, ALERT, CRIT, ERR, WARN, NOTICE, INFO, DEBUG
 		Errors are displayed in a normal use case in WARN and ERR levels, that's why CRIT is the chosen one
 		*/
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::CRIT);
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::DEBUG) ;
 		$writer->addFilter($filter);
 			// Also log to a file
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
@@ -76,8 +76,18 @@ class GameServer {
 		//$writer2->addFilter($filter);
 		// WebSocket server
 		$this->loop = \React\EventLoop\Factory::create();
-		$this->server = new \Devristo\Phpws\Server\WebSocketServer("tcp://0.0.0.0:$wsport",
-			$this->loop, $this->logger);
+		$this->server = new \Devristo\Phpws\Server\WebSocketServer("tcp://0.0.0.0:$wsport", $this->loop, $this->logger);
+		// Websocket secure server
+		$wssport = $wsport + 1 ;
+		global $wshost ;
+		$privkey = '../cert/'.$wshost.'/privkey.pem' ;
+		$certificate = '../cert/'.$wshost.'/fullchain.pem' ;
+		$this->ssl_server = new \Devristo\Phpws\Server\WebSocketServer("ssl://0.0.0.0:$wssport", $this->loop, $this->logger);
+		$context = stream_context_create();
+		stream_context_set_option($context, 'ssl', 'local_pk', $privkey) ;
+		stream_context_set_option($context, 'ssl', 'local_cert', $certificate) ;
+		stream_context_set_option($context, 'ssl', 'verify_peer', false) ;
+		$this->ssl_server->setStreamContext($context);
 		// Handlers
 		$this->index = new IndexHandler($this->logger, $this, 'index') ;
 		$this->tournament = new TournamentIndexHandler($this->logger, $this, 'tournament') ;
@@ -94,6 +104,13 @@ class GameServer {
 		$router->addRoute('#^/draft#i', $this->draft);
 		$router->addRoute('#^/build#i', $this->build);
 		$router->addRoute('#^/admin#i', $this->admin);
+		$router_ssl = new \Devristo\Phpws\Server\UriHandler\ClientRouter($this->ssl_server,$this->logger);
+		$router_ssl->addRoute('#^/index#i', $this->index);
+		$router_ssl->addRoute('#^/game#i', $this->game);
+		$router_ssl->addRoute('#^/tournament#i', $this->tournament);
+		$router_ssl->addRoute('#^/draft#i', $this->draft);
+		$router_ssl->addRoute('#^/build#i', $this->build);
+		$router_ssl->addRoute('#^/admin#i', $this->admin);
 		// Params
 		global $ts3 ;
 		$this->ts3 = $ts3 ;
@@ -201,7 +218,8 @@ class GameServer {
 		$this->check() ;
 		$this->check_tournaments() ;
 		// Bind the server
-		$this->server->bind();
+		$this->server->bind() ;
+		$this->ssl_server->bind() ;
 		// Start the event loop
 		$this->say('Starting server') ;
 		$this->loop->run();
