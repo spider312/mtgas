@@ -223,7 +223,13 @@ function Connexion(path, onmessage, onclose, registration_data) {
 		// GUI
 	this.indicator_color('violet', 'initializing') ;
 		// params
-	this.baseurl = 'ws://'+wshost+':'+wsport+'/' ;
+	this.port = wsport ;
+	this.protocol = 'ws:' ;
+	if ( location.protocol === 'https:' ) {
+		this.port++ ;
+		this.protocol = 'wss:' ;
+	}
+	this.baseurl = this.protocol+'//'+wshost+':'+this.port+'/' ;
 	this.url = this.baseurl ;
 	if ( iss(path) ) this.url += path ;
 	if ( isf(onmessage) ) this.onmessage = onmessage ;
