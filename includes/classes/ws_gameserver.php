@@ -68,7 +68,7 @@ class GameServer {
 		Possible values : EMERG, ALERT, CRIT, ERR, WARN, NOTICE, INFO, DEBUG
 		Errors are displayed in a normal use case in WARN and ERR levels, that's why CRIT is the chosen one
 		*/
-		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::DEBUG) ;
+		$filter = new Zend\Log\Filter\Priority(\Zend\Log\Logger::ERR) ;
 		$writer->addFilter($filter);
 			// Also log to a file
 		//$writer2 = new Zend\Log\Writer\Stream('/path/to/logfile');
