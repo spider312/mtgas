@@ -264,9 +264,9 @@ function menu_add($name, $url, $title='', $new_tab=false) {
 	return $menu_entries ;
 }
 function html_menu($additionnal_entries=null) {
-	global $menu_entries, $url, $index_image ;
+	global $menu_entries, $indexUrl, $index_image ;
 	echo '   <header class="section">'."\n" ;
-	echo '    <a id="mainpage" title="'.__('menu.main.title').'" href="'.$url.'">
+	echo '    <a id="mainpage" title="'.__('menu.main.title').'" href="'.$indexUrl.'">
 	<img src="'.theme_image($index_image).'" alt="'.__('menu.main.title').'">
 	</a> - '."\n" ;
 	foreach ( $menu_entries as $i => $entry ) {
