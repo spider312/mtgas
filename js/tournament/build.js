@@ -675,18 +675,27 @@ function Card(card) {
 		// left and/or top
 		// never display zoom on top of cursor (it would interact with mouse* events) and make cards 
 		// always readable
+		var zw = zoom.clientWidth ;
+		var zh = zoom.clientHeight ;
+		// Manage rotated coordinates for split
+		if ( zoom.classList.contains('split') ) {
+			zw = zoom.clientHeight ;
+			zh = zoom.clientWidth ;
+		}
 		var xoffset = 10 ;
 		var x = ev.clientX + xoffset ; // cursor's right
-		if ( x + zoom.clientWidth > window.innerWidth ) // Outside inner screen
-			x = ev.clientX - zoom.clientWidth - xoffset ; // cursor's left
+		if ( x + zw > window.innerWidth ) { // Outside inner screen
+			x = ev.clientX - zw - xoffset ; // cursor's left
+		}
 		zoom.style.left = max(x, 0)+'px' ;
 		var yoffset = 10 ;
 		var y = ev.clientY + yoffset ; // cursor's bottom
-		if ( y + zoom.clientHeight > window.innerHeight ) { // Outside inner screen
-			y = ev.clientY - zoom.clientHeight - yoffset ; // cursor's top
+		if ( y + zh > window.innerHeight ) { // Outside inner screen
+			y = ev.clientY - zh - yoffset ; // cursor's top
 			zoom.classList.add('displaytop') ;
-		} else
+		} else {
 			zoom.classList.remove('displaytop') ;
+		}
 		zoom.style.top = max(y, 0)+'px' ;
 	}
 	this.info = function() {
