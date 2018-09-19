@@ -224,6 +224,18 @@ class Extension {
 				echo 'Not enough commons leftin ext '.$ext." ($nb_c/".count($cards['C']).")\n" ;
 			}
 		}
+		// Manage "guilds" (preview boosters specific to a guild)
+		$guilds = $this->get_data('guilds', null) ;
+		if ( $guilds !== null ) {
+			$guild = $guilds[rand(0, count($guilds)-1)] ;
+			$ext = Extension::get($guild) ;
+			if ( $ext === null ) {
+				echo 'Guild extension not found : '.$this->se.'/'.$guild."\n" ;
+			} else {
+				$guildboost = $ext->booster($upool) ;
+				$result = array_merge($result, $guildboost) ;
+			}
+		}
 		return $result ;
 	}
 	static function r_or_m($cards) {
