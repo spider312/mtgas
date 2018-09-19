@@ -205,7 +205,7 @@ class Importer {
 			return $this->adderror('Empty name', $card_url) ;
 		// Searching in already imported cards
 		foreach ( $this->cards as $card ) {
-			if ( $card->name == $name ) {
+			if ( ( $card->name == $name ) || ( $card->url === $card_url ) ) {
 				// Inform if card already imported is not identical
 				$differentData = false ;
 				//$log = '' ;
@@ -217,12 +217,14 @@ class Importer {
 					}
 				}
 				if ( $differentData ) {
-					$this->adderror('Card already parsed with different data : '.$name, $card_url) ;
+					$this->adderror('Card already parsed with different data', $card_url) ;
 				}
 				// Add image URL anyway (Unstable alternative pics)
+				/*
 				if ( $card->addimage($url) ) {
 					$card->nbimages++ ;
 				}
+				*/
 				$card->addurl($card_url) ;
 				return $card ;
 			}
@@ -582,6 +584,11 @@ class ImportCard {
 	}
 	// Dual
 	function split($name, $cost, $types, $text) {
+		$pos = strpos($this->name, $name) ;
+		if ( $pos !== false ) {
+			$this->ext->adderror('Split : '.$name.' already in '.$this->name, $this) ;
+			return false ;
+		}
 		$this->name .= ' / '.$name ;
 		$this->addtext("----\n$cost\n$types\n$text") ;
 	}
