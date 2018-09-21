@@ -112,12 +112,14 @@ function card_text_sanitize($text) {
 	$text = preg_replace('/ ?\([^)]*\([^()]*?\)[^(]*\)/', '', $text) ; // UGLY workaround for parenthesis contained in parenthesis on MV
 	$text = preg_replace('/ ?\(.*?\)/', '', $text) ; // Remove helper texts
 	$text = preg_replace('/ *— */', ' - ', $text) ;
-	$text = str_replace('–', '-', $text) ;
-	$text = str_replace(chr(151), '-', $text) ;
-	$text = str_replace(chr(149), '*', $text) ;
 	$text = str_replace("\r\n", "\n", $text) ; // Keep only one type of carriage return
+	$text = str_replace('–', '-', $text) ;
+	$text = str_replace(chr(194).chr(146), "'", $text) ;
+	$text = str_replace(chr(146), "'", $text) ;
 	$text = str_replace(chr(147), '"', $text) ;
 	$text = str_replace(chr(148), '"', $text) ;
+	$text = str_replace(chr(149), '*', $text) ;
+	$text = str_replace(chr(151), '-', $text) ;
 	//$text = card_name_sanitize($text) ; // Same card name in card text than in card
 	$text = html_entity_decode($text) ;
 	$pieces = mb_split('\n|  ', $text) ; // Trim each line
