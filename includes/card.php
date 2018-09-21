@@ -563,6 +563,9 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Eternalize ('.$manacost.')/', $text, $matches) ) {
 		$target->eternalize = manacost($matches[1]) ;
 	}
+	if ( preg_match('/Jump-start/', $text, $matches) ) {
+		$target->jumpstart = true ;
+	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
 		$target->vanishing = true ;

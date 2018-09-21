@@ -499,6 +499,7 @@ function graveyard(player) {
 				var embalmsubmenu = new menu_init(this) ;
 				var aftermathsubmenu = new menu_init(this) ;
 				var eternalizesubmenu = new menu_init(this) ;
+				var jumpstartsubmenu = new menu_init(this) ;
 				for ( var i in this.cards ) {
 					var card = this.cards[i] ;
 					if ( card.is_creature() ) {
@@ -555,6 +556,11 @@ function graveyard(player) {
 						}, card);
 						l.moimg = card.imgurl() ;
 					}
+					if ( isb(card.attrs.jumpstart) ) {
+						var l = jumpstartsubmenu.addline(card.name, card.changezone, this.player.battlefield) ;
+						l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
 
 				}
 				var addline = false ;
@@ -584,6 +590,10 @@ function graveyard(player) {
 				}
 				if ( aftermathsubmenu.items.length > 0 ) {
 					menu.addline('Aftermath ('+aftermathsubmenu.items[0].length+')', aftermathsubmenu) ;
+					addline = true ;
+				}
+				if ( jumpstartsubmenu.items.length > 0 ) {
+					menu.addline('Jump-start ('+jumpstartsubmenu.items[0].length+')', jumpstartsubmenu) ;
 					addline = true ;
 				}
 				if ( eternalizesubmenu.items.length > 0 ) {
