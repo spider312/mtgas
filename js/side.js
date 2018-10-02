@@ -68,9 +68,20 @@ function side_start_recieve(player, winner) {
 	but_reload.id = 'button_reload' ;
 		// OK
 	var but_ok = create_button(create_img(theme_image('deckbuilder/button_ok.png')[0], 'OK'), function(ev) {
-		side_in_out(deck_ul, player.library) ; // Side in
-		side_in_out(side_ul, player.sideboard) ; // Side out
-		side_close(side_window) ;
+		// Check cards number
+		var nb = 0 ;
+		deck_ul.childNodes.forEach((li) => {
+			for ( var j in li.cards ) {
+				nb++ ;
+			}
+		}) ;
+		if ( nb < 40 ) {
+			alert('Your deck should contain at least 40 cards') ;
+		} else {
+			side_in_out(deck_ul, player.library) ; // Side in
+			side_in_out(side_ul, player.sideboard) ; // Side out
+			side_close(side_window) ;
+		}
 	}, 'Validate side') ;
 	but_ok.id = 'button_ok' ;
 		// Cancel
