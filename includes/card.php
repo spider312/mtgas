@@ -788,11 +788,12 @@ function manage_text($name, $text, $target) {
 							// Unmanageable
 							case ( $m['what'] === 'three or more artifacts' ): // Impossible to detect the number of cards satisfying condition
 							case ( $m['what'] === 'eight or more lands' ):
+							case ( $m['what'] === 'ten or more lands' ):
 							case ( $m['what'] === 'no untapped lands' ): // Impossible to detect tapped lands nor their absence
 							case ( $m['what'] === 'your commander' ): // Impossible to detect a commander card nor wether it's on the battlefield (it's stored there by many users)
 								break;
 							default :
-								msg("No pow/tou condition found for $name : $text") ;
+								msg("No pow/tou condition found for $name : ".$m['what']) ;
 						}
 						break ;
 					case 'an opponent' : // Unmanaged, just there to avoid error message
