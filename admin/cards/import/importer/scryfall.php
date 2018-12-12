@@ -19,13 +19,16 @@ if ( $importer->type === 'all' ) {
 	$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
 } else {
 	$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
-	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.':booster+unique:prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
+	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.'=booster&unique=prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 }
 $data = array() ;
 $page = 0 ;
 do {
 	// Fetch page
 	$json = cache_get($pageURL, $basePath . '_p' . ($page++), $verbose, false, $importer->cachetime) ;
+	if ( strlen($json) === 0 ) {
+		die('Empty response') ;
+	}
 	// Parse page
 	$list = json_decode($json) ;
 	$data = array_merge($data, $list->data) ;
@@ -73,6 +76,11 @@ foreach ( $data as $card ) {
 		case 'transform' :
 			$imageFace = $card->card_faces[0] ; // Recto hosts main image for transform
 		case 'flip' :
+			$recto = $card->card_faces[0] ;
+			$verso = $card->card_faces[1] ;
+			$verso->color_identity = $card->color_identity ;
+			break ;
+		case 'split' :
 			$recto = $card->card_faces[0] ;
 			$verso = $card->card_faces[1] ;
 			$verso->color_identity = $card->color_identity ;
@@ -127,6 +135,10 @@ foreach ( $data as $card ) {
 			$color = $verso->color_identity[count($verso->color_identity)-1] ;
 		}
 		switch ( $card->layout ) {
+			case 'split' :
+				$cost = str_replace(array('{', '}'), '', $verso->mana_cost) ; // Transform cost from icon representation to textual representation
+				$imported->split($verso->name, $cost, $verso->type_line, card2text($verso)) ;
+				break ;
 			case 'flip' :
 				$imported->flip($verso->name, $verso->type_line, card2text($verso)) ;
 				break ;
