@@ -221,7 +221,7 @@ class Extension {
 			}
 		} else {
 			if ( $nb_c > 0 ) {
-				echo 'Not enough commons leftin ext '.$ext." ($nb_c/".count($cards['C']).")\n" ;
+				echo 'Not enough commons leftin ext '.$this->se." ($nb_c/".count($cards['C']).")\n" ;
 			}
 		}
 		// Manage "guilds" (preview boosters specific to a guild)
