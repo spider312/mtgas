@@ -220,11 +220,9 @@ class Importer {
 					$this->adderror('Card already parsed with different data', $card_url) ;
 				}
 				// Add image URL anyway (Unstable alternative pics)
-				/*
 				if ( $card->addimage($url) ) {
 					$card->nbimages++ ;
 				}
-				*/
 				$card->addurl($card_url) ;
 				return $card ;
 			}
@@ -586,7 +584,7 @@ class ImportCard {
 	function split($name, $cost, $types, $text) {
 		$pos = strpos($this->name, $name) ;
 		if ( $pos !== false ) {
-			$this->ext->adderror('Split : '.$name.' already in '.$this->name, $this) ;
+			$this->ext->adderror('Split : Trying to re-add second face', $this) ;
 			return false ;
 		}
 		$this->name .= ' / '.$name ;
