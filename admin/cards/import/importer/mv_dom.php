@@ -179,7 +179,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 				continue 2 ;
 
 			case 'Story Spotlight': // Normal cards included in extension
-				if ( $importer->type !== 'main' ) { continue 2 ; }
+				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue 2 ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 				break;
 
