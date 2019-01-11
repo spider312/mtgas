@@ -1,6 +1,6 @@
 <?php
 // MV Constants
-$base_url = 'http://www.magic-ville.com/fr/' ;
+$base_url = 'https://www.magic-ville.com/fr/' ;
 $mana_url = 'graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
@@ -9,8 +9,7 @@ $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 $import_url = $base_url.'set_cards.php?setcode='.$ext_source.'&lang=eng' ;
 $importer->init($import_url) ;
 $ext_path = 'cache/'.$source.'_'.$ext_source ;
-$html = cache_get($importer->url, $ext_path, $verbose, true, $importer->cachetime) ; // Update && limit cache life time for this file
-
+$html = cache_get($importer->url, $ext_path, $verbose, false, $importer->cachetime) ; // Update && limit cache life time for this file
 // DOM parsing
 libxml_use_internal_errors(true) ; // No warnings during parsing
 $dom = new DOMDocument ;
@@ -48,8 +47,11 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	$href = $base_url.$href ;
 	// Download
 	$path = $ext_path . '_' . $i ;
-	$card_html = cache_get($href, $path, $verbose, true, $importer->cachetime) ;
-	$card_dom->loadHTML($card_html);
+	$card_html = cache_get($href, $path, $verbose, false, $importer->cachetime) ;
+	if ( empty($card_html) || ! $card_dom->loadHTML($card_html) ) {
+		$importer->adderror('Downloaded content unparsable : '.$card_html, $href) ;
+		continue;
+	}
 	$card_xpath = new DOMXpath($card_dom);
 // Parsing
 // Required for tokens
@@ -384,6 +386,9 @@ function mv_dom_node2cost($node) {
 			|| ( $mana === 'UG' )
 		) { 
 			$mana = substr($mana, 1) . $mana[0] ; 
+		}
+		if ( $mana === 'WR' ) {
+			$mana = 'RW' ;
 		}
 		if ( strlen($mana) > 1 ) { // Group multiple mana symbols (hybrid, phyrexian)
 			$mana = '{'.$mana.'}' ;
