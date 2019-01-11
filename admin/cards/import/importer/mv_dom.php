@@ -228,6 +228,7 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 	}
 	$types = trim($types) ;
 	$types = str_replace(chr(194).chr(151), '-', $types) ;
+	$types = str_replace(chr(194).chr(150), '-', $types) ;
 	if ( strpos($types, 'Gate') !== false ) // DGM Gates must be considered as a land in DB
 		$rarity = 'L' ;
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
