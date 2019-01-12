@@ -614,6 +614,18 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Partner with (.+)/', $text, $matches) ) {
 		$target->partner = $matches[1] ;
 	}
+	if ( preg_match('/Afterlife (\d+)/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = intval($matches[1]) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'creature' ;
+		$token->attrs->subtypes[] = 'spirit' ;
+		$token->attrs->pow = 1 ;
+		$token->attrs->thou = 1 ;
+		$token->attrs->color = 'WB' ;
+		$token->name = 'Spirit' ;
+		$target->tokens[] = $token ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
