@@ -927,6 +927,20 @@ function manage_text($name, $text, $target) {
 		$token->name = "Energy Reserve" ;
 		$target->tokens[] = $token ;
 	}
+	// Amass
+	if ( preg_match('/[A|a]mass (?<number>\d)/', $text, $match) ) {
+		$token = new stdClass() ;
+		$nb = text2number($match['number'], 1) ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->color = 'b' ;
+		$token->attrs->types = array("zombie", "army") ;
+		$token->attrs->pow = $nb ;
+		$token->attrs->thou = $nb ;
+		$token->attrs->counter = $nb ;
+		$token->name = "Zombie Army" ;
+		$target->tokens[] = $token ;
+	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
