@@ -160,34 +160,32 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 		} else {
 			$nbt = -1 ;
 		}
-		switch ( $extratxt ) {
-			case '' : // extratxt is only a counter, card is a token
-				if ( $importer->type !== 'main' ) { continue 2 ; }
-				$nb_token_found++ ;
-				if ( $nb_token_expected === 0 ) { // First time
-					$nb_token_expected = $nbt ;
-				}
-				if ( $nbt != $nb_token_expected ) {
-					$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt, $href) ;
-				}
-				$pow = '' ; $tou = '' ;
-				if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
-					$pow = intval($matches['pow']) ;
-					$tou = intval($matches['tou']) ;
-				}
-				$importer->addtoken($href, $name, $pow, $tou, $img) ;
-				continue 2 ;
-
-			case 'Story Spotlight': // Normal cards included in extension
-				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue 2 ; }
+		if ( $extratxt === '' ) { // extratxt is only a counter, card is a token
+			if ( $importer->type !== 'main' ) { continue ; }
+			$nb_token_found++ ;
+			if ( $nb_token_expected === 0 ) { // First time
+				$nb_token_expected = $nbt ;
+			}
+			if ( $nbt != $nb_token_expected ) {
+				$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt, $href) ;
+			}
+			$pow = '' ; $tou = '' ;
+			if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
+				$pow = intval($matches['pow']) ;
+				$tou = intval($matches['tou']) ;
+			}
+			$importer->addtoken($href, $name, $pow, $tou, $img) ;
+			continue ;
+		} else {
+			if ( strpos($extratxt, 'Spotlight') !== false ) { // Normal cards included in extension
+				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
-				break;
-
-			default: // Only import PW Decks cards in PW Decks context
+			} else { // Only import PW Decks cards in PW Decks context
 				if ( ( $importer->type !== 'pwdecks' ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
 					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
-					continue 2 ;
+					continue ;
 				}
+			}
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
