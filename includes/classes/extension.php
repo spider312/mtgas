@@ -107,8 +107,31 @@ class Extension {
 		return false ;
 	}
 	// Generate a booster : returns a list of randomly chosen cards which properties are defined in extension data
-	// Booster is generated in reverse order, as random cards (normal foils, masterpieces) take a common slot
+	// Try to generate boosters, and validate one from its extension condition
 	public function booster(&$upool) { // upool is current user pool, for unicity
+		$cond = $this->get_data('cond', '') ;
+		$tokens = explode('=', $cond) ;
+		$field = $tokens[0] ;
+		$value = $tokens[1] ;
+		for ( $i = 0 ; $i < 50 ; $i++ ) {
+			$booster = $this->booster_try($upool) ;
+			if ( $field === '' ) {
+				return $booster ;
+			} else {
+				foreach( $booster as $j => $card ) {
+					$values = $card->attrs->{$field} ;
+					if ( array_search($value, $values) !== false ) {
+						echo $field.' found in booster '."$j\n" ;
+						return $booster ;
+					}
+				}
+			}
+		}
+		return $booster ;
+	}
+	// Booster generation itself
+	// Booster is generated in reverse order, as random cards (normal foils, masterpieces) take a common slot
+	public function booster_try(&$upool) { // upool is current user pool, for unicity
 		// Make sure cache is up2date
 		$this->get_cards() ;
 		// Get booster params from extension
