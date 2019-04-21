@@ -14,7 +14,7 @@ class Extension {
 	public $cards_nb = 0 ;
 	private $cards = array() ; // All cards
 	private $cards_rarity = array() ; // Cards grouped by rarity
-	private $cards_tr = array() ; // Transform cards
+	private $cards_apart = array() ; // Apart cards won't be included in normal booster generation, but added with own rules (Transform, forced legendary or planeswalker)
 	static $cache = array() ;
 	public function __construct($ext) { // Recieves a line from DB
 		$this->id = $ext->id ;
@@ -37,13 +37,20 @@ class Extension {
 			$this->cards[] = $card ;
 			$this->cards_nb = count($this->cards) ;
 			if ( 
-				(
-					$this->get_data('transform', false) 
-					|| $this->get_data('transform2', false) 
+				( // Transform
+					(
+						$this->get_data('transform', false) 
+						|| $this->get_data('transform2', false) 
+					)
+					&& property_exists($card->attrs, 'transformed_attrs')
 				)
-				&& property_exists($card->attrs, 'transformed_attrs')
+				||
+				( // Forced planeswalker
+					$this->get_data('planeswalker', false)
+					&& ( array_search('planeswalker', $card->attrs->types) !== false )
+				)
 			) {
-				$dest =& $this->cards_tr ;
+				$dest =& $this->cards_apart ;
 			} else {
 				$dest =& $this->cards_rarity ;
 			}
@@ -107,31 +114,8 @@ class Extension {
 		return false ;
 	}
 	// Generate a booster : returns a list of randomly chosen cards which properties are defined in extension data
-	// Try to generate boosters, and validate one from its extension condition
-	public function booster(&$upool) { // upool is current user pool, for unicity
-		$cond = $this->get_data('cond', '') ;
-		$tokens = explode('=', $cond) ;
-		$field = $tokens[0] ;
-		$value = $tokens[1] ;
-		for ( $i = 0 ; $i < 50 ; $i++ ) {
-			$booster = $this->booster_try($upool) ;
-			if ( $field === '' ) {
-				return $booster ;
-			} else {
-				foreach( $booster as $j => $card ) {
-					$values = $card->attrs->{$field} ;
-					if ( array_search($value, $values) !== false ) {
-						echo $field.' found in booster '."$j\n" ;
-						return $booster ;
-					}
-				}
-			}
-		}
-		return $booster ;
-	}
-	// Booster generation itself
 	// Booster is generated in reverse order, as random cards (normal foils, masterpieces) take a common slot
-	public function booster_try(&$upool) { // upool is current user pool, for unicity
+	public function booster(&$upool) { // upool is current user pool, for unicity
 		// Make sure cache is up2date
 		$this->get_cards() ;
 		// Get booster params from extension
@@ -146,6 +130,7 @@ class Extension {
 		$transform2 = $this->get_data('transform2', false) ; // Transformable, 2nd wave (SOI)
 		$foil = $this->get_data('foil', 0) ; // Forced foils (Modern Masters)
 		$mps = $this->get_data('mps', '') ; // Masterpieces
+		$planeswalker = $this->get_data('planeswalker', false) ;
 		// Init
 		$result = array() ; // Generated booster's cards
 		$foil_able = true ; // A booster may only have one foil added (forced foil, masterpiece, normal foil), keep a track of this
@@ -200,24 +185,46 @@ class Extension {
 		if ( $transform ) {
 			$r = '' ; // Transform rarity
 			$n = rand(1, 14) ;
-			if ( $n > 13 )		$r = Extension::r_or_m($this->cards_tr) ;
+			if ( $n > 13 )		$r = Extension::r_or_m($this->cards_apart) ;
 			elseif ( $n > 10 )	$r = 'U' ;
 			else				$r = 'C' ;
-			if ( array_key_exists($r, $this->cards_tr) ) {
-				$this->rand_card($this->cards_tr[$r], $result, $upool) ;
+			if ( array_key_exists($r, $this->cards_apart) ) {
+				$this->rand_card($this->cards_apart[$r], $result, $upool) ;
 			} else {
 				$nb_c++ ;
 			}
 		}
 		if ( $transform2 ) {
 			// Each booster contains 1 transform, common or uncommon
-			$tr_c = array_merge($this->cards_tr['C'], $this->cards_tr['U']) ;
+			$tr_c = array_merge($this->cards_apart['C'], $this->cards_apart['U']) ;
 			$this->rand_card($tr_c, $result, $upool) ;
 			// Once over 8 boosters, 1 uncommon is replaced by 1 transform, rare or mythic
 			if ( ( rand(1, 8) == 1 ) && ( $nb_u > 0 ) ) {
 				$nb_u-- ;
-				$tr_r = array_merge($this->cards_tr['R'], $this->cards_tr['R'], $this->cards_tr['M']) ; // Rares appears twice than mythics
+				$tr_r = array_merge($this->cards_apart['R'], $this->cards_apart['R'], $this->cards_apart['M']) ; // Rares appears twice than mythics
 				$this->rand_card($tr_r, $result, $upool) ;
+			}
+		}
+		// Planeswalker
+		if ( $planeswalker ) {
+			// Combining all rarities PW in one array
+			$pws = array() ;
+			foreach ( $this->cards_apart as $apart ) {
+				$pws = array_merge($pws, $apart) ;
+			}
+			// Add one random card from this array
+			$this->rand_card($pws, $result, $upool) ;
+			// Remove one card of the rarity from normal booster generation
+			switch ( $result[0]->rarity ) {
+				case 'M' :
+				case 'R' :
+					$nb_r-- ;
+					break ;
+				case 'U' :
+					$nb_u-- ;
+					break ;
+				default :
+					$nb_c-- ;
 			}
 		}
 		// Normal generation
