@@ -68,6 +68,7 @@ foreach ( $data as $card ) {
 			}
 		case 'host' :
 		case 'saga' :
+		case 'leveler' :
 		case 'normal' :
 			if ( substr($card->type_line, 0, 5) === 'Basic' ) {
 				$rarity = 'L' ;
