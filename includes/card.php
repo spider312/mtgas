@@ -855,9 +855,9 @@ function manage_text($name, $text, $target) {
 	// Token creation
 	$colreg = implode('|', $colors) ;
 	if (
-		preg_match_all('/Create (?<number>\w+) (?<tapped>tapped )?(?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) (?<types>[\w| ]+ creature) tokens? that\'s all colors(?<attrs> with .*)?/', $text, $all_matches, PREG_SET_ORDER)
+		preg_match_all('/Create (?<number>\w+) (?<tapped>tapped )?(?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) (?<types>[\w| ]+ creature) tokens? that\'s all colors(?<attrs> with (?<with>.*))?/', $text, $all_matches, PREG_SET_ORDER)
 		||
-		preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) tokens?(?<attrs> with .*)?/', $text, $all_matches, PREG_SET_ORDER)
+		preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) tokens?(?<attrs> with (?<with>.*))?/', $text, $all_matches, PREG_SET_ORDER)
 	) {
 	// Godsire, Hazezon Tamar
 	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
@@ -892,6 +892,9 @@ function manage_text($name, $text, $target) {
 			if ( array_key_exists('attrs', $matches) ) {
 				apply_all_creat_attrs($token->attrs, $matches['attrs']) ;
 			}
+			if ( array_key_exists('with', $matches) ) {
+				manage_text($name, $matches['with'], $token->attrs) ;
+			}
 			$target->tokens[] = $token ;
 			return;
 		}
@@ -917,6 +920,16 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
+	if ( preg_match('#create (?<number>\w+) Treasure tokens#', $text, $match) ) {
+		$token = new stdClass() ;
+		$token->nb = text2number($match['number'], 1) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$name = 'Treasure' ;
+		$token->name = $name ;
+		$target->tokens[] = $token ;
+		return;
+	}
 	// The Monarch
 	if ( preg_match('/the monarch/', $text, $matches) ) {
 		$token = new stdClass() ;
@@ -936,7 +949,7 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 	}
 	// Amass
-	if ( preg_match('/[A|a]mass (?<number>\d)/', $text, $match) ) {
+	if ( preg_match('/[A|a]mass (?<number>\d|X)/', $text, $match) ) {
 		$token = new stdClass() ;
 		$nb = text2number($match['number'], 1) ;
 		$token->nb = 1 ;
