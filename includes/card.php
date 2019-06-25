@@ -720,7 +720,7 @@ function manage_text($name, $text, $target) {
 			$target->thou += $target->counter * intval($matches['tou']) ;
 		}
 		// Conditionnal pow and tou (*/*)
-		if ( preg_match('/(.*)'.$name.'.{0,3} power (?<both>.*) equal to the number of (?<next>.*)/', $text, $m) ) {
+		if ( preg_match('#(.*)'.$name.'.{0,3} power (?<both>.*) equal to the number of (?<next>.*)#', $text, $m) ) {
 			if ( preg_match('/^(?<type>.*) named (?<name>.*) (?<cond>'.implode('|', $conds).')/', $m['next'], $matches)
 				|| preg_match('/^(?<type>.*) (?<cond>'.implode('|', $conds).')/', $m['next'], $matches) ) {
 				$target->powtoucond = new stdClass() ;
@@ -770,8 +770,8 @@ function manage_text($name, $text, $target) {
 		}
 		// Conditionnal mono boost (+1/+2 as long as ...)
 		if (
-			( preg_match('/'.$name.' gets '.$boosts.' as long as (?<what>.*)/', $text, $matches ) ) 
-			|| ( preg_match('/As long as (?<what>.*), '.$name.' gets '.$boosts.'( and (?<attrs>.*)?)/', $text, $matches ) )
+			( preg_match('#'.$name.' gets '.$boosts.' as long as (?<what>.*)#', $text, $matches ) ) 
+			|| ( preg_match('#As long as (?<what>.*), '.$name.' gets '.$boosts.'( and (?<attrs>.*)?)#', $text, $matches ) )
 		) { // Single
 			$what = strtolower($matches['what']) ;
 			if ( preg_match('/(?<who>.*?) controls? (?<what>.*)/', $what, $m) ) {
@@ -826,7 +826,7 @@ function manage_text($name, $text, $target) {
 				msg(' * '.$name.' : '.$matches['pow'].'/'.$matches['tou'].' : '.$matches['what']) ;*/
 		}
 		// Conditionnal poly boost (+1/+1 for each ...)
-		if ( preg_match('/'.$name.' gets '.$boosts.' for each (?<what>.*)/', $text, $matches ) )
+		if ( preg_match('#'.$name.' gets '.$boosts.' for each (?<what>.*)#', $text, $matches ) )
 			conditionnal_poly_boost($target, $matches, $matches['what']) ;
 	}
 	// Attach/Equip-boost
@@ -1135,6 +1135,12 @@ function manage_text($name, $text, $target) {
 										break ;
 									case 'elves':
 										$token = 'elf' ;
+										break ;
+									case 'wolves':
+										$token = 'wolf' ;
+										break ;
+									case 'werewolves':
+										$token = 'werewolf' ;
 										break ;
 								}
 								// Plurals - Generic
