@@ -5,11 +5,12 @@ $equery = query("SELECT * FROM extension WHERE `se` = '$ext' ; ", 'Extension sel
 if ( $e = mysql_fetch_object($equery) ) {
 	header("Content-type: application/csv-tab-delimited-table"); 
 	header("Content-disposition: attachment; filename=\"$ext.csv\"");
-	$cquery = query('SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '.$e->id.' AND `card`.`id` = `card_ext`.`card` ORDER BY `card`.`name`', 'Card selection') ;
-	echo '"Rarity";"Name";"Color";"Cost";Converted;"Supertypes";"Types";"Subtypes";"Text"'."\n" ;
+	//$cquery = query('SELECT * FROM card_ext, card  WHERE `card_ext`.`ext` = '.$e->id.' AND `card`.`id` = `card_ext`.`card` ORDER BY `card`.`name`', 'Card selection') ;
+	$cquery = query('SELECT * FROM card_ext, card, cardname  WHERE `card_ext`.`ext` = '.$e->id.' AND `card`.`id` = `card_ext`.`card` AND cardname.card_id = `card`.`id` AND cardname.lang = "FR" ORDER BY `card`.`name`', 'Card selection') ;
+	echo '"Rarity";"Name";"FR Name";"Color";"Cost";Converted;"Supertypes";"Types";"Subtypes";"Text"'."\n" ;
 	while ( $c = mysql_fetch_object($cquery) ) {
 		$j = json_decode($c->attrs) ;
-		echo '"'.$c->rarity.'";"'.$c->name.'";"'.$j->color.'";"'.$c->cost.'";'.$j->converted_cost.';"' ;
+		echo '"'.$c->rarity.'";"'.$c->name.'";"'.$c->card_name.'";"'.$j->color.'";"'.$c->cost.'";'.$j->converted_cost.';"' ;
 		// Types, if exists
 		if ( property_exists($j, 'supertypes') )
 			echo implode(' ', $j->supertypes) ;
