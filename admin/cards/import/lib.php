@@ -220,11 +220,9 @@ class Importer {
 					$this->adderror('Card already parsed with different data', $card_url) ;
 				}
 				// Add image URL anyway (Unstable alternative pics)
-				/*
 				if ( $card->addimage($url) ) {
 					$card->nbimages++ ;
 				}
-				*/
 				$card->addurl($card_url) ;
 				return $card ;
 			}
@@ -521,7 +519,7 @@ class Importer {
 					if ( ! in_array('Planeswalker', split(' ', $card->types)) ) // Only parse planeswalker, with information aviable
 						continue ;
 					$attrs = $card->attrs() ;
-					if ( $emblemname === $card->name ) {
+					if ( strtolower($emblemname) === strtolower($card->name) ) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
