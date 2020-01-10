@@ -120,6 +120,7 @@ function card_text_sanitize($text) {
 	$text = str_replace(chr(148), '"', $text) ;
 	$text = str_replace(chr(149), '*', $text) ;
 	$text = str_replace(chr(151), '-', $text) ;
+	$text = str_replace(chr(194), "", $text) ;
 	//$text = card_name_sanitize($text) ; // Same card name in card text than in card
 	$text = html_entity_decode($text) ;
 	$pieces = mb_split('\n|  ', $text) ; // Trim each line
@@ -534,8 +535,9 @@ function manage_text($name, $text, $target) {
 		// In hand
 	if ( preg_match('/Cycling ('.$manacost.')/', $text, $matches) )
 		$target->cycling = manacost($matches[1]) ;
-	if ( preg_match('/Morph ('.$manacost.')/', $text, $matches) )
-		$target->morph = manacost($matches[1]) ;
+	if ( preg_match('/Morph (.*)/', $text, $matches) ) {
+		$target->morph = $matches[1] ;
+	}
 	if ( preg_match('/Megamorph ('.$manacost.')/', $text, $matches) ) {
 		$target->morph = manacost($matches[1]) ;
 		$target->megamorph = true ;
@@ -565,6 +567,9 @@ function manage_text($name, $text, $target) {
 	}
 	if ( preg_match('/Jump-start/', $text, $matches) ) {
 		$target->jumpstart = true ;
+	}
+	if ( preg_match('/Escape (.*)/', $text, $matches) ) {
+		$target->escape = $matches[1] ;
 	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
@@ -962,6 +967,18 @@ function manage_text($name, $text, $target) {
 		$token->name = "Zombie Army" ;
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('#[C|c]reate (?<number>\w+) Food tokens?#', $text, $match) ) {
+		print_r($match) ;
+		$token = new stdClass() ;
+		$token->nb = text2number($match['number'], 1) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$name = 'Food' ;
+		$token->name = $name ;
+		$target->tokens[] = $token ;
+		return;
+	}
+
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
@@ -1142,10 +1159,14 @@ function manage_text($name, $text, $target) {
 									case 'werewolves':
 										$token = 'werewolf' ;
 										break ;
-								}
-								// Plurals - Generic
-								if ( substr($token, -1) === 's' ) {
-									$token = substr($token, 0, -1) ;
+									case 'pegasus':
+										$token = 'pegasus' ;
+										break ;
+									default :
+										// Plurals - Generic
+										if ( substr($token, -1) === 's' ) {
+											$token = substr($token, 0, -1) ;
+										}
 								}
 								$type_cond[] = "ctype=$token" ;
 						}
