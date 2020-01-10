@@ -514,7 +514,7 @@ function graveyard(player) {
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
 					}
-					if ( iss(card.attrs.flashback) ) {
+					if ( iss(card.attrs.flashback) || iss(card.attrs.escape) ) {
 						var l = fbsubmenu.addline(card.name+' ('+card.attrs.flashback+')', card.changezone, this.player.battlefield) ;
 						l.override_target = card ;
 						l.moimg = card.imgurl() ;
