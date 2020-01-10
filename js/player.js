@@ -264,6 +264,28 @@ function Player(game, is_top, id, name, avatar, score) { // game as a param as i
 			return false ;
 		return this.me || ! game.restricted_access ;
 	}
+	this.cascade = function(nb) {
+		var tobottom = new Selection() ;
+		var tobf = new Selection() ;
+		var i = 0 ;
+		while (this.library.cards.length > i) {
+			var card = this.library.cards[this.library.cards.length - 1 - i++] ;
+			if ( ( ! card.is_land() ) && ( card.attrs.converted_cost < nb ) ) {
+				tobf.add(card) ;
+				break ;
+			} else
+				tobottom.add(card) ;
+		}
+		if ( tobf.cards.length != 1 )
+			message('nothing to cascade under '+nb) ;
+		else
+			tobf.changezone(this.battlefield) ;
+		if ( tobottom.cards.length > 0 ) {
+			shuffle(tobottom.cards) ;
+			tobottom.changezone(this.exile) ;
+			tobottom.changezone(this.library, null, 0) ;
+		}
+	}
 	// Game helpers
 	this.controls = function(obj) {
 		var res = 0 ;

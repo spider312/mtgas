@@ -408,6 +408,7 @@ function library(player) {
 				menu.addline('Look top cards ...', 		card_list_edit_n, 	mylib) ;
 				menu.addline('Look bottom cards ...', 		card_list_edit_n_bottom, 	mylib) ;
 				menu.addline('Shuffle', 			mylib.shuffle) ;
+				menu.addline('Cascade ...',			mylib.cascade) ;
 				var line = menu.addline('Play with top card revealed',	mylib.toggle_reveal) ;
 				line.checked = mylib.player.attrs.library_revealed ;
 				if ( ! mylib.player.attrs.library_revealed ) {
@@ -477,6 +478,12 @@ function library(player) {
 			this.unreveal() ;
 		else
 			this.reveal() ;
+	}
+	mylib.cascade = function() {
+		var nb = prompt_int('Converted cost to cascade ?') ;
+		if ( isn(nb) ) {
+			this.player.cascade(nb) ;
+		}
 	}
 	return mylib ;
 }

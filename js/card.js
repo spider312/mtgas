@@ -2523,26 +2523,7 @@ function card_prototype() {
 		}
 	}
 	this.cascade = function() {
-		var tobottom = new Selection() ;
-		var tobf = new Selection() ;
-		var i = 0 ;
-		while (this.zone.player.library.cards.length > i) {
-			var card = this.zone.player.library.cards[this.zone.player.library.cards.length-1-i++] ;
-			if ( ( ! card.is_land() ) && ( card.attrs.converted_cost < this.attrs.converted_cost ) ) {
-				tobf.add(card) ;
-				break ;
-			} else
-				tobottom.add(card) ;
-		}
-		if ( tobf.cards.length != 1 )
-			message('Nothing to cascade under '+this.attrs.converted_cost) ;
-		else
-			tobf.changezone(this.zone.player.battlefield) ;
-		if ( tobottom.cards.length > 0 ) {
-			shuffle(tobottom.cards) ;
-			tobottom.changezone(this.zone.player.exile) ;
-			tobottom.changezone(this.zone.player.library, null, 0) ;
-		}
+		this.zone.player.cascade(this.attrs.converted_cost) ;
 	}
 	this.living_weapon = function() {
 		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
