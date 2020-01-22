@@ -844,22 +844,18 @@ function hand(player) {
 		if ( nb > 0 )
 			(new Selection(this.cards)).changezone(library) ;
 		library.shuffle() ;
-		if ( nb > 1 ) // don't mulligan @ 0 when only 1 card in hand
-			nb-- ;
-		else
-			nb = 7 ;
 		// Draw cards
-		this.draw_card(nb, true) ;
+		this.draw_card(7, 'mulligan') ;
 	}
-	myhand.draw_card = function(nb, mulligan) {
+	myhand.draw_card = function(nb, drawtype) {
 		var library = this.player.library ;
 		if ( ! isn(nb) )
 			nb = 1 ;
 		if ( library.cards.length < nb )
 			return this.player.life.lose('Drawing while having no card in library') ;
 		var sel = new Selection(library.cards.slice(-nb).reverse()) ;
-		if ( mulligan )
-			sel.settype('mulligan') ;
+		if ( iss(drawtype) )
+			sel.settype(drawtype) ;
 		sel.changezone(this) ;
 	}
 	myhand.undo = function() {
