@@ -925,9 +925,12 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
-	if ( preg_match('#create (?<number>\w+) Treasure tokens#', $text, $match) ) {
+	if ( 
+		preg_match('#create (?<number>\w+) Treasure tokens#', $text, $match)
+		|| strpos($text, 'create a Treasure token') !== false
+	) {
 		$token = new stdClass() ;
-		$token->nb = text2number($match['number'], 1) ;
+		$token->nb = array_key_exists('number', $match) ? text2number($match['number'], 1) : 1 ;
 		$token->attrs = new stdClass() ;
 		$token->attrs->types[] = "artifact" ;
 		$name = 'Treasure' ;
