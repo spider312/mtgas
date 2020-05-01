@@ -423,7 +423,7 @@ function card_prototype() {
 		}
 		if ( ( this.zone.type == 'hand' ) && game.options.get('display_card_names') && this.hasOwnProperty('manas') && this.is_visible() ) {
 			// Display mana cost
-				// Compute begining of cost displaying zone
+				// Compute beginning of cost displaying zone
 			var size = 16 ;
 			var w = this.manas.length * size ; // Width of an icon
 			var mw = cardwidth-2*(lw+2) ; // Max width all icon can take
