@@ -9,8 +9,7 @@ $importer->init($setURL) ;
 $json = cache_get($setURL, $basePath, $verbose, false, $importer->cachetime) ;
 $set = json_decode($json) ;
 if ( $set === null ) {
-	echo "<a href=\"$setURL\">Unparsable JSON</a> : $json" ;
-	die() ;
+	die("<a href=\"$setURL\">Unparsable JSON</a> : $json") ;
 }
 $importer->setext($set->code, $set->name, $set->card_count) ;
 
@@ -27,7 +26,7 @@ do {
 	// Fetch page
 	$json = cache_get($pageURL, $basePath . '_p' . ($page++), $verbose, false, $importer->cachetime) ;
 	if ( strlen($json) === 0 ) {
-		die('Empty response') ;
+		die('Empty response '.$pageURL) ;
 	}
 	// Parse page
 	$list = json_decode($json) ;
@@ -57,6 +56,9 @@ foreach ( $data as $card ) {
 	$imageFace = $card ; // Face hosting image, distinction between flip & transform
 	// Manage layout
 	switch ( $card->layout ) {
+		case 'adventure' :
+			$recto = $card->card_faces[0] ;
+			break ;
 		case 'augment' :
 			if ( preg_match('/Augment (?<cost>.*) \(/', $card->oracle_text, $matches) ) {
 				$card->mana_cost = $matches['cost'] ;
