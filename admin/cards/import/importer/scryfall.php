@@ -20,7 +20,6 @@ if ( $importer->type === 'all' ) {
 	$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
 	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.'=booster&unique=prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 }
-echo $pageURL ;
 $data = get_cards($pageURL, $basePath, array()) ;
 
 // Tokens
