@@ -20,24 +20,18 @@ if ( $importer->type === 'all' ) {
 	$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
 	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'+'.$booster.'=booster&unique=prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 }
-$data = array() ;
-$page = 0 ;
-do {
-	// Fetch page
-	$json = cache_get($pageURL, $basePath . '_p' . ($page++), $verbose, false, $importer->cachetime) ;
-	if ( strlen($json) === 0 ) {
-		die('Empty response '.$pageURL) ;
-	}
-	// Parse page
-	$list = json_decode($json) ;
-	$data = array_merge($data, $list->data) ;
-	// Prepare next page fetch
-	if ( isset($list->next_page) ) {
-		$pageURL = $list->next_page ;
-	} else {
-		break ;
-	}
-} while ( $list->has_more ) ;
+echo $pageURL ;
+$data = get_cards($pageURL, $basePath, array()) ;
+
+// Tokens
+$tkURL = $baseURL . 'sets/t' . $ext_source ;
+$tkPath = $basePath.'_tk' ;
+$json = cache_get($tkURL, $tkPath, $verbose, false, $importer->cachetime) ;
+$tk = json_decode($json) ;
+if ( $tk === null ) {
+	die("<a href=\"$tkURL\">Unparsable JSON</a> : $json") ;
+}
+$data = get_cards($tk->search_uri, $tkPath, $data) ;
 
 // Parse results
 foreach ( $data as $card ) {
@@ -89,7 +83,12 @@ foreach ( $data as $card ) {
 			$verso->color_identity = $card->color_identity ;
 			break ;
 		case 'token' :
-			$importer->addtoken($uri, $card->name, $card->power, $card->toughness, $imgURI) ;
+			$power = property_exists($card, 'power') ? $card->power : 1 ; // As of M21, piratre has bug about pow/tou
+			$toughness = property_exists($card, 'toughness') ? $card->toughness : 1 ;
+			$importer->addtoken($uri, $card->name, $power, $toughness, get_image($card)) ;
+			continue 2 ;
+		case 'emblem' :
+			$importer->addtoken($uri, $card->name, null, null, get_image($card)) ;
 			continue 2 ;
 		default :
 			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
@@ -109,16 +108,7 @@ foreach ( $data as $card ) {
 		$importer->adderror('No image', $card->scryfall_uri) ;
 		continue;
 	}
-	$imgURI = null ;
-	foreach ( $imgPriorities as $imgType ) {
-		if ( property_exists($imageFace->image_uris, $imgType ) ) {
-			$imgURI = $imageFace->image_uris->{$imgType} ;
-			break ;
-		}
-	}
-	if ( $imgURI === null ) {
-		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
-	}
+	$imgURI = get_image($imageFace) ;
 	// Last minute management of importer type
 	if ( $importer->type === 'preview' ) {
 		$rarity = 'L' ;
@@ -147,7 +137,7 @@ foreach ( $data as $card ) {
 				break ;
 			case 'transform' :
 				$versoImgURI = ( $importer->type === 'preview' ) ? null : $verso->image_uris->border_crop ;
-				$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), $versoImgURI) ;
+				$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), get_image($verso)) ;
 				break ;
 			default :
 				die('Unknown verso layout : '.$card->layout) ;
@@ -167,6 +157,43 @@ function card2text($card) {
 		$text = $card->loyalty . "\n" . $text ;
 	}
 	return $text ;
+}
+
+function get_cards($URL, $basePath, $data) {
+	global $verbose, $importer ;
+	$page = 0 ;
+	do {
+		// Fetch page
+		$json = cache_get($URL, $basePath . '_p' . ($page++), $verbose, false, $importer->cachetime) ;
+		if ( strlen($json) === 0 ) {
+			die('Empty response '.$pageURL) ;
+		}
+		// Parse page
+		$list = json_decode($json) ;
+		$data = array_merge($data, $list->data) ;
+		// Prepare next page fetch
+		if ( isset($list->next_page) ) {
+			$URL = $list->next_page ;
+		} else {
+			break ;
+		}
+	} while ( $list->has_more ) ;
+	return $data ;
+}
+
+function get_image($imageFace) {
+	global $imgPriorities, $importer ;
+	$imgURI = null ;
+	foreach ( $imgPriorities as $imgType ) {
+		if ( property_exists($imageFace->image_uris, $imgType ) ) {
+			$imgURI = $imageFace->image_uris->{$imgType} ;
+			break ;
+		}
+	}
+	if ( $imgURI === null ) {
+		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
+	}
+	return $imgURI ;
 }
 
 ?>
