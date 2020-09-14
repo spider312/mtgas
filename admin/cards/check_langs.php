@@ -28,7 +28,7 @@ foreach ( $langs as $code => $lang )
 ?>
      <th>Actions</th>
     </tr>
-<?
+<?php
 $query = query('SELECT *, UNIX_TIMESTAMP(release_date) as rd FROM extension ORDER BY release_date ASC') ;
 while ( $arr = mysql_fetch_array($query) ) {
 	$links = query_as_array('SELECT * FROM card_ext  WHERE `card_ext`.`ext` = '.$arr['id']) ;
