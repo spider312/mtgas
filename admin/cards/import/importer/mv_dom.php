@@ -36,15 +36,29 @@ $nb_token_expected = 0 ;
 $nb_token_found = 0 ;
 
 // Cards
-$card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
 $card_dom = new DOMDocument;
+	// First pass : get multiple link for a card
+$card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
+$cards_href = array() ;
 for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
+	$card_link = $card_links->item($i) ;
+	$card_link_other = $xpath->query(".//a[@class='und']", $card_link->parentNode) ; // Search multiple links
+	if ( $card_link_other->length === 0 ) { // No other links found
+		array_push($cards_href, $card_link->getAttribute('href')) ; // Add base link
+	} else { // Other links found
+		for ( $j = 0 ; $j < $card_link_other->length ; $j++ ) { // Add them instead of base link
+			$card_other_link = $card_link_other->item($j) ;
+			array_push($cards_href, $card_other_link->getAttribute('href')) ;
+		}
+	}
+}
+	// Second pass : parse those cards
+for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	$frimg = null ;
 	$trimg = 'void' ;
 	$frtrimg = null ;
 	// Link
-	$card_link = $card_links->item($i) ;
-	$href = $card_link->getAttribute('href') ;
+	$href = $cards_href[$i] ;
 	if ( substr($href, 0, 1) !== '/' ) { // href is relative
 		$href = $base_path . $href ;
 	}
