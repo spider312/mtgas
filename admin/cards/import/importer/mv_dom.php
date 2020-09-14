@@ -181,9 +181,14 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 //		|| ( count($importer->cards) >= $nbcards )
 	) { // div after table is "Autorisations en Tournois" and has class S14
 		$extratxt = $myel->nodeValue;
-		if ( preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches) ) { // Extract counters from extratxt
+		if (
+			preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches)
+			|| preg_match('#^(?<txt>.*?)(?<nb>\d*)$#', $extratxt, $matches)
+		) { // Extract counters from extratxt
 			$extratxt = trim($matches['txt']) ;
-			$nbt = intval($matches['tot']) ;
+			if ( array_key_exists('tot', $matches) ) {
+				$nbt = intval($matches['tot']) ;
+			}
 		} else {
 			$nbt = -1 ;
 		}
