@@ -690,8 +690,18 @@ function manage_text($name, $text, $target) {
 								$target->ciptc .= '&&(this.zone.player.controls({"subtypes": "'.strtolower($submatches[2]).'"})==0)' ;
 							} elseif ( $matches[1] === 'unless you have two or more opponents') {
 								$target->tapped = true ;
+							} elseif ( preg_match('#unless you control (?<nb>\w*)( or more (?<other>other))? (?<landtype>\w*)#', $matches[1], $submatches) ) {
+								$nb = text2number($submatches['nb']) ;
+								$landtype = $submatches['landtype'] ;
+								if ( ( $nb > 1 ) && ( $landtype != "Plains") ) {
+									$landtype = substr($landtype, 0, -1) ;
+								}
+								if ( $submatches['other'] === 'other' ) {
+									$nb++ ;
+								}
+								$target->ciptc = 'this.zone.player.controls({"subtypes": "'.strtolower($landtype).'"})<'.$nb ;
 							} else // Unmanaged
-								echo $name.' : '.$words[0].' : '.$matches[1]."\n" ;
+								echo $name.' : '.$words[0].' : '.$matches[1]."<br>\n" ;
 							break ;
 						case 'with' : // Don't display message because it will be managed later
 							$txt = trim($matches[1]) ;
@@ -816,6 +826,7 @@ function manage_text($name, $text, $target) {
 					case 'an opponent' : // Unmanaged, just there to avoid error message
 					case 'no opponent' :
 					case 'any player' :
+					case 'you had another creature enter the battlefield under your' :
 						break ;
 					default:
 						msg($name.' : '.$m['who'].' -> '.$m['what']) ;
@@ -971,7 +982,6 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 	}
 	if ( preg_match('#[C|c]reate (?<number>\w+) Food tokens?#', $text, $match) ) {
-		print_r($match) ;
 		$token = new stdClass() ;
 		$token->nb = text2number($match['number'], 1) ;
 		$token->attrs = new stdClass() ;
