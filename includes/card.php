@@ -1002,10 +1002,12 @@ function manage_text($name, $text, $target) {
 		$target = $target->activated ;
 	}*/
 	// All creatures booster (crusade like)
-	$debug = 0;
+	$debug = 0 ;
+	$sentences = explode('. ', $text) ;
+	foreach ( $sentences as $sentence )
 	if (
-		preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?)? get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($text), $matches, PREG_SET_ORDER)
-		|| preg_match_all('#(?<cond>.*? you control) have (?<attrs>.*)#', strtolower($text), $matches, PREG_SET_ORDER) 
+		preg_match_all('#^(?<cost>.*[\:-] )?(?<precond>.*[,\.] )?(?<cond>.*?)? get (?<pow>'.$boost.')\/(?<tou>'.$boost.')(?<attrs>.*)?#', strtolower($sentence), $matches, PREG_SET_ORDER)
+		|| preg_match_all('#(?<cond>.*? you control) have (?<attrs>.*)#', strtolower($sentence), $matches, PREG_SET_ORDER) 
 	) {
 		foreach ( $matches as $match ) {
 			if ( $debug ) print_r($match) ;
