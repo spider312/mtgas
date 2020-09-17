@@ -1003,6 +1003,10 @@ function manage_text($name, $text, $target) {
 	}*/
 	// All creatures booster (crusade like)
 	$debug = 0 ;
+	$nb_boost_bf = 0 ; // Check if that section of code added boost_bf to stop line parsing
+	if ( property_exists($target, 'boost_bf') ) {
+		$nb_boost_bf = count($target->boost_bf) ;
+	}
 	$sentences = explode('. ', $text) ;
 	foreach ( $sentences as $sentence ) {
 		if (
@@ -1151,6 +1155,7 @@ function manage_text($name, $text, $target) {
 							case '-': // Line is a keyword, it probably contains many words and complex conditions
 							case 'multicolored': // Impossible to detect
 							case 'long': // "As long as" = probably a bad cond
+							case 'only':
 								break 3 ;
 							// Default case : it's a creature type
 							default :
@@ -1208,9 +1213,11 @@ function manage_text($name, $text, $target) {
 			}
 			if ( ( $boost_bf->pow !== 0 ) || ( $boost_bf->tou !== 0 ) || ( $applied_attrs > 0 ) ) { // Avoids boost_bf that only adds an unmanaged attrs such as haste
 				$target->boost_bf[] = $boost_bf ;
-				return;
 			}
 		}
+	}
+	if ( property_exists($target, 'boost_bf') && ( count($target->boost_bf) > $nb_boost_bf ) ) { // boost_bf was added by this section, stop parsing
+		return;
 	}
 	if ( preg_match("#Each other creature you control that's a (?<type1>.*) or (?<type2>.*) gets (?<pow>$boost)\/(?<tou>$boost)#", $text, $match) ) {
 		$boost_bf = boost_bf($match) ;
