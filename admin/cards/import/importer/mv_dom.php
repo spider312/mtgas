@@ -212,7 +212,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
-			if ( strpos($extratxt, 'Spotlight') !== false ) { // Normal cards included in extension
+			if ( ( strpos($extratxt, 'Spotlight') !== false ) || ( strpos($extratxt, 'Extended-Art Frame') !== false ) ) { // Normal cards included in extension
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 			} else { // Only import PW Decks cards in PW Decks context
@@ -364,7 +364,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
 	// Second part
-	if ( $second_name !== '' ) { // Split / Transform
+	if ( ( $second_name !== '' ) && ( strpos($second_types, 'Adventure') === false ) ) { // Split / Transform but not adventures that are not manageable ATM
 		// Search back image
 		$xpath = $card_xpath->query("//div[@id='CardScanBack']//img") ;
 		if ( $xpath->length === 0 ) { // No back image found : it's a split
