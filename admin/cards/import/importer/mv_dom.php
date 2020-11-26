@@ -5,6 +5,7 @@ $base_path = 'fr/' ;
 $mana_url = 'graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
+$imported_extratxt = array('Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo') ;
 
 // Importer
 $import_url = $base_url.$base_path.'set_cards?setcode='.$ext_source.'&lang=eng' ;
@@ -169,17 +170,11 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 // Token
 	$form_node = $card_xpath->query("//form[@action='carte.php']/ancestor::table/following-sibling::div") ; // HTML Element following table containing card navigator
 	$myel = $form_node->item(0);
-	/* * /
-	if ( count($importer->cards) >= $nbcards ) { // On-demand enabling of importer nb cards limit, for when tokens are detected as cards
-		$importer->addtoken($href, $name, $pow, $tou, $img) ; // Commented because at this point we didn't extract pow/tou yet
-		continue ;
-	}
-	/* */
 
 	if (
 		! $myel->hasAttributes()
 //		|| ( count($importer->cards) >= $nbcards )
-	) { // div after table is "Autorisations en Tournois" and has class S14
+	) {
 		$extratxt = $myel->nodeValue;
 		if (
 			preg_match('#^(?<txt>.*?)(?<nb>\d*)/(?<tot>\d*)$#', $extratxt, $matches)
@@ -212,11 +207,11 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
-			if ( ( strpos($extratxt, 'Spotlight') !== false ) || ( strpos($extratxt, 'Extended-Art Frame') !== false ) ) { // Normal cards included in extension
+			if (  array_search($extratxt, $imported_extratxt) !== false) {
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 			} else { // Only import PW Decks cards in PW Decks context
-				if ( ( $importer->type !== 'pwdecks' ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
+				if ( ( ( $importer->type !== 'pwdecks' ) && ( $importer->type !== 'all' ) ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
 					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
 					continue ;
 				}
@@ -273,72 +268,6 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
 		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
 	}
-	// Text
-	/*
-	$text_nodes = $card_xpath->query("//div[@class='S12' or @class='S11']") ; //div[@id='EngShort']
-	// ->C14N() : Export as HTML to get images and transform them into mtg cost tags
-	// Workaround for missing french transformed data
-	$text_nodes_length = $text_nodes->length ;
-	/*if ( $text_nodes->length == 5 ) { // Instead of 6
-		$types_arr = explode(' - ', $types) ;
-		if ( $types_arr[0] !== 'Planeswalker' ) {
-			echo "Workarounded $name - $text_nodes_length\n" ;
-			$text_nodes_length = 6 ;
-		}
-	}* /
-	$second_text_node_offset = 2 ;
-	$second_text = '' ;
-	$idx = 3 ;
-	switch ( $text_nodes_length ) {
-		case 6 : // Split / Aftermath + Transform ?
-			$second_text = $text_nodes->item($text_nodes->length-$second_text_node_offset)->C14N() ;
-			$second_text = mv2txt($second_text) ;
-			$idx = 4 ;
-		case 5 : // Adventure spells
-			$second_text_node_offset = 1 ;
-		case 4: // Normal case
-			$text = $text_nodes->item($idx)->C14N() ;
-			$text = mv2txt($text) ;
-			$text = str_replace(chr(194), '', $text) ; // Strange char appearing before - and * in modal and keywords
-			$text = str_replace(chr(160), ' ', $text) ; // Repair bug due to correction above
-			// Specific planeswalker parsing
-			$match = 'Loyalty : ' ;
-			if ( substr($pt, 0, strlen($match)) === $match ) {
-				// Loyalty
-				$pt = substr($pt, strlen($match)) ;
-				if ( ! is_numeric($pt) ) { $pt = '0' ; } // Integer expected - X loyalty
-				// HTML -> C14N produced some strange chars, convert to expected text
-				$text = str_replace(chr(10).chr(9).chr(9).chr(9).chr(32).chr(32), ': ', $text); // String between loyalty count and effect
-				$text = str_replace(chr(10).chr(9).chr(9).chr(9).chr(10), "\n", $text); // End of effect
-			}
-			if ( $pt != '' ) {
-				$text = $pt."\n".$text ;
-			}
-			break ;
-		/*
-		case 5 : // Planeswalker
-			if ( $second_types !== '' ) {
-				$text = mv2txt($text_nodes->item(2)->C14N()) ;
-				$second_text = mv2txt($text_nodes->item(4)->C14N());
-			} else {
-				$text = mv_planeswalker($text_nodes, 3) ;
-			}
-			break ;
-		* /
-		case 8 : // Double face, moon is a planeswalker
-			if ( $pt == '' ) { // Sun is a planeswalker (ISD Garruk, SOI Arlinn Kord)
-				$text = mv_planeswalker($text_nodes, 4) ;
-				$second_text = mv_planeswalker($text_nodes, 6);
-			} else { // Sun is a creature (ORI Planeswalkers)
-				$text = $text_nodes->item(4)->C14N() ;
-				$text = $pt."\n".mv2txt($text) ;
-				$second_text = mv_planeswalker($text_nodes, 5);
-			}
-			break ;
-		default :
-			echo "Unmanaged number of texts : {$text_nodes->length} - $name\n" ;
-	}
-	*/
 	$text_nodes = $card_xpath->query("//div[@id='EngShort']") ;
 	$text = mv2txt($text_nodes->item(0)->C14N()) ;
 	if ( $pt != '' ) {
@@ -389,27 +318,6 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			}
 		}
 	}
-	// Moon
-	/*
-	if ( $name_nodes->length > 2 ) {
-		$idx = $name_nodes->length - 1 ;
-		// Color
-		$trcolor = '' ;
-		$node = $trtypes_node->firstChild ;
-		while( $node->nodeName == 'img' ) {
-			$src = $node->getAttribute('src') ;
-			if ( preg_match("#graph/manas/l(.)\.gif#", $src, $matches) ) {
-				$trcolor .= $matches[1] ;
-			} else {
-				echo "Not a valid mana icon URL : $src\n";
-			}
-			$node = $node->nextSibling ;
-		}
-		// Text & PT : managed in sun face text & PT managements
-		if ( $trpt != '' )
-			$second_text = $trpt."\n".$second_text ;
-	}
-	*/
 }
 
 //$importer->nbcards -= $nb_token_found ;
@@ -456,31 +364,4 @@ function mv_dom_node2cost($node) {
 	}
 	return $cost;
 }
-
-/*
-// Init
-$reg_flip = '#<div class=S16>(?<name>[^<>]*?)</div><div class=G12 style="padding-top:4px;padding-bottom:3px;">(?<type>[^<>]*?)</div><div style="display:block;" class=S12 align=justify>(?<text>.*?)</div>#s' ;
-
-// Parse cards
-foreach ( $matches_list as $match ) { //
-	if ( preg_match('#<div class=S11 align=right>Loyalty : (?<loyalty>\d)</div>#', $html, $matches_loyalty) ) {
-		$text = $matches_loyalty['loyalty']."\n" ;
-	}
-
-	// Second part
-	if ( $card != null ) { // Card is not a token
-		// Flip
-		if ( preg_match_all($reg_flip, $html, $matches_flip, PREG_SET_ORDER) > 0 ) {
-			$match_flip = $matches_flip[1] ; // 0 is french version
-			$text = mv2txt($match_flip['text']) ;
-			if ( count($matches_pt) > 1 ) // Multiple P/T found, first is day, other are night
-				$text = $matches_pt[1]['pow'].'/'.$matches_pt[1]['tou']."\n".$text ;
-			$card->flip($match_flip['name'], $match_flip['type'], $text) ;
-		}
-		// Face down
-			$text = mv2txt($match_moon['text']) ;
-		}
-	}
-}
-*/
 ?>
