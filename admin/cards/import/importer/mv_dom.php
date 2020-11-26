@@ -128,6 +128,11 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		default:
 			$importer->adderror("Unmanaged PT nodes number : {$pt_nodes->length} $name\n", $href) ;
 	}
+	$pow = '' ; $tou = '' ;
+	if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
+		$pow = intval($matches['pow']) ;
+		$tou = intval($matches['tou']) ;
+			}
 	// Img
 	$img_node = $card_xpath->query("//td[@width=325]/img") ;
 	if ( $img_node->length === 0 ) {
@@ -199,11 +204,6 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			if ( $nbt != $nb_token_expected ) {
 				$importer->adderror('Expected number of tokens difference : '.$nb_token_expected.' -> '.$nbt, $href) ;
 			}
-			$pow = '' ; $tou = '' ;
-			if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
-				$pow = intval($matches['pow']) ;
-				$tou = intval($matches['tou']) ;
-			}
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
@@ -267,6 +267,8 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	}
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
 		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
+		$importer->addtoken($href, $name, $pow, $tou, $img) ;
+		continue ;
 	}
 	$text_nodes = $card_xpath->query("//div[@id='EngShort']") ;
 	$text = mv2txt($text_nodes->item(0)->C14N()) ;
