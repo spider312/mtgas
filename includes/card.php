@@ -507,6 +507,23 @@ function manage_all_text($name, $text, $target) {
 }
 // Reads 1 "line" of text and adds to target attributes parsed inside
 function manage_text($name, $text, $target) { 
+	// Emblem
+	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		if ( count($target->subtypes) < 1 ) {
+			echo 'Missing subtypes for '.$name ;
+			return ;
+		}
+		$token->name = 'Emblem.'.$target->subtypes[0] ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types = array('emblem') ;
+		$token->attrs->subtypes = array() ;
+		manage_text($name, $matches[1], $token->attrs) ;
+		$target->tokens[] = $token ;
+		manage_text($name, $matches[2], $target) ;
+		return ; // Stop managing text, it's the emblem's role for now
+	}
 	// Various types
 	global $manacost, $boost, $boosts, $cardtypes, $colors ;
 	// Workarounds
@@ -847,23 +864,6 @@ function manage_text($name, $text, $target) {
 		if ( ! isset($target->bonus) )
 			$target->bonus = new stdClass() ;
 		$target->bonus->no_untap = true ;
-	}
-	// Emblem
-	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
-		$token = new stdClass() ;
-		$token->nb = 1 ;
-		if ( count($target->subtypes) < 1 ) {
-			echo 'Missing subtypes for '.$name ;
-			return ;
-		}
-		$token->name = 'Emblem.'.$target->subtypes[0] ;
-		$token->attrs = new stdClass() ;
-		$token->attrs->types = array('emblem') ;
-		$token->attrs->subtypes = array() ;
-		manage_text($name, $matches[1], $token->attrs) ;
-		$target->tokens[] = $token ;
-		manage_text($name, $matches[2], $target) ;
-		return ; // don't manage token creation in text as it's the emblem's role now
 	}
 	// Living weapon
 	if ( strpos($text, 'Living weapon') !== false )
