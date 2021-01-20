@@ -848,6 +848,23 @@ function manage_text($name, $text, $target) {
 			$target->bonus = new stdClass() ;
 		$target->bonus->no_untap = true ;
 	}
+	// Emblem
+	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		if ( count($target->subtypes) < 1 ) {
+			echo 'Missing subtypes for '.$name ;
+			return ;
+		}
+		$token->name = 'Emblem.'.$target->subtypes[0] ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types = array('emblem') ;
+		$token->attrs->subtypes = array() ;
+		manage_text($name, $matches[1], $token->attrs) ;
+		$target->tokens[] = $token ;
+		manage_text($name, $matches[2], $target) ;
+		return ; // don't manage token creation in text as it's the emblem's role now
+	}
 	// Living weapon
 	if ( strpos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
@@ -897,22 +914,6 @@ function manage_text($name, $text, $target) {
 			$target->tokens[] = $token ;
 			return;
 		}
-	}
-	// Emblem
-	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
-		$token = new stdClass() ;
-		$token->nb = 1 ;
-		if ( count($target->subtypes) < 1 ) {
-			echo 'Missing subtypes for '.$name ;
-			return ;
-		}
-		$token->name = 'Emblem.'.$target->subtypes[0] ;
-		$token->attrs = new stdClass() ;
-		$token->attrs->types = array('emblem') ;
-		$token->attrs->subtypes = array() ;
-		manage_text($name, $matches[1], $token->attrs) ;
-		$target->tokens[] = $token ;
-		manage_text($name, $matches[2], $target) ;
 	}
 	// Investigate / Clues
 	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
