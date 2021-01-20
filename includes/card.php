@@ -938,7 +938,7 @@ function manage_text($name, $text, $target) {
 	}
 	if ( 
 		preg_match('#create (?<number>\w+) Treasure tokens#', $text, $match)
-		|| strpos($text, 'create a Treasure token') !== false
+		|| stripos($text, 'create a Treasure token') !== false
 	) {
 		$token = new stdClass() ;
 		$token->nb = array_key_exists('number', $match) ? text2number($match['number'], 1) : 1 ;
@@ -958,6 +958,7 @@ function manage_text($name, $text, $target) {
 		$token->name = "The Monarch" ;
 		$target->tokens[] = $token ;
 	}
+	// Energy
 	if ( preg_match('/ get( that many)? (?<energy>(\{E\})+)/', $text, $matches) ) { // "You get", "you get", "[...] and get"
 		$token = new stdClass() ;
 		$token->nb = 1 ;
@@ -981,6 +982,7 @@ function manage_text($name, $text, $target) {
 		$token->name = "Zombie Army" ;
 		$target->tokens[] = $token ;
 	}
+	// Food
 	if ( preg_match('#[C|c]reate (?<number>\w+) Food tokens?#', $text, $match) ) {
 		$token = new stdClass() ;
 		$token->nb = text2number($match['number'], 1) ;
@@ -991,7 +993,19 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
-
+	// Walkers (Secret Lair Walking Dead)
+	if ( preg_match('#[C|c]reates? (?<number>\w+) Walker tokens?#', $text, $match) ) {
+		$token = new stdClass() ;
+		$token->nb = text2number($match['number'], 1) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->color = 'b' ;
+		$token->attrs->types = array("zombie") ;
+		$token->attrs->pow = 2 ;
+		$token->attrs->thou = 2 ;
+		$token->name = "Walker" ;
+		$target->tokens[] = $token ;
+		return;
+	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
