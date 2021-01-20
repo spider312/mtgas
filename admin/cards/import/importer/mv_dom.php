@@ -26,7 +26,7 @@ $title = preg_replace('/ - (.*)/', '', $title_node->item(0)->nodeValue) ;
 $code_node = $xpath->query("//img[contains(@src, 'bigsetlogos')]");
 $code = preg_replace('#(.*/)|(\..*)#', '', $code_node->item(0)->getAttribute('src')) ;
 	// Cards nb
-if ( preg_match('#<div class=G14>&mdash; (?<cards>\d*) cartes</div>#', $html, $matches) )
+if ( preg_match('#<div class=S14>&mdash;(?<cards>\d*) cartes</div>#', $html, $matches) )
 	$nbcards = $matches['cards'] ;
 else
 	die('<a href="'.$import_url.'">No card number found') ;
@@ -303,17 +303,24 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		} else { // Back image found : it's a transform
 			// Search back img and FR back img URL
 			$frtrimg = null ;
-			$trimg = $xpath->item(0)->getAttribute('src') ;
+			if ( $importer->type === 'preview' ) {
+				$trimg = null ;
+			} else {
+				$trimg = $xpath->item(0)->getAttribute('src') ;
+			}
 			if ( strpos($trimg, 'FR') !== false) {
 				$frtrimg = $trimg ;
 				$trimg = str_replace('FR', '', $trimg) ;
+			}
+			if ( $trimg != null ) {
+				$trimg = $base_url.$trimg ;
 			}
 			$card->transform(
 				$second_name,
 				'', // For now (XLN), no need for a color, let's wait it's needed to think about it (sample code below)
 				$second_types,
 				$second_text,
-				$base_url.$trimg
+				$trimg
 			) ;
 			if ( $frtrimg != null ) {
 				$card->addlangimg('fr', $base_url.$frtrimg) ;
