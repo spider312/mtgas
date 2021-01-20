@@ -483,23 +483,6 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 		) {
 			if ( ! in_array($matches[1], $target->steps) ) // Not adding multiple times the same item
 				$target->steps[] = $matches[1] ;
-			// Emblem
-			if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $piece, $matches) ) {
-				$token = new stdClass() ;
-				$token->nb = 1 ;
-				if ( count($target->subtypes) < 1 ) {
-					echo 'Missing subtypes for '.$name ;
-					return ;
-				}
-				$token->name = 'Emblem.'.$target->subtypes[0] ;
-				$token->attrs = new stdClass() ;
-				$token->attrs->types = array('emblem') ;
-				$token->attrs->subtypes = array() ;
-				manage_text($name, $matches[1], $token->attrs) ;
-				$target->tokens[] = $token ;
-				manage_text($name, $matches[2], $target) ;
-				$managed = true ;
-			}
 		}
 		// Text that is not a loyalty counter line nor an emblem line
 		if ( ! $managed ) { // && ( $piece !== "$name can be your commander")
@@ -914,6 +897,22 @@ function manage_text($name, $text, $target) {
 			$target->tokens[] = $token ;
 			return;
 		}
+	}
+	// Emblem
+	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		if ( count($target->subtypes) < 1 ) {
+			echo 'Missing subtypes for '.$name ;
+			return ;
+		}
+		$token->name = 'Emblem.'.$target->subtypes[0] ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types = array('emblem') ;
+		$token->attrs->subtypes = array() ;
+		manage_text($name, $matches[1], $token->attrs) ;
+		$target->tokens[] = $token ;
+		manage_text($name, $matches[2], $target) ;
 	}
 	// Investigate / Clues
 	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
