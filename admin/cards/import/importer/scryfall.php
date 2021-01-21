@@ -81,6 +81,10 @@ foreach ( $data as $card ) {
 			$verso = $card->card_faces[1] ;
 			$verso->color_identity = $card->color_identity ;
 			break ;
+		case 'modal_dfc' :
+			$recto = $card->card_faces[0] ;
+			$verso = $card->card_faces[1] ;
+			break ;
 		case 'token' :
 			$power = property_exists($card, 'power') ? $card->power : 1 ; // As of M21, piratre has bug about pow/tou
 			$toughness = property_exists($card, 'toughness') ? $card->toughness : 1 ;
