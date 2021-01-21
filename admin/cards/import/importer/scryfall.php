@@ -70,20 +70,13 @@ foreach ( $data as $card ) {
 			}
 			break ;
 		case 'transform' :
+		case 'modal_dfc' :
 			$imageFace = $card->card_faces[0] ; // Recto hosts main image for transform
 		case 'flip' :
-			$recto = $card->card_faces[0] ;
-			$verso = $card->card_faces[1] ;
-			$verso->color_identity = $card->color_identity ;
-			break ;
 		case 'split' :
 			$recto = $card->card_faces[0] ;
 			$verso = $card->card_faces[1] ;
 			$verso->color_identity = $card->color_identity ;
-			break ;
-		case 'modal_dfc' :
-			$recto = $card->card_faces[0] ;
-			$verso = $card->card_faces[1] ;
 			break ;
 		case 'token' :
 			$power = property_exists($card, 'power') ? $card->power : 1 ; // As of M21, piratre has bug about pow/tou
@@ -142,6 +135,7 @@ foreach ( $data as $card ) {
 				$imported->flip($verso->name, $verso->type_line, card2text($verso)) ;
 				break ;
 			case 'transform' :
+			case 'modal_dfc' :
 				$versoImgURI = ( $importer->type === 'preview' ) ? null : $verso->image_uris->border_crop ;
 				$imported->transform($verso->name, $color, $verso->type_line, card2text($verso), get_image($verso)) ;
 				break ;
