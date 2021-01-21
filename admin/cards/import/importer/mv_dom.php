@@ -5,7 +5,7 @@ $base_path = 'fr/' ;
 $mana_url = 'graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
-$imported_extratxt = array('Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo') ;
+$imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo') ;
 
 // Importer
 $import_url = $base_url.$base_path.'set_cards?setcode='.$ext_source.'&lang=eng' ;
