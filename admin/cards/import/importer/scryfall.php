@@ -97,6 +97,9 @@ foreach ( $data as $card ) {
 			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
 			continue 2 ;
 	}
+	if ( property_exists($card, 'promo_types') ) {
+		continue ;
+	}
 	// Name
 	$name = $recto->name ;
 	// Cost
