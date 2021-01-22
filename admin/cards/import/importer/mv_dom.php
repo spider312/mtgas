@@ -123,23 +123,14 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		case 0: // Split
 			break;
 		case 2: // Has 1 PT (normal)
-			$pt = $pt_nodes->item(1)->nodeValue ;
-			if ( preg_match('#Loyalty : (\d*)#', $pt, $matches) ) {
-				$pt = $matches[1] ;
-			}
+			$pt = loyaltize($pt_nodes->item(1)->nodeValue) ;
 			break ;
 		// Has 2 PT (transform)
 		case 3: // French version miss moon data
 		case 4: // Normal
 		case 5: // ???
-			$pt = $pt_nodes->item($pt_nodes->length-2)->nodeValue ;
-			if ( preg_match('#Loyalty : (\d*)#', $pt, $matches) ) {
-				$pt = $matches[1] ;
-			}
-			$trpt = $pt_nodes->item($pt_nodes->length-1)->nodeValue ;
-			if ( preg_match('#Loyalty : (\d*)#', $trpt, $matches) ) {
-				$trpt = $matches[1] ;
-			}
+			$pt = loyaltize($pt_nodes->item($pt_nodes->length-2)->nodeValue) ;
+			$trpt = loyaltize($pt_nodes->item($pt_nodes->length-1)->nodeValue) ;
 			break ;
 		default:
 			$importer->adderror("Unmanaged PT nodes number : {$pt_nodes->length} $name\n", $href) ;
@@ -354,21 +345,13 @@ if ( $nb_token_expected !== $nb_token_found ) {
 	echo "$nb_token_found tokens found despite $nb_token_expected expected\n" ;
 }
 
-function mv_planeswalker($text_nodes, $text_idx) {
-	$text = $text_nodes->item($text_idx)->C14N() ;
-	$text = mv2txt($text)."\n" ;
-	if ( preg_match_all('/\s*([+|-]?\d*)\s*(.*?)\n/', $text, $matches, PREG_SET_ORDER) ) {
-		$text = '' ;
-		foreach ( $matches as $match )
-			$text .= $match[1].': '.$match[2]."\n" ;
+function loyaltize($pt) {
+	if ( preg_match('#Loyalty : (\d*)#', $pt, $matches) ) {
+		$pt = $matches[1] ;
 	}
-	$loyalty = $text_nodes->item($text_idx+1)->C14N() ;
-	if ( preg_match('#Loyalty : (\d*)#', $loyalty, $matches) ) {
-		$loyalty = $matches[1] ;
-		$text = $loyalty."\n".$text ;
-	}
-	return $text ;
+	return $pt ;
 }
+
 function mv_dom_node2cost($node) {
 	global $card_xpath, $mana_url ;
 	$cost_nodes = $card_xpath->query("img[contains(@src, '$mana_url')]", $node, false) ;
