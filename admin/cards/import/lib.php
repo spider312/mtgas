@@ -104,7 +104,7 @@ function mv2txt($tmp) {
 	$tmp = preg_replace('@<br></br>(\S)@', "\n".'\1', $tmp) ; // 2 br not followed by a CR : add a CR
 	$tmp = str_replace('&#xD;', '', $tmp) ; // \r cleanup
 	$tmp = str_replace("\n\n", "\n", $tmp) ; // No need for 2 consecutive \n
-	$tmp = str_replace(chr(194).chr(160), '', $tmp) ;
+	$tmp = str_replace(chr(194).chr(160), ' ', $tmp) ;
 	$tmp = strip_tags($tmp) ; // Purify
 	$tmp = trim($tmp) ; // Cleanup
 	return $tmp ;
