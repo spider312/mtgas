@@ -104,6 +104,7 @@ function mv2txt($tmp) {
 	$tmp = preg_replace('@<br></br>(\S)@', "\n".'\1', $tmp) ; // 2 br not followed by a CR : add a CR
 	$tmp = str_replace('&#xD;', '', $tmp) ; // \r cleanup
 	$tmp = str_replace("\n\n", "\n", $tmp) ; // No need for 2 consecutive \n
+	$tmp = str_replace(chr(194).chr(160), '', $tmp) ;
 	$tmp = strip_tags($tmp) ; // Purify
 	$tmp = trim($tmp) ; // Cleanup
 	return $tmp ;
@@ -134,7 +135,6 @@ function strdebug($str, $index=false) {
 	//$arr = preg_split('/(?<!^)(?!$)/u', $str ); 
 	//$arr = str_split($str) ;
 	$arr = $str ;
-	$result = '<table>' ;
 	$indexes = '' ;
 	$letters = '' ;
 	$ords = '' ;
@@ -143,7 +143,7 @@ function strdebug($str, $index=false) {
 		$letters .= '<td>'.$arr[$i].'</td>' ;
 		$ords .= '<td>'.ord($arr[$i]).'</td>' ;
 	}
-	$result = "<table>" ;
+	$result = '<table style="background-color: white">' ;
 	if ( $index )
 		$result .= "<tr>$indexes</tr>" ;
 	$result .= "<tr>$letters</tr><tr>$ords</tr></table>\n" ;
