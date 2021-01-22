@@ -5,7 +5,7 @@ $base_path = 'fr/' ;
 $mana_url = 'graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
-$imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo') ;
+$imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo', 'Borderless', 'Buy-a-Box', 'Promo Pack') ;
 
 // Importer
 $import_url = $base_url.$base_path.'set_cards?setcode='.$ext_source.'&lang=eng' ;
@@ -221,10 +221,12 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		//echo "$name {$token_number_node->length}\n" ;
 		if ( $importer->type === 'pwdecks' ) { continue ; } // PW Decks imports only PW Decks cards
 	}
+	/*
 	if ( ( ( $importer->type === 'preview' ) || ( $importer->type === 'main' ) ) && ( $number > $nbcards ) ) {
 		$importer->adderror('Card number too high', $href) ;
 		continue ;
 	}
+	*/
 	$exceptions = [] ; // Cards wrongly declared as nontoken on source during "hot" import
 	if ( array_search($number, $exceptions) !== false ) {
 		$nb_token_found++ ;
@@ -270,6 +272,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		$importer->addtoken($href, $name, $pow, $tou, $img) ;
 		continue ;
 	}
+	// Text
 	$text_nodes = $card_xpath->query("//div[@id='EngShort']") ;
 	$text = mv2txt($text_nodes->item(0)->C14N()) ;
 	if ( $pt != '' ) {
