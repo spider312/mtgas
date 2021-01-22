@@ -119,7 +119,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	$pt_nodes = $card_xpath->query("//div[@class='G14' and string-length(text()) > 0]") ;
 	$pt = '' ;
 	$trpt = '' ;
-	switch ( $pt_nodes->length) {
+	switch ( $pt_nodes->length ) {
 		case 0: // Split
 			break;
 		case 2: // Has 1 PT (normal)
@@ -133,7 +133,13 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		case 4: // Normal
 		case 5: // ???
 			$pt = $pt_nodes->item($pt_nodes->length-2)->nodeValue ;
+			if ( preg_match('#Loyalty : (\d*)#', $pt, $matches) ) {
+				$pt = $matches[1] ;
+			}
 			$trpt = $pt_nodes->item($pt_nodes->length-1)->nodeValue ;
+			if ( preg_match('#Loyalty : (\d*)#', $trpt, $matches) ) {
+				$trpt = $matches[1] ;
+			}
 			break ;
 		default:
 			$importer->adderror("Unmanaged PT nodes number : {$pt_nodes->length} $name\n", $href) ;
@@ -294,7 +300,8 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		case 1 :
 			break ;
 		case 2 :
-			$second_text = mv2txt($text_nodes->item(1)->C14N()) ;
+			$second_text = $trpt."\n".mv2txt($text_nodes->item(1)->C14N()) ;
+			$second_text = str_replace(chr(10).chr(9).chr(9).chr(9).chr(32).chr(32), ': ', $second_text); // String between loyalty count and effect
 			break ;
 		default :
 			echo "Unmanaged number of texts : {$text_nodes->length} - $name\n" ;
