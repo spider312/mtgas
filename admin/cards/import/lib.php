@@ -565,6 +565,7 @@ class ImportCard {
 	public $images = array() ; // Each image in current extension
 	public $langs = array() ;
 	public $secondname = '' ; // Second image name for transform
+	public $seconded = false ;
 	function __construct($ext, $card_url, $rarity, $name, $cost, $types, $text, $url, $multiverseid=0) {
 		$this->ext = $ext ;
 		$this->url = $card_url ;
@@ -582,6 +583,11 @@ class ImportCard {
 	}
 	// Dual
 	function split($name, $cost, $types, $text) {
+		if ( $this->seconded ) {
+			return;
+		} else {
+			$this->seconded = true ;
+		}
 		$pos = strpos($this->name, $name) ;
 		if ( $pos !== false ) {
 			$this->ext->adderror('Split : Trying to re-add second face', $this) ;
@@ -591,9 +597,19 @@ class ImportCard {
 		$this->addtext("----\n$cost\n$types\n$text") ;
 	}
 	function flip($name, $types, $text) {
+		if ( $this->seconded ) {
+			return;
+		} else {
+			$this->seconded = true ;
+		}
 		$this->addtext("----\n$name\n$types\n$text") ;
 	}
 	function transform($name, $ci, $types, $text, $url) {
+		if ( $this->seconded ) {
+			return;
+		} else {
+			$this->seconded = true ;
+		}
 		$this->secondname = $name ;
 		$this->addtext("-----\n$name\n%$ci $types\n$text") ;
 		$this->addimage($url) ;
