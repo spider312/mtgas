@@ -38,6 +38,7 @@ $nb_token_found = 0 ;
 
 // Cards
 $card_dom = new DOMDocument;
+/* Dunno why, this method is for page displayed in browser, but not page downloaded
 	// First pass : get multiple link for a card
 $card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
 $cards_href = array() ;
@@ -51,6 +52,15 @@ for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
 			$card_other_link = $card_link_other->item($j) ;
 			array_push($cards_href, $card_other_link->getAttribute('href')) ;
 		}
+	}
+}
+*/
+$card_links = $xpath->query("//a[starts-with(@id, 'c_t_')]");
+$cards_href = array() ;
+for ( $i = 0 ; $i < $card_links->length ; $i++ ) {
+	$card_href = $card_links->item($i)->getAttribute('href') ;
+	if ( ! in_array($card_href, $cards_href) ) {
+		array_push($cards_href, $card_href) ;
 	}
 }
 	// Second pass : parse those cards
