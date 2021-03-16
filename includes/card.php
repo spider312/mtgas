@@ -873,7 +873,7 @@ function manage_text($name, $text, $target) {
 	if (
 		preg_match_all('/Create (?<number>\w+) (?<tapped>tapped )?(?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) (?<types>[\w| ]+ creature) tokens? that\'s all colors(?<attrs> with (?<with>.*))?/', $text, $all_matches, PREG_SET_ORDER)
 		||
-		preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| ]+ creature) tokens?(?<attrs> with (?<with>.*))?/', $text, $all_matches, PREG_SET_ORDER)
+		preg_match_all('/(?<number>\w+) (?<tapped>tapped )?((?<pow>\d*|X|\*+)\/(?<tou>\d*|X|\*+) )?(?<color>'.$colreg.') (and (?<color2>'.$colreg.') )?(?<types>[\w| |\-]+ creature) tokens?(?<attrs> with (?<with>.*))?/', $text, $all_matches, PREG_SET_ORDER)
 	) {
 	// Godsire, Hazezon Tamar
 	//|| preg_match_all('/(?<number>\w+) (?<pow>\d*)\/(?<tou>\d*) (?<types>[\w| ]+ creature) tokens? that[\'s| are] (?<color>'.$colreg.'), (?<color2>'.$colreg.'), and (?<color3>'.$colreg.')/', $text, $all_matches, PREG_SET_ORDER)
