@@ -123,6 +123,7 @@ class Extension {
 		$nb_c = $this->get_data('c', 0) ; // Commons
 		$nb_u = $this->get_data('u', 0) ; // Uncos
 		$nb_r = $this->get_data('r', 0) ; // Rares / Mythics
+		$nb_s = $this->get_data('s', 0) ; // Special
 		$nb_l = $this->get_data('l', 0) ; // Base lands
 			// Exception cards
 		$timeshift = $this->get_data('timeshift', false) ; // Timeshifted (for TSP)
@@ -228,6 +229,15 @@ class Extension {
 			}
 		}
 		// Normal generation
+			// Special
+		if ( array_key_exists('S', $this->cards_rarity) ) {
+			for ( $i = 0 ; $i < $nb_s ; $i++ ) {
+				$this->rand_card($this->cards_rarity['S'], $result, $upool) ;
+			}
+		} else {
+			$nb_c += $nb_s ;
+		}
+
 			// Rare or Mythic
 		if ( array_key_exists('R', $this->cards_rarity) || array_key_exists('M', $this->cards_rarity) ) {
 			for ( $i = 0 ; $i < $nb_r ; $i++ ) {
