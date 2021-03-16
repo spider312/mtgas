@@ -18,7 +18,7 @@ if ( $importer->type === 'all' ) {
 	$pageURL = $set->search_uri ; // URL for first page, next page URL will be contained in result
 } else {
 	$booster = ( $importer->type === 'pwdecks' ) ? 'not' : 'is' ;
-	$pageURL = 'https://api.scryfall.com/cards/search?q=e:'.$set->code.'&'.$booster.'=booster&unique=prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
+	$pageURL = 'https://api.scryfall.com/cards/search?q=set:'.$set->code.'&'.$booster.':booster&unique=prints' ; // First page URL has to be generated in order to contain selectors for "booster like" list
 }
 $data = get_cards($pageURL, $basePath, array()) ;
 
@@ -150,6 +150,22 @@ function card2text($card) {
 	$text = str_replace('−', '-', $text) ; // Historical more-standard char
 	$text = str_replace('•', '*', $text) ; // Historical more-standard char
 	$text = preg_replace('#{(.)/(.)}#', '{\1\2}', $text) ; // Transform hybrid {A/B} mana to mogg format {AB}
+	if ( property_exists($card, 'color_indicator') ) {
+		global $colors ;
+		$colors_name = '' ;
+		foreach ( $card->color_indicator as $color ) {
+			if ( array_key_exists($color, $colors) ) {
+				$color_name = $colors[$color] ;
+			} else {
+				$color_name = 'unknown' ;
+			}
+			if ( $colors_name !== '' ) {
+				$colors_name .= ' and ' ;
+			}
+			$colors_name .= $color_name ;
+		}
+		$text = $card->name.' is '.$colors_name."\n".$text ;
+	}
 	if ( isset($card->power) && isset($card->toughness) ) { // Add pow/tou for creatures
 		$text = $card->power . '/'.$card->toughness."\n".$text ;
 	}
