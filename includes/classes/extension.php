@@ -132,6 +132,8 @@ class Extension {
 		$foil = $this->get_data('foil', 0) ; // Forced foils (Modern Masters)
 		$mps = $this->get_data('mps', '') ; // Masterpieces
 		$planeswalker = $this->get_data('planeswalker', false) ;
+			// Generic include mechanism
+		$include = $this->get_data('include', '') ;
 		// Init
 		$result = array() ; // Generated booster's cards
 		$foil_able = true ; // A booster may only have one foil added (forced foil, masterpiece, normal foil), keep a track of this
@@ -142,6 +144,11 @@ class Extension {
 			}
 		} else {
 			$nb_c += $nb_l ;
+		}
+		// Generic include
+		if ( $include !== '' ) {
+			$ext = Extension::get($include) ;
+			$result = array_merge($ext->booster(), $result) ;
 		}
 		// Foils
 			// Forced foil (Modern Masters)
