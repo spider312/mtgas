@@ -27,10 +27,11 @@ $tkURL = $baseURL . 'sets/t' . $ext_source ;
 $tkPath = $basePath.'_tk' ;
 $json = cache_get($tkURL, $tkPath, $verbose, false, $importer->cachetime) ;
 $tk = json_decode($json) ;
-if ( $tk === null ) {
-	die("<a href=\"$tkURL\">Unparsable JSON</a> : $json") ;
+if ( $tk !== null ) {
+	$data = get_cards($tk->search_uri, $tkPath, $data) ;
+} else {
+	//die("<a href=\"$tkURL\">Unparsable JSON</a> : $json") ;
 }
-$data = get_cards($tk->search_uri, $tkPath, $data) ;
 
 // Parse results
 foreach ( $data as $card ) {
