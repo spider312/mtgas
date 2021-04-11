@@ -91,7 +91,7 @@ class Extension {
 	// Randomly adds on card from $from to $booster, if not already containing it
 	// checks upool unicity if extension data asks for
 	// Don't do checkings for a foil
-	private function rand_card($from, &$booster, &$upool, $foil=false) {
+	private function rand_card($from, &$booster, &$upool, $foil=false, $se=null) {
 		shuffle($from) ; // Shuffle instead of random, allowing for easier unicity checkings
 		foreach ( $from as $card ) {
 			if ( ( ! $foil ) && card_in_booster($card, $booster) ) { // Booster unicity
@@ -105,7 +105,10 @@ class Extension {
 				}
 			}
 			// Passed unicity checkings
-			$result = $card->extend($this->se) ; // Select current extension for card
+			if ( $se === null ) {
+				$se = $this->se ;
+			}
+			$result = $card->extend($se) ; // Select current extension for card
 			array_unshift($booster, $result) ; // Generated in reverse order
 			return true ;
 		}
@@ -134,6 +137,7 @@ class Extension {
 		$planeswalker = $this->get_data('planeswalker', false) ;
 			// Generic include mechanism
 		$include = $this->get_data('include', '') ; // Includes a booster of extension
+		$include_card = $this->get_data('include_card', '') ; // Includes a card from an extension with rarity
 		// Init
 		$result = array() ; // Generated booster's cards
 		$foil_able = true ; // A booster may only have one foil added (forced foil, masterpiece, normal foil), keep a track of this
@@ -146,6 +150,13 @@ class Extension {
 			$nb_c += $nb_l ;
 		}
 		// Generic include
+			// Card
+		if ( $include_card !== '' ) {
+			$ext = Extension::get($include_card) ;
+			$r = Extension::random_rarity(array('U' => 3, 'R|M' => 1)) ; // Hardcoded STM compo for now, will have to find a better way to manage it
+			$this->rand_card($ext->cards_rarity[$r], $result, $upool, false, $include_card) ;
+		}
+			// Booster
 		if ( $include !== '' ) {
 			$ext = Extension::get($include) ;
 			$result = array_merge($ext->booster(), $result) ;
@@ -285,20 +296,43 @@ class Extension {
 		}
 		return $result ;
 	}
-	static function r_or_m($cards) {
-		global $proba_m ;
-		if ( ! array_key_exists('M', $cards) || count($cards['M']) == 0 ) { // No mythics
-			if ( ( ! array_key_exists('R', $cards) ) || ( count($cards['R']) == 0 ) ) // And no rares
-				return 'S' ; // TSB
-			else
-				return 'R' ;
+	static function r_or_m($cards=null) {
+		if ( $cards !== null ) {
+			if ( ! array_key_exists('M', $cards) || count($cards['M']) == 0 ) { // No mythics
+				if ( ( ! array_key_exists('R', $cards) ) || ( count($cards['R']) == 0 ) ) // And no rares
+					return 'S' ; // TSB
+				else
+					return 'R' ;
+			}
+			if ( ! array_key_exists('R', $cards) || count($cards['R']) == 0 ) // No rares
+				return 'M' ;
 		}
-		if ( ! array_key_exists('R', $cards) || count($cards['R']) == 0 ) // No rares
-			return 'M' ;
 		// Rares and Mythics
+		global $proba_m ;
 		if ( rand(1, $proba_m) == 1 )
 			return 'M' ;
 		return 'R' ;
+	}
+	static function random_rarity($compo=array('C' => 10, 'U' => 3, 'R|M' => 1)) { // Returns a random rarity depending on a booster composition
+		// Total number of cards in compo
+		$total = 0 ;
+		foreach ( $compo as $rarity => $nb) {
+			$total += $nb ;
+		}
+		// Chose one random card in compo
+		$chosen = rand(1, $total) ;
+		// Assign card index to rarity
+		foreach ( $compo as $rarity => $nb) {
+			if ( $chosen <= $nb ) { //card is in current rarity
+				if ( $rarity === 'R|M' ) {
+					$rarity = Extension::r_or_m() ;
+				}
+				return $rarity ;
+			} else { // Not in current rarity
+				$chosen -= $nb ; // adapt "chosen" to fit rarities left in compo
+			}
+		}
+		return 'C' ;
 	}
 	static function get($name) {
 		foreach (Extension::$cache as $extension)
