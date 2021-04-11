@@ -130,10 +130,10 @@ class Extension {
 		$transform = $this->get_data('transform', false)  ; // Transformable (for ISD/DKA)
 		$transform2 = $this->get_data('transform2', false) ; // Transformable, 2nd wave (SOI)
 		$foil = $this->get_data('foil', 0) ; // Forced foils (Modern Masters)
-		$mps = $this->get_data('mps', '') ; // Masterpieces
+		$mps = $this->get_data('mps', '') ; // Masterpieces : includes a card from extension with probability
 		$planeswalker = $this->get_data('planeswalker', false) ;
 			// Generic include mechanism
-		$include = $this->get_data('include', '') ;
+		$include = $this->get_data('include', '') ; // Includes a booster of extension
 		// Init
 		$result = array() ; // Generated booster's cards
 		$foil_able = true ; // A booster may only have one foil added (forced foil, masterpiece, normal foil), keep a track of this
