@@ -2526,7 +2526,14 @@ function card_prototype() {
 		this.zone.player.cascade(this.attrs.converted_cost) ;
 	}
 	this.living_weapon = function() {
-		create_token('MBS', 'Germ', this.zone, {'types': ['creature'], 'pow':0, 'thou':0}, 1, function(tk, lw) {
+		var name = 'Germ' ;
+		var attrs = {'types': ['creature'], 'pow':0, 'thou':0} ;
+		var ext = this.ext ;
+		var img = token_image_name(name, ext, attrs) ;
+		if ( ! iso(game.tokens_catalog[ext]) || ! iss(game.tokens_catalog[ext][img]) ) {
+			ext = 'MBS' ; // Hardcoded default in case token doesn't exists in card's extension
+		}
+		create_token(ext, name, this.zone, attrs, 1, function(tk, lw) {
 			tk.attach(lw) ;
 		}, this) ;
 	}
