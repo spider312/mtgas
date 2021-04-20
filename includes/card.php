@@ -915,15 +915,7 @@ function manage_text($name, $text, $target) {
 			return;
 		}
 	}
-	// Investigate / Clues
-	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
-		$token = new stdClass() ;
-		$token->nb = 1 ;
-		$token->attrs = new stdClass() ;
-		$token->attrs->types[] = "artifact" ;
-		$token->name = "Clue" ;
-		$target->tokens[] = $token ;
-	}
+	// Generic non-creature token creation
 	if ( preg_match('#[C|c]reates? (?<number>\w+) (?<color>'.$colreg.') (?<name>.*) artifact tokens?(.*They have| with) "(?<text>.*)"#', $text, $match) ) {
 		$token = new stdClass() ;
 		$token->nb = text2number($match['number'], 1) ;
@@ -934,6 +926,15 @@ function manage_text($name, $text, $target) {
 		manage_text($name, $match['text'], $token->attrs) ;
 		$target->tokens[] = $token ;
 		return;
+	}
+	// Investigate / Clues
+	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$token->name = "Clue" ;
+		$target->tokens[] = $token ;
 	}
 	// Treasures
 	if ( 
