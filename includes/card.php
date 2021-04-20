@@ -511,11 +511,11 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
 		$token = new stdClass() ;
 		$token->nb = 1 ;
-		if ( count($target->subtypes) < 1 ) {
-			echo 'Missing subtypes for '.$name ;
-			return ;
+		if ( count($target->subtypes) > 0 ) {
+			$token->name = 'Emblem.'.$target->subtypes[0] ;
+		} else {
+			$token->name = $name ;
 		}
-		$token->name = 'Emblem.'.$target->subtypes[0] ;
 		$token->attrs = new stdClass() ;
 		$token->attrs->types = array('emblem') ;
 		$token->attrs->subtypes = array() ;
