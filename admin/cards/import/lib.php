@@ -515,30 +515,37 @@ class Importer {
 			if ( preg_match('/Emblem (.*)/', $name, $matches) ) {
 				$emblemname = trim($matches[1]) ; // May be just the type or the full name
 				$found = false ;
+				// Searching for card/face in order to determine emblem name
 				foreach ( $this->cards as $card ) { // Search which planeswalker it is for
-					if ( ! in_array('Planeswalker', split(' ', $card->types)) ) // Only parse planeswalker, with information aviable
-						continue ;
 					$attrs = $card->attrs() ;
-					if ( strtolower($emblemname) === strtolower($card->name) ) {
+					// Search in recto
+					if (
+						( strtolower($emblemname) === strtolower($card->name) ) // Search in name
+						|| ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($emblemname) ) ) // Search in subtype
+					) {
 						$found = true ;
 						$name = 'Emblem.'.$attrs->subtypes[0] ;
 						break ;
 					}
-					// Check card subtype
-					if ( isset($attrs->subtypes) && ( count($attrs->subtypes) > 0 ) && ( $attrs->subtypes[0] == strtolower($emblemname) ) ) {
-						$found = true ;
-						$name = 'Emblem.'.$attrs->subtypes[0] ;
-						break ;
-					}
-					// Check transform subtype
-					if ( isset($attrs->transformed_attrs) && ( $attrs->transformed_attrs->subtypes[0] == strtolower($emblemname) ) ) {
-						$found = true ;
-						$name = 'Emblem.'.$attrs->transformed_attrs->subtypes[0] ;
-						break ;
+					// Search in verso
+					if (
+						property_exists($attrs, 'transformed_attrs')
+						// As final emblem name is planeswalker subtype, only check versos with a subtype (e.g. don't check sorcery versos)
+						&& ( property_exists($attrs->transformed_attrs, 'subtypes') ) 
+						&& ( count($attrs->transformed_attrs->subtypes) > 0 )
+					) {
+						if (
+							( strtolower($attrs->transformed_attrs->name) == strtolower($emblemname) ) // Search in name
+							|| ( $attrs->transformed_attrs->subtypes[0] == strtolower($emblemname) ) // Search in subtype
+						 ) {
+							$found = true ;
+							$name = 'Emblem.'.$attrs->transformed_attrs->subtypes[0] ;
+							break ;
+						}
 					}
 				}
 				if ( !$found ) { // No planeswalker found, don't DL
-					echo "Planeswalker not found for emblem\n" ;
+					echo "Planeswalker not found for emblem \"$emblemname\"\n" ;
 					continue ;
 				}
 			}
