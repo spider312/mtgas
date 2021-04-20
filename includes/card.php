@@ -924,7 +924,6 @@ function manage_text($name, $text, $target) {
 		$token->name = "Clue" ;
 		$target->tokens[] = $token ;
 	}
-	// Treasures
 	if ( preg_match('#[C|c]reates? (?<number>\w+) (?<color>'.$colreg.') (?<name>.*) artifact tokens?(.*They have| with) "(?<text>.*)"#', $text, $match) ) {
 		$token = new stdClass() ;
 		$token->nb = text2number($match['number'], 1) ;
@@ -936,9 +935,9 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
+	// Treasures
 	if ( 
-		preg_match('#create (?<number>\w+) Treasure tokens#', $text, $match)
-		|| stripos($text, 'create a Treasure token') !== false
+		preg_match('#[C|c]reates? (?<number>\w+) Treasure tokens?#', $text, $match)
 	) {
 		$token = new stdClass() ;
 		$token->nb = array_key_exists('number', $match) ? text2number($match['number'], 1) : 1 ;
