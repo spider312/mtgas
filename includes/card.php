@@ -398,7 +398,12 @@ function text2number($text, $xval=0) { // By default, X worth 0 (like in CC) but
 		case 'thirteen' :
 			return 13 ;
 		default :
-			return intval($text) ;
+			$val = intval($text) ;
+			if ( $val === 0 ) {
+				return $xval ; // Don't return 0 unless asked
+			} else {
+				return $val ;
+			}
 	}
 }
 function manage_types($type, $target) {
@@ -983,7 +988,10 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 	}
 	// Food
-	if ( preg_match('#[C|c]reate (?<number>\w+) Food tokens?#', $text, $match) ) {
+	if ( 
+		preg_match('#[C|c]reate (?<number>\w+) Food tokens?#', $text, $match)
+		|| preg_match('#[C|c]reate (?<number>a number of) Food tokens?#', $text, $match)
+	) {
 		$token = new stdClass() ;
 		$token->nb = text2number($match['number'], 1) ;
 		$token->attrs = new stdClass() ;
