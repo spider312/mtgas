@@ -871,7 +871,7 @@ function manage_text($name, $text, $target) {
 		$target->bonus->no_untap = true ;
 	}
 	// Living weapon
-	if ( strpos($text, 'Living weapon') !== false )
+	if ( stripos($text, 'Living weapon') !== false )
 		$target->living_weapon = true ;
 	// Token creation
 	$colreg = implode('|', $colors) ;
