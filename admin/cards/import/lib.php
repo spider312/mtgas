@@ -711,7 +711,7 @@ class ImportCard {
 		} else { // Card not found in DB, insert
 			if ( $apply ) {
 				query("INSERT INTO `mtg`.`card` (`name` ,`cost` ,`types` ,`text`, `attrs`)
-				VALUES ('".mysql_real_escape_string($this->name)."', '".$this->cost."', '".$this->types."', '".
+				VALUES ('".mysql_real_escape_string($this->name)."', '".$this->cost."', '".mysql_real_escape_string($this->types)."', '".
 				mysql_real_escape_string($this->text)."', '".mysql_escape_string($this->json_attrs())."');") ;
 				$card_id = mysql_insert_id($mysql_connection) ; // Returned for linking
 			} else
