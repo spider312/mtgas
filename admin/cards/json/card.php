@@ -20,7 +20,7 @@ if ( array_key_exists('card_id', $_GET) ) {
 	SET
 		`cost` = '".$card['cost']."', 
 		`name` = '".mysql_real_escape_string($card['name'])."', 
-		`types` = '".$card['types']."', 
+		`types` = '".mysql_real_escape_string($card['types'])."', 
 		`text` = '".mysql_real_escape_string($card['text'])."', 
 		`attrs` = '".mysql_real_escape_string($attrs)."',
 		`fixed_attrs` = '".mysql_real_escape_string($fixed_attrs)."' 
