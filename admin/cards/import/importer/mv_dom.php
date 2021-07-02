@@ -274,11 +274,14 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	if ( ( strpos($types, 'Gate') !== false ) && ( strpos($name, 'Guildgate') !== false ) ) { // In all Ravnica extensions, Guildgates (but no other gates) appear as land in boosters
 		$rarity = 'L' ;
 	}
+	// Card is a land but have no cost : normal for suspend
+	/*
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
 		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
 		$importer->addtoken($href, $name, $pow, $tou, $img) ;
 		continue ;
 	}
+	*/
 	// Text
 	$text_nodes = $card_xpath->query("//div[@id='EngShort']") ;
 	$text = mv2txt($text_nodes->item(0)->C14N()) ;
