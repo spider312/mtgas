@@ -518,7 +518,7 @@ function Options(check_id) {
 	}
 }
 function gallery() {
-	window.open('avatars.php') ;
+	window.open('/avatars.php') ;
 }
 // Code copied from index.js, TODO : include it in new management
 // Other saved fields (not displayed in options, mostly index fields save)
