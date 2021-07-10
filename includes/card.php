@@ -274,7 +274,7 @@ class attrs {
 					'G' => 'green',
 					'WUBRG' => 'all colors'
 				) ;
-				if ( preg_match('`'.$arr['name'].' is ('.implode('|', $colornames).')`', $arr['text'], $matches) ) {
+				if ( preg_match('`'.preg_quote($arr['name']).' is ('.implode('|', $colornames).')`', $arr['text'], $matches) ) {
 					if ( $i = array_search($matches[1], $colornames) )
 						$this->color = $i ;
 				}
@@ -671,7 +671,9 @@ function manage_text($name, $text, $target) {
 		//}
 	}
 	// CIP
-	if ( preg_match('/'.addcslashes($name, '\'"\\/' ).' enters the battlefield (or (?<alt>[^,]*),)?(?<act>.*)/', $text, $matches) ) {
+	$escaped_name = $name ;
+	$escaped_name = addcslashes($escaped_name, '\'"\\/+' ) ;
+	if ( preg_match('/'.$escaped_name.' enters the battlefield (or (?<alt>[^,]*),)?(?<act>.*)/', $text, $matches) ) {
 		/* Alternate trigger ('or attacks', 'or leaves play' ...)
 		if ( $matches['alt'] != '' )
 			echo $name.' : '.$matches['alt']."\n" ;
