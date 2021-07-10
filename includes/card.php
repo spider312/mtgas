@@ -1460,10 +1460,19 @@ function conditionnal_poly_boost($target, $matches, $text) { // Parses text afte
 		$target->powtoucond->thou = intval($matches['tou']) ;
 		$target->powtoucond->from = array_search($m['where'], $conds) ;
 		$what = str_replace(' card', '', strtolower($m['what'])) ;
-		if ( array_search($what, $cardtypes) !== false )
-			$target->powtoucond->cond = 'type='.$what ;
-		else
-			$target->powtoucond->cond = 'ctype='.$what ;
+		$whats = preg_split('# and/or #', $what) ;
+		$cond = '' ;
+		foreach ( $whats as $what ) {
+			if ( $cond !== '' ) {
+				$cond .= '|' ;
+			}
+			if ( array_search($what, $cardtypes) !== false ) {
+				$cond .= 'type='.$what ;
+			} else {
+				$cond .= 'ctype='.$what ;
+			}
+		}
+		$target->powtoucond->cond = $cond ;
 		if ( array_key_exists('name', $m) )
 			$target->powtoucond->cond = 'name='.$m['name'] ;
 		if ( array_key_exists('other', $m) && ( $m['other'] == 'other ') )
