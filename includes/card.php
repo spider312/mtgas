@@ -636,6 +636,23 @@ function manage_text($name, $text, $target) {
 		$token->name = 'Spirit' ;
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('/venture into the dungeon/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->name = 'Dungeon of the Mad Mage' ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'dungeon' ;
+		$target->tokens[] = $token ;
+		$token = new stdClass() ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'dungeon' ;
+		$token->name = 'Lost Mine of Phandelver' ;
+		$target->tokens[] = $token ;
+		$token = new stdClass() ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'dungeon' ;
+		$token->name = 'Tomb of Annihilation' ;
+		$target->tokens[] = $token ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
