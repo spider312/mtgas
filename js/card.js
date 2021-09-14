@@ -165,7 +165,7 @@ function card_prototype() {
 	this.get_name = function(oldzone) {
 		var name = 'a card' ; // Generic default
 		if ( this.is_visible(oldzone) ) {
-			if ( iso(this.attrs.transformed) )
+			if ( this.attrs.transformed )
 				name = this.transformed_attrs.name ;
 			else
 				name = this.name ;
@@ -527,7 +527,11 @@ function card_prototype() {
 	}
 	this.imgurl_relative = function() {
 		if ( ( this.attrs.transformed ) && this.transformed_attrs && iss(this.transformed_attrs.name) )
-			return card_image_url(this.ext, this.transformed_attrs.name, this.attrs.nb) ;
+			if ( this.type == 'token' ) {
+				return 'TK/' + this.ext + '/' + this.transformed_attrs.name + '.jpg' ;
+			} else {
+				return card_image_url(this.ext, this.transformed_attrs.name, this.attrs.nb) ;
+			}
 		else
 			return this.image_url ;
 	}

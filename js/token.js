@@ -19,7 +19,11 @@ function Token(id, extension, name, zone, attrs, img_url, register) {
 	if ( register )
 		game.tokens.push(this) ; // Register it in order to delete on game end
 	this.get_name = function() {
-		return this.name+' (token)' ; // Defaults to token, overridden by duplicate
+		if ( this.attrs.transformed )
+			name = this.transformed_attrs.name ;
+		else
+			name = this.name ;
+		return name+' (token)' ; // Defaults to token, overridden by duplicate
 	}
 }
 function create_token(ext, name, zone, attrs, nb, oncreate, oncreateparam) { // Modularisation between custom token creation and previous tokens recalling menu
