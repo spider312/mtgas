@@ -653,6 +653,17 @@ function manage_text($name, $text, $target) {
 		$token->name = 'Tomb of Annihilation' ;
 		$target->tokens[] = $token ;
 	}
+	if ( ( stripos('daybound', $text) !== false ) || ( stripos('nightbound', $text) !== false ) ) {
+		$token = new stdClass() ;
+		$token->name = 'Day' ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'emblem' ;
+		$transformed_attrs = new stdClass() ;
+		$transformed_attrs->name = 'Night' ;
+		$transformed_attrs->types[] = 'emblem' ;
+		$token->attrs->transformed_attrs = $transformed_attrs ;
+		$target->tokens[] = $token ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
