@@ -452,20 +452,33 @@ class Importer {
 		foreach ( $this->cards as $card ) {
 			echo $card->name.' : ' ;
 			if ( $card->secondname != '' ) {
-				if ( count($card->images) < 2 )
+				$nbi = count($card->images) ;
+				if ( $nbi == 2 ) {
+					$path = $dir.card_img_by_name($card->name, 1, 1) ;
+					cache_get($card->images[0], $path, $verbose, $update, $this->cachetime) ;
+					$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
+					cache_get($card->images[1], $path, $verbose, $update, $this->cachetime) ;
+				} else if ( $nbi > 2 ) {
+					$i = 0 ;
+					$irecto = 0 ;
+					while ( $i < $nbi ) {
+						$i++ ; $i++ ;
+						$irecto++ ;
+						$path = $dir.card_img_by_name($card->name, $irecto, $nbi) ;
+						cache_get($card->images[0], $path, $verbose, $update, $this->cachetime) ;
+						$path = $dir.card_img_by_name($card->secondname, $irecto, $nbi) ;
+						cache_get($card->images[1], $path, $verbose, $update, $this->cachetime) ;
+					}
+				} else 
 					die('2 images expected for tranfsorm') ;
-				$path = $dir.card_img_by_name($card->name, 1, 1) ;
-				cache_get($card->images[0], $path, $verbose, $update, $this->cachetime) ;
-				$path = $dir.card_img_by_name($card->secondname, 1, 1) ;
-				cache_get($card->images[1], $path, $verbose, $update, $this->cachetime) ;
 				echo "\n" ;
 				// Languages
 				foreach ( $card->langs as $lang => $images ) {
 					$nbimages = count($images['images']) ;
-					if ( $nbimages !== 2 ) {
+					/*if ( $nbimages !== 2 ) {
 						echo "$nbimages instead of 2 expected" ;
 						continue ;
-					}
+					}*/
 					$langdir = $base_image_dir.strtoupper($lang).'/'.$this->dbcode.'/' ;
 					echo " - $lang : " ;
 					$path = $langdir.card_img_by_name($card->name, 1, 1) ;
@@ -612,6 +625,7 @@ class ImportCard {
 		$this->addtext("----\n$name\n$types\n$text") ;
 	}
 	function transform($name, $ci, $types, $text, $url) {
+		$this->addimage($url) ;
 		if ( $this->seconded ) {
 			return;
 		} else {
@@ -619,7 +633,6 @@ class ImportCard {
 		}
 		$this->secondname = $name ;
 		$this->addtext("-----\n$name\n%$ci $types\n$text") ;
-		$this->addimage($url) ;
 	}
 	function addtext($add) {
 		$this->text .= "\n".card_text_sanitize($add) ;
