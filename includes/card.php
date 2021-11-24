@@ -664,6 +664,15 @@ function manage_text($name, $text, $target) {
 		$token->attrs->transformed_attrs = $transformed_attrs ;
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('/[C|c]reates? (?<nb>.+?) Blood token/', $text, $match) ) {
+		$token = new stdClass() ;
+		$token->nb = text2number($match['nb'], 1) ;
+		$token->name = 'Blood' ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->color = 'X' ;
+		$token->attrs->types[] = "artifact" ;
+		$target->tokens[] = $token ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
