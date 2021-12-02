@@ -41,6 +41,15 @@ foreach ( $langs as $code => $name ) // Add each languages
 	if ( $code != 'n' )
 		$cardimages_choice[$name] =  'http://img.mogg.fr/'.strtoupper($code).'/' ;
 
+$baseland_extensions = array(
+	'UST'	=> 'Unstable',
+	'UNH'	=> 'Unhinged',
+	'UG'	=> 'Unglued',
+	'ZEN/1'	=> 'Zendikar',
+	'AKH/1'	=> 'Amonkhet',
+	'GRN'	=> 'Guilds of Ravnica'
+) ;
+
 // MTG rules to be tweaked
 $build_duration = 40 * 60 ; // 40 mins for build
 $round_duration = 60 * 60 ; // 60 mins for rounds as there are no additionnal turns
