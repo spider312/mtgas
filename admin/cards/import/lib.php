@@ -220,7 +220,7 @@ class Importer {
 					$this->adderror('Card already parsed with different data', $card_url) ;
 				}
 				// Add image URL anyway (Unstable alternative pics)
-				if ( $card->addimage($url) ) {
+				if ( ( $url !== null) && $card->addimage($url) ) {
 					$card->nbimages++ ;
 				}
 				$card->addurl($card_url) ;
