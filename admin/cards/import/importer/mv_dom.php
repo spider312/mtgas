@@ -170,13 +170,13 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	} else {
 		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
 		$rarity = $rarities[$rarity_id] ;
-		if ( $importer->type === 'preview' ) {
-			if ( ( $rarity === 'R' ) || ( $rarity === 'M' ) ) { 
-				$rarity = 'L' ; // To appear differently in builder
-				$img = null ;
-			} else {
-				continue ;
-			}
+	}
+	if ( $importer->type === 'preview' ) {
+		if ( ( $rarity === 'R' ) || ( $rarity === 'M' ) ) { 
+			$rarity = 'L' ; // To appear differently in builder
+			$img = null ;
+		} else {
+			continue ;
 		}
 	}
 // Token
