@@ -673,6 +673,20 @@ function manage_text($name, $text, $target) {
 		$token->attrs->types[] = "artifact" ;
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('/[Yy]ou take the [Ii]nitiative/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->name = 'The Initiative' ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'Initiative' ;
+		$target->tokens[] = $token ;
+		$token = new stdClass() ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->name = 'Undercity' ;
+		$token->attrs->types[] = 'Dungeon' ;
+		$target->tokens[] = $token ;
+	}
 	// Without keyword
 		// Untap
 	if ( stripos($text, $name.' doesn\'t untap during your untap step') !== false )
