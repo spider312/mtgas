@@ -129,11 +129,8 @@ class Db {
 	}
 	public function select($query) { // Runs a sync select, returning selected data
 		$result = $this->query($query) ;
-		if (method_exists('mysqli_result', 'fetch_all')) # Compatibility layer with PHP < 5.3
-			$res = $result->fetch_all(MYSQLI_ASSOC);
-		else
-			for ($res = array(); $tmp = $result->fetch_object();)
-				$res[] = $tmp;
+		for ($res = array(); $tmp = $result->fetch_object();)
+			$res[] = $tmp;
 		return $res;
 	}
 	public function update($query) { // Runs a sync update, returning affected rows
