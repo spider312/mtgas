@@ -283,6 +283,9 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	if ( ( strpos($types, 'Gate') !== false ) && ( strpos($name, 'Guildgate') !== false ) ) { // In all Ravnica extensions, Guildgates (but no other gates) appear as land in boosters
 		$rarity = 'L' ;
 	}
+	if ( strpos($types, 'Theme Card') !== false ) {
+		continue ; // Ignore theme cards in import
+	}
 	// Card is a land but have no cost : normal for suspend
 	/*
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
