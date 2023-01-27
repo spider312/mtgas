@@ -871,7 +871,8 @@ function manage_text($name, $text, $target) {
 								$powtoucond->other = ($mm['who'] === 'another');
 								break ;
 							// Unmanageable
-							case ( $m['what'] === 'three or more artifacts' ): // Impossible to detect the number of cards satisfying condition
+							case ( $m['what'] === 'two or more artifacts' ): // Impossible to detect the number of cards satisfying condition
+							case ( $m['what'] === 'three or more artifacts' ):
 							case ( $m['what'] === 'eight or more lands' ):
 							case ( $m['what'] === 'ten or more lands' ):
 							case ( $m['what'] === 'no untapped lands' ): // Impossible to detect tapped lands nor their absence
