@@ -73,6 +73,17 @@ function start(id, pid) {
 				}) ;
 				filter_suggestions.appendChild(optgroup) ;
 				break ;
+			case 'lands' :
+				data.exts.forEach(function(currentValue, currentIndex, listObj) {
+					if ( currentValue.nb === 1 ) {
+						baseland_extensions[currentValue.se] = currentValue.name ;
+					} else {
+						for ( i = 1 ; i < currentValue.nb+1 ; i++ ) {
+							baseland_extensions[currentValue.se+'/'+i] = currentValue.name+' ('+i+')' ;
+						}
+					}
+				}, true) ;
+				break ;
 			default : 
 				debug('Unknown type '+data.type) ;
 				debug(data) ;

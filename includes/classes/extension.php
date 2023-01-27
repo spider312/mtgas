@@ -12,6 +12,7 @@ class Extension {
 	public $uniq ;
 	public $data ;
 	public $cards_nb = 0 ;
+	public $basics = -1 ; // Number of each basic lands
 	private $cards = array() ; // All cards
 	private $cards_rarity = array() ; // Cards grouped by rarity
 	private $cards_apart = array() ; // Apart cards won't be included in normal booster generation, but added with own rules (Transform, forced legendary or planeswalker)
@@ -26,6 +27,52 @@ class Extension {
 		$this->bloc = $ext->bloc ;
 		$this->uniq = $ext->uniq ;
 		$this->data = json_decode($ext->data) ;
+	}
+	public function count_lands() { // Count the number of each basic land in extension
+		$basiclands = array() ; // Land name => number of occurrences
+		foreach ( $this->cards as $card ) {
+			if ( property_exists($card->attrs, 'supertypes') && array_search('basic', $card->attrs->supertypes) !== false ) {
+				if ( ! array_key_exists($card->name, $basiclands) ) {
+					$basiclands[$card->name] = 0 ;
+				}
+				$ext_row = null ;
+				foreach ( $card->extensions as $extension )
+					if ( $extension->se == $this->se ) {
+						$ext_row = $extension ;
+						break ;
+					}
+				if ( $ext_row !== null ) {
+					$basiclands[$card->name] += intval($ext_row->nbpics) ;
+				}
+			}
+		}
+		// Extract the lowest number of occurrences
+		$ref = -1 ;
+		$err = false ;
+		foreach ( $basiclands as $land => $nb ) {
+			if ( $ref === -1 ) {
+				$ref = $nb ;
+			} else {
+				if ( $ref !== $nb ) {
+					$err = true ;
+				}
+				if ( $nb < $ref ) {
+					$ref = $nb ;
+				}
+			}
+		}
+		// Display message if numbers of occurrences don't match
+		if ( $err ) {
+			$str = '' ;
+			foreach ( $basiclands as $subland => $subnb ) {
+				if ( $str !== '' ) {
+					$str .= ', ' ;
+				}
+				$str .= $subnb.' '.$subland ;
+			}
+			echo 'Land counting for '.$this->name.' : '.$str."\n" ;
+		}
+		$this->basics = $ref ;
 	}
 	public function add_card($card, $rarity='') {
 		if ( $card == null )
