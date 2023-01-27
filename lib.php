@@ -36,7 +36,7 @@ if ( session_id() == '' )
 // Sets session cookie to live more than just session
 $cookie_expire = time()+60*60*24*365 ; // One year cookies
 if ( array_key_exists($session_id, $_COOKIE) )
-	setcookie($session_id, $_COOKIE[$session_id], $cookie_expire, '/') ;
+	setcookie($session_id, $_COOKIE[$session_id], $cookie_expire, '/; samesite=strict') ;
 
 // Reconnection
 if ( 
