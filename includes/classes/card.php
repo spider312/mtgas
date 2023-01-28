@@ -51,7 +51,12 @@ class Card {
 	}
 	public function __clone() {
 		$this->occurence = ++Card::$occurences ;
-		$this->attrs = clone $this->attrs ;
+		try {
+			$this->attrs = clone $this->attrs ;
+		} catch ( Exception $e) {
+			echo 'Exception cloning '.$this->name."\n" ;
+			echo 'Message: ' .$e->getMessage();
+		}
 	}
 	public function extend($ext='', $pic_num=0) { // Get a card copy for an ext and a num
 		$result = clone $this ;
