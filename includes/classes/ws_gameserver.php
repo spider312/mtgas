@@ -126,6 +126,9 @@ class GameServer {
 		$this->say("\t\t".count(Extension::$cache).' extensions imported') ;
 		$links = Card::fill_cache() ;
 		$this->say("\t\t".count(Card::$cache).' cards, '.$links.' links imported');
+		foreach ( Extension::$cache as $ext ) { // Once all cards dispatched in extensions, count lands for each extensions
+			$ext->count_lands() ;
+		}
 		$this->import_tokens() ;
 		$this->say("\tEnd MTG import") ;
 		$this->say("\tBegin MOGG refreshable import") ;

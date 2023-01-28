@@ -16,11 +16,26 @@ class BuildHandler extends LimitedHandler {
 				}
 			}
 			$user->sendString($deck_json) ;
+			// Send keywords
 			$keywords = new stdClass() ;
 			$keywords->type = 'keywords' ;
 			$keywords->keywords = $user->tournament->keywords() ;
 			$keywords->base = $this->observer->keywords ;
 			$user->sendString(json_encode($keywords)) ;
+			// Send infos about extensions in sealed
+			$lands = new stdClass() ;
+			$lands->type = 'lands' ;
+			$lands->exts = array() ;
+			$exts = array_unique($user->tournament->data->boosters) ;
+			foreach ( $exts as $extse ) {
+				$ext = Extension::get($extse) ;
+				$result = new stdClass() ;
+				$result->se = $extse ;
+				$result->name = $ext->name ;
+				$result->nb = $ext->basics ;
+				$lands->exts[] = $result ;
+			}
+			$user->sendString(json_encode($lands)) ;
 		}
 	}
 	public function recieved(WebSocketTransportInterface $user, $data) {

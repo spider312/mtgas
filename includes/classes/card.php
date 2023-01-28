@@ -12,7 +12,7 @@ class Card {
 	public $rarity = '' ; // Rarity in selected extension
 	public $text = '' ;
 	public $exts = array() ; // Extension list
-	private $extensions = array() ; // Full data for extensions
+	public $extensions = array() ; // Full data for extensions
 	public function __construct($card) {
 		$this->occurence = ++Card::$occurences ;
 		$this->id = $card->id ;

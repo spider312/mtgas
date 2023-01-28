@@ -4,7 +4,7 @@ $base_url = 'https://www.magic-ville.com/' ;
 $base_path = 'fr/' ;
 $mana_url = '/fr/graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
-$rarities = array(4 => 'M', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
+$rarities = array(4 => 'M', 5 => 'S', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 $imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo', 'Borderless', 'Buy-a-Box', 'Promo Pack') ;
 
 // Importer
@@ -169,14 +169,19 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		$rarity = 'C' ;
 	} else {
 		$rarity_id = preg_replace("#$rarity_url|(\..*)#", '', $rarity_node->item(0)->getAttribute('src')) ;
-		$rarity = $rarities[$rarity_id] ;
-		if ( $importer->type === 'preview' ) {
-			if ( ( $rarity === 'R' ) || ( $rarity === 'M' ) ) { 
-				$rarity = 'L' ; // To appear differently in builder
-				$img = null ;
-			} else {
-				continue ;
-			}
+		if ( array_key_exists($rarity_id, $rarities) ) {
+			$rarity = $rarities[$rarity_id] ;
+		} else {
+			$importer->adderror('Rarity index not existing : '.$rarity_id, $href) ;
+			$rarity = 'C' ;
+		}
+	}
+	if ( $importer->type === 'preview' ) {
+		if ( ( $rarity === 'R' ) || ( $rarity === 'M' ) ) { 
+			$rarity = 'L' ; // To appear differently in builder
+			$img = null ;
+		} else {
+			continue ;
 		}
 	}
 // Token
@@ -278,14 +283,17 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	if ( ( strpos($types, 'Gate') !== false ) && ( strpos($name, 'Guildgate') !== false ) ) { // In all Ravnica extensions, Guildgates (but no other gates) appear as land in boosters
 		$rarity = 'L' ;
 	}
+	if ( strpos($types, 'Theme Card') !== false ) {
+		continue ; // Ignore theme cards in import
+	}
 	// Card is a land but have no cost : normal for suspend
-	/*
+	/**/
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
 		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
 		$importer->addtoken($href, $name, $pow, $tou, $img) ;
 		continue ;
 	}
-	*/
+	/**/
 	// Text
 	$text_nodes = $card_xpath->query("//div[@id='EngShort']") ;
 	$text = mv2txt($text_nodes->item(0)->C14N()) ;
