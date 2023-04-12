@@ -434,7 +434,7 @@ $colors = array('X' => 'colorless', 'W' => 'white', 'U' => 'blue', 'B' => 'black
 $basic_lands = array('W' => 'plains', 'U' => 'island', 'B' => 'swamp', 'R' => 'mountain', 'G' => 'forest') ;
 $colorscode = array_keys($colors) ; // For ordering
 $allcolorscode = array('', 'X', 'W', 'U', 'B', 'R', 'G', 'WU','WB','UB','UR','BR','BG','RG','RW','GW','GU','WUB','UBR','BRG','RGW','GWU','WBR','URG','BGW','RWU','GUB','WUBR','UBRG','BRGW','RGWU','GWUB','WUBRG') ;
-$cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal') ;
+$cardtypes = array('artifact', 'creature', 'enchantment', 'instant', 'land', 'planeswalker', 'sorcery', 'tribal', 'battle') ;
 $permtypes = array('artifact', 'creature', 'enchantment', 'land', 'planeswalker') ;
 $spelltypes = array('instant', 'sorcery') ;
 $creat_attrs = array( 'double strike', 'lifelink', 'vigilance', 'infect', 'trample', 'exalted', 'battle cry', 'cascade', 'changeling');
