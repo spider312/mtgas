@@ -5,4 +5,6 @@ if ( ! array_key_exists('importer', $_SESSION) ) {
 	die('No importer : '.session_name()) ;
 }
 $_SESSION['importer']->download() ;
+$code = $_SESSION['importer']->dbcode ;
+echo `/home/mogg/bin/thumb $code` ;
 ?></pre>
