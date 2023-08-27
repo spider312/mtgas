@@ -6,6 +6,7 @@ $mana_url = '/fr/graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 5 => 'S', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
 $imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo', 'Borderless', 'Buy-a-Box', 'Promo Pack') ;
+$not_imported_extratxt = array('Jumpstart pack') ;
 
 // Importer
 $import_url = $base_url.$base_path.'set_cards?setcode='.$ext_source.'&lang=eng' ;
@@ -219,19 +220,16 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
-			/*
+			//if (  array_search($extratxt, $not_imported_extratxt) !== true) {
 			if (  array_search($extratxt, $imported_extratxt) !== false) {
-			*/
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
-			/*
 			} else { // Only import PW Decks cards in PW Decks context
 				if ( ( ( $importer->type !== 'pwdecks' ) && ( $importer->type !== 'all' ) ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
 					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
 					continue ;
 				}
 			}
-			*/
 		}
 	} else {
 		//echo "$name {$token_number_node->length}\n" ;
@@ -383,6 +381,9 @@ function mv_dom_node2cost($node) {
 		}
 		if ( $mana === 'WR' ) {
 			$mana = 'RW' ;
+		}
+		if ( $mana === 'C' ) { // Correct colorless mana to use MTGAS standard code "E"
+			$mana = 'E' ;
 		}
 		if ( strlen($mana) > 1 ) { // Group multiple mana symbols (hybrid, phyrexian)
 			$mana = '{'.$mana.'}' ;
