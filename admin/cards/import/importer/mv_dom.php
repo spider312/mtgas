@@ -5,7 +5,7 @@ $base_path = 'fr/' ;
 $mana_url = '/fr/graph/manas/big_png/' ;
 $rarity_url = 'graph/rarity/carte' ;
 $rarities = array(4 => 'M', 5 => 'S', 10 => 'R', 20 => 'U', 30 => 'C', 40 => 'L') ;
-$imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo', 'Borderless', 'Buy-a-Box', 'Promo Pack') ;
+//$imported_extratxt = array('Story Spotlight', 'Spotlight', 'Extended-Art Frame', 'Showcase Frame', 'Double Masters Prerelease Promo', 'Borderless', 'Buy-a-Box', 'Promo Pack') ;
 $not_imported_extratxt = array('Jumpstart pack') ;
 
 // Importer
@@ -220,8 +220,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
-			//if (  array_search($extratxt, $not_imported_extratxt) === false) {
-			if (  array_search($extratxt, $imported_extratxt) !== false) {
+			if (  array_search($extratxt, $not_imported_extratxt) === false) {
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 			} else { // Only import PW Decks cards in PW Decks context
