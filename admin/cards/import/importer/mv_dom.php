@@ -220,7 +220,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$importer->addtoken($href, $name, $pow, $tou, $img) ;
 			continue ;
 		} else {
-			//if (  array_search($extratxt, $not_imported_extratxt) !== true) {
+			//if (  array_search($extratxt, $not_imported_extratxt) === false) {
 			if (  array_search($extratxt, $imported_extratxt) !== false) {
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
@@ -287,7 +287,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	// Card is a land but have no cost : normal for suspend
 	/**/
 	if ( ( strpos($types, 'Land') === false ) && ( $cost === '' ) ) {
-		$importer->adderror('Warning : Card is not a land but have no cost', $href) ;
+		$importer->adderror('Warning : Card is not a land but have no cost, imported as token', $href) ;
 		$importer->addtoken($href, $name, $pow, $tou, $img) ;
 		continue ;
 	}
