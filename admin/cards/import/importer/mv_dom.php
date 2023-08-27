@@ -224,7 +224,9 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 			} else { // Only import PW Decks cards in PW Decks context
-				if ( ( ( $importer->type !== 'pwdecks' ) && ( $importer->type !== 'all' ) ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
+				if ( ( $extratxt === 'Jumpstart pack' ) && ( $importer->type === 'jumpstart' ) ) {
+				} else if ( ( $extratxt === 'Planeswalker Deck' ) && ( $importer->type === 'pwdecks' ) ) {
+				} else {
 					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
 					continue ;
 				}
