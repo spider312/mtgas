@@ -631,6 +631,23 @@ function exile(player) {
 		if ( this.player.access() ) {
 			if ( this.cards.length > 0 ) {
 				menu.addline() ;
+				// Submenus
+				var adventuresubmenu = new menu_init(this) ;
+				for ( var i in this.cards ) {
+					var card = this.cards[i] ;
+					if ( iss(card.attrs.adventure) ) {
+						var l = adventuresubmenu.addline(card.name+' ('+card.attrs.adventure+')', card.changezone, this.player.battlefield) ;
+						l.override_target = card ;
+						l.moimg = card.imgurl() ;
+					}
+				}
+				if ( adventuresubmenu.items.length > 0 ) {
+					menu.addline('Adventure ('+adventuresubmenu.items[0].length+')', adventuresubmenu) ;
+					addline = true ;
+				}
+				if ( addline )
+					menu.addline() ;
+				// Zone menu
 				menu.addline('To hand ...',		this.changezone, this.player.hand) ;
 				menu.addline('To battlefield ...',	this.changezone, this.player.battlefield) ;
 				menu.addline('To top deck ...',		this.changezone, this.player.library) ;
