@@ -605,7 +605,7 @@ function Card(card) {
 			div.classList.add(card.rarity) ;
 			div.card = this ;
 			div.transformed_url = '' ;
-			if ( iso(card.attrs.split) && ! iss(card.attrs.aftermath) ) {
+			if ( iso(card.attrs.split) && ! iss(card.attrs.aftermath) && ! iss(card.attrs.adventure) ) {
 				div.classList.add('split') ;
 			}
 			// Image loading
@@ -651,7 +651,9 @@ function Card(card) {
 		if ( alt.src != '' )
 			alt.src = '' ;
 		// Split
-		if ( iss(card.attrs.aftermath) ) {
+		if ( iss(card.attrs.adventure) ) {
+			// Nothing (adventures are considered as split but viewed as normal)
+		} else if ( iss(card.attrs.aftermath)) {
 			alt.src = div.card.img.src ;
 			alt.classList.add('aftermath') ;
 		} else if ( iso(card.attrs.split) ) {
