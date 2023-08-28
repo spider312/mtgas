@@ -1077,6 +1077,24 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
+	// Role token
+	if ( preg_match('/[C|c]reate a (?<role>[\w\s]*) Role token/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$role = $matches["role"] ;
+		$token->name = $role ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'Enchantment' ;
+		$token->attrs->subtypes[] = 'Aura' ;
+		$boosted_roles = ['Monster', 'Royal', 'Sorcerer', 'Wicked'] ;
+		if ( array_search($role, $boosted_roles) !== false ) {
+			$bonus = new stdClass() ;
+			$bonus->pow = 1 ;
+			$bonus->tou = 1 ;
+			$token->attrs->bonus = $bonus ;
+		}
+		$target->tokens[] = $token ;
+	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
