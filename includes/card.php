@@ -499,8 +499,13 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 }
 function manage_all_text($name, $text, $target) {
 	$text_lines = mb_split('\n|  ', $text) ;
-	if ( array_search('creature', $target->types) !== false )
+	if (
+		( array_search('creature', $target->types) !== false )
+		&&
+		! ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) )
+	) {
 		$text_lines = parse_creature($name, $text_lines, $target) ;
+	}
 	if ( array_search('planeswalker', $target->types) !== false )
 		$text_lines = parse_planeswalker($name, $text_lines, $target) ;
 	$target->text = $text_lines ; // Save text while parsing for lines requiring access to other lines (lines are parsed individually)
@@ -577,7 +582,7 @@ function manage_text($name, $text, $target) {
 		$target->escape = $matches[1] ;
 	}
 		// In exile
-	if ( property_exists($target, 'split' ) && property_exists($target->split, 'subtypes') && array_search('adventure', $target->split->subtypes) !== false ) {
+	if ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) ) {
 		$target->adventure = implode($target->split->manas);
 	}
 	// Permanents attributes
