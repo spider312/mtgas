@@ -576,6 +576,10 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Escape (.*)/', $text, $matches) ) {
 		$target->escape = $matches[1] ;
 	}
+		// In exile
+	if ( property_exists($target, 'split' ) && property_exists($target->split, 'subtypes') && array_search('adventure', $target->split->subtypes) !== false ) {
+		$target->adventure = implode($target->split->manas);
+	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
 		$target->vanishing = true ;

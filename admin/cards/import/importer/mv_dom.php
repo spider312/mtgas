@@ -320,7 +320,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
 	// Second part
-	if ( ( $second_name !== '' ) && ( strpos($second_types, 'Adventure') === false ) ) { // Split / Transform but not adventures that are not manageable ATM
+	if ( $second_name !== '' ) {
 		// Search back image
 		$xpath = $card_xpath->query("//div[@id='CardScanBack']//img") ;
 		if ( $xpath->length === 0 ) { // No back image found : it's a split
