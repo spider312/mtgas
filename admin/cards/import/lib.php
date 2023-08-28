@@ -304,6 +304,11 @@ class Importer {
 					$ext .= 'PW' ;
 					$this->name .= ' - Planeswalker Decks' ;
 					break ;
+				case 'jumpstart' : // Jumpstart pack
+					$data = '{}' ;
+					$ext .= 'J' ;
+					$this->name .= ' - Jumpstart pack' ;
+					break ;
 				case 'all' : // Sets that does not follow this logic such as preconstructed
 					$data = '{}' ;
 					break ;
@@ -566,7 +571,7 @@ class Importer {
 			echo "\n" ;
 		}
 		umask($oldumask) ;
-		echo "\n".'Finished in '.(microtime(true)-$begin).' (think about thumbnailing)' ;
+		echo "\n".'Finished download in '.(microtime(true)-$begin)."ms\n\n" ;
 		return true ;
 	}
 }

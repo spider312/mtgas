@@ -224,7 +224,9 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 				if ( ( $importer->type !== 'main' ) && ( $importer->type !== 'preview' ) ) { continue ; }
 				$importer->adderror('Additionnal text (normal import) : '.$extratxt, $href) ;
 			} else { // Only import PW Decks cards in PW Decks context
-				if ( ( ( $importer->type !== 'pwdecks' ) && ( $importer->type !== 'all' ) ) || ( strpos($extratxt, 'Planeswalker Deck') < 0 ) ) {
+				if ( ( $extratxt === 'Jumpstart pack' ) && ( $importer->type === 'jumpstart' ) ) {
+				} else if ( ( $extratxt === 'Planeswalker Deck' ) && ( $importer->type === 'pwdecks' ) ) {
+				} else {
 					$importer->adderror('Additionnal text (not imported) : '.$extratxt, $href) ;
 					continue ;
 				}
@@ -318,7 +320,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	// Translation
 	$card->addlang('fr', $frname, $frimg) ;
 	// Second part
-	if ( ( $second_name !== '' ) && ( strpos($second_types, 'Adventure') === false ) ) { // Split / Transform but not adventures that are not manageable ATM
+	if ( $second_name !== '' ) {
 		// Search back image
 		$xpath = $card_xpath->query("//div[@id='CardScanBack']//img") ;
 		if ( $xpath->length === 0 ) { // No back image found : it's a split

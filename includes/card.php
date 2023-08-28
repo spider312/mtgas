@@ -499,8 +499,13 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 }
 function manage_all_text($name, $text, $target) {
 	$text_lines = mb_split('\n|  ', $text) ;
-	if ( array_search('creature', $target->types) !== false )
+	if (
+		( array_search('creature', $target->types) !== false )
+		&&
+		! ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) )
+	) {
 		$text_lines = parse_creature($name, $text_lines, $target) ;
+	}
 	if ( array_search('planeswalker', $target->types) !== false )
 		$text_lines = parse_planeswalker($name, $text_lines, $target) ;
 	$target->text = $text_lines ; // Save text while parsing for lines requiring access to other lines (lines are parsed individually)
@@ -575,6 +580,10 @@ function manage_text($name, $text, $target) {
 	}
 	if ( preg_match('/Escape (.*)/', $text, $matches) ) {
 		$target->escape = $matches[1] ;
+	}
+		// In exile
+	if ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) ) {
+		$target->adventure = implode($target->split->manas);
 	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
@@ -1067,6 +1076,24 @@ function manage_text($name, $text, $target) {
 		$token->name = "Walker" ;
 		$target->tokens[] = $token ;
 		return;
+	}
+	// Role token
+	if ( preg_match('/[C|c]reate a (?<role>[\w\s]*) Role token/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$role = $matches["role"] ;
+		$token->name = $role ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'Enchantment' ;
+		$token->attrs->subtypes[] = 'Aura' ;
+		$boosted_roles = ['Monster', 'Royal', 'Sorcerer', 'Wicked'] ;
+		if ( array_search($role, $boosted_roles) !== false ) {
+			$bonus = new stdClass() ;
+			$bonus->pow = 1 ;
+			$bonus->tou = 1 ;
+			$token->attrs->bonus = $bonus ;
+		}
+		$target->tokens[] = $token ;
 	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
