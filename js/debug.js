@@ -3,7 +3,8 @@ if ( typeof log != 'function' )
 		return debug(obj) ;
 	}
 function log2(obj) {
-	return debug(obj) ;
+	console.log(obj) ;
+	//return debug(obj) ;
 }
 function debug(obj) { // Main function : launch debug on an object
 	var div = debug_div() ;
