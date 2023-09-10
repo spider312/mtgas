@@ -13,5 +13,6 @@ if ( $json === false ) {
 		}
 	}
 }
+header('Content-Type: application/json');
 die($json) ;
 ?>
