@@ -1077,6 +1077,16 @@ function manage_text($name, $text, $target) {
 		$target->tokens[] = $token ;
 		return;
 	}
+	// The Ring
+	if ( preg_match('/[T|t]he Ring tempts you/', $text, $matches) ) {
+		$token = new stdClass() ;
+		$token->name = "The Ring" ;
+		$token->nb = 1 ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = 'Emblem' ;
+		$token->attrs->counter = 1 ;
+		$target->tokens[] = $token ;
+	}
 	// Role token
 	if ( preg_match('/[C|c]reate a (?<role>[\w\s]*) Role token/', $text, $matches) ) {
 		$token = new stdClass() ;
