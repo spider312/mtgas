@@ -1105,6 +1105,14 @@ function manage_text($name, $text, $target) {
 		}
 		$target->tokens[] = $token ;
 	}
+	if ( preg_match('#[C|c]reates? (?<number>\w+) Map tokens?#', $text, $match) ) {
+		$token = new stdClass() ;
+		$token->nb = text2number($match['number'], 1) ;
+		$token->attrs = new stdClass() ;
+		$token->attrs->types[] = "artifact" ;
+		$token->name = 'Map' ;
+		$target->tokens[] = $token ;
+	}
 	// Distinct activated from static abilities
 	/*$parts = preg_split('/\s*:\s*'.'/', $text) ;
 	if ( count($parts) == 2 ) {
