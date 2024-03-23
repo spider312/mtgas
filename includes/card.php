@@ -662,7 +662,10 @@ function manage_text($name, $text, $target) {
 		$token->name = 'Tomb of Annihilation' ;
 		$target->tokens[] = $token ;
 	}
-	if ( ( stripos('daybound', $text) !== false ) || ( stripos('nightbound', $text) !== false ) ) {
+	if (
+		( stripos($text, 'daybound') !== false ) || ( stripos($text, 'nightbound') !== false ) ||
+		( stripos($text, 'it becomes day') !== false ) || ( stripos($text, 'it becomes night') !== false )
+	) {
 		$token = new stdClass() ;
 		$token->name = 'Day' ;
 		$token->attrs = new stdClass() ;
