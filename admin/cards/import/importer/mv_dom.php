@@ -27,10 +27,18 @@ $title = preg_replace('/ - (.*)/', '', $title_node->item(0)->nodeValue) ;
 $code_node = $xpath->query("//img[contains(@src, 'bigsetlogos')]");
 $code = preg_replace('#(.*/)|(\..*)#', '', $code_node->item(0)->getAttribute('src')) ;
 	// Cards nb
-if ( preg_match('#<div class=S14>&mdash;(?<cards>\d*) cartes</div>#', $html, $matches) )
+if (
+	preg_match('#<div class=S14>&mdash;(?<cards>\d*) cartes</div>#', $html, $matches) 
+	|| preg_match('#<div class=S14>&mdash;(?<cards>\d*) cartes \(sur (?<total>\d*)\)</div>#', $html, $matches)
+) {
 	$nbcards = $matches['cards'] ;
-else
+	$totcards = $matches['total'] ;
+	if ( $nbcards !== $totcards ) {
+		$importer->adderror('Not full set ('.$nbcards.'/'.$totcards.')', $importer->url) ;
+	}
+} else {
 	die('<a href="'.$import_url.'">No card number found') ;
+}
 	// Set data
 $importer->setext($code, $title, $nbcards) ;
 
