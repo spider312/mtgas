@@ -60,6 +60,7 @@ foreach ( $report->cards as $i => $card ) {
 		$card->play_score_ratio = $card->scored / $card->played ;
 	else
 		$card->play_score_ratio = 0 ;
+	$card->id = $i ;
 	$p[] = $card ;
 }
 usort($p, 'sort_'.$order) ;
@@ -228,11 +229,17 @@ echo '    <caption>'.$nb.' / '.count($p).' cards</caption>' ;
 <?php
 html_foot() ;
 
-function sort_by($field, $a, $b) {
-	$res = $b->$field - $a->$field ;
-	if ( $res == 0 )
-		return 0 ;
-	return $res / abs($res) ;
+function sort_by($fields, $a, $b) {
+	if ( ! is_array($fields) ) {
+		$fields = array($fields) ;
+	}
+	foreach ( $fields as $field ) {
+		$res = $b->$field - $a->$field ;
+		if ( $res != 0 ) {
+			return $res / abs($res) ;
+		}
+	}
+	return 0 ;
 }
 function sort_name($a, $b) {
 	if ( $a->name === $b->name ) 
@@ -252,13 +259,13 @@ function sort_scored($a, $b) {
 	return sort_by('scored', $a, $b) ;
 }
 function sort_play_ratio($a, $b) {
-	return sort_by('play_ratio', $a, $b) ;
+	return sort_by(array('play_ratio', 'played'), $a, $b) ;
 }
 function sort_score_ratio($a, $b) {
-	return sort_by('score_ratio', $a, $b) ;
+	return sort_by(array('score_ratio', 'scored'), $a, $b) ;
 }
 function sort_play_score_ratio($a, $b) {
-	return sort_by('play_score_ratio', $a, $b) ;
+	return sort_by(array('play_score_ratio', 'played'), $a, $b) ;
 }
 function option_value($value, $default) {
 	echo 'value="'.$value.'"' ;
