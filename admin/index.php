@@ -70,7 +70,7 @@ $dir = '../stats/' ;
 
 if ( array_key_exists('delete_report', $_GET) ) {
 	$spl = split("\|", param_or_die($_GET, 'name')) ;
-	$name = $spl[0] ;
+	$name = $spl[0].'.json' ;
 	if ( unlink($dir.$name) )
 		echo "<p>Deleted $name</p>" ;
 	else
@@ -87,13 +87,15 @@ if ( count($reports) > 0 ) {
 	foreach ( $reports as $r ) {
 		$content = file_get_contents($dir.$r) ;
 		$data = json_decode($content) ;
+		$time = filemtime('../stats/'.$r) ;
+		$r = str_replace('.json', '', $r) ;
 		$value  = $r ;
 		$value .= '|'.(isset($data->date)  ? $data->date:'') ;
 		$value .= '|'.(isset($data->format)? $data->format:'') ;
 		$value .= '|'.(isset($data->exts)  ? implode(',', $data->exts):'') ;
 		$value .= '|'.(isset($data->mask)  ? $data->mask:'') ;
 		$value .= '|'.(isset($data->imask) ? $data->imask:'') ;
-		echo '     <option value="'.$value.'">'.$r.' (updated '.date ("Y-m-d H:i:s.", filemtime('../stats/'.$r)).')</option>'."\n" ;
+		echo '     <option value="'.$value.'">'.$r.' (updated '.date ("Y-m-d H:i:s.", $time).')</option>'."\n" ;
 	}
 ?>
      </select>
