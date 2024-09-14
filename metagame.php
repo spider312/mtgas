@@ -38,7 +38,7 @@ $color = param($_GET, 'color', array_keys($default_colors)) ;
 $rarity = param($_GET, 'rarity', array_keys($default_rarities)) ;
 
 // Get report data
-$report = json_decode(file_get_contents('stats/'.$report_name)) ;
+$report = json_decode(file_get_contents('stats/'.$report_name.'.json')) ;
 
 // Process score data
 $card_connection = card_connect() ;
@@ -89,9 +89,11 @@ html_menu() ;
 $reports = array_reverse(sorted_scandir('stats')) ;
 foreach ( $reports as $r )
 	if ( ( $r != '.' ) && ( $r != '..' ) ) {
+		$time = filemtime('stats/'.$r) ;
+		$r = str_replace('.json', '', $r) ;
 		echo '     <option ' ;
 		option_value($r, $report_name) ;
-		echo '>'.$r.' (updated '.date ("F d Y H:i:s.", filemtime('stats/'.$r)).')</option>'."\n" ;
+		echo '>'.$r.' (updated '.date ("F d Y H:i:s.", $time).')</option>'."\n" ;
 	}
 ?>
     </select>

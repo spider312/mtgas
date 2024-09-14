@@ -14,7 +14,7 @@ if ( ! ereg('([0-9]{4})-([0-9]{2})-([0-9]{2})', $date) )
 	$date = '' ;
 
 $folder = __dir__ . '/../../stats/' ;
-$file = $folder.$name ;
+$file = $folder.$name.'.json' ;
 
 if ( $exts == '' )
 	$exts = array() ;
