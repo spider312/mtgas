@@ -149,7 +149,7 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 	if ( preg_match('#(?<pow>\d*)/(?<tou>\d*)#', $pt, $matches) ) {
 		$pow = intval($matches['pow']) ;
 		$tou = intval($matches['tou']) ;
-			}
+	}
 	// Img
 	$img_node = $card_xpath->query("//td[@width=325]/img") ;
 	if ( $img_node->length === 0 ) {
