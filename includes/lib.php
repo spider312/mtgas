@@ -64,6 +64,15 @@ function debug($object) {
 function now($offset = 0) {
 	return date('Y-m-d H:i:s', time() + $offset) ;
 }
+function trace() { // See debug_print_backtrace
+	$result = "<ul>\n" ;
+	$traces = debug_backtrace() ;
+	foreach ( $traces as $trace ) {
+		$result .= '<li>'.$trace['file'].':'.$trace['line'].' '.$trace['function'].'()</li>'."\n" ;
+	}
+	$result .= "</ul>\n" ;
+	return $result ;
+}
 // Object
 function obj_compare($a, $b) { // Returns if $a has exactly the same structure and values as $b
 	if ( gettype($a) != gettype($b) )
