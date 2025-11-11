@@ -33,7 +33,7 @@ if (
 	|| preg_match('#<div class=S14>&mdash;(?<cards>\d*) cartes \(sur (?<total>\d*)\)</div>#', $html, $matches)
 ) {
 	$nbcards = $matches['cards'] ;
-	$totcards = $matches['total'] ;
+	$totcards = array_key_exists('total', $matches) ? $matches['total'] : $nbcards ;
 	if ( $nbcards !== $totcards ) {
 		$importer->adderror('Not full set ('.$nbcards.'/'.$totcards.')', $importer->url) ;
 	}
@@ -125,6 +125,31 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		$importer->adderror('Punch card ignored', $href) ;
 		continue;
 	}
+	// Types (required for PT)
+	$type_nodes = $card_xpath->query("//div[@class='G12']") ;
+	$second_types = '' ;
+	switch ( $type_nodes->length ) {
+		case 2 :
+			$types = $type_nodes->item(1)->nodeValue ;
+			break ;
+		case 4 :
+			$types = $type_nodes->item(2)->nodeValue ;
+			$second_types = $type_nodes->item(3)->nodeValue ;
+			//$second_types = card_text_sanitize($second_types) ;
+			break ;
+		default : 
+			$importer->adderror('Types nodes '.$type_nodes->length, $href) ;
+			continue 2 ;
+	}
+	$types = trim($types) ;
+	$types = str_replace(chr(194).chr(151), '-', $types) ;
+	$types = str_replace(chr(194).chr(150), '-', $types) ;
+	if ( ( strpos($types, 'Gate') !== false ) && ( strpos($name, 'Guildgate') !== false ) ) { // In all Ravnica extensions, Guildgates (but no other gates) appear as land in boosters
+		$rarity = 'L' ;
+	}
+	if ( strpos($types, 'Theme Card') !== false ) {
+		continue ; // Ignore theme cards in import
+	}
 	// PT
 	$pt_nodes = $card_xpath->query("//div[@class='G14' and string-length(text()) > 0]") ;
 	$pt = '' ;
@@ -133,7 +158,15 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 		case 0: // Split
 			break;
 		case 2: // Has 1 PT (normal)
-			$pt = loyaltize($pt_nodes->item(1)->nodeValue) ;
+		$value = loyaltize($pt_nodes->item(1)->nodeValue) ;
+		if (
+			( stripos($types, 'creature') !== false )
+			|| ( stripos($types, 'vehicle') !== false )
+		) {
+			$pt = $value ;
+		} else {
+			$trpt = $value ;
+		}
 			break ;
 		// Has 2 PT (transform)
 		case 3: // French version miss moon data
@@ -268,31 +301,6 @@ for ($i = 0 ; $i < count($cards_href) ; $i++ ) {
 			$second_cost = mv_dom_node2cost($cost_container_nodes[1]);
 		}
 		$cost = mv_dom_node2cost($cost_container_nodes[0]);
-	}
-	// Types
-	$type_nodes = $card_xpath->query("//div[@class='G12']") ;
-	$second_types = '' ;
-	switch ( $type_nodes->length ) {
-		case 2 :
-			$types = $type_nodes->item(1)->nodeValue ;
-			break ;
-		case 4 :
-			$types = $type_nodes->item(2)->nodeValue ;
-			$second_types = $type_nodes->item(3)->nodeValue ;
-			//$second_types = card_text_sanitize($second_types) ;
-			break ;
-		default : 
-			$importer->adderror('Types nodes '.$type_nodes->length, $href) ;
-			continue 2 ;
-	}
-	$types = trim($types) ;
-	$types = str_replace(chr(194).chr(151), '-', $types) ;
-	$types = str_replace(chr(194).chr(150), '-', $types) ;
-	if ( ( strpos($types, 'Gate') !== false ) && ( strpos($name, 'Guildgate') !== false ) ) { // In all Ravnica extensions, Guildgates (but no other gates) appear as land in boosters
-		$rarity = 'L' ;
-	}
-	if ( strpos($types, 'Theme Card') !== false ) {
-		continue ; // Ignore theme cards in import
 	}
 	// Card is a land but have no cost : normal for suspend
 	/**/
