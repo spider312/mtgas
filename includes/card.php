@@ -999,7 +999,10 @@ function manage_text($name, $text, $target) {
 		return;
 	}
 	// Investigate / Clues
-	if ( preg_match('/[I|i]nvestigate/', $text, $matches) ) {
+	if ( 
+		preg_match('/[I|i]nvestigate/', $text, $matches)
+		|| preg_match('/[C|c]reate a Clue token/', $text, $matches)
+	) {
 		$token = new stdClass() ;
 		$token->nb = 1 ;
 		$token->attrs = new stdClass() ;
