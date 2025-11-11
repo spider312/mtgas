@@ -306,21 +306,29 @@ class attrs {
 					// Then manage "night", 3+ lines : name, color/types, text (all other lines, such as "pow/tou \n other effects" for creats)
 					$transform = new stdClass() ;
 					$matches = explode("\n", $pieces[1]) ;
-					if ( count($matches) > 0 )
+					if ( count($matches) > 0 ) { // Name
 						$transform->name = stripslashes(array_shift($matches)) ;
-					if ( count($matches) > 0 ) {
-						$t = array_shift($matches) ;
-						$reg = '/\%(\S+)? (.*)/s' ;
+					}
+					if ( count($matches) > 0 ) { // Color
 						$transform->color = 'X' ;
-						if ( preg_match($reg, $t, $matches_t) ) {
-							if ( $matches_t[1] !== '' ) {
-								$transform->color = $matches_t[1] ;
-							}
-							$t = $matches_t[2] ;
+						$color = array_shift($matches) ;
+						$reg = '/\%(?<color>.*?)? (?<types>.*)/s' ;
+						if ( preg_match($reg, $color, $matches_t) ) {
+							$color = $matches_t['color'] ;
+							$types = $matches_t['types'] ;
+							manage_types($types, $transform) ;
+						} else {
+							$types = array_shift($matches) ;
+							manage_types($types, $transform) ;
 						}
-						manage_types($t, $transform) ;
-					} else
-						echo 'No color/type for transformed '.$arr['name'].'('.$transform->name.')<br>' ;
+						if ( ( $color !== '' ) && ( $color[0] === '%' ) ) {
+							$color = substr($color, 1) ;
+						}
+						//echo gettype($color)."$color/$types" ;
+						if ( ( $color !== false ) && ( $color !== '' ) ) {
+							$transform->color = $color ;
+						}
+					}
 					if ( count($matches) > 0 ) {
 						manage_all_text($transform->name, implode("\n", $matches), $transform) ;
 					} else
