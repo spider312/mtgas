@@ -1722,12 +1722,15 @@ function card_prototype() {
 		var cardname = this.get_name() ; // Backup as it will change during process
 		this.attrs.transformed = false ; // Untransform itself
 		this.load_image() ; // Reload image
-		if ( this.is_creature() ) { // If card is a creat, apply untransformed pow/tou
+		this.transform_attrs(this.orig_attrs) ; // Restore original attrs, in case they differ from transformed
+		if ( isn(this.orig_attrs.pow) && isn(this.orig_attrs.thou) ) { // If card is a creat, apply untransformed pow/tou
 			var mpow = this.transformed_attrs.pow - this.get_pow() ;
 			var mthou = this.transformed_attrs.thou - this.get_thou() ;
 			this.set_powthou(this.orig_attrs.pow - mpow, this.orig_attrs.thou - mthou) ;
+		} else {
+			delete this.attrs.pow ;
+			delete this.attrs.thou ;
 		}
-		this.transform_attrs(this.orig_attrs) ; // Restore original attrs, in case they differ from transformed
 		this.sync_attrs = clone(this.attrs, true) ; // Only sync 'transformed' status, other attrs change will be done client-side
 		this.sync_attrs.transformed = true ;
 		this.refreshpowthou() ;
