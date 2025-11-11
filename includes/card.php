@@ -347,13 +347,9 @@ class attrs {
 							if ( count($matches) > 0 )
 								manage_types(array_shift($matches), $split) ;
 							$this->split = $split ;
-							manage_all_text($arr['name'], implode("\n", $matches), $this) ;
+							manage_all_text($arr['name'], implode("\n", $matches), $split, $this) ;
 							// Apply colors to initial card
 							$this->parsemana($split->manas) ;
-							// Apply aftermath
-							if ( property_exists($split, 'aftermath') ) {
-								$this->aftermath = $split->aftermath ;
-							}
 						}
 					} else
 						manage_all_text($arr['name'], $arr['text'], $this) ;
@@ -463,8 +459,12 @@ function parse_creature($name, $text_lines, $target) { // Creatures : pow/tou
 		array_shift($text_lines) ;
 	} else {
 		msg('powthou error for '.$name.' : ['.$txt.']') ;
-		$target->pow = 0 ;
-		$target->thou = 0 ;
+		if ( ! property_exists($target, 'pow') ) {
+			$target->pow = 0 ;
+		}
+		if ( ! property_exists($target, 'thou') ) {
+			$target->thou = 0 ;
+		}
 	}
 	return $text_lines ;
 }
@@ -497,26 +497,23 @@ function parse_planeswalker($name, $pieces, $target) {// Planeswalkers : loyalty
 	return array() ;
 	//return $pieces ;
 }
-function manage_all_text($name, $text, $target) {
+function manage_all_text($name, $text, $target, $parent=null) {
 	$text_lines = mb_split('\n|  ', $text) ;
-	if (
-		( array_search('creature', $target->types) !== false )
-		&&
-		! ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) )
-	) {
+	if ( array_search('creature', $target->types) !== false ) {
 		$text_lines = parse_creature($name, $text_lines, $target) ;
 	}
-	if ( array_search('planeswalker', $target->types) !== false )
+	if ( array_search('planeswalker', $target->types) !== false ) {
 		$text_lines = parse_planeswalker($name, $text_lines, $target) ;
+	}
 	$target->text = $text_lines ; // Save text while parsing for lines requiring access to other lines (lines are parsed individually)
 	foreach ( $text_lines as $text_line ) {
 		$text_line = trim($text_line, ' .') ;
-		manage_text($name, $text_line, $target) ;
+		manage_text($name, $text_line, $target, $parent) ;
 	}
 	unset($target->text);
 }
 // Reads 1 "line" of text and adds to target attributes parsed inside
-function manage_text($name, $text, $target) { 
+function manage_text($name, $text, $target, $parent=null) { 
 	// Emblem
 	if ( preg_match('/[You get|Target opponent gets] an emblem with "(.*)"(.*)$/', $text, $matches) ) {
 		$token = new stdClass() ;
@@ -570,7 +567,7 @@ function manage_text($name, $text, $target) {
 	if ( preg_match('/Embalm ('.$manacost.')/', $text, $matches) )
 		$target->embalm = manacost($matches[1]) ;
 	if ( preg_match('/Aftermath/', $text, $matches) ) {
-		$target->aftermath = implode($target->split->manas);
+		$parent->aftermath = implode($target->manas);
 	}
 	if ( preg_match('/Eternalize ('.$manacost.')/', $text, $matches) ) {
 		$target->eternalize = manacost($matches[1]) ;
@@ -582,8 +579,8 @@ function manage_text($name, $text, $target) {
 		$target->escape = $matches[1] ;
 	}
 		// In exile
-	if ( property_exists($target, 'split') && property_exists($target->split, 'subtypes') && ( array_search('adventure', $target->split->subtypes) !== false ) ) {
-		$target->adventure = implode($target->split->manas);
+	if ( property_exists($target, 'subtypes') && ( array_search('adventure', $target->subtypes) !== false ) ) {
+		$parent->adventure = implode($target->manas);
 	}
 	// Permanents attributes
 	if ( preg_match('/Vanishing (\d+)/', $text, $matches) ) {
