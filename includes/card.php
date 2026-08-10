@@ -1017,7 +1017,7 @@ function manage_text($name, $text, $target, $parent=null) {
 	}
 	// Treasures
 	if ( 
-		preg_match('#[C|c]reates? (?<number>\w+) Treasure tokens?#', $text, $match)
+		preg_match('#[C|c]reates? (?<number>\w+) (?<tapped>tapped )?Treasure tokens?#', $text, $match)
 	) {
 		$token = new stdClass() ;
 		$token->nb = array_key_exists('number', $match) ? text2number($match['number'], 1) : 1 ;
@@ -1025,6 +1025,9 @@ function manage_text($name, $text, $target, $parent=null) {
 		$token->attrs->types[] = "artifact" ;
 		$name = 'Treasure' ;
 		$token->name = $name ;
+		if ( array_key_exists('tapped', $match) ) {
+			$token->tapped = true ;
+		}
 		$target->tokens[] = $token ;
 		return;
 	}
