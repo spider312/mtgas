@@ -28,7 +28,7 @@ function cache_get($url, $cache_file, $verbose = true, $noDownloadSmaller=false,
 			else
 				$message .= 'updated ('.human_filesize($size).')' ;
 			if ( strpos($url, 'http://www.magic-ville.com') !== false )
-				time_nanosleep(0, 500000000) ; // Avoid anti-leech mechanism on MV (30 queries every 15 sec)
+				time_nanosleep(0, 1000000000) ; // Avoid anti-leech mechanism on MV (30 queries every 15 sec)
 		} else
 			$message .= 'not downloadable ('.$url.')' ;
 		$message .= ']' ;
