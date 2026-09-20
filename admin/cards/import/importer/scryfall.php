@@ -75,6 +75,7 @@ foreach ( $data as $card ) {
 			$imageFace = $card->card_faces[0] ; // Recto hosts main image for transform
 		case 'flip' :
 		case 'split' :
+		case 'prepare' :
 			$recto = $card->card_faces[0] ;
 			$verso = $card->card_faces[1] ;
 			$verso->color_identity = $card->color_identity ;
@@ -129,6 +130,7 @@ foreach ( $data as $card ) {
 		}
 		switch ( $card->layout ) {
 			case 'split' :
+			case 'prepare' :
 				$cost = str_replace(array('{', '}'), '', $verso->mana_cost) ; // Transform cost from icon representation to textual representation
 				$imported->split($verso->name, $cost, $verso->type_line, card2text($verso)) ;
 				break ;
