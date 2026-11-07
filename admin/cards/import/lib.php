@@ -80,8 +80,11 @@ function curl_download($url) {
 	$curl = curl_init_custom($url);
 	$content = curl_exec($curl);
 	$info = curl_getinfo($curl) ;
-	if ( $info['http_code'] >= 400 )
+	if ( $info['http_code'] >= 400 ) {
+		print_r($info) ;
+		die('Process canceled due to error during download') ;
 		return false ;
+	}
 	return $content ;
 }
 function rmkdir($dir) { // mkdir recursively without umask bug
@@ -257,11 +260,13 @@ class Importer {
 			echo "Errors : \n" ;
 			foreach ( $this->errors as $i => $error ) {
 				echo ' - '.$i.' : '.count($error).' : ' ;
-				foreach ( $error as $j => $url )
-					if ( is_string($url) )
+				foreach ( $error as $j => $url ) {
+					if ( is_string($url) ) {
 						echo '<a href="'.$url.'">'.$j.'</a> ' ;
-					else
+					} else if ( is_object($url) ) {
 						echo '<a href="'.$url->url.'">'.$url->name.'</a> ' ;
+					}
+				}
 				echo "\n" ;
 			}
 		} else
