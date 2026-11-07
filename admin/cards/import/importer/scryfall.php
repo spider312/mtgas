@@ -81,6 +81,7 @@ foreach ( $data as $card ) {
 			$verso->color_identity = $card->color_identity ;
 			break ;
 		case 'token' :
+		case 'double_faced_token' :
 			$power = property_exists($card, 'power') ? $card->power : 1 ; // As of M21, piratre has bug about pow/tou
 			$toughness = property_exists($card, 'toughness') ? $card->toughness : 1 ;
 			$importer->addtoken($uri, $card->name, $power, $toughness, get_image($card)) ;
@@ -92,7 +93,15 @@ foreach ( $data as $card ) {
 			$importer->adderror('Unmanaged layout : '.$card->layout, $card->scryfall_uri) ;
 			continue 2 ;
 	}
+
+
 	if ( property_exists($card, 'promo_types') ) {
+		$promo_types = array_filter($card->promo_types, 'is_universesbeyond') ;
+	} else {
+		$promo_types = array() ;
+	}
+	if ( count($promo_types) > 0 ) {
+		//print_r($promo_types) ;
 		continue ;
 	}
 	// Name
@@ -204,15 +213,20 @@ function get_image($imageFace) {
 	global $imgPriorities, $importer ;
 	$imgURI = null ;
 	foreach ( $imgPriorities as $imgType ) {
-		if ( property_exists($imageFace->image_uris, $imgType ) ) {
-			$imgURI = $imageFace->image_uris->{$imgType} ;
-			break ;
+		if ( property_exists($imageFace, 'image_uris') ) {
+			if ( property_exists($imageFace->image_uris, $imgType ) ) {
+				$imgURI = $imageFace->image_uris->{$imgType} ;
+				break ;
+			}
 		}
 	}
 	if ( $imgURI === null ) {
-		$importer->adderror('No image type '.implode(', ', $imgPriorities), $card->scryfall_uri) ;
+		$importer->adderror('No image type '.implode(', ', $imgPriorities), null) ;
 	}
 	return $imgURI ;
 }
 
+function is_universesbeyond($val) {
+	return ( $val !== 'universesbeyond' ) ;
+}
 ?>
